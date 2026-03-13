@@ -1,0 +1,1976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UK Sector Cyber Compliance Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #111418;
+    --surface2: #181c22;
+    --surface3: #1e2330;
+    --border: #252b38;
+    --border2: #2e3647;
+    --text: #e8eaf0;
+    --text2: #8b93a8;
+    --text3: #5a6275;
+    --accent: #4f9cf9;
+    --accent2: #1a4a8a;
+    --uk: #4f9cf9;
+    --eu: #6c63ff;
+    --us: #e8543a;
+    --global: #2ec4b6;
+    --notify: #f5a623;
+    --critical: #e8543a;
+    --high: #f5a623;
+    --medium: #4f9cf9;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+    --display: 'Playfair Display', serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,12,16,0.96);
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    height: 60px;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo-mark {
+    width: 28px;
+    height: 28px;
+    background: var(--accent);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .logo-mark svg { width: 16px; height: 16px; fill: white; }
+
+  .title-block h1 {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--text);
+  }
+
+  .title-block p {
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 0.03em;
+    font-family: var(--mono);
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .jurisdiction-legend {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .jleg {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text2);
+    letter-spacing: 0.04em;
+  }
+
+  .jleg-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* Layout */
+  .app {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: calc(100vh - 60px);
+  }
+
+  /* Sidebar */
+  aside {
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    position: sticky;
+    top: 60px;
+    height: calc(100vh - 60px);
+    overflow-y: auto;
+  }
+
+  aside::-webkit-scrollbar { width: 3px; }
+  aside::-webkit-scrollbar-track { background: transparent; }
+  aside::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  .sidebar-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0 20px 10px;
+  }
+
+  .sector-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s;
+    border-left: 2px solid transparent;
+  }
+
+  .sector-btn:hover { background: var(--surface2); }
+
+  .sector-btn.active {
+    background: var(--surface2);
+    border-left-color: var(--accent);
+  }
+
+  .sector-icon {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    background: var(--surface3);
+  }
+
+  .sector-btn.active .sector-icon {
+    background: var(--accent2);
+  }
+
+  .sector-btn-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .sector-btn-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sector-btn.active .sector-btn-name { color: var(--accent); }
+
+  .sector-btn-regs {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+  }
+
+  /* Main content */
+  main {
+    overflow-y: auto;
+    padding: 36px 40px;
+    max-width: 1100px;
+  }
+
+  main::-webkit-scrollbar { width: 3px; }
+  main::-webkit-scrollbar-track { background: transparent; }
+  main::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* Sector header */
+  .sector-header {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .sector-header-left {}
+
+  .sector-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .sector-title {
+    font-family: var(--display);
+    font-size: 32px;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+
+  .sector-desc {
+    color: var(--text2);
+    font-size: 14px;
+    max-width: 600px;
+    line-height: 1.7;
+  }
+
+  .sector-badges {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+
+  .risk-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-weight: 500;
+  }
+
+  .risk-critical { background: rgba(232,84,58,0.15); color: #e8543a; border: 1px solid rgba(232,84,58,0.25); }
+  .risk-high { background: rgba(245,166,35,0.12); color: #f5a623; border: 1px solid rgba(245,166,35,0.25); }
+  .risk-medium { background: rgba(79,156,249,0.12); color: #4f9cf9; border: 1px solid rgba(79,156,249,0.25); }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .stat-value {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .stat-value.accent { color: var(--accent); }
+  .stat-value.notify { color: var(--notify); }
+
+  /* Sections */
+  .section {
+    margin-bottom: 28px;
+  }
+
+  .section-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Regulation cards */
+  .reg-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .reg-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.15s;
+  }
+
+  .reg-card:hover { border-color: var(--border2); }
+
+  .reg-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+  }
+
+  .reg-jurisdiction {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border-radius: 3px;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  .j-uk { background: rgba(79,156,249,0.15); color: var(--uk); border: 1px solid rgba(79,156,249,0.25); }
+  .j-eu { background: rgba(108,99,255,0.15); color: var(--eu); border: 1px solid rgba(108,99,255,0.25); }
+  .j-us { background: rgba(232,84,58,0.15); color: var(--us); border: 1px solid rgba(232,84,58,0.25); }
+  .j-global { background: rgba(46,196,182,0.15); color: var(--global); border: 1px solid rgba(46,196,182,0.25); }
+
+  .reg-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .reg-short {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    margin-left: 4px;
+  }
+
+  .reg-chevron {
+    color: var(--text3);
+    font-size: 12px;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+
+  .reg-card.open .reg-chevron { transform: rotate(90deg); }
+
+  .reg-card-body {
+    display: none;
+    padding: 0 16px 16px;
+    border-top: 1px solid var(--border);
+    margin: 0 16px;
+  }
+
+  .reg-card.open .reg-card-body { display: block; }
+
+  .reg-desc {
+    color: var(--text2);
+    font-size: 13px;
+    line-height: 1.7;
+    padding: 12px 0 14px;
+  }
+
+  .reg-meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .reg-meta-block {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+  }
+
+  .reg-meta-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .reg-meta-value {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+
+  .reg-meta-value strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .reg-meta-value.notify-val { color: var(--notify); font-weight: 500; font-family: var(--mono); font-size: 11px; }
+
+  /* Notification timeline */
+  .notify-section {
+    margin-bottom: 28px;
+  }
+
+  .notify-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+  }
+
+  .notify-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    border-left: 3px solid var(--notify);
+  }
+
+  .notify-card.j-eu-border { border-left-color: var(--eu); }
+  .notify-card.j-us-border { border-left-color: var(--us); }
+  .notify-card.j-global-border { border-left-color: var(--global); }
+  .notify-card.j-uk-border { border-left-color: var(--uk); }
+
+  .notify-reg {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+
+  .notify-window {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .notify-to {
+    font-size: 11px;
+    color: var(--text2);
+  }
+
+  .notify-note {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 6px;
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  /* Penalties */
+  .penalty-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  .penalty-row:last-child { border-bottom: none; }
+
+  .penalty-reg { color: var(--text2); flex: 1; }
+  .penalty-amount {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--critical);
+    text-align: right;
+    min-width: 160px;
+  }
+
+  /* Key contacts */
+  .contacts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+  }
+
+  .contact-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .contact-body { font-size: 12px; color: var(--text2); }
+
+  .contact-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent);
+    font-family: var(--mono);
+    margin-bottom: 4px;
+    letter-spacing: 0.02em;
+  }
+
+  /* Tab filters */
+  .filter-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    padding: 5px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--text3);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .filter-btn:hover { border-color: var(--border2); color: var(--text2); }
+  .filter-btn.active { background: var(--surface3); border-color: var(--border2); color: var(--text); }
+  .filter-btn.uk-active { border-color: var(--uk); color: var(--uk); background: rgba(79,156,249,0.08); }
+  .filter-btn.eu-active { border-color: var(--eu); color: var(--eu); background: rgba(108,99,255,0.08); }
+  .filter-btn.us-active { border-color: var(--us); color: var(--us); background: rgba(232,84,58,0.08); }
+  .filter-btn.global-active { border-color: var(--global); color: var(--global); background: rgba(46,196,182,0.08); }
+
+  /* Welcome screen */
+  #welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 60px);
+    text-align: center;
+    padding: 40px;
+    color: var(--text3);
+  }
+
+  .welcome-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+    opacity: 0.4;
+  }
+
+  .welcome-title {
+    font-family: var(--display);
+    font-size: 24px;
+    color: var(--text2);
+    margin-bottom: 10px;
+  }
+
+  .welcome-sub {
+    font-size: 14px;
+    max-width: 380px;
+    line-height: 1.7;
+  }
+
+  #sector-view { display: none; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .app { grid-template-columns: 1fr; }
+    aside { position: static; height: auto; }
+    main { padding: 24px 20px; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    header { padding: 0 16px; }
+    .jurisdiction-legend { display: none; }
+    .reg-meta-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo-mark">
+      <svg viewBox="0 0 16 16"><path d="M8 1L15 4.5V8C15 11.5 11.5 14.5 8 15.5C4.5 14.5 1 11.5 1 8V4.5L8 1Z"/></svg>
+    </div>
+    <div class="title-block">
+      <h1>SECTOR CYBER COMPLIANCE REFERENCE</h1>
+      <p>UK-primary · EU / US / Global overlay · v2025</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="jurisdiction-legend">
+      <span class="jleg"><span class="jleg-dot" style="background:var(--uk)"></span>UK</span>
+      <span class="jleg"><span class="jleg-dot" style="background:var(--eu)"></span>EU</span>
+      <span class="jleg"><span class="jleg-dot" style="background:var(--us)"></span>US</span>
+      <span class="jleg"><span class="jleg-dot" style="background:var(--global)"></span>GLOBAL</span>
+    </div>
+  </div>
+</header>
+
+<div class="app">
+  <aside>
+    <div class="sidebar-label">Sectors</div>
+    <div id="sector-list"></div>
+  </aside>
+
+  <main>
+    <div id="welcome">
+      <div class="welcome-icon">⬡</div>
+      <div class="welcome-title">Select a sector</div>
+      <div class="welcome-sub">Choose a sector from the left to view applicable regulations, notification windows, and regulatory contacts.</div>
+    </div>
+
+    <div id="sector-view">
+      <div class="sector-header">
+        <div class="sector-header-left">
+          <div class="sector-eyebrow" id="sv-eyebrow">SECTOR 01 / 10</div>
+          <div class="sector-title" id="sv-title"></div>
+          <div class="sector-desc" id="sv-desc"></div>
+          <div class="sector-badges" id="sv-badges"></div>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">UK Regs</div>
+          <div class="stat-value accent" id="sv-uk-count">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">EU Regs</div>
+          <div class="stat-value" id="sv-eu-count" style="color:var(--eu)">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">US Regs</div>
+          <div class="stat-value" id="sv-us-count" style="color:var(--us)">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Fastest Notify</div>
+          <div class="stat-value notify" id="sv-fastest">—</div>
+        </div>
+      </div>
+
+      <!-- Notification summary -->
+      <div class="notify-section section">
+        <div class="section-title">Incident Notification Windows</div>
+        <div class="notify-grid" id="sv-notify-grid"></div>
+      </div>
+
+      <!-- Regulations -->
+      <div class="section">
+        <div class="section-title">Applicable Regulations &amp; Frameworks</div>
+        <div class="filter-row" id="sv-filters"></div>
+        <div class="reg-grid" id="sv-reg-grid"></div>
+      </div>
+
+      <!-- Penalties -->
+      <div class="section">
+        <div class="section-title">Maximum Penalties &amp; Enforcement</div>
+        <div class="surface" id="sv-penalties" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:4px 16px;"></div>
+      </div>
+
+      <!-- Regulatory contacts -->
+      <div class="section">
+        <div class="section-title">Primary Regulatory Bodies</div>
+        <div class="contacts-grid" id="sv-contacts"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const SECTORS = [
+  {
+    id: 1,
+    name: "Finance & Banking",
+    icon: "🏦",
+    desc: "Banks, insurers, payment processors, investment firms, and financial market infrastructure. Among the most heavily regulated sectors globally due to systemic risk and consumer impact.",
+    risk: "critical",
+    tags: ["CNI", "Systemic Risk"],
+    regs: [
+      {
+        j: "uk",
+        name: "Financial Services and Markets Act 2000",
+        short: "FSMA 2000",
+        desc: "Primary legislation governing regulated financial services in the UK. The FCA and PRA have supervisory responsibility and require firms to maintain operational resilience and report material incidents.",
+        obligation: "Maintain systems and controls adequate for the nature, scale and complexity of business. Notify FCA/PRA of material operational incidents.",
+        notify: "As soon as practicable – no fixed window but immediate notification expected for material incidents",
+        to: "FCA / PRA",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "Bank of England / PRA Operational Resilience Policy",
+        short: "SS1/21",
+        desc: "PRA Supervisory Statement requiring banks and insurers to identify Important Business Services, set Impact Tolerances, and test their ability to remain within those tolerances. Full compliance required from March 2025.",
+        obligation: "Map IBS, define impact tolerances, self-assess and test annually, submit resilience self-assessments.",
+        notify: "No specific incident window; IBS disruptions tracked against impact tolerances",
+        to: "PRA",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "DORA – UK Equivalent (PS6/24)",
+        short: "PS6/24",
+        desc: "FCA/PRA policy statement implementing DORA-aligned operational resilience and ICT risk management requirements for UK financial services. Covers ICT risk management frameworks, third-party concentration risk, and cyber testing requirements.",
+        obligation: "ICT risk framework, third-party oversight programme, threat-led pen testing (TLPT), incident classification and reporting.",
+        notify: "Major ICT-related incidents: 4 hours initial report, 72-hour intermediate, 1-month final",
+        to: "FCA / PRA",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "UK GDPR / Data Protection Act 2018",
+        short: "UK GDPR",
+        desc: "Post-Brexit data protection law. Applies wherever personal data of UK data subjects is processed. Breach notification required where risk to individuals is likely.",
+        obligation: "Implement appropriate technical and organisational measures. Report qualifying breaches to ICO.",
+        notify: "72 hours to ICO; without undue delay to affected individuals if high risk",
+        to: "ICO",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "Network & Information Systems Regulations 2018",
+        short: "NIS Regs",
+        desc: "Designates financial market infrastructure operators as Operators of Essential Services (OES). Requires appropriate and proportionate security measures and incident reporting.",
+        obligation: "Security duty: appropriate and proportionate measures to manage risks. Notify incidents with significant impact.",
+        notify: "Without undue delay (guidance suggests as soon as possible, no later than 72 hours)",
+        to: "FCA (Competent Authority)",
+        mandatory: true
+      },
+      {
+        j: "eu",
+        name: "Digital Operational Resilience Act",
+        short: "DORA",
+        desc: "EU regulation in force from January 2025 covering ICT risk management, incident reporting, resilience testing, and third-party risk for all EU financial entities. Applies to UK firms with EU operations or EU-regulated subsidiaries.",
+        obligation: "ICT risk framework, major incident reporting, TLPT every 3 years, third-party register and oversight.",
+        notify: "Major incidents: 4 hours initial, 72-hour intermediate, 1-month final to national competent authority",
+        to: "National Competent Authority (e.g. ECB, BaFin, ACPR)",
+        mandatory: false,
+        note: "Applies to EU-authorised entities / branches"
+      },
+      {
+        j: "eu",
+        name: "GDPR (EU)",
+        short: "GDPR",
+        desc: "Applies to processing of EU data subjects' personal data. UK firms serving EU customers remain subject to GDPR for those activities.",
+        obligation: "Appropriate security measures. Breach notification to lead supervisory authority.",
+        notify: "72 hours to supervisory authority; without undue delay to data subjects if high risk",
+        to: "Lead DPA (e.g. CNIL, BfDI)",
+        mandatory: false,
+        note: "Applies where EU personal data processed"
+      },
+      {
+        j: "us",
+        name: "Gramm-Leach-Bliley Act",
+        short: "GLBA",
+        desc: "Federal law requiring financial institutions to protect customer financial information. The FTC Safeguards Rule (updated 2023) mandates notification of breaches affecting 500+ customers.",
+        obligation: "Written information security programme, safeguards over customer financial data.",
+        notify: "30 days to FTC for breaches affecting ≥500 customers",
+        to: "FTC",
+        mandatory: false,
+        note: "Applies to US operations / US customer data"
+      },
+      {
+        j: "us",
+        name: "SEC Cybersecurity Disclosure Rules",
+        short: "SEC Rules",
+        desc: "Public companies must disclose material cybersecurity incidents promptly. Annual disclosure of cybersecurity risk management, strategy and governance required.",
+        obligation: "Incident materiality assessment, Form 8-K disclosure, annual Form 10-K disclosures.",
+        notify: "4 business days of determining materiality (Form 8-K)",
+        to: "SEC",
+        mandatory: false,
+        note: "Applies to SEC-registered public companies"
+      },
+      {
+        j: "global",
+        name: "SWIFT Customer Security Programme",
+        short: "SWIFT CSP",
+        desc: "Mandatory security controls for all institutions connected to the SWIFT network. Annual attestation required. Non-compliance may be reported to regulators and counterparts.",
+        obligation: "Implement SWIFT mandatory controls. Attest annually via KYC-SA portal.",
+        notify: "Immediate notification to SWIFT of suspicious transactions; follow SWIFT guidelines",
+        to: "SWIFT",
+        mandatory: true
+      },
+      {
+        j: "global",
+        name: "PCI DSS v4.0",
+        short: "PCI DSS",
+        desc: "Payment Card Industry Data Security Standard. Mandatory for any organisation storing, processing, or transmitting cardholder data. v4.0 came into full effect March 2025.",
+        obligation: "12 high-level requirements covering network security, access control, monitoring, and testing.",
+        notify: "Immediately upon compromise suspicion to acquiring bank and card brands",
+        to: "Payment brands / acquiring bank",
+        mandatory: true
+      }
+    ],
+    contacts: [
+      { name: "FCA", desc: "Financial Conduct Authority – primary conduct regulator" },
+      { name: "PRA", desc: "Prudential Regulation Authority – systemic / prudential oversight" },
+      { name: "ICO", desc: "Information Commissioner's Office – data protection" },
+      { name: "NCSC", desc: "National Cyber Security Centre – cyber incident support" },
+      { name: "BoE", desc: "Bank of England – financial stability, systemic incidents" }
+    ],
+    penalties: [
+      { reg: "FCA / FSMA", amount: "Unlimited fine + public censure" },
+      { reg: "UK GDPR / ICO", amount: "Up to £17.5m or 4% global turnover" },
+      { reg: "NIS Regs", amount: "Up to £17m (OES)" },
+      { reg: "DORA (EU)", amount: "Up to 1% of average daily global turnover, daily until compliant" },
+      { reg: "GDPR (EU)", amount: "Up to €20m or 4% global turnover" },
+      { reg: "PCI DSS", amount: "$5,000–$100,000/month + card brand fines" }
+    ]
+  },
+
+  {
+    id: 2,
+    name: "Healthcare & Life Sciences",
+    icon: "🏥",
+    desc: "NHS trusts, private hospitals, GPs, pharmaceutical companies, medical device manufacturers, and health data processors. Holds the most sensitive personal data; cyber attacks can directly endanger lives.",
+    risk: "critical",
+    tags: ["CNI", "Life Safety"],
+    regs: [
+      {
+        j: "uk",
+        name: "Data Security & Protection Toolkit",
+        short: "DSPT",
+        desc: "NHS-mandated annual self-assessment against the National Data Guardian's 10 Data Security Standards. Organisations handling NHS patient data must achieve and maintain Standards Met status.",
+        obligation: "Annual DSPT submission. Evidence collection across 10 NDG standards covering people, processes and technology.",
+        notify: "Report data security incidents via DSPT; serious incidents via DSP Toolkit serious incident route and SIRI process",
+        to: "NHS England / NHSX",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "Network & Information Systems Regulations 2018",
+        short: "NIS Regs",
+        desc: "NHS trusts and some private health providers are designated Operators of Essential Services. Requires proportionate security measures and incident reporting to DHSC as competent authority.",
+        obligation: "Appropriate and proportionate security measures. Incident notification where significant impact on service continuity.",
+        notify: "Without undue delay (target: as soon as possible, typically within 72 hours)",
+        to: "DHSC / NCSC",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "UK GDPR / Data Protection Act 2018",
+        short: "UK GDPR",
+        desc: "Health data is special category data requiring heightened protection. Article 9 processing conditions apply. Breach notification to ICO mandatory for qualifying incidents.",
+        obligation: "Lawful basis and explicit consent or Schedule 1 DPA condition for health data processing. DPIA for high-risk processing.",
+        notify: "72 hours to ICO; without undue delay to individuals for high-risk breaches",
+        to: "ICO",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "Medical Devices Regulation 2002 / MHRA Guidance",
+        short: "MDR / MHRA",
+        desc: "Medical devices with software components (SaMD) are subject to MHRA oversight. Cybersecurity is a post-market surveillance obligation. MHRA published cyber guidance for medical devices in 2021.",
+        obligation: "Post-market surveillance including cybersecurity. Report serious incidents and field safety corrective actions.",
+        notify: "Serious incidents: 2 days for life-threatening; 10 days for unexpected; 30 days for others",
+        to: "MHRA",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "UK Cyber Security & Resilience Bill (upcoming)",
+        short: "CS&R Bill",
+        desc: "Expected to extend NIS obligations more broadly, introduce mandatory incident reporting, and increase regulator powers. Healthcare likely to remain under DHSC competence. Final scope under consultation.",
+        obligation: "TBC – likely enhanced incident reporting, supply chain obligations, and expanded OES designation.",
+        notify: "TBC – expected tighter windows than current NIS Regs",
+        to: "DHSC / NCSC",
+        mandatory: false,
+        note: "Expected 2025–2026"
+      },
+      {
+        j: "eu",
+        name: "NIS2 Directive",
+        short: "NIS2",
+        desc: "Replaces NIS1 across EU. Healthcare explicitly listed as an essential entity sector. Applies to UK organisations with EU operations.",
+        obligation: "Risk management measures, supply chain security, incident handling, basic cyber hygiene, MFA, encryption.",
+        notify: "Early warning within 24 hours; incident notification within 72 hours; final report within 1 month",
+        to: "National NIS2 authority (e.g. BSI in Germany, ANSSI in France)",
+        mandatory: false,
+        note: "Applies to EU-established entities"
+      },
+      {
+        j: "eu",
+        name: "EU Medical Device Regulation",
+        short: "EU MDR",
+        desc: "Mandatory for medical devices sold in the EU. Requires cybersecurity across the device lifecycle and incident reporting for serious incidents.",
+        obligation: "Secure development, post-market surveillance, cybersecurity in technical documentation.",
+        notify: "Serious incidents: within 2 days (immediately life-threatening), 10 days otherwise",
+        to: "National competent authority (e.g. BfArM, ANSM)",
+        mandatory: false,
+        note: "For devices marketed in EU"
+      },
+      {
+        j: "us",
+        name: "HIPAA Security Rule",
+        short: "HIPAA",
+        desc: "Mandates administrative, physical, and technical safeguards for electronic Protected Health Information (ePHI). Applies to covered entities and their business associates.",
+        obligation: "Risk analysis, risk management, workforce training, access controls, audit controls, encryption.",
+        notify: "60 days from discovery to HHS; if ≥500 individuals also to media; if <500, annual log to HHS",
+        to: "HHS Office for Civil Rights",
+        mandatory: false,
+        note: "Applies to US operations / US patient data"
+      },
+      {
+        j: "global",
+        name: "ISO 27001:2022",
+        short: "ISO 27001",
+        desc: "International ISMS standard. Widely adopted as a baseline certification for NHS suppliers and health organisations. Annex A controls updated in 2022 to include threat intelligence and cloud security.",
+        obligation: "Risk-based ISMS implementation. Certification requires third-party audit every 3 years with annual surveillance.",
+        notify: "Internal incident management process; no mandated external notification window",
+        to: "Certification body (for audits); regulators per applicable law",
+        mandatory: false
+      }
+    ],
+    contacts: [
+      { name: "ICO", desc: "Data protection regulator" },
+      { name: "DHSC", desc: "Dept Health & Social Care – NIS competent authority" },
+      { name: "MHRA", desc: "Medical device regulation" },
+      { name: "NCSC", desc: "Cyber incident response support" },
+      { name: "NHS England", desc: "DSPT oversight, operational guidance" }
+    ],
+    penalties: [
+      { reg: "UK GDPR / ICO", amount: "Up to £17.5m or 4% global turnover" },
+      { reg: "NIS Regs", amount: "Up to £17m (OES)" },
+      { reg: "DSPT non-compliance", amount: "Loss of NHS contract / data sharing access" },
+      { reg: "HIPAA (US)", amount: "Up to $1.9m per violation category per year" },
+      { reg: "NIS2 (EU)", amount: "Up to €10m or 2% global turnover (essential entities)" }
+    ]
+  },
+
+  {
+    id: 3,
+    name: "Energy & Utilities",
+    icon: "⚡",
+    desc: "Electricity generation and distribution, gas networks, water and wastewater, nuclear, and renewable energy operators. Designated Critical National Infrastructure with direct public safety implications.",
+    risk: "critical",
+    tags: ["CNI", "OT / ICS", "Public Safety"],
+    regs: [
+      {
+        j: "uk",
+        name: "Network & Information Systems Regulations 2018",
+        short: "NIS Regs",
+        desc: "Energy operators (electricity, gas, oil) are Operators of Essential Services under NIS. OFGEM and BEIS are competent authorities. Mandates security measures and incident reporting.",
+        obligation: "Appropriate and proportionate security measures (referenced against CAF). Notify incidents with significant impact.",
+        notify: "Without undue delay (target: within 72 hours) to OFGEM / BEIS / NCSC",
+        to: "OFGEM / BEIS / NCSC",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "NCSC Cyber Assessment Framework v4.0",
+        short: "CAF v4.0",
+        desc: "The primary security framework used by NCSC and regulators to assess OES cyber posture. Covers 4 objectives and 14 principles. Assessed through CAF-based engagement with NCSC or sector regulator.",
+        obligation: "Achieve and demonstrate appropriate and proportionate outcomes across all 14 CAF principles.",
+        notify: "CAF itself is an assessment framework, not a notification mechanism",
+        to: "OFGEM / NCSC (via CAF assessment process)",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "Nuclear Industries Security Regulations 2003",
+        short: "NISR 2003",
+        desc: "Specific regime for civil nuclear sites under ONR oversight. Requires approved security plans including cyber provisions. Cyber security assessed via ONR's CNI cyber programme.",
+        obligation: "Approved security plan. Cyber security requirements per ONR Technical Assessment Guide.",
+        notify: "Immediate notification to ONR of security incidents; detailed reporting requirements per site licence",
+        to: "Office for Nuclear Regulation (ONR)",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "UK GDPR / Data Protection Act 2018",
+        short: "UK GDPR",
+        desc: "Applies to customer data and employee data held by energy companies. Smart meter data and consumption patterns may be personal data.",
+        obligation: "Appropriate technical and organisational measures. Report qualifying breaches.",
+        notify: "72 hours to ICO",
+        to: "ICO",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "UK Cyber Security & Resilience Bill (upcoming)",
+        short: "CS&R Bill",
+        desc: "Expected to significantly expand obligations for energy sector, tighten incident reporting windows, and introduce mandatory supply chain security. Energy OES likely early targets.",
+        obligation: "TBC – likely 24-hour initial notification window and supply chain obligations",
+        notify: "TBC – expected 24 hours initial",
+        to: "OFGEM / NCSC / sector regulator",
+        mandatory: false,
+        note: "Expected 2025–2026"
+      },
+      {
+        j: "eu",
+        name: "NIS2 Directive",
+        short: "NIS2",
+        desc: "Energy explicitly listed as essential sector under NIS2. UK firms with EU energy operations or subsidiaries subject to NIS2 requirements.",
+        obligation: "Risk management, supply chain security, incident response, business continuity, encryption.",
+        notify: "24-hour early warning; 72-hour full notification; 1-month final report",
+        to: "National competent authority",
+        mandatory: false,
+        note: "For EU-established entities"
+      },
+      {
+        j: "eu",
+        name: "EU Critical Entities Resilience Directive",
+        short: "CER",
+        desc: "Companion directive to NIS2 covering physical and cyber resilience of critical entities across energy, transport, water, and finance. Requires resilience plans and incident reporting.",
+        obligation: "Resilience risk assessment, resilience plan, notify incidents to authorities.",
+        notify: "Without delay – similar framework to NIS2",
+        to: "National authority",
+        mandatory: false,
+        note: "For EU-established entities"
+      },
+      {
+        j: "us",
+        name: "NERC CIP Standards",
+        short: "NERC CIP",
+        desc: "Mandatory reliability standards for bulk electric system operators in North America. Detailed prescriptive controls for cyber assets, supply chain risk, and incident response.",
+        obligation: "CIP-002 through CIP-014: asset categorisation, access controls, configuration management, incident response, recovery.",
+        notify: "E-ISAC and DOE notification within 1 hour of reportable cyber incidents",
+        to: "E-ISAC / DOE / FERC",
+        mandatory: false,
+        note: "For US/Canada bulk electric system operations"
+      },
+      {
+        j: "global",
+        name: "IEC 62443",
+        short: "IEC 62443",
+        desc: "International standard for Industrial Automation and Control System (IACS) / OT security. Defines security levels for zones and conduits. Widely referenced by OFGEM and sector regulators.",
+        obligation: "Implement security levels appropriate to risk. Zone and conduit model for OT network segmentation.",
+        notify: "No mandatory notification; framework guides design and risk management",
+        to: "Internal / referenced in regulatory assessments",
+        mandatory: false
+      }
+    ],
+    contacts: [
+      { name: "OFGEM", desc: "Energy market regulator / NIS competent authority" },
+      { name: "ONR", desc: "Office for Nuclear Regulation" },
+      { name: "NCSC", desc: "Cyber incident support and CAF assessment" },
+      { name: "BEIS", desc: "Dept for Energy Security (OES oversight)" },
+      { name: "ICO", desc: "Data protection" }
+    ],
+    penalties: [
+      { reg: "NIS Regs", amount: "Up to £17m (OES)" },
+      { reg: "UK GDPR", amount: "Up to £17.5m or 4% turnover" },
+      { reg: "OFGEM enforcement", amount: "Up to 10% of licensee's revenue" },
+      { reg: "NIS2 (EU)", amount: "Up to €10m or 2% global turnover" },
+      { reg: "NERC CIP (US)", amount: "Up to $1m per violation per day" }
+    ]
+  },
+
+  {
+    id: 4,
+    name: "Telecoms & Communications",
+    icon: "📡",
+    desc: "Mobile network operators, fixed-line providers, internet service providers, satellite communications, and messaging platforms. Backbone of national communications infrastructure.",
+    risk: "critical",
+    tags: ["CNI", "PECR", "Lawful Intercept"],
+    regs: [
+      {
+        j: "uk",
+        name: "Communications Act 2003 / Security of Network & Information Systems",
+        short: "Comms Act / SNIS",
+        desc: "Ofcom is the competent authority for telecoms under NIS Regs. The Communications Act and related security regulations require telecoms providers to maintain network and service security.",
+        obligation: "Maintain security of networks and services. Report incidents affecting significant numbers of users or impacting security.",
+        notify: "Without undue delay; Ofcom guidance suggests within 24 hours for significant incidents",
+        to: "Ofcom",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "Telecommunications (Security) Act 2021",
+        short: "TSA 2021",
+        desc: "Landmark legislation imposing a new security framework on UK telecoms providers. Introduces tiered security duties (Tier 1 highest), with detailed security practices in the Telecommunications Security Code of Practice.",
+        obligation: "Follow the Telecoms Security Code of Practice. Protect network functions, sensitive data, and supply chains. Tier 1 providers subject to most stringent obligations.",
+        notify: "Notify Ofcom of security compromises; specific windows in Code of Practice guidance",
+        to: "Ofcom / NCSC",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "UK GDPR / PECR",
+        short: "UK GDPR / PECR",
+        desc: "Privacy and Electronic Communications Regulations impose specific obligations on telecoms providers regarding subscriber data, traffic data, location data, and cookies. Breach notification to ICO required.",
+        obligation: "Subscriber privacy protections. Breach notification for qualifying incidents. Cookie and marketing consent rules.",
+        notify: "24 hours to ICO for breaches; 3 days if delay justified; without undue delay to affected subscribers",
+        to: "ICO",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "Investigatory Powers Act 2016",
+        short: "IPA 2016",
+        desc: "Requires telecoms providers to maintain lawful intercept capability (COMS). Imposes obligations to assist law enforcement and intelligence agencies. Security of intercept infrastructure is critical.",
+        obligation: "Maintain COMS capability. Protect intercept data with highest security standards. Strict data handling obligations.",
+        notify: "Any compromise of intercept capability: immediate notification to Home Office / Secretary of State",
+        to: "Home Office / IPCO",
+        mandatory: true
+      },
+      {
+        j: "eu",
+        name: "NIS2 Directive",
+        short: "NIS2",
+        desc: "Telecoms explicitly listed as essential sector. EU member state transposition into national law. Applies to UK operators with EU-established entities.",
+        obligation: "Comprehensive risk management, supply chain security, incident handling, ENISA cooperation.",
+        notify: "24-hour early warning; 72-hour incident notification; 1-month final report",
+        to: "National NIS2 authority / ENISA",
+        mandatory: false,
+        note: "For EU-established entities"
+      },
+      {
+        j: "eu",
+        name: "European Electronic Communications Code",
+        short: "EECC",
+        desc: "EU framework for electronic communications networks. Security obligations for providers including incident notification. BEREC guidelines apply.",
+        obligation: "Security measures proportionate to risk. Notify authorities and users of security incidents.",
+        notify: "Without delay to national authority; within 24 hours for significant incidents",
+        to: "NRA (national regulatory authority)",
+        mandatory: false,
+        note: "For EU-established providers"
+      },
+      {
+        j: "us",
+        name: "FCC Cybersecurity Rules / CALEA",
+        short: "FCC / CALEA",
+        desc: "Federal Communications Commission rules require telecoms to protect customer data. CALEA mandates lawful intercept capability. FCC proposed mandatory cyber incident reporting for telecoms in 2024.",
+        obligation: "Protect CPNI (Customer Proprietary Network Information). Maintain CALEA capability.",
+        notify: "7 business days to FCC for breaches (CPNI breach rule)",
+        to: "FCC",
+        mandatory: false,
+        note: "For US operations"
+      },
+      {
+        j: "global",
+        name: "3GPP Security Standards",
+        short: "3GPP",
+        desc: "Technical security specifications for mobile networks (4G/5G). GSMA provides implementation guidance. Not a regulatory framework but referenced in national 5G security policies including UK.",
+        obligation: "Implement appropriate 3GPP security controls. Referenced in UK 5G security requirements.",
+        notify: "N/A – technical standard",
+        to: "N/A",
+        mandatory: false
+      }
+    ],
+    contacts: [
+      { name: "Ofcom", desc: "Communications regulator / NIS authority" },
+      { name: "ICO", desc: "Data protection / PECR" },
+      { name: "NCSC", desc: "Cyber incident support" },
+      { name: "Home Office", desc: "Lawful intercept / IPA oversight" },
+      { name: "IPCO", desc: "Investigatory Powers Commissioner" }
+    ],
+    penalties: [
+      { reg: "TSA 2021 / Ofcom", amount: "Up to £10m or 10% qualifying revenue" },
+      { reg: "UK GDPR / PECR", amount: "Up to £17.5m or 4% turnover" },
+      { reg: "IPA 2016 non-compliance", amount: "Criminal offence; unlimited fine" },
+      { reg: "NIS2 (EU)", amount: "Up to €10m or 2% global turnover" }
+    ]
+  },
+
+  {
+    id: 5,
+    name: "Transport & Aviation",
+    icon: "✈️",
+    desc: "Airlines, airports, rail operators, maritime ports, road operators, and logistics companies. Connected systems, passenger safety, and supply chain integrity are central concerns.",
+    risk: "critical",
+    tags: ["CNI", "Safety-Critical", "OT"],
+    regs: [
+      {
+        j: "uk",
+        name: "Network & Information Systems Regulations 2018",
+        short: "NIS Regs",
+        desc: "Air transport, rail, maritime, and road transport operators may be designated OES. Competent authorities vary by mode (CAA for aviation, RSSB/DfT for rail, MCA for maritime).",
+        obligation: "Appropriate security measures per CAF. Incident notification for significant impacts on transport continuity.",
+        notify: "Without undue delay to competent authority (target within 72 hours)",
+        to: "CAA / DfT / MCA / NCSC",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "Aviation Security Regulations (CAA / DfT)",
+        short: "AvSec Regs",
+        desc: "The CAA's cyber security requirements for aviation are delivered through the Aviation Cyber Security Strategy and CAA CAP 1753/CAP 2305 framework. Aligned to NIS Regs and NCSC CAF.",
+        obligation: "Implement aviation-specific cyber security measures. Annual assurance submissions. Follow CAA CAP guidance.",
+        notify: "Immediately to CAA for incidents impacting aviation safety or significant disruption",
+        to: "CAA / NCSC",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "UK GDPR / Data Protection Act 2018",
+        short: "UK GDPR",
+        desc: "Passenger name records, booking data, and frequent flyer data are personal data. Breaches affecting passengers must be reported.",
+        obligation: "DPIA for passenger data processing. Appropriate security measures.",
+        notify: "72 hours to ICO",
+        to: "ICO",
+        mandatory: true
+      },
+      {
+        j: "eu",
+        name: "NIS2 Directive",
+        short: "NIS2",
+        desc: "Transport (air, rail, water, road) explicitly listed as essential sectors under NIS2. Applies to UK operators with EU operations.",
+        obligation: "Risk management, supply chain security, incident reporting, business continuity.",
+        notify: "24-hour early warning; 72-hour incident notification; 1-month final",
+        to: "National NIS2 authority",
+        mandatory: false,
+        note: "For EU-established transport entities"
+      },
+      {
+        j: "eu",
+        name: "EASA Cybersecurity Regulation (EU) 2023/203",
+        short: "EASA Cyber",
+        desc: "EASA regulation requiring aviation organisations to implement an Information Security Management System (ISMS). Applies to air operators, maintenance organisations, and ATM/ANS providers.",
+        obligation: "ISMS implementation. Risk assessment. Reporting of information security events to national aviation authority.",
+        notify: "Within 72 hours of detecting information security event",
+        to: "National aviation authority / EASA",
+        mandatory: false,
+        note: "For EU/EASA-regulated aviation entities"
+      },
+      {
+        j: "global",
+        name: "ICAO Cybersecurity Framework",
+        short: "ICAO",
+        desc: "ICAO Assembly Resolution A40-10 establishes a global framework for aviation cybersecurity. ICAO Doc 10099 provides guidance on National Cybersecurity Strategies for civil aviation.",
+        obligation: "States implement ICAO framework into national regulation. Operators follow national guidance.",
+        notify: "Framework sets out information sharing expectations; specific notification per national rules",
+        to: "National aviation authority",
+        mandatory: false
+      },
+      {
+        j: "global",
+        name: "IMO Maritime Cyber Risk Management",
+        short: "IMO MSC-FAL.1/Circ.3",
+        desc: "IMO circular requiring cyber risk management to be incorporated into Safety Management Systems under ISM Code. Flag state administration oversight.",
+        obligation: "Cyber risk management integrated into SMS. Annual verification by flag state.",
+        notify: "Per flag state requirements and ISM Code incident reporting",
+        to: "Flag state administration",
+        mandatory: true
+      }
+    ],
+    contacts: [
+      { name: "CAA", desc: "Civil Aviation Authority – aviation cyber regulator" },
+      { name: "DfT", desc: "Dept for Transport – NIS policy, rail, road" },
+      { name: "MCA", desc: "Maritime & Coastguard Agency" },
+      { name: "NCSC", desc: "Cyber incident support" },
+      { name: "ICO", desc: "Data protection" }
+    ],
+    penalties: [
+      { reg: "NIS Regs", amount: "Up to £17m (OES)" },
+      { reg: "CAA enforcement", amount: "Enforcement notices; operating licence suspension" },
+      { reg: "UK GDPR", amount: "Up to £17.5m or 4% turnover" },
+      { reg: "NIS2 (EU)", amount: "Up to €10m or 2% global turnover" },
+      { reg: "EASA non-compliance", amount: "Suspension of approval / operating certificate" }
+    ]
+  },
+
+  {
+    id: 6,
+    name: "Government & Public Sector",
+    icon: "🏛️",
+    desc: "Central government departments, local authorities, arms-length bodies, and public services. Handle large volumes of citizen data and provide essential public services.",
+    risk: "high",
+    tags: ["Classified Data", "Citizen Services"],
+    regs: [
+      {
+        j: "uk",
+        name: "Government Cyber Security Strategy 2022–2030",
+        short: "GCSS",
+        desc: "Sets out the UK government's approach to cyber security across all departments and ALBs. Requires adherence to NCSC's Cyber Essentials, NCSC guidance, and GovAssure framework.",
+        obligation: "All departments must achieve Cyber Essentials and participate in GovAssure annual assessment.",
+        notify: "Report cyber incidents to NCSC and Cabinet Office COBR process for major incidents",
+        to: "NCSC / Cabinet Office",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "GovAssure",
+        short: "GovAssure",
+        desc: "Annual assurance framework for central government based on the NCSC CAF. Departments self-assess then undergo independent review. Results reported to DSIT and NCSC.",
+        obligation: "Annual CAF-based self-assessment; independent review every 2 years; remediation planning.",
+        notify: "Incidents reported through Government Security Group and NCSC; major incidents via COBR",
+        to: "NCSC / DSIT / Cabinet Office",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "UK GDPR / Data Protection Act 2018",
+        short: "UK GDPR",
+        desc: "Government holds vast quantities of citizen personal data. ICO has issued substantial fines to public bodies. Data protection by design and DPIAs are mandatory for high-risk processing.",
+        obligation: "DPO appointment. DPIA for high-risk processing. ICO reporting for qualifying breaches.",
+        notify: "72 hours to ICO",
+        to: "ICO",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "Official Secrets Acts / Security Policy Framework",
+        short: "OSA / SPF",
+        desc: "Government Security Policy Framework mandates baseline protective security standards including cyber. HMG classification system (OFFICIAL, SECRET, TOP SECRET) governs information handling.",
+        obligation: "Comply with HMG Security Policy Framework, Minimum Cyber Security Standard (MCSS) and Functional Standard GovS 007.",
+        notify: "Security incidents notified through department security officer to Cabinet Office / NCSC",
+        to: "NCSC / Cabinet Office / DSO",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "Network & Information Systems Regulations 2018",
+        short: "NIS Regs",
+        desc: "Some government digital services and infrastructure may be in scope as OES or Relevant Digital Service Providers (RDSPs).",
+        obligation: "Appropriate security measures. Incident notification where services significantly disrupted.",
+        notify: "Without undue delay",
+        to: "NCSC / sector competent authority",
+        mandatory: false,
+        note: "Applies where designated OES/RDSP"
+      },
+      {
+        j: "global",
+        name: "ISO 27001:2022",
+        short: "ISO 27001",
+        desc: "Widely held by government suppliers and increasingly by departments themselves. Required by many government procurement frameworks including G-Cloud.",
+        obligation: "ISMS implementation. Certification requires third-party audit.",
+        notify: "Per internal incident management and applicable regulatory requirements",
+        to: "Per applicable law",
+        mandatory: false
+      },
+      {
+        j: "global",
+        name: "Cyber Essentials / Cyber Essentials Plus",
+        short: "CE / CE+",
+        desc: "NCSC-backed certification scheme. Mandatory for all UK government contracts involving the handling of personal information or the provision of certain ICT services. CE+ includes independent technical testing.",
+        obligation: "Annual certification. Implement 5 technical controls: firewalls, secure config, user access, malware protection, patching.",
+        notify: "No notification requirement within the scheme itself",
+        to: "N/A",
+        mandatory: true
+      }
+    ],
+    contacts: [
+      { name: "NCSC", desc: "Cyber incident support and GovAssure" },
+      { name: "ICO", desc: "Data protection" },
+      { name: "Cabinet Office", desc: "Government Security Group, major incident coordination" },
+      { name: "DSIT", desc: "Dept for Science, Innovation & Technology – cyber policy" },
+      { name: "DSO", desc: "Departmental Security Officer" }
+    ],
+    penalties: [
+      { reg: "UK GDPR / ICO", amount: "Up to £17.5m or 4% turnover (rarely applied to public bodies at max)" },
+      { reg: "NIS Regs", amount: "Up to £17m (OES)" },
+      { reg: "Cabinet Office enforcement", amount: "Spending controls, audit requirements, reputational" },
+      { reg: "CE non-compliance", amount: "Loss of government contract eligibility" }
+    ]
+  },
+
+  {
+    id: 7,
+    name: "Retail & E-Commerce",
+    icon: "🛒",
+    desc: "High street retailers, e-commerce platforms, marketplace operators, and consumer brands. High volume of payment card data and customer personal information.",
+    risk: "high",
+    tags: ["Payment Data", "Consumer Data"],
+    regs: [
+      {
+        j: "uk",
+        name: "UK GDPR / Data Protection Act 2018",
+        short: "UK GDPR",
+        desc: "Primary data protection obligation. Retailers process large volumes of customer personal data including purchase history, loyalty data, and marketing preferences. Profiling and automated decisions require DPIA.",
+        obligation: "Lawful basis for processing. Privacy notice. DPIA for profiling/tracking. Breach notification to ICO.",
+        notify: "72 hours to ICO; without undue delay to individuals for high-risk breaches",
+        to: "ICO",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "PECR (Privacy & Electronic Communications Regulations)",
+        short: "PECR",
+        desc: "Governs electronic marketing, cookies, and location data. The ICO actively enforces cookie consent and direct marketing rules against retailers.",
+        obligation: "Cookie consent. Opt-in marketing consent. Secure customer accounts.",
+        notify: "Breach notification per UK GDPR if personal data involved",
+        to: "ICO",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "Payment Services Regulations 2017",
+        short: "PSR 2017",
+        desc: "Implements PSD2 in UK. Payment institutions and e-money firms regulated by FCA. Requires reporting of major operational or security incidents affecting payment services.",
+        obligation: "Strong Customer Authentication (SCA). Report major operational/security incidents to FCA.",
+        notify: "Without undue delay to FCA for major incidents; final report within 1 month",
+        to: "FCA",
+        mandatory: true
+      },
+      {
+        j: "global",
+        name: "PCI DSS v4.0",
+        short: "PCI DSS",
+        desc: "Mandatory for any retailer storing, processing, or transmitting cardholder data. Compliance level determined by transaction volume. v4.0 full requirements in effect March 2025.",
+        obligation: "12 high-level requirements. Network security, access control, vulnerability management, monitoring, testing.",
+        notify: "Immediately to acquirer and card brands upon suspicion of compromise",
+        to: "Acquiring bank / Visa / Mastercard",
+        mandatory: true
+      },
+      {
+        j: "eu",
+        name: "GDPR (EU)",
+        short: "GDPR",
+        desc: "Applies to UK retailers processing data of EU data subjects. Adequate protection mechanism required (UK adequacy decision under review).",
+        obligation: "Lawful basis. Data subject rights. Breach notification.",
+        notify: "72 hours to lead supervisory authority",
+        to: "Lead DPA",
+        mandatory: false,
+        note: "Applies where EU customer data processed"
+      },
+      {
+        j: "eu",
+        name: "EU Digital Services Act",
+        short: "DSA",
+        desc: "Applies to online platforms and marketplaces with EU users. Very large online platforms (VLOPs) have enhanced obligations. Systemic risk assessment and transparency requirements.",
+        obligation: "Content moderation, algorithmic transparency, annual risk assessment for VLOPs.",
+        notify: "Report illegal content and systemic risks to relevant authority",
+        to: "Digital Services Coordinator / European Commission",
+        mandatory: false,
+        note: "Applies to platforms with EU users; VLOP threshold: 45m+ EU monthly users"
+      },
+      {
+        j: "us",
+        name: "State Data Breach Notification Laws",
+        short: "State Breach Laws",
+        desc: "All 50 US states have data breach notification laws. California (CCPA/CPRA), New York (SHIELD Act), and others have stringent requirements. Applies to any retailer with US customers.",
+        obligation: "Implement reasonable security. Notify consumers, regulators, and AGs of breaches.",
+        notify: "Varies by state: 30–90 days; California: without undue delay; New York: most expedient time",
+        to: "State Attorney General / affected consumers",
+        mandatory: false,
+        note: "Applies to US customer data"
+      }
+    ],
+    contacts: [
+      { name: "ICO", desc: "UK data protection regulator" },
+      { name: "FCA", desc: "Payment services regulation" },
+      { name: "NCSC", desc: "Cyber incident support" },
+      { name: "Acquirer/Card brands", desc: "PCI DSS incident notification" },
+      { name: "Trading Standards", desc: "Consumer protection enforcement" }
+    ],
+    penalties: [
+      { reg: "UK GDPR", amount: "Up to £17.5m or 4% global turnover" },
+      { reg: "PECR", amount: "Up to £500,000 (ICO)" },
+      { reg: "PCI DSS", amount: "$5k–$100k/month + card scheme fines; loss of card acceptance" },
+      { reg: "GDPR (EU)", amount: "Up to €20m or 4% global turnover" },
+      { reg: "CCPA (California)", amount: "Up to $7,500 per intentional violation" }
+    ]
+  },
+
+  {
+    id: 8,
+    name: "Education",
+    icon: "🎓",
+    desc: "Universities, further education colleges, schools, and EdTech providers. Significant volumes of data on minors, academic research, and intellectual property. Increasingly targeted by ransomware.",
+    risk: "high",
+    tags: ["Children's Data", "Research IP"],
+    regs: [
+      {
+        j: "uk",
+        name: "UK GDPR / Data Protection Act 2018",
+        short: "UK GDPR",
+        desc: "Education institutions process data on pupils, students, staff, and parents. Children's data requires heightened protection. ICO's Children's Code applies to any online service likely accessed by children.",
+        obligation: "Lawful basis (legitimate interest, consent with care for minors). DPIA for high-risk. DPO for universities/colleges. ICO breach reporting.",
+        notify: "72 hours to ICO",
+        to: "ICO",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "JISC / NCSC Guidance for Education",
+        short: "JISC / NCSC",
+        desc: "NCSC has published specific guidance for schools and further/higher education. JISC provides cyber support for HE/FE. The NCSC Annual Review consistently highlights education as a high-attack sector.",
+        obligation: "Follow NCSC guidance. Implement Cyber Essentials (recommended for schools). Participate in JISC incident response service (HE/FE).",
+        notify: "Serious incidents: notify DfE and ICO; JISC CSIRT for HE/FE members",
+        to: "ICO / DfE / JISC",
+        mandatory: false
+      },
+      {
+        j: "uk",
+        name: "Data Security & Protection for Education",
+        short: "DfE DSP",
+        desc: "Department for Education requires schools to report serious data incidents. Academies and maintained schools must report certain incidents to DfE. Ofsted takes information security into account in inspections.",
+        obligation: "Report serious data incidents to DfE. Maintain appropriate records. Follow ICO guidance.",
+        notify: "Without undue delay to DfE for serious incidents; 72 hours to ICO",
+        to: "DfE / ICO",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "Research Data Management (UKRI / Funders)",
+        short: "UKRI / Funders",
+        desc: "UKRI-funded research requires data management plans. Some research involves sensitive personal or controlled data (dual-use research). Export control regulations may apply to research with international collaborators.",
+        obligation: "Data management plan. Appropriate security for sensitive research data. Export control compliance.",
+        notify: "Incidents involving export-controlled or sensitive research: notify relevant agency",
+        to: "UKRI / relevant agency",
+        mandatory: false
+      },
+      {
+        j: "eu",
+        name: "GDPR (EU)",
+        short: "GDPR",
+        desc: "Applies to UK universities with EU student data or EU research partnerships. International data transfers require GDPR-compliant mechanism.",
+        obligation: "Lawful basis for processing EU data subjects. Breach notification.",
+        notify: "72 hours to supervisory authority",
+        to: "Lead DPA",
+        mandatory: false,
+        note: "Applies where EU personal data processed"
+      },
+      {
+        j: "us",
+        name: "FERPA",
+        short: "FERPA",
+        desc: "Family Educational Rights and Privacy Act protects US student education records. Applies to any institution receiving US federal funding that has US students.",
+        obligation: "Protect student education records. Limited disclosure without consent.",
+        notify: "No mandatory breach notification under FERPA itself; state laws may apply",
+        to: "US Dept of Education",
+        mandatory: false,
+        note: "Applies to institutions with US students / federal funding"
+      },
+      {
+        j: "global",
+        name: "Cyber Essentials",
+        short: "CE",
+        desc: "NCSC strongly recommends Cyber Essentials for all schools. Many local authority and academy trust procurement requirements mandate it. JISC encourages CE+ for HE institutions.",
+        obligation: "Annual certification. 5 technical controls.",
+        notify: "N/A",
+        to: "N/A",
+        mandatory: false
+      }
+    ],
+    contacts: [
+      { name: "ICO", desc: "Data protection regulator" },
+      { name: "DfE", desc: "Dept for Education – schools oversight" },
+      { name: "JISC", desc: "HE/FE cyber incident response service" },
+      { name: "NCSC", desc: "Guidance and incident support" },
+      { name: "Ofsted / OfS", desc: "Inspection bodies" }
+    ],
+    penalties: [
+      { reg: "UK GDPR / ICO", amount: "Up to £17.5m or 4% turnover (reduced for public bodies in practice)" },
+      { reg: "ICO Children's Code", amount: "Enforcement notice + fine up to £17.5m" },
+      { reg: "GDPR (EU)", amount: "Up to €20m or 4% global turnover" },
+      { reg: "FERPA (US)", amount: "Loss of US federal funding" }
+    ]
+  },
+
+  {
+    id: 9,
+    name: "Manufacturing & Defence",
+    icon: "🏭",
+    desc: "Industrial manufacturers, defence contractors, aerospace suppliers, and dual-use technology companies. OT/ICS security, export controls, and supply chain integrity are paramount.",
+    risk: "critical",
+    tags: ["OT / ICS", "Export Controls", "Defence Supply Chain"],
+    regs: [
+      {
+        j: "uk",
+        name: "Defence Cyber Protection Partnership",
+        short: "DCPP",
+        desc: "MOD programme requiring defence suppliers to demonstrate appropriate cyber security. Contracts are risk-tiered; higher tiers require Cyber Essentials, Cyber Essentials Plus, or IASME Governance.",
+        obligation: "Meet requirements for contract risk profile. Minimum: Cyber Essentials for all defence contracts. Higher tiers require CE+ or IASME.",
+        notify: "Cyber incidents affecting MOD data or systems: notify MOD CISO and NCSC",
+        to: "MOD / NCSC",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "UK GDPR / Data Protection Act 2018",
+        short: "UK GDPR",
+        desc: "Applies to employee data, customer data, and any personal data processed in manufacturing operations.",
+        obligation: "Appropriate technical and organisational measures. Breach notification.",
+        notify: "72 hours to ICO",
+        to: "ICO",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "Export Control Order 2008 / OGEL",
+        short: "Export Controls",
+        desc: "Manufacturers of controlled goods and technologies must comply with export control legislation. Unauthorised disclosure of controlled technology (including via cyber incident) has criminal liability.",
+        obligation: "Control access to controlled technology. Report suspected breaches of export controls.",
+        notify: "Report suspected export control breaches to ECJU",
+        to: "Export Control Joint Unit (ECJU)",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "Network & Information Systems Regulations 2018",
+        short: "NIS Regs",
+        desc: "Some manufacturers in critical sectors (water, energy-adjacent) may be designated OES. Digital service providers in manufacturing supply chains may be in scope as RDSPs.",
+        obligation: "As designated OES/RDSP: appropriate security measures and incident reporting.",
+        notify: "Without undue delay",
+        to: "Sector competent authority / NCSC",
+        mandatory: false,
+        note: "Applies where OES/RDSP designation applies"
+      },
+      {
+        j: "eu",
+        name: "NIS2 Directive",
+        short: "NIS2",
+        desc: "Manufacturing of critical products (medical devices, computers, machinery, vehicles) explicitly listed as important entities under NIS2. Applies to UK manufacturers with EU operations.",
+        obligation: "Risk management, supply chain security, incident reporting, vulnerability disclosure.",
+        notify: "24-hour early warning; 72-hour incident notification",
+        to: "National NIS2 authority",
+        mandatory: false,
+        note: "For EU-established manufacturing entities"
+      },
+      {
+        j: "us",
+        name: "CMMC 2.0 (Defence Supply Chain)",
+        short: "CMMC 2.0",
+        desc: "Cybersecurity Maturity Model Certification required for all US DoD contracts. UK companies with US defence contracts must comply. Three levels based on data sensitivity (FCI, CUI).",
+        obligation: "Level 1: basic cyber hygiene (17 practices). Level 2: aligned to NIST SP 800-171 (110 practices). Level 3: NIST SP 800-172.",
+        notify: "Report incidents involving CUI to US-CERT within 72 hours",
+        to: "US-CERT / DoD",
+        mandatory: false,
+        note: "Mandatory for US DoD contracts"
+      },
+      {
+        j: "us",
+        name: "ITAR / EAR",
+        short: "ITAR / EAR",
+        desc: "International Traffic in Arms Regulations and Export Administration Regulations govern US defence and dual-use technology. UK manufacturers with US technology or customers must comply.",
+        obligation: "Control access to ITAR/EAR data. US persons rules. Report violations to DDTC / BIS.",
+        notify: "Voluntary disclosure of violations to DDTC/BIS (recommended to reduce penalties)",
+        to: "DDTC / BIS",
+        mandatory: false,
+        note: "For US-controlled technology"
+      },
+      {
+        j: "global",
+        name: "IEC 62443 (OT Security)",
+        short: "IEC 62443",
+        desc: "International OT/ICS security standard. Increasingly referenced in procurement and regulatory contexts. Defines security levels for zones, conduits, and industrial systems.",
+        obligation: "Zone and conduit model. Security levels per risk assessment. Vendor certification (for product suppliers).",
+        notify: "N/A – framework standard",
+        to: "Referenced in regulatory / contractual context",
+        mandatory: false
+      }
+    ],
+    contacts: [
+      { name: "NCSC", desc: "Cyber incident support" },
+      { name: "MOD CISO", desc: "Defence cyber incidents" },
+      { name: "ICO", desc: "Data protection" },
+      { name: "ECJU", desc: "Export Control Joint Unit" },
+      { name: "BEIS / DBT", desc: "Industrial sector oversight" }
+    ],
+    penalties: [
+      { reg: "DCPP / MOD contracts", amount: "Contract termination; debarment from defence procurement" },
+      { reg: "Export Control violations", amount: "Up to 10 years imprisonment; unlimited fine" },
+      { reg: "UK GDPR", amount: "Up to £17.5m or 4% turnover" },
+      { reg: "CMMC non-compliance (US)", amount: "Loss of DoD contract eligibility; False Claims Act liability" },
+      { reg: "ITAR violations (US)", amount: "Up to $1m per violation + criminal liability" }
+    ]
+  },
+
+  {
+    id: 10,
+    name: "Legal & Professional Services",
+    icon: "⚖️",
+    desc: "Law firms, accountancies, management consultancies, and other professional services firms. Custodians of highly confidential client data, M&A intelligence, and privileged communications.",
+    risk: "high",
+    tags: ["Privilege", "Client Confidentiality", "AML"],
+    regs: [
+      {
+        j: "uk",
+        name: "UK GDPR / Data Protection Act 2018",
+        short: "UK GDPR",
+        desc: "Law firms and professional services process extensive personal data on clients, counterparties, and employees. Legal professional privilege does not exempt from GDPR obligations.",
+        obligation: "Lawful basis for processing. DPIA for high-risk (due diligence, investigations). Breach notification.",
+        notify: "72 hours to ICO",
+        to: "ICO",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "SRA Code of Conduct / Cybersecurity Standards",
+        short: "SRA",
+        desc: "The Solicitors Regulation Authority requires law firms to have appropriate systems to protect client data and assets. The SRA has published specific cybersecurity guidance and expects firms to self-report significant incidents.",
+        obligation: "Protect client money and data. Report significant incidents including cyber attacks to SRA. Principle 2 (integrity) and Principle 7 (compliance) apply.",
+        notify: "Promptly to SRA for incidents affecting client money, data, or firm integrity",
+        to: "SRA",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "Money Laundering Regulations 2017",
+        short: "MLR 2017",
+        desc: "Professional services firms are gatekeepers under AML legislation. Cyber attacks that compromise client due diligence records or enable unauthorised transactions create AML exposure.",
+        obligation: "Maintain AML controls. Suspicious activity reporting to NCA. Tipping-off prohibitions.",
+        notify: "Suspicious Activity Report (SAR) to NCA within reasonable time. Cyber incidents compromising AML controls should be assessed for SAR obligation.",
+        to: "National Crime Agency (NCA) / HMRC (supervisory body)",
+        mandatory: true
+      },
+      {
+        j: "uk",
+        name: "FCA Regulation (for Authorised Firms)",
+        short: "FCA",
+        desc: "Law firms and consultancies conducting FCA-regulated activities must comply with FCA operational resilience and incident reporting requirements.",
+        obligation: "Operational resilience assessment. Report material incidents. Systems and controls adequate for regulated activities.",
+        notify: "Without undue delay for material incidents",
+        to: "FCA",
+        mandatory: false,
+        note: "Applies to FCA-authorised firms"
+      },
+      {
+        j: "uk",
+        name: "Network & Information Systems Regulations 2018",
+        short: "NIS Regs",
+        desc: "Large legal and professional services platforms may qualify as Relevant Digital Service Providers (online marketplaces, online search engines, cloud computing services).",
+        obligation: "Appropriate security measures. Incident reporting for significant impact.",
+        notify: "Without undue delay",
+        to: "ICO (RDSP competent authority)",
+        mandatory: false,
+        note: "Applies where RDSP designation applies"
+      },
+      {
+        j: "eu",
+        name: "GDPR (EU)",
+        short: "GDPR",
+        desc: "UK firms advising EU clients or processing EU personal data remain subject to GDPR. Adequacy arrangements between UK and EU under ongoing review.",
+        obligation: "Lawful basis for EU data processing. Data subject rights. 72-hour breach notification.",
+        notify: "72 hours to lead supervisory authority",
+        to: "Lead DPA",
+        mandatory: false,
+        note: "Applies where EU personal data processed"
+      },
+      {
+        j: "us",
+        name: "ABA Model Rules / State Bar Requirements",
+        short: "ABA / State Bar",
+        desc: "US state bar rules impose duties of competence and confidentiality that extend to cybersecurity. Increasingly, state bars require breach notification to clients and relevant authorities.",
+        obligation: "Competence in cybersecurity (ABA Rule 1.1). Confidentiality duty (1.6). Written information security plan.",
+        notify: "Notify clients of breaches affecting their matter; per state reporting obligations",
+        to: "Affected clients / state bar (if required)",
+        mandatory: false,
+        note: "For US-licensed attorneys"
+      },
+      {
+        j: "global",
+        name: "ISO 27001:2022",
+        short: "ISO 27001",
+        desc: "Increasingly required by enterprise clients in procurement. Some financial institution clients mandate ISO 27001 for their legal panel firms. Demonstrates systematic approach to information security.",
+        obligation: "ISMS implementation and certification. Third-party audit cycle.",
+        notify: "Per ISMS incident management process and applicable regulatory requirements",
+        to: "Per applicable law",
+        mandatory: false
+      }
+    ],
+    contacts: [
+      { name: "ICO", desc: "Data protection regulator" },
+      { name: "SRA", desc: "Solicitors Regulation Authority" },
+      { name: "NCA", desc: "National Crime Agency – AML / SAR" },
+      { name: "NCSC", desc: "Cyber incident support" },
+      { name: "FCA", desc: "For FCA-authorised firms" }
+    ],
+    penalties: [
+      { reg: "UK GDPR / ICO", amount: "Up to £17.5m or 4% global turnover" },
+      { reg: "SRA enforcement", amount: "Intervention; practising certificate suspension; unlimited fine" },
+      { reg: "MLR 2017 / POCA", amount: "Criminal prosecution; unlimited fine; imprisonment" },
+      { reg: "FCA", amount: "Unlimited fine + public censure" },
+      { reg: "GDPR (EU)", amount: "Up to €20m or 4% global turnover" }
+    ]
+  }
+];
+
+let activeFilter = 'all';
+
+function renderSidebar() {
+  const list = document.getElementById('sector-list');
+  SECTORS.forEach((s, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'sector-btn';
+    btn.id = `sbtn-${s.id}`;
+    btn.innerHTML = `
+      <div class="sector-icon">${s.icon}</div>
+      <div class="sector-btn-text">
+        <div class="sector-btn-name">${s.name}</div>
+        <div class="sector-btn-regs">${s.regs.filter(r=>r.j==='uk').length} UK · ${s.regs.filter(r=>r.j==='eu').length} EU · ${s.regs.filter(r=>r.j==='us').length} US · ${s.regs.filter(r=>r.j==='global').length} Global</div>
+      </div>`;
+    btn.onclick = () => loadSector(s.id);
+    list.appendChild(btn);
+  });
+}
+
+function loadSector(id) {
+  const s = SECTORS.find(x => x.id === id);
+  document.querySelectorAll('.sector-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`sbtn-${id}`).classList.add('active');
+  document.getElementById('welcome').style.display = 'none';
+  document.getElementById('sector-view').style.display = 'block';
+
+  // Header
+  document.getElementById('sv-eyebrow').textContent = `SECTOR ${String(id).padStart(2,'0')} / 10`;
+  document.getElementById('sv-title').textContent = s.name;
+  document.getElementById('sv-desc').textContent = s.desc;
+
+  // Badges
+  const badges = document.getElementById('sv-badges');
+  badges.innerHTML = `<span class="risk-badge risk-${s.risk}">${s.risk.toUpperCase()} RISK</span>` +
+    s.tags.map(t => `<span class="risk-badge risk-medium">${t}</span>`).join('');
+
+  // Stats
+  document.getElementById('sv-uk-count').textContent = s.regs.filter(r=>r.j==='uk').length;
+  document.getElementById('sv-eu-count').textContent = s.regs.filter(r=>r.j==='eu').length;
+  document.getElementById('sv-us-count').textContent = s.regs.filter(r=>r.j==='us').length;
+
+  // Fastest notification
+  const notifyRegs = s.regs.filter(r => r.notify && r.notify !== 'N/A' && r.notify !== 'TBC');
+  const windows = [
+    {label: '1hr', score: 1}, {label: '4hr', score: 4}, {label: '24hr', score: 24},
+    {label: '72hr', score: 72}, {label: '30 days', score: 720}
+  ];
+  let fastest = '72hrs';
+  if (notifyRegs.some(r => r.notify.toLowerCase().includes('1 hour') || r.notify.toLowerCase().includes('immediately') || r.notify.toLowerCase().includes('immediate'))) fastest = '1hr';
+  else if (notifyRegs.some(r => r.notify.toLowerCase().includes('4 hour') || r.notify.toLowerCase().includes('4-hour') || r.notify.toLowerCase().includes('4 bus'))) fastest = '4hrs';
+  else if (notifyRegs.some(r => r.notify.toLowerCase().includes('24 hour') || r.notify.toLowerCase().includes('24-hour'))) fastest = '24hrs';
+  document.getElementById('sv-fastest').textContent = fastest;
+
+  // Notification grid
+  renderNotifications(s);
+
+  // Filters
+  activeFilter = 'all';
+  renderFilters(s);
+  renderRegs(s);
+
+  // Penalties
+  const penEl = document.getElementById('sv-penalties');
+  penEl.innerHTML = s.penalties.map(p => `
+    <div class="penalty-row">
+      <span class="penalty-reg">${p.reg}</span>
+      <span class="penalty-amount">${p.amount}</span>
+    </div>`).join('');
+
+  // Contacts
+  const conEl = document.getElementById('sv-contacts');
+  conEl.innerHTML = s.contacts.map(c => `
+    <div class="contact-card">
+      <div class="contact-name">${c.name}</div>
+      <div class="contact-body">${c.desc}</div>
+    </div>`).join('');
+
+  document.querySelector('main').scrollTop = 0;
+}
+
+function renderNotifications(s) {
+  const grid = document.getElementById('sv-notify-grid');
+  const notifyRegs = s.regs.filter(r => r.notify && r.notify !== 'N/A');
+  const colorMap = { uk: 'j-uk-border', eu: 'j-eu-border', us: 'j-us-border', global: 'j-global-border' };
+  grid.innerHTML = notifyRegs.map(r => `
+    <div class="notify-card ${colorMap[r.j]}">
+      <div class="notify-reg">${r.j.toUpperCase()} · ${r.short}</div>
+      <div class="notify-window">${getNotifyWindow(r.notify)}</div>
+      <div class="notify-to">→ ${r.to}</div>
+      ${r.note ? `<div class="notify-note">${r.note}</div>` : ''}
+    </div>`).join('');
+}
+
+function getNotifyWindow(notify) {
+  const n = notify.toLowerCase();
+  if (n.includes('immediately') || n.includes('immediate')) return 'Immediate';
+  if (n.includes('1 hour') || n.includes('1-hour')) return '1 hour';
+  if (n.includes('4 hour') || n.includes('4-hour') || n.includes('4 bus')) return '4 hours';
+  if (n.includes('24 hour') || n.includes('24-hour')) return '24 hours';
+  if (n.includes('48 hour') || n.includes('2 day')) return '48 hours';
+  if (n.includes('72 hour') || n.includes('72-hour') || n.includes('3 day')) return '72 hours';
+  if (n.includes('7 business') || n.includes('7 day')) return '7 days';
+  if (n.includes('30 day')) return '30 days';
+  if (n.includes('60 day')) return '60 days';
+  if (n.includes('without undue delay') || n.includes('as soon as')) return 'Without delay';
+  if (n.includes('promptly')) return 'Promptly';
+  if (n.includes('tbc')) return 'TBC';
+  return 'See details';
+}
+
+function renderFilters(s) {
+  const filters = document.getElementById('sv-filters');
+  const jCounts = { all: s.regs.length, uk: 0, eu: 0, us: 0, global: 0 };
+  s.regs.forEach(r => jCounts[r.j]++);
+  const labels = { all: 'ALL', uk: 'UK', eu: 'EU', us: 'US', global: 'GLOBAL' };
+  filters.innerHTML = Object.entries(labels).map(([j, label]) => `
+    <button class="filter-btn ${j === activeFilter ? (j === 'all' ? 'active' : j + '-active') : ''}"
+      onclick="setFilter('${j}', ${s.id})">
+      ${label} (${jCounts[j]})
+    </button>`).join('');
+}
+
+function setFilter(j, sectorId) {
+  activeFilter = j;
+  const s = SECTORS.find(x => x.id === sectorId);
+  renderFilters(s);
+  renderRegs(s);
+}
+
+function renderRegs(s) {
+  const grid = document.getElementById('sv-reg-grid');
+  const filtered = activeFilter === 'all' ? s.regs : s.regs.filter(r => r.j === activeFilter);
+  const jLabel = { uk: 'UK', eu: 'EU', us: 'US', global: 'GLOBAL' };
+  grid.innerHTML = filtered.map((r, i) => `
+    <div class="reg-card" id="reg-${s.id}-${i}">
+      <div class="reg-card-header" onclick="toggleReg('reg-${s.id}-${i}')">
+        <span class="reg-jurisdiction j-${r.j}">${jLabel[r.j]}</span>
+        <span class="reg-name">${r.name} <span class="reg-short">${r.short}</span></span>
+        ${r.mandatory ? '<span class="risk-badge risk-critical" style="font-size:9px;padding:2px 6px;">MANDATORY</span>' : ''}
+        ${r.note ? '<span class="risk-badge risk-medium" style="font-size:9px;padding:2px 6px;">CONDITIONAL</span>' : ''}
+        <span class="reg-chevron">▶</span>
+      </div>
+      <div class="reg-card-body">
+        <div class="reg-desc">${r.desc}</div>
+        <div class="reg-meta-grid">
+          <div class="reg-meta-block">
+            <div class="reg-meta-label">Core Obligation</div>
+            <div class="reg-meta-value">${r.obligation}</div>
+          </div>
+          <div class="reg-meta-block">
+            <div class="reg-meta-label">Incident Notification</div>
+            <div class="reg-meta-value notify-val">${r.notify}</div>
+            <div class="reg-meta-value" style="margin-top:6px">→ <strong>${r.to}</strong></div>
+            ${r.note ? `<div class="reg-meta-value" style="margin-top:6px;font-style:italic;color:var(--text3)">${r.note}</div>` : ''}
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleReg(id) {
+  const card = document.getElementById(id);
+  card.classList.toggle('open');
+}
+
+renderSidebar();
+</script>
+</body>
+</html>
