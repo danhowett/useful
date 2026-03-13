@@ -1,0 +1,1911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CTI Reference Framework</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f6f9;--bg2:#ffffff;--bg3:#eef0f4;--bg4:#e4e8ef;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.15);--text:#111827;--text2:#4b5563;--text3:#9ca3af;--am:#1d6fcc;--af:#0f8a5f;--ao:#c05c1a;--ap:#7c3aed;--amd:rgba(29,111,204,0.08);--afd:rgba(15,138,95,0.08);--aod:rgba(192,92,26,0.08);--apd:rgba(124,58,237,0.08);--r:10px;--rl:16px}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px}
+body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh;overflow-x:hidden}
+
+.header{padding:24px 36px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;background:var(--bg2);position:sticky;top:0;z-index:100}
+.hk{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);margin-bottom:3px}
+.ht{font-size:21px;font-weight:700;letter-spacing:.04em;color:var(--text)}
+.ht span{color:var(--am)}
+
+.controls{padding:14px 36px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--bg2);border-bottom:1px solid var(--border)}
+.sw{position:relative;flex:1;min-width:200px;max-width:380px}
+.si{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px;pointer-events:none}
+.sinput{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px 8px 32px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);outline:none;transition:border-color .15s}
+.sinput::placeholder{color:var(--text3)}
+.sinput:focus{border-color:var(--border2)}
+.fbtns{display:flex;gap:5px;flex-wrap:wrap}
+.fb{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;transition:all .12s;display:flex;align-items:center;gap:5px}
+.fb:hover{border-color:var(--border2);color:var(--text)}
+.fb.am{background:var(--amd);border-color:var(--am);color:var(--am)}
+.fb.af{background:var(--afd);border-color:var(--af);color:var(--af)}
+.fb.ao{background:var(--aod);border-color:var(--ao);color:var(--ao)}
+.fb.ap{background:var(--apd);border-color:var(--ap);color:var(--ap)}
+.fb.aa{background:rgba(0,0,0,0.04);border-color:rgba(0,0,0,0.18);color:var(--text)}
+.fdot{width:6px;height:6px;border-radius:50%}
+.rc{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-left:auto;white-space:nowrap}
+
+.main{display:grid;grid-template-columns:280px 1fr;height:calc(100vh - 118px);overflow:hidden}
+.sidebar{border-right:1px solid var(--border);overflow-y:auto;background:var(--bg2);padding:10px}
+.sidebar::-webkit-scrollbar{width:3px}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.12);border-radius:2px}
+.gl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);padding:10px 8px 5px}
+.ci{padding:9px 11px;border-radius:7px;cursor:pointer;border:1px solid transparent;margin-bottom:2px;transition:all .1s;display:flex;align-items:center;gap:9px}
+.ci:hover{background:var(--bg3);border-color:var(--border)}
+.ci.active{background:var(--bg4);border-color:var(--border2)}
+.cdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.cn{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cs{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nr{padding:28px 10px;text-align:center;color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:11px}
+
+.detail{overflow-y:auto;background:var(--bg)}
+.detail::-webkit-scrollbar{width:3px}
+.detail::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.12);border-radius:2px}
+.de{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:var(--text3)}
+.de p{font-family:'JetBrains Mono',monospace;font-size:11px}
+
+.di{padding:36px 40px;max-width:960px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.di{animation:fadeUp .18s ease}
+
+.badge{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:20px;margin-bottom:14px}
+.dh{font-size:26px;font-weight:700;letter-spacing:.03em;line-height:1.15;margin-bottom:6px}
+.df{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-bottom:16px}
+.dt{font-size:15px;line-height:1.75;color:var(--text2);margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--border)}
+
+/* INTERACTIVE PANEL */
+.ipanel{border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:28px;background:var(--bg2)}
+.iph{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--bg3);border-bottom:1px solid var(--border)}
+.iph-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text2)}
+.iph-sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3)}
+.ipbody{padding:20px}
+
+/* meta */
+.mr{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:24px}
+.ml{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:3px}
+.mv{font-size:13px;font-weight:500;color:var(--text)}
+.pips{display:flex;gap:3px;align-items:center}
+.pip{width:22px;height:3px;border-radius:2px;background:var(--border2)}
+.pip.on{background:var(--text2)}
+
+.divider{height:1px;background:var(--border);margin:22px 0}
+.sl{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+.sb{font-size:13px;line-height:1.8;color:var(--text2)}
+
+.cl{display:flex;flex-direction:column;gap:7px}
+.cit{display:flex;gap:12px;align-items:flex-start;padding:11px 13px;background:var(--bg3);border-radius:7px;border:1px solid var(--border)}
+.cn2{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:500;width:20px;height:20px;border-radius:50%;border:1px solid currentColor;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;opacity:.6}
+.ct{font-size:13px;line-height:1.6;color:var(--text2)}
+.ct strong{color:var(--text);font-weight:500}
+
+.tc{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.ucg{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.uc{background:var(--bg3);border-radius:7px;padding:9px 12px;font-size:12px;line-height:1.6;color:var(--text2);border-left:2px solid var(--border2)}
+.tgs{display:flex;flex-wrap:wrap;gap:5px}
+.tag{font-family:'JetBrains Mono',monospace;font-size:9px;padding:3px 9px;border-radius:4px;border:1px solid var(--border2);color:var(--text3);background:var(--bg3)}
+
+/* ── INTERACTIVE COMPONENTS ── */
+
+/* Generic clickable tiles */
+.tiles{display:flex;flex-wrap:wrap;gap:8px}
+.tile{padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);cursor:pointer;transition:all .12s;font-size:13px;font-weight:500}
+.tile:hover{border-color:var(--border2);background:var(--bg4)}
+.tile.sel{color:#fff}
+.tile-desc{margin-top:14px;padding:14px 16px;background:var(--bg3);border-radius:8px;border-left:3px solid;font-size:13px;line-height:1.7;color:var(--text2);min-height:60px}
+.tile-desc strong{color:var(--text);display:block;margin-bottom:4px;font-size:14px}
+
+/* Kill chain stages */
+.kc-wrap{overflow-x:auto;padding-bottom:4px}
+.kc-stages{display:flex;gap:0;min-width:700px}
+.kc-stage{flex:1;cursor:pointer;border:1px solid var(--border);border-right:none;transition:all .12s;padding:0}
+.kc-stage:last-child{border-right:1px solid var(--border);border-radius:0 8px 8px 0}
+.kc-stage:first-child{border-radius:8px 0 0 8px}
+.kc-stage:hover .kcs-head{opacity:.85}
+.kc-stage.sel .kcs-head{opacity:1}
+.kcs-head{padding:10px 8px 8px;text-align:center;transition:all .12s}
+.kcs-num{font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,255,255,.65);margin-bottom:4px}
+.kcs-icon{font-size:18px;margin-bottom:4px}
+.kcs-label{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.85);line-height:1.3}
+.kc-detail{padding:14px 16px;font-size:13px;line-height:1.7;color:var(--text2);border-top:1px solid var(--border);background:var(--bg2)}
+.kc-detail strong{color:var(--text);font-weight:600;display:block;margin-bottom:5px}
+.kc-detect{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.kc-detect span{font-family:'JetBrains Mono',monospace;font-size:9px;padding:3px 8px;border-radius:4px;background:rgba(29,111,204,.08);border:1px solid rgba(29,111,204,.2);color:#1d6fcc}
+
+/* ATT&CK Matrix */
+.attck-controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.attck-filter{font-family:'JetBrains Mono',monospace;font-size:9px;padding:5px 10px;border-radius:5px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;transition:all .1s}
+.attck-filter:hover,.attck-filter.on{background:rgba(29,111,204,.08);border-color:#1d6fcc;color:#1d6fcc}
+.attck-matrix{overflow-x:auto;overflow-y:visible;padding-bottom:8px}
+.attck-grid{display:grid;grid-template-columns:repeat(14,1fr);gap:4px;min-width:980px}
+.attck-tactic{background:rgba(15,138,95,.1);border:1px solid rgba(15,138,95,.25);border-radius:5px;padding:6px 5px 5px;text-align:center}
+.attck-tactic-name{font-family:'JetBrains Mono',monospace;font-size:7.5px;letter-spacing:.04em;color:#0f8a5f;line-height:1.3;margin-bottom:2px;font-weight:500}
+.attck-tactic-count{font-family:'JetBrains Mono',monospace;font-size:7px;color:rgba(15,138,95,.6)}
+.attck-col{display:flex;flex-direction:column;gap:3px;margin-top:4px}
+.attck-tech{padding:5px 5px 4px;border-radius:4px;border:1px solid var(--border);background:var(--bg2);cursor:pointer;transition:all .1s;position:relative}
+.attck-tech:hover{border-color:#1d6fcc;background:rgba(29,111,204,.05);z-index:10}
+.attck-tech.hl{border-color:#1d6fcc;background:rgba(29,111,204,.1)}
+.attck-tech-name{font-family:'JetBrains Mono',monospace;font-size:7px;color:var(--text2);line-height:1.4;word-break:break-word}
+.attck-tech.hl .attck-tech-name{color:#1d6fcc}
+.attck-tooltip{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#111827;color:#f9fafb;border-radius:6px;padding:8px 11px;font-family:'JetBrains Mono',monospace;font-size:9px;line-height:1.6;white-space:nowrap;z-index:100;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.18)}
+.attck-tech:hover .attck-tooltip{display:block}
+.attck-legend{display:flex;gap:12px;margin-top:12px;flex-wrap:wrap}
+.attck-legend span{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);display:flex;align-items:center;gap:5px}
+.attck-legend-dot{width:8px;height:8px;border-radius:2px}
+
+/* Diamond pivot */
+.diamond-wrap{display:flex;gap:20px;flex-wrap:wrap}
+.diamond-svg-wrap{flex:0 0 280px}
+.diamond-info{flex:1;min-width:200px}
+.d-node{cursor:pointer;transition:all .15s}
+.d-node:hover rect,.d-node:hover circle{filter:brightness(0.92)}
+.d-node.dsel rect,.d-node.dsel circle{stroke-width:2.5}
+.d-panel{padding:14px;background:var(--bg3);border-radius:8px;border-left:3px solid;min-height:140px}
+.d-panel h4{font-size:15px;font-weight:600;margin-bottom:6px}
+.d-panel p{font-size:13px;line-height:1.7;color:var(--text2)}
+.d-pivot{margin-top:12px}
+.d-pivot-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:7px}
+.d-pivot-tags{display:flex;flex-wrap:wrap;gap:5px}
+.d-pivot-tag{font-family:'JetBrains Mono',monospace;font-size:9px;padding:3px 9px;border-radius:4px;cursor:pointer;transition:all .1s}
+
+/* Intelligence Cycle animator */
+.ic-wrap{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.ic-steps{display:flex;flex-direction:column;gap:6px;flex:0 0 200px}
+.ic-step{padding:10px 13px;border-radius:7px;border:1px solid var(--border);cursor:pointer;transition:all .12s;display:flex;align-items:center;gap:10px}
+.ic-step:hover{border-color:var(--border2)}
+.ic-step.active{background:var(--aod);border-color:var(--ao)}
+.ic-step-num{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;width:20px;height:20px;border-radius:50%;border:1px solid currentColor;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--ao)}
+.ic-step.active .ic-step-num{background:var(--ao);color:#fff;border-color:var(--ao)}
+.ic-step-label{font-size:13px;font-weight:500}
+.ic-step.active .ic-step-label{color:var(--ao)}
+.ic-detail{flex:1;min-width:200px;padding:16px;background:var(--bg3);border-radius:8px;border-left:3px solid var(--ao)}
+.ic-detail h4{font-size:16px;font-weight:600;margin-bottom:8px;color:var(--ao)}
+.ic-detail p{font-size:13px;line-height:1.75;color:var(--text2);margin-bottom:10px}
+.ic-tips{display:flex;flex-direction:column;gap:5px}
+.ic-tip{font-family:'JetBrains Mono',monospace;font-size:10px;padding:5px 9px;background:var(--bg2);border-radius:5px;border:1px solid var(--border);color:var(--text2)}
+.ic-tip::before{content:'→ ';color:var(--ao)}
+
+/* STRIDE cards */
+.stride-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stride-card{border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;transition:all .12s}
+.stride-card:hover{border-color:var(--border2);transform:translateY(-1px)}
+.stride-card.sel{box-shadow:0 0 0 2px currentColor}
+.stride-head{padding:12px 14px;display:flex;align-items:center;gap:10px}
+.stride-letter{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:500;width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stride-title{font-size:14px;font-weight:600}
+.stride-body{padding:0 14px 12px;font-size:12px;line-height:1.65;color:var(--text2)}
+.stride-counter{font-family:'JetBrains Mono',monospace;font-size:9px;padding:4px 8px;border-radius:4px;margin-top:8px;display:inline-block}
+
+/* TLP simulator */
+.tlp-sim{display:flex;flex-direction:column;gap:8px}
+.tlp-row{display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:all .12s}
+.tlp-row:hover{border-color:var(--border2)}
+.tlp-row.sel{border-width:1.5px}
+.tlp-badge{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;padding:4px 10px;border-radius:4px;white-space:nowrap;min-width:130px;text-align:center}
+.tlp-desc{flex:1;font-size:13px;color:var(--text2);line-height:1.5}
+.tlp-bar-wrap{width:120px;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;flex-shrink:0}
+.tlp-bar{height:100%;border-radius:3px;transition:width .3s}
+.tlp-detail{margin-top:12px;padding:14px 16px;border-radius:8px;border-left:3px solid;background:var(--bg3);font-size:13px;line-height:1.7;color:var(--text2)}
+.tlp-detail strong{display:block;font-size:14px;font-weight:600;margin-bottom:5px}
+
+/* CVSS Calculator */
+.cvss-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.cvss-field{display:flex;flex-direction:column;gap:6px}
+.cvss-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+.cvss-select{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);outline:none;cursor:pointer;width:100%}
+.cvss-select:focus{border-color:var(--border2)}
+.cvss-result{margin-top:16px;padding:16px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.cvss-score-big{font-family:'JetBrains Mono',monospace;font-size:42px;font-weight:500;line-height:1}
+.cvss-severity{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+.cvss-bar-outer{flex:1;min-width:160px;height:10px;background:var(--bg4);border-radius:5px;overflow:hidden}
+.cvss-bar-inner{height:100%;border-radius:5px;transition:width .4s,background .4s}
+.epss-wrap{margin-top:12px;padding:12px 14px;background:rgba(29,111,204,.06);border-radius:7px;border:1px solid rgba(29,111,204,.15)}
+.epss-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#1d6fcc;margin-bottom:4px}
+.epss-val{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:500;color:#1d6fcc}
+.epss-note{font-size:12px;color:var(--text3);margin-top:3px}
+
+/* CAF pillars */
+.caf-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.caf-pillar{border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;transition:border-color .12s}
+.caf-pillar:hover{border-color:var(--border2)}
+.caf-pillar.sel{border-width:1.5px}
+.caf-ph{padding:10px 14px;font-size:13px;font-weight:600}
+.caf-objectives{display:none;padding:0 14px 12px}
+.caf-pillar.sel .caf-objectives{display:block}
+.caf-obj{padding:7px 0;border-top:1px solid var(--border);font-size:12px;color:var(--text2);display:flex;align-items:flex-start;gap:7px;line-height:1.55}
+.caf-obj-id{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 6px;border-radius:3px;flex-shrink:0;margin-top:1px}
+
+/* NIST wheel */
+.nist-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.nist-fn{border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;transition:all .12s}
+.nist-fn:hover{border-color:var(--border2);transform:translateY(-1px)}
+.nist-fn.sel{box-shadow:0 0 0 2px currentColor}
+.nist-fh{padding:12px 14px;display:flex;align-items:center;gap:10px}
+.nist-id{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:500;width:38px;height:38px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nist-fname{font-size:14px;font-weight:600}
+.nist-fnew{font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 6px;border-radius:3px;margin-left:auto;background:rgba(124,58,237,.1);color:#7c3aed;border:1px solid rgba(124,58,237,.2)}
+.nist-cats{padding:0 14px 12px;display:none}
+.nist-fn.sel .nist-cats{display:block}
+.nist-cat{padding:6px 0;border-top:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text2);display:flex;align-items:flex-start;gap:7px;line-height:1.5}
+.nist-cat-id{font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 5px;border-radius:3px;flex-shrink:0;margin-top:1px}
+
+/* CTI CMM levels */
+.cmm-levels{display:flex;flex-direction:column;gap:0}
+.cmm-level{display:flex;gap:14px;align-items:stretch;padding:12px 16px;border:1px solid var(--border);border-bottom:none;cursor:pointer;transition:background .1s;position:relative}
+.cmm-level:first-child{border-radius:8px 8px 0 0}
+.cmm-level:last-child{border-bottom:1px solid var(--border);border-radius:0 0 8px 8px}
+.cmm-level:hover{background:var(--bg3)}
+.cmm-level.sel{background:var(--bg3)}
+.cmm-lnum{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.cmm-lbody{flex:1}
+.cmm-ltitle{font-size:14px;font-weight:600;margin-bottom:3px}
+.cmm-ldesc{font-size:12px;color:var(--text2);line-height:1.6;display:none}
+.cmm-level.sel .cmm-ldesc{display:block}
+.cmm-bar-wrap{position:absolute;right:16px;top:50%;transform:translateY(-50%);display:flex;gap:3px}
+.cmm-bar-pip{width:12px;height:12px;border-radius:3px;background:var(--bg4)}
+.cmm-bar-pip.on{background:currentColor}
+
+/* F3EAD */
+.f3-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.f3-box{border:1px solid var(--border);border-radius:8px;padding:14px;cursor:pointer;transition:all .12s;text-align:center}
+.f3-box:hover{border-color:var(--border2);transform:translateY(-1px)}
+.f3-box.sel{border-width:1.5px}
+.f3-letter{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:500;line-height:1;margin-bottom:4px}
+.f3-name{font-size:13px;font-weight:600;margin-bottom:6px}
+.f3-desc{font-size:11px;color:var(--text2);line-height:1.6;display:none;text-align:left}
+.f3-box.sel .f3-desc{display:block}
+.f3-arrow{display:flex;justify-content:center;align-items:center;color:var(--text3);font-size:18px;padding:2px 0}
+
+/* PASTA stages */
+.pasta-stages{display:flex;flex-direction:column;gap:0}
+.pasta-stage{display:flex;gap:14px;align-items:flex-start;padding:12px 16px;border:1px solid var(--border);border-bottom:none;cursor:pointer;transition:background .1s}
+.pasta-stage:first-child{border-radius:8px 8px 0 0}
+.pasta-stage:last-child{border-bottom:1px solid var(--border);border-radius:0 0 8px 8px}
+.pasta-stage:hover{background:var(--bg3)}
+.pasta-stage.sel{background:var(--bg3)}
+.pasta-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;background:var(--bg4)}
+.pasta-stage.sel .pasta-num{color:#fff}
+.pasta-stitle{font-size:14px;font-weight:600;margin-bottom:3px}
+.pasta-sdesc{font-size:12px;color:var(--text2);line-height:1.6;display:none}
+.pasta-stage.sel .pasta-sdesc{display:block}
+.pasta-io{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.pasta-io-box{background:var(--bg2);border-radius:5px;padding:7px 9px;border:1px solid var(--border)}
+.pasta-io-label{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
+.pasta-io-val{font-size:11px;color:var(--text2)}
+
+/* Pyramid interactive */
+.pyr-wrap{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.pyr-tiers{display:flex;flex-direction:column;gap:3px;flex:0 0 auto}
+.pyr-tier{cursor:pointer;transition:all .12s;border-radius:4px;border:1px solid transparent;padding:8px 14px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:500}
+.pyr-tier:hover{background:var(--bg3)}
+.pyr-tier.sel{background:var(--bg3);border-color:var(--border2)}
+.pyr-pain{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 7px;border-radius:3px}
+.pyr-detail{flex:1;min-width:200px;padding:16px;background:var(--bg3);border-radius:8px;border-left:3px solid;min-height:180px}
+.pyr-detail h4{font-size:15px;font-weight:600;margin-bottom:6px}
+.pyr-detail p{font-size:13px;line-height:1.7;color:var(--text2);margin-bottom:10px}
+.pyr-examples{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.pyr-ex{font-family:'JetBrains Mono',monospace;font-size:9px;padding:3px 8px;border-radius:4px;background:var(--bg2);border:1px solid var(--border)}
+
+/* STIX object graph */
+.stix-wrap{display:flex;gap:16px;flex-wrap:wrap}
+.stix-objects{display:flex;flex-wrap:wrap;gap:7px;flex:1}
+.stix-obj{padding:9px 13px;border-radius:7px;border:1px solid var(--border);cursor:pointer;transition:all .12s;font-size:12px;font-weight:500;display:flex;align-items:center;gap:7px}
+.stix-obj:hover{border-color:var(--border2);transform:translateY(-1px)}
+.stix-obj.sel{border-width:1.5px}
+.stix-type{font-family:'JetBrains Mono',monospace;font-size:8px;padding:2px 5px;border-radius:3px}
+.stix-detail{width:100%;margin-top:14px;padding:14px 16px;background:var(--bg3);border-radius:8px;border-left:3px solid;font-size:13px;line-height:1.7;color:var(--text2)}
+.stix-detail h4{font-size:15px;font-weight:600;margin-bottom:6px;color:var(--text)}
+.stix-rels{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.stix-rel{font-family:'JetBrains Mono',monospace;font-size:9px;padding:3px 9px;border-radius:4px;background:var(--bg2);border:1px solid var(--border);color:var(--text2)}
+.stix-rel::before{content:'→ ';color:#1d6fcc}
+
+/* ACH matrix */
+.ach-wrap{overflow-x:auto}
+.ach-table{width:100%;border-collapse:collapse;font-size:11px}
+.ach-table th{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.05em;padding:7px 8px;text-align:center;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-weight:500}
+.ach-table th:first-child{text-align:left;min-width:160px}
+.ach-table td{padding:6px 8px;border:1px solid var(--border);text-align:center;vertical-align:middle}
+.ach-table td:first-child{text-align:left;font-size:11px;color:var(--text2);background:var(--bg3)}
+.ach-c{width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;margin:auto}
+.ach-C{background:rgba(15,138,95,.15);color:#0f8a5f}
+.ach-I{background:rgba(192,92,26,.12);color:#c05c1a}
+.ach-N{background:rgba(200,80,80,.1);color:#c84b4b}
+.ach-score{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;padding:4px 8px;border-radius:4px}
+
+/* CS&R Bill */
+.csr-sectors{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.csr-sector{padding:10px 12px;border-radius:7px;border:1px solid var(--border);cursor:pointer;transition:all .12s;text-align:center}
+.csr-sector:hover{border-color:var(--border2)}
+.csr-sector.sel{background:rgba(29,111,204,.08);border-color:#1d6fcc}
+.csr-sector-icon{font-size:20px;margin-bottom:4px}
+.csr-sector-name{font-size:13px;font-weight:500}
+.csr-obligations{display:flex;flex-direction:column;gap:7px}
+.csr-ob{padding:10px 14px;border-radius:7px;background:var(--bg3);border:1px solid var(--border);font-size:12px;line-height:1.6;color:var(--text2);display:flex;gap:10px;align-items:flex-start}
+.csr-ob-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.csr-ob strong{display:block;color:var(--text);font-size:13px;font-weight:600;margin-bottom:2px}
+
+/* MISP components */
+.misp-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.misp-comp{border:1px solid var(--border);border-radius:8px;padding:12px 14px;cursor:pointer;transition:all .12s}
+.misp-comp:hover{border-color:var(--border2)}
+.misp-comp.sel{border-color:#0f8a5f;background:rgba(15,138,95,.05)}
+.misp-comp-title{font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.misp-comp-icon{font-size:16px}
+.misp-comp-desc{font-size:12px;color:var(--text2);line-height:1.6;display:none}
+.misp-comp.sel .misp-comp-desc{display:block}
+.misp-example{margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:9px;padding:5px 8px;background:var(--bg3);border-radius:4px;color:var(--text3);border:1px solid var(--border);display:none}
+.misp-comp.sel .misp-example{display:block}
+
+@media(max-width:768px){.main{grid-template-columns:1fr;height:auto}.sidebar{height:260px}.tc,.ucg,.caf-grid,.nist-grid,.f3-grid,.stride-grid,.cvss-grid,.csr-sectors,.misp-grid,.pasta-io{grid-template-columns:1fr}.di{padding:22px 18px}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="hk">Threat Intelligence</div>
+    <div class="ht"><span>CTI</span> Reference Framework</div>
+  </div>
+</div>
+
+<div class="controls">
+  <div class="sw">
+    <span class="si">⌕</span>
+    <input class="sinput" type="text" id="search" placeholder="Search frameworks, tactics, tags..." autocomplete="off">
+  </div>
+  <div class="fbtns">
+    <button class="fb aa" data-cat="all" onclick="setFilter('all',this)"><span class="fdot" style="background:#888"></span>All</button>
+    <button class="fb" data-cat="model" onclick="setFilter('model',this)"><span class="fdot" style="background:var(--am)"></span>Models</button>
+    <button class="fb" data-cat="framework" onclick="setFilter('framework',this)"><span class="fdot" style="background:var(--af)"></span>Frameworks</button>
+    <button class="fb" data-cat="methodology" onclick="setFilter('methodology',this)"><span class="fdot" style="background:var(--ao)"></span>Methodologies</button>
+    <button class="fb" data-cat="maturity" onclick="setFilter('maturity',this)"><span class="fdot" style="background:var(--ap)"></span>Maturity &amp; Sharing</button>
+  </div>
+  <div class="rc" id="rc">18 entries</div>
+</div>
+
+<div class="main">
+  <div class="sidebar" id="sidebar"></div>
+  <div class="detail" id="detail">
+    <div class="de">
+      <svg width="44" height="44" viewBox="0 0 44 44" fill="none"><rect x="6" y="6" width="32" height="32" rx="4" stroke="#9ca3af" stroke-width="1.5"/><line x1="13" y1="15" x2="31" y2="15" stroke="#9ca3af" stroke-width="1.5"/><line x1="13" y1="22" x2="27" y2="22" stroke="#9ca3af" stroke-width="1.5"/><line x1="13" y1="29" x2="22" y2="29" stroke="#9ca3af" stroke-width="1.5"/></svg>
+      <p>Select an entry to explore</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const CC={model:'var(--am)',framework:'var(--af)',methodology:'var(--ao)',maturity:'var(--ap)'};
+const CD={model:'var(--amd)',framework:'var(--afd)',methodology:'var(--aod)',maturity:'var(--apd)'};
+const CL={model:'Model',framework:'Framework',methodology:'Methodology',maturity:'Maturity & Sharing'};
+
+/* ══════════════════════════════════════════════
+   INTERACTIVE PANEL GENERATORS
+══════════════════════════════════════════════ */
+
+function ipanel(title, sub, body) {
+  return `<div class="ipanel"><div class="iph"><span class="iph-title">${title}</span><span class="iph-sub">${sub}</span></div><div class="ipbody">${body}</div></div>`;
+}
+
+/* ─ DIAMOND MODEL ─ */
+function iDiamond() {
+  const nodes = [
+    {id:'adv', label:'ADVERSARY', sub:'Who is attacking?', col:'#1d6fcc', desc:'The operator or director of the intrusion. Can be a nation-state, criminal group, or insider. Attribution starts here — pivoting from capability or infrastructure can reveal identity.',pivot:'Pivot to: capability they use, campaigns they run, victims they target'},
+    {id:'cap', label:'CAPABILITY', sub:'How are they attacking?', col:'#c05c1a', desc:'Tools, malware, exploits, and techniques employed. The same capability across incidents can fingerprint a threat actor even when infrastructure rotates. Links to MITRE ATT&CK TTPs.',pivot:'Pivot to: other adversaries using same tools, other victims targeted with same capability'},
+    {id:'infra', label:'INFRASTRUCTURE', sub:'What are they using?', col:'#0f8a5f', desc:'Physical or logical resources: C2 servers, IP addresses, domains, cloud accounts. Infrastructure often reused or shared between campaigns — a high-value pivot point for hunting.',pivot:'Pivot to: other adversaries on same infra, other campaigns using same C2'},
+    {id:'vic', label:'VICTIM', sub:'Who is being targeted?', col:'#7c3aed', desc:'Target organisation, person, or asset. Understanding victim profile (sector, geography, data held) helps predict future targets and prioritise defensive investments.',pivot:'Pivot to: other victims in same sector, adversaries known to target this industry'},
+  ];
+  let sel = 'adv';
+  const n = nodes.find(x=>x.id===sel);
+  return `
+<div class="diamond-wrap" id="dw">
+<div class="diamond-svg-wrap">
+<svg viewBox="0 0 280 220" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%">
+  <polygon points="140,18 258,110 140,202 22,110" fill="rgba(29,111,204,0.04)" stroke="rgba(29,111,204,0.2)" stroke-width="1.5"/>
+  <line x1="22" y1="110" x2="258" y2="110" stroke="rgba(0,0,0,0.06)" stroke-dasharray="4,4"/>
+  <line x1="140" y1="18" x2="140" y2="202" stroke="rgba(0,0,0,0.06)" stroke-dasharray="4,4"/>
+  <g class="d-node" id="dn-adv" onclick="dSel('adv')" style="cursor:pointer">
+    <circle cx="140" cy="18" r="26" fill="#f0f5ff" stroke="#1d6fcc" stroke-width="1.5" id="dc-adv"/>
+    <text x="140" y="13" text-anchor="middle" fill="#1d6fcc" font-family="JetBrains Mono" font-size="7" font-weight="500">ADVERSARY</text>
+    <text x="140" y="24" text-anchor="middle" fill="rgba(29,111,204,0.6)" font-family="JetBrains Mono" font-size="7">Who</text>
+  </g>
+  <g class="d-node" id="dn-vic" onclick="dSel('vic')" style="cursor:pointer">
+    <circle cx="140" cy="202" r="26" fill="#f5f0ff" stroke="#7c3aed" stroke-width="1.5" id="dc-vic"/>
+    <text x="140" y="197" text-anchor="middle" fill="#7c3aed" font-family="JetBrains Mono" font-size="7" font-weight="500">VICTIM</text>
+    <text x="140" y="208" text-anchor="middle" fill="rgba(124,58,237,0.6)" font-family="JetBrains Mono" font-size="7">Target</text>
+  </g>
+  <g class="d-node" id="dn-cap" onclick="dSel('cap')" style="cursor:pointer">
+    <circle cx="22" cy="110" r="26" fill="#fff8f0" stroke="#c05c1a" stroke-width="1.5" id="dc-cap"/>
+    <text x="22" y="106" text-anchor="middle" fill="#c05c1a" font-family="JetBrains Mono" font-size="7" font-weight="500">CAPABILITY</text>
+    <text x="22" y="116" text-anchor="middle" fill="rgba(192,92,26,0.6)" font-family="JetBrains Mono" font-size="7">Tools/TTPs</text>
+  </g>
+  <g class="d-node" id="dn-infra" onclick="dSel('infra')" style="cursor:pointer">
+    <circle cx="258" cy="110" r="26" fill="#f0faf5" stroke="#0f8a5f" stroke-width="1.5" id="dc-infra"/>
+    <text x="258" y="106" text-anchor="middle" fill="#0f8a5f" font-family="JetBrains Mono" font-size="7" font-weight="500">INFRA</text>
+    <text x="258" y="116" text-anchor="middle" fill="rgba(15,138,95,0.6)" font-family="JetBrains Mono" font-size="7">C2/IPs</text>
+  </g>
+  <text x="80" y="58" text-anchor="middle" fill="rgba(0,0,0,0.2)" font-family="JetBrains Mono" font-size="8">uses</text>
+  <text x="200" y="58" text-anchor="middle" fill="rgba(0,0,0,0.2)" font-family="JetBrains Mono" font-size="8">targets via</text>
+  <text x="80" y="170" text-anchor="middle" fill="rgba(0,0,0,0.2)" font-family="JetBrains Mono" font-size="8">against</text>
+  <text x="200" y="170" text-anchor="middle" fill="rgba(0,0,0,0.2)" font-family="JetBrains Mono" font-size="8">over</text>
+</svg>
+</div>
+<div class="diamond-info" id="diamond-info">
+  <div class="d-panel" id="d-panel" style="border-left-color:${n.col}">
+    <h4 style="color:${n.col}">${n.label}</h4>
+    <p>${n.desc}</p>
+    <div class="d-pivot">
+      <div class="d-pivot-label">Analyst Pivot</div>
+      <div class="d-pivot-tags" id="d-pivot-tags">
+        ${n.pivot.split(', ').map(p=>`<span class="d-pivot-tag" style="background:rgba(29,111,204,0.08);border:1px solid rgba(29,111,204,0.2);color:#1d6fcc">${p}</span>`).join('')}
+      </div>
+    </div>
+  </div>
+</div>
+</div>`;
+}
+
+/* ─ KILL CHAIN ─ */
+function iKillChain() {
+  const stages = [
+    {num:1,icon:'🔍',label:'Recon',col:'#1e3a5f',desc:'Passive and active reconnaissance to identify targets, technologies, and personnel. Includes OSINT, LinkedIn profiling, DNS enumeration, and network scanning.',detect:['OSINT monitoring','Brand/domain alerting','Dark web monitoring'],disrupt:'Counter-recon: limit public exposure, honeypot email addresses, limit DNS info'},
+    {num:2,icon:'⚗️',label:'Weaponise',col:'#1d4e7a',desc:'Building a deliverable weapon — pairing an exploit with a backdoor payload. Typically occurs entirely offline; defenders have no visibility at this stage.',detect:['Threat intel feeds','Malware sandbox (post-delivery)'],disrupt:'Focus: identify adversary toolsets via CTI, track malware families'},
+    {num:3,icon:'📨',label:'Deliver',col:'#1a6491',desc:'Transmitting the weaponised payload to the target environment via phishing email, malicious link, USB drop, or supply chain compromise.',detect:['Email gateway','Web proxy','USB controls','Phishing simulation'],disrupt:'Email filtering, user awareness, sandboxing, web filtering'},
+    {num:4,icon:'💥',label:'Exploit',col:'#157a9e',desc:'Triggering the payload against a vulnerability in software, hardware, or the user. Can be client-side (user opens document) or server-side (remote code execution).',detect:['EDR/AV','HIPS','Patch telemetry','IDS signatures'],disrupt:'Patch management, application whitelisting, exploit mitigations (ASLR, DEP)'},
+    {num:5,icon:'📌',label:'Install',col:'#0f8a5f',desc:'Installing a persistent backdoor, scheduled task, registry run key, or service to maintain access beyond the initial exploitation event.',detect:['EDR persistence detection','Registry monitoring','File integrity monitoring'],disrupt:'Application control, privileged access management, FIM alerts'},
+    {num:6,icon:'📡',label:'C2',col:'#7c3aed',desc:'Establishing a command-and-control channel to remotely operate the implant. Often uses encrypted HTTPS, DNS tunnelling, or legitimate cloud services to blend in.',detect:['DNS anomaly detection','Beaconing detection','NGFW/proxy logs','Network flow analysis'],disrupt:'DNS sinkholes, proxy inspection, threat intel blocking, network segmentation'},
+    {num:7,icon:'🎯',label:'Actions',col:'#c05c1a',desc:'Achieving the mission objective: data exfiltration, ransomware deployment, destructive action, or establishing long-term persistence for future operations.',detect:['DLP','UEBA','Large outbound transfers','Ransomware detection'],disrupt:'Data classification, backup integrity, least privilege, incident response readiness'},
+  ];
+  let sel = 0;
+  window.kcStages = stages;
+  return `
+<div>
+<div class="kc-wrap"><div class="kc-stages" id="kc-stages">
+${stages.map((s,i)=>`<div class="kc-stage${i===0?' sel':''}" onclick="kcSel(${i})" style="background:${i===0?s.col:'#f4f6f9'}">
+  <div class="kcs-head" style="background:${s.col}">
+    <div class="kcs-num">${s.num}</div>
+    <div class="kcs-icon">${s.icon}</div>
+    <div class="kcs-label">${s.label}</div>
+  </div>
+</div>`).join('')}
+</div></div>
+<div class="kc-detail" id="kc-detail">
+  <strong>${stages[0].label}</strong>
+  ${stages[0].desc}
+  <div class="kc-detect">${stages[0].detect.map(d=>`<span>${d}</span>`).join('')}</div>
+  <div style="margin-top:10px;font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace">↯ ${stages[0].disrupt}</div>
+</div>
+</div>`;
+}
+
+/* ─ PYRAMID OF PAIN ─ */
+function iPyramid() {
+  const tiers = [
+    {label:'TTPs',pain:'TOUGH',col:'#7c3aed',w:'100%',desc:'Tactics, Techniques & Procedures — the adversary\'s fundamental approach and behaviour patterns. Denying TTPs forces complete retooling: new malware, new infrastructure, new procedures. Maximum disruption.',examples:['Spearphishing with macro-enabled docs','Living-off-the-land techniques','Pass-the-hash lateral movement','LSASS credential dumping'],action:'Map to MITRE ATT&CK. Build behavioural detections in SIEM/EDR. Focus threat hunting on technique signatures.'},
+    {label:'Host Artefacts',pain:'ANNOYING',col:'#1d6fcc',w:'83%',desc:'Registry keys, file paths, mutex names, service names, scheduled task names. Changing these requires the adversary to rebuild and retest tooling — significant but not insurmountable effort.',examples:['HKCU\\Software\\malware-name','C:\\ProgramData\\update.exe','ServiceName: svchost32','Mutex: {GUID}'],action:'Deploy file integrity monitoring and registry auditing. Use YARA rules for host artefact patterns.'},
+    {label:'Network Artefacts',pain:'ANNOYING',col:'#0f8a5f',w:'67%',desc:'URI patterns, HTTP User-Agent strings, C2 callback intervals, packet headers. Disrupting these requires the adversary to modify their framework configuration and retest.',examples:['User-Agent: Mozilla/5.0 (custom)','Beacon interval: 300s ± 10%','URI: /api/v2/update?id=','TLS JA3 fingerprint'],action:'Implement network traffic analysis (NTA), proxy logging with user-agent inspection, JA3/JA3S fingerprinting.'},
+    {label:'Domain Names',pain:'SIMPLE',col:'#c05c1a',w:'50%',desc:'Command-and-control domains. Easily replaced via new domain registration, fast-flux DNS, or abuse of legitimate cloud services, but still requires time and operational effort.',examples:['update-service[.]net','cdn-delivery[.]com','api.legitimate-cloud[.]io','DGA-generated domains'],action:'DNS RPZ (Response Policy Zones), threat intel DNS feeds, passive DNS monitoring, sinkholing.'},
+    {label:'IP Addresses',pain:'EASY',col:'#d97706',w:'37%',desc:'C2 server IP addresses. Trivially rotated by the adversary — new VPS, new cloud instance, bulletproof hosting, or residential proxies. Blocking individual IPs is low-value for persistent adversaries.',examples:['45.155.x.x (bulletproof hosting)','Residential proxy rotations','Cloud provider exit IPs','Tor exit nodes'],action:'Still worth blocking for opportunistic threats. Use IP reputation feeds. Do not rely on this alone for APT tracking.'},
+    {label:'Hash Values',pain:'TRIVIAL',col:'#dc2626',w:'23%',desc:'MD5, SHA1, SHA256 file hashes. Absolutely trivial to change — a single byte modification produces a new hash. Useful for point-in-time identification but provides near-zero predictive detection value.',examples:['SHA256: a1b2c3d4...','MD5: 098f6bcd...'],action:'Record hashes in SIEM for historical reference. Do not rely on hashes as primary detection. One compile = new hash.'},
+  ];
+  window.pyrTiers = tiers;
+  return `
+<div class="pyr-wrap" id="pyr-wrap">
+<div class="pyr-tiers">
+${tiers.map((t,i)=>`<div class="pyr-tier${i===0?' sel':''}" onclick="pyrSel(${i})" style="${i===0?'background:rgba(124,58,237,0.06);border-color:rgba(124,58,237,0.2)':''}">
+  <div style="width:${t.w};max-width:180px;height:10px;border-radius:3px;background:${t.col};opacity:${0.3+i*0.12};flex-shrink:0"></div>
+  <span style="font-size:13px;font-weight:500">${t.label}</span>
+  <span class="pyr-pain" style="background:${t.col}1a;color:${t.col};border:1px solid ${t.col}33;margin-left:auto">${t.pain}</span>
+</div>`).join('')}
+</div>
+<div class="pyr-detail" id="pyr-detail" style="border-left-color:${tiers[0].col}">
+  <h4 style="color:${tiers[0].col}">${tiers[0].label} — ${tiers[0].pain}</h4>
+  <p>${tiers[0].desc}</p>
+  <div class="sl">Examples</div>
+  <div class="pyr-examples">${tiers[0].examples.map(e=>`<span class="pyr-ex">${e}</span>`).join('')}</div>
+  <div style="margin-top:12px;padding:10px 12px;background:rgba(124,58,237,0.06);border-radius:6px;border:1px solid rgba(124,58,237,0.15);font-size:12px;color:var(--text2)"><strong style="color:${tiers[0].col};font-size:11px;font-family:'JetBrains Mono',monospace;letter-spacing:.06em;display:block;margin-bottom:3px">DEFENDER ACTION</strong>${tiers[0].action}</div>
+</div>
+</div>`;
+}
+
+/* ─ ATT&CK MATRIX ─ */
+function iATTCK() {
+  const tactics = [
+    {id:'TA0043',name:'Reconnaissance',short:'Recon',count:10,techniques:[
+      {id:'T1595',name:'Active Scanning',sub:'Scan IP blocks, Vulnerability Scanning',platforms:'Network'},
+      {id:'T1592',name:'Gather Victim Host Info',sub:'Hardware, Software, Firmware, Client Config',platforms:'Network'},
+      {id:'T1589',name:'Gather Victim Identity',sub:'Credentials, Email Addresses, Employee Names',platforms:'Network'},
+      {id:'T1590',name:'Gather Victim Network Info',sub:'Domain Properties, DNS, IP Addresses, Topology',platforms:'Network'},
+      {id:'T1591',name:'Gather Victim Org Info',sub:'Determine Physical Locations, Business Relations',platforms:'Network'},
+      {id:'T1598',name:'Phishing for Information',sub:'Spearphishing via Service, Link, Voice',platforms:'Network'},
+      {id:'T1597',name:'Search Closed Sources',sub:'Threat Intel Vendors, Purchase Technical Data',platforms:'Network'},
+      {id:'T1596',name:'Search Open Tech Databases',sub:'DNS/Passive DNS, WHOIS, Digital Certificates',platforms:'Network'},
+      {id:'T1593',name:'Search Open Websites',sub:'Social Media, Search Engines',platforms:'Network'},
+      {id:'T1594',name:'Search Victim-Owned Websites',sub:'Job postings, Contact info, org structure',platforms:'Network'},
+    ]},
+    {id:'TA0042',name:'Resource Development',short:'Res Dev',count:8,techniques:[
+      {id:'T1583',name:'Acquire Infrastructure',sub:'Domains, DNS Server, Virtual Private Server, Botnet',platforms:'Network'},
+      {id:'T1586',name:'Compromise Accounts',sub:'Social Media, Email Accounts, Cloud Accounts',platforms:'Network'},
+      {id:'T1584',name:'Compromise Infrastructure',sub:'Domains, Serverless, Botnet, Web Services',platforms:'Network'},
+      {id:'T1587',name:'Develop Capabilities',sub:'Malware, Code Signing Certs, Exploits, Digital Certs',platforms:'Network'},
+      {id:'T1585',name:'Establish Accounts',sub:'Social Media, Email Accounts, Cloud Accounts',platforms:'Network'},
+      {id:'T1588',name:'Obtain Capabilities',sub:'Malware, Tool, Exploits, Vulnerabilities',platforms:'Network'},
+      {id:'T1608',name:'Stage Capabilities',sub:'Upload Malware, Upload Tool, Drive-by Target',platforms:'Network'},
+      {id:'T1650',name:'Acquire Access',sub:'Purchase existing access to target org',platforms:'Network'},
+    ]},
+    {id:'TA0001',name:'Initial Access',short:'Init Access',count:9,techniques:[
+      {id:'T1189',name:'Drive-by Compromise',sub:'Watering hole attack via malicious website',platforms:'Windows, macOS, Linux'},
+      {id:'T1190',name:'Exploit Public-Facing App',sub:'Web apps, databases, VPNs, load balancers',platforms:'Windows, Linux, macOS, Network'},
+      {id:'T1133',name:'External Remote Services',sub:'VPNs, Citrix, RDP, SSH, WinRM',platforms:'Windows, Linux, macOS'},
+      {id:'T1200',name:'Hardware Additions',sub:'Raspberry Pi, rogue network device, drop device',platforms:'Windows, Linux, macOS, Network'},
+      {id:'T1566',name:'Phishing',sub:'Spearphishing Attachment, Link, via Service, Voice',platforms:'Windows, macOS, Linux'},
+      {id:'T1091',name:'Replication Through Removable Media',sub:'USB drives, infected external storage',platforms:'Windows'},
+      {id:'T1195',name:'Supply Chain Compromise',sub:'Compromise Software Dependencies, Software Supply Chain',platforms:'Windows, macOS, Linux'},
+      {id:'T1199',name:'Trusted Relationship',sub:'MSPs, IT contractors with privileged access',platforms:'Windows, macOS, Linux'},
+      {id:'T1078',name:'Valid Accounts',sub:'Default, Domain, Cloud, Local Accounts',platforms:'Windows, macOS, Linux, Cloud'},
+    ]},
+    {id:'TA0002',name:'Execution',short:'Execution',count:14,techniques:[
+      {id:'T1059',name:'Command & Scripting Interpreter',sub:'PowerShell, Python, Bash, VBScript, JS',platforms:'Windows, macOS, Linux'},
+      {id:'T1609',name:'Container Administration Command',sub:'kubectl, Docker CLI, ECS exec',platforms:'Containers'},
+      {id:'T1610',name:'Deploy Container',sub:'Malicious container deployment',platforms:'Containers'},
+      {id:'T1203',name:'Exploitation for Client Execution',sub:'Office macros, browser exploits, PDF exploits',platforms:'Windows, macOS, Linux'},
+      {id:'T1559',name:'Inter-Process Communication',sub:'COM, DDE, XPC Services',platforms:'Windows, macOS'},
+      {id:'T1106',name:'Native API',sub:'WinAPI, POSIX API calls',platforms:'Windows, macOS, Linux'},
+      {id:'T1053',name:'Scheduled Task/Job',sub:'Cron, AT, Scheduled Task, Systemd Timer',platforms:'Windows, macOS, Linux'},
+      {id:'T1129',name:'Shared Modules',sub:'Malicious DLL/SO execution via module loading',platforms:'Windows, macOS, Linux'},
+      {id:'T1072',name:'Software Deployment Tools',sub:'PDQ, Altiris, SCCM, Ansible misuse',platforms:'Windows, macOS, Linux'},
+      {id:'T1569',name:'System Services',sub:'Service Execution, Launchctl',platforms:'Windows, macOS'},
+      {id:'T1204',name:'User Execution',sub:'Malicious Link, File, Image',platforms:'Windows, macOS, Linux'},
+      {id:'T1047',name:'Windows Management Instrumentation',sub:'WMI remote execution, persistence',platforms:'Windows'},
+    ]},
+    {id:'TA0003',name:'Persistence',short:'Persistence',count:20,techniques:[
+      {id:'T1098',name:'Account Manipulation',sub:'Add roles, SSH Authorized Keys, Device Registration',platforms:'Windows, macOS, Linux, Cloud'},
+      {id:'T1197',name:'BITS Jobs',sub:'Background Intelligent Transfer Service abuse',platforms:'Windows'},
+      {id:'T1547',name:'Boot/Logon Autostart',sub:'Registry Run Keys, Startup Folder, Login Hooks',platforms:'Windows, macOS, Linux'},
+      {id:'T1037',name:'Boot/Logon Init Scripts',sub:'Logon scripts, RC scripts, Browser Extensions',platforms:'Windows, macOS, Linux'},
+      {id:'T1176',name:'Browser Extensions',sub:'Malicious browser plugin installation',platforms:'Windows, macOS, Linux'},
+      {id:'T1554',name:'Compromise Client Software Binary',sub:'Trojanised client software binaries',platforms:'Windows, macOS, Linux'},
+      {id:'T1136',name:'Create Account',sub:'Local, Domain, Cloud Accounts',platforms:'Windows, macOS, Linux, Cloud'},
+      {id:'T1543',name:'Create or Modify System Process',sub:'Windows Service, Systemd Service, Launch Daemon',platforms:'Windows, macOS, Linux'},
+      {id:'T1546',name:'Event Triggered Execution',sub:'Change Default File Association, Screensaver',platforms:'Windows, macOS, Linux'},
+      {id:'T1574',name:'Hijack Execution Flow',sub:'DLL Side-Loading, DLL Search Order, Path Interception',platforms:'Windows, macOS, Linux'},
+      {id:'T1525',name:'Implant Internal Image',sub:'Modify cloud/container image for persistence',platforms:'IaaS, Containers'},
+      {id:'T1556',name:'Modify Authentication Process',sub:'Domain Controller Auth, Password Filter DLL',platforms:'Windows, macOS, Linux'},
+      {id:'T1137',name:'Office Application Startup',sub:'Office Template Macros, Add-ins, VBA persistence',platforms:'Windows, macOS'},
+      {id:'T1542',name:'Pre-OS Boot',sub:'System Firmware, MBR, VBR, TFTP Boot',platforms:'Windows, Linux, Network'},
+      {id:'T1053',name:'Scheduled Task/Job',sub:'Cron, AT, Scheduled Task for persistence',platforms:'Windows, macOS, Linux'},
+      {id:'T1505',name:'Server Software Component',sub:'SQL Stored Procedures, IIS Module, Web Shell',platforms:'Windows, Linux, macOS'},
+      {id:'T1205',name:'Traffic Signaling',sub:'Port Knocking, Socket Filters (magic packets)',platforms:'Linux, Windows, macOS, Network'},
+      {id:'T1078',name:'Valid Accounts',sub:'Reuse stolen credentials for persistent access',platforms:'Windows, macOS, Linux, Cloud'},
+    ]},
+    {id:'TA0004',name:'Privilege Escalation',short:'Priv Esc',count:14,techniques:[
+      {id:'T1548',name:'Abuse Elevation Control Mechanism',sub:'Bypass UAC, Sudo, SUID/SGID',platforms:'Windows, macOS, Linux'},
+      {id:'T1134',name:'Access Token Manipulation',sub:'Token Impersonation, Create Process with Token',platforms:'Windows'},
+      {id:'T1547',name:'Boot/Logon Autostart',sub:'Registry Keys for privilege at startup',platforms:'Windows, macOS, Linux'},
+      {id:'T1037',name:'Boot/Logon Init Scripts',sub:'Scripts that run as elevated user',platforms:'Windows, macOS, Linux'},
+      {id:'T1543',name:'Create or Modify System Process',sub:'Malicious service running as SYSTEM',platforms:'Windows, macOS, Linux'},
+      {id:'T1484',name:'Domain or Tenant Policy Modification',sub:'Group Policy Modification, Trust Modification',platforms:'Windows, Azure AD'},
+      {id:'T1611',name:'Escape to Host',sub:'Container breakout to host OS',platforms:'Linux, Containers'},
+      {id:'T1546',name:'Event Triggered Execution',sub:'Accessibility Features, AppInit DLLs',platforms:'Windows, macOS'},
+      {id:'T1068',name:'Exploitation for Privilege Escalation',sub:'CVE exploitation for local privilege escalation',platforms:'Windows, macOS, Linux'},
+      {id:'T1574',name:'Hijack Execution Flow',sub:'DLL injection, PATH hijacking',platforms:'Windows, macOS, Linux'},
+      {id:'T1055',name:'Process Injection',sub:'DLL Injection, PE Injection, Thread Hijacking',platforms:'Windows, macOS, Linux'},
+      {id:'T1053',name:'Scheduled Task/Job',sub:'Scheduled task running as elevated account',platforms:'Windows, macOS, Linux'},
+      {id:'T1078',name:'Valid Accounts',sub:'Use admin/privileged credentials',platforms:'Windows, macOS, Linux, Cloud'},
+    ]},
+    {id:'TA0005',name:'Defence Evasion',short:'Def Evasion',count:42,techniques:[
+      {id:'T1548',name:'Abuse Elevation Control Mechanism',sub:'UAC bypass, Sudo token abuse',platforms:'Windows, macOS, Linux'},
+      {id:'T1134',name:'Access Token Manipulation',sub:'Parent PID spoofing, Token Impersonation',platforms:'Windows'},
+      {id:'T1197',name:'BITS Jobs',sub:'Background transfer to evade web proxies',platforms:'Windows'},
+      {id:'T1622',name:'Debugger Evasion',sub:'Anti-debugging checks, timing attacks',platforms:'Windows, macOS, Linux'},
+      {id:'T1140',name:'Deobfuscate/Decode Files',sub:'Base64, XOR, custom encoding of payloads',platforms:'Windows, macOS, Linux'},
+      {id:'T1006',name:'Direct Volume Access',sub:'Raw disk access bypassing OS file locks',platforms:'Windows'},
+      {id:'T1484',name:'Domain Policy Modification',sub:'Modify GPO to weaken defences',platforms:'Windows'},
+      {id:'T1480',name:'Execution Guardrails',sub:'Environmental keying to limit detonation',platforms:'Windows, macOS, Linux'},
+      {id:'T1211',name:'Exploitation for Defence Evasion',sub:'Exploit AV/EDR vulnerabilities',platforms:'Windows, macOS, Linux'},
+      {id:'T1222',name:'File and Directory Permissions Modification',sub:'chmod, icacls to hide artefacts',platforms:'Windows, macOS, Linux'},
+      {id:'T1564',name:'Hide Artefacts',sub:'Hidden Files, NTFS ADS, Hidden Users',platforms:'Windows, macOS, Linux'},
+      {id:'T1574',name:'Hijack Execution Flow',sub:'DLL Side-Loading for signed binary abuse',platforms:'Windows, macOS, Linux'},
+      {id:'T1562',name:'Impair Defences',sub:'Disable AV, Modify Firewall, Clear Logs',platforms:'Windows, macOS, Linux, Cloud'},
+      {id:'T1070',name:'Indicator Removal',sub:'Clear Windows Event Logs, Timestomp, Delete files',platforms:'Windows, macOS, Linux'},
+      {id:'T1202',name:'Indirect Command Execution',sub:'MSHTA, Forfiles, Pcalua for proxy execution',platforms:'Windows'},
+      {id:'T1036',name:'Masquerading',sub:'Rename tools as legitimate, match legit names',platforms:'Windows, macOS, Linux'},
+      {id:'T1112',name:'Modify Registry',sub:'Disable security tools via registry edits',platforms:'Windows'},
+      {id:'T1027',name:'Obfuscated Files or Information',sub:'Packed malware, Encrypted payloads, Steganography',platforms:'Windows, macOS, Linux'},
+      {id:'T1542',name:'Pre-OS Boot',sub:'Bootkit to persist below OS detection',platforms:'Windows, Linux'},
+      {id:'T1055',name:'Process Injection',sub:'Inject into legitimate process to hide',platforms:'Windows, macOS, Linux'},
+      {id:'T1207',name:'Rogue Domain Controller',sub:'DCShadow — inject rogue DC replication',platforms:'Windows'},
+      {id:'T1218',name:'System Binary Proxy Execution',sub:'LOLBins: certutil, msiexec, rundll32',platforms:'Windows'},
+    ]},
+    {id:'TA0006',name:'Credential Access',short:'Cred Access',count:17,techniques:[
+      {id:'T1557',name:'Adversary-in-the-Middle',sub:'LLMNR/NBT-NS Poisoning, ARP Cache Poisoning',platforms:'Windows, macOS, Linux'},
+      {id:'T1110',name:'Brute Force',sub:'Password Spraying, Credential Stuffing, Dictionary Attack',platforms:'Windows, macOS, Linux, Cloud'},
+      {id:'T1555',name:'Credentials from Password Stores',sub:'Keychain, Credential Manager, Web Browsers',platforms:'Windows, macOS, Linux'},
+      {id:'T1212',name:'Exploitation for Credential Access',sub:'Kerberoasting, AS-REP Roasting',platforms:'Windows'},
+      {id:'T1187',name:'Forced Authentication',sub:'SMB share lure for Net-NTLMv2 capture',platforms:'Windows'},
+      {id:'T1606',name:'Forge Web Credentials',sub:'Golden SAML, Web Cookies',platforms:'Windows, SaaS, IaaS'},
+      {id:'T1056',name:'Input Capture',sub:'Keylogging, GUI Input Capture, Web Portal Capture',platforms:'Windows, macOS, Linux'},
+      {id:'T1556',name:'Modify Authentication Process',sub:'Skeleton Key, Network Device Auth',platforms:'Windows, macOS, Linux'},
+      {id:'T1040',name:'Network Sniffing',sub:'Capture credentials in clear-text protocols',platforms:'Windows, macOS, Linux, Network'},
+      {id:'T1003',name:'OS Credential Dumping',sub:'LSASS Memory, SAM, DCSync, /etc/shadow',platforms:'Windows, macOS, Linux'},
+      {id:'T1528',name:'Steal Application Access Token',sub:'OAuth token theft, Service account keys',platforms:'Cloud, SaaS'},
+      {id:'T1558',name:'Steal or Forge Kerberos Tickets',sub:'Golden Ticket, Silver Ticket, Kerberoasting',platforms:'Windows'},
+      {id:'T1539',name:'Steal Web Session Cookie',sub:'Browser cookie theft for session hijack',platforms:'Windows, macOS, Linux'},
+      {id:'T1111',name:'MFA Interception',sub:'MFA fatigue, SIM swapping, OTP theft',platforms:'Windows, macOS, Linux, Cloud'},
+    ]},
+    {id:'TA0007',name:'Discovery',short:'Discovery',count:32,techniques:[
+      {id:'T1087',name:'Account Discovery',sub:'Local, Domain, Email, Cloud Account enumeration',platforms:'Windows, macOS, Linux, Cloud'},
+      {id:'T1010',name:'Application Window Discovery',sub:'Enumerate open application windows',platforms:'Windows, macOS'},
+      {id:'T1217',name:'Browser Information Discovery',sub:'Bookmarks, history, saved credentials',platforms:'Windows, macOS, Linux'},
+      {id:'T1580',name:'Cloud Infrastructure Discovery',sub:'Enumerate S3 buckets, EC2, VMs',platforms:'IaaS, Azure AD'},
+      {id:'T1538',name:'Cloud Service Dashboard',sub:'Enumerate cloud tenant services and resources',platforms:'Azure AD, IaaS, SaaS'},
+      {id:'T1526',name:'Cloud Service Discovery',sub:'List available cloud services and capabilities',platforms:'Azure AD, IaaS, SaaS'},
+      {id:'T1613',name:'Container and Resource Discovery',sub:'kubectl get pods, docker ps, ECS list',platforms:'Containers'},
+      {id:'T1622',name:'Debugger Evasion',sub:'Check for sandbox/debugging environment',platforms:'Windows, macOS, Linux'},
+      {id:'T1482',name:'Domain Trust Discovery',sub:'nltest, Get-DomainTrust — map AD forest trusts',platforms:'Windows'},
+      {id:'T1083',name:'File and Directory Discovery',sub:'Enumerate valuable files, dirs, shares',platforms:'Windows, macOS, Linux'},
+      {id:'T1046',name:'Network Service Discovery',sub:'Port scanning, service fingerprinting',platforms:'Windows, macOS, Linux, Network'},
+      {id:'T1135',name:'Network Share Discovery',sub:'Enumerate SMB shares, NFS mounts',platforms:'Windows, macOS, Linux'},
+      {id:'T1040',name:'Network Sniffing',sub:'Passive network recon post-compromise',platforms:'Windows, macOS, Linux'},
+      {id:'T1201',name:'Password Policy Discovery',sub:'net accounts, Get-ADDefaultDomainPasswordPolicy',platforms:'Windows, macOS, Linux'},
+      {id:'T1120',name:'Peripheral Device Discovery',sub:'Enumerate connected USB, printers, storage',platforms:'Windows, macOS'},
+      {id:'T1069',name:'Permission Groups Discovery',sub:'Local Groups, Domain Groups, Cloud Groups',platforms:'Windows, macOS, Linux, Cloud'},
+      {id:'T1057',name:'Process Discovery',sub:'tasklist, ps, Get-Process — enumerate processes',platforms:'Windows, macOS, Linux'},
+      {id:'T1012',name:'Query Registry',sub:'Enumerate installed software, config, AV products',platforms:'Windows'},
+      {id:'T1018',name:'Remote System Discovery',sub:'ping sweep, net view, ARP cache',platforms:'Windows, macOS, Linux'},
+      {id:'T1518',name:'Software Discovery',sub:'Enumerate installed software, AV, security tools',platforms:'Windows, macOS, Linux'},
+      {id:'T1082',name:'System Information Discovery',sub:'hostname, systeminfo, uname -a, OS version',platforms:'Windows, macOS, Linux'},
+      {id:'T1016',name:'System Network Configuration Discovery',sub:'ipconfig, ifconfig, route — network config',platforms:'Windows, macOS, Linux'},
+      {id:'T1049',name:'System Network Connections Discovery',sub:'netstat, ss — active connections',platforms:'Windows, macOS, Linux'},
+      {id:'T1033',name:'System Owner/User Discovery',sub:'whoami, id, net user — current user context',platforms:'Windows, macOS, Linux'},
+      {id:'T1007',name:'System Service Discovery',sub:'sc query, systemctl list — running services',platforms:'Windows, macOS, Linux'},
+      {id:'T1124',name:'System Time Discovery',sub:'Timestamp manipulation detection evasion',platforms:'Windows, macOS'},
+    ]},
+    {id:'TA0008',name:'Lateral Movement',short:'Lat Move',count:9,techniques:[
+      {id:'T1210',name:'Exploitation of Remote Services',sub:'EternalBlue, BlueKeep, PrintNightmare',platforms:'Windows, Linux'},
+      {id:'T1534',name:'Internal Spearphishing',sub:'Phish internal users via compromised account',platforms:'Windows, macOS, Linux, SaaS'},
+      {id:'T1570',name:'Lateral Tool Transfer',sub:'SMB/Admin shares, BITSAdmin, copy to UNC path',platforms:'Windows, macOS, Linux'},
+      {id:'T1563',name:'Remote Service Session Hijacking',sub:'RDP Hijacking, SSH Hijacking',platforms:'Windows, macOS, Linux'},
+      {id:'T1021',name:'Remote Services',sub:'SSH, RDP, VNC, SMB/Windows Admin Shares',platforms:'Windows, macOS, Linux'},
+      {id:'T1091',name:'Replication Through Removable Media',sub:'Spread via USB, portable drives',platforms:'Windows'},
+      {id:'T1072',name:'Software Deployment Tools',sub:'SCCM, PDQ, Ansible abuse for lateral spread',platforms:'Windows, macOS, Linux'},
+      {id:'T1080',name:'Taint Shared Content',sub:'Trojanise files on shared network drives',platforms:'Windows, macOS, Linux'},
+      {id:'T1550',name:'Use Alternate Authentication Material',sub:'Pass-the-Hash, Pass-the-Ticket, Web Session Cookies',platforms:'Windows, macOS, Linux, SaaS'},
+    ]},
+    {id:'TA0009',name:'Collection',short:'Collection',count:17,techniques:[
+      {id:'T1557',name:'Adversary-in-the-Middle',sub:'Position for data intercept in network flow',platforms:'Windows, macOS, Linux'},
+      {id:'T1560',name:'Archive Collected Data',sub:'Compress and encrypt data prior to exfil',platforms:'Windows, macOS, Linux'},
+      {id:'T1123',name:'Audio Capture',sub:'Record audio via microphone access',platforms:'Windows, macOS, Linux'},
+      {id:'T1119',name:'Automated Collection',sub:'Scripts to auto-harvest files, emails, creds',platforms:'Windows, macOS, Linux'},
+      {id:'T1115',name:'Clipboard Data',sub:'Monitor and capture clipboard contents',platforms:'Windows, macOS, Linux'},
+      {id:'T1530',name:'Data from Cloud Storage',sub:'S3, Blob, GCS — access and exfiltrate cloud data',platforms:'IaaS, SaaS'},
+      {id:'T1602',name:'Data from Configuration Repository',sub:'SNMP MIB, network device configs',platforms:'Network'},
+      {id:'T1213',name:'Data from Information Repositories',sub:'SharePoint, Confluence, code repos, wikis',platforms:'SaaS, Windows, macOS'},
+      {id:'T1005',name:'Data from Local System',sub:'Harvest files, documents, credentials from disk',platforms:'Windows, macOS, Linux'},
+      {id:'T1039',name:'Data from Network Shared Drive',sub:'Collect files from SMB shares, NAS',platforms:'Windows, macOS, Linux'},
+      {id:'T1025',name:'Data from Removable Media',sub:'Harvest data from inserted USB devices',platforms:'Windows, macOS, Linux'},
+      {id:'T1074',name:'Data Staged',sub:'Aggregate collected data to staging location',platforms:'Windows, macOS, Linux'},
+      {id:'T1114',name:'Email Collection',sub:'Local email client, remote via Exchange/OWA/O365',platforms:'Windows, macOS, Linux, Cloud'},
+      {id:'T1056',name:'Input Capture',sub:'Keylogging, form capture to collect credentials',platforms:'Windows, macOS, Linux'},
+      {id:'T1185',name:'Browser Session Hijacking',sub:'Inject into authenticated browser session',platforms:'Windows'},
+      {id:'T1113',name:'Screen Capture',sub:'Screenshot capabilities for situational awareness',platforms:'Windows, macOS, Linux'},
+      {id:'T1125',name:'Video Capture',sub:'Record video via webcam access',platforms:'Windows, macOS, Linux'},
+    ]},
+    {id:'TA0011',name:'Command & Control',short:'C2',count:16,techniques:[
+      {id:'T1071',name:'Application Layer Protocol',sub:'Web Protocols (HTTP/S), DNS, Mail, File Transfer',platforms:'Windows, macOS, Linux'},
+      {id:'T1092',name:'Communication Through Removable Media',sub:'USB-based C2 for air-gapped systems',platforms:'Windows, Linux'},
+      {id:'T1132',name:'Data Encoding',sub:'Standard Encoding (Base64), Non-Standard Encoding',platforms:'Windows, macOS, Linux'},
+      {id:'T1001',name:'Data Obfuscation',sub:'Junk Data, Steganography, Protocol Impersonation',platforms:'Windows, macOS, Linux'},
+      {id:'T1568',name:'Dynamic Resolution',sub:'Fast Flux DNS, Domain Generation Algorithms',platforms:'Windows, macOS, Linux'},
+      {id:'T1573',name:'Encrypted Channel',sub:'Symmetric Crypto, Asymmetric Crypto for C2',platforms:'Windows, macOS, Linux'},
+      {id:'T1008',name:'Fallback Channels',sub:'Secondary C2 if primary blocked',platforms:'Windows, macOS, Linux'},
+      {id:'T1105',name:'Ingress Tool Transfer',sub:'Download additional tools post-compromise',platforms:'Windows, macOS, Linux'},
+      {id:'T1104',name:'Multi-Stage Channels',sub:'Use multiple stages/channels for C2',platforms:'Windows, macOS, Linux'},
+      {id:'T1095',name:'Non-Application Layer Protocol',sub:'ICMP, UDP, Cobalt Strike SMB beacon',platforms:'Windows, macOS, Linux, Network'},
+      {id:'T1571',name:'Non-Standard Port',sub:'Use unusual ports to bypass firewall rules',platforms:'Windows, macOS, Linux'},
+      {id:'T1572',name:'Protocol Tunnelling',sub:'SSH tunnelling, DNS over HTTPS, VPN abuse',platforms:'Windows, macOS, Linux'},
+      {id:'T1090',name:'Proxy',sub:'External Proxy, Multi-hop Proxy, Domain Fronting',platforms:'Windows, macOS, Linux'},
+      {id:'T1219',name:'Remote Access Software',sub:'TeamViewer, AnyDesk, VNC for persistent access',platforms:'Windows, macOS, Linux'},
+      {id:'T1205',name:'Traffic Signaling',sub:'Port knocking for on-demand backdoor activation',platforms:'Linux, Windows, macOS, Network'},
+      {id:'T1102',name:'Web Service',sub:'Dead Drop Resolvers, Bidirectional Comms via cloud SaaS',platforms:'Windows, macOS, Linux'},
+    ]},
+    {id:'TA0010',name:'Exfiltration',short:'Exfil',count:9,techniques:[
+      {id:'T1020',name:'Automated Exfiltration',sub:'Continuous auto-exfil of collected data',platforms:'Windows, macOS, Linux'},
+      {id:'T1030',name:'Data Transfer Size Limits',sub:'Chunk exfil to avoid DLP threshold triggers',platforms:'Windows, macOS, Linux'},
+      {id:'T1048',name:'Exfil Over Alternative Protocol',sub:'DNS, ICMP, HTTP, SMTP exfil channels',platforms:'Windows, macOS, Linux'},
+      {id:'T1041',name:'Exfil Over C2 Channel',sub:'Use established C2 channel for exfil',platforms:'Windows, macOS, Linux'},
+      {id:'T1011',name:'Exfil Over Other Network Medium',sub:'Bluetooth, Wi-Fi Direct for air-gap exfil',platforms:'Windows, macOS, Linux'},
+      {id:'T1052',name:'Exfil Over Physical Medium',sub:'USB, portable drive data exfiltration',platforms:'Windows, macOS, Linux'},
+      {id:'T1567',name:'Exfil Over Web Service',sub:'Exfil to GitHub, Dropbox, OneDrive',platforms:'Windows, macOS, Linux'},
+      {id:'T1029',name:'Scheduled Transfer',sub:'Exfil at specific times to blend with traffic',platforms:'Windows, macOS, Linux'},
+      {id:'T1537',name:'Transfer Data to Cloud Account',sub:'Move to adversary-controlled cloud storage',platforms:'IaaS'},
+    ]},
+    {id:'TA0040',name:'Impact',short:'Impact',count:14,techniques:[
+      {id:'T1531',name:'Account Access Removal',sub:'Delete accounts, change passwords for disruption',platforms:'Windows, macOS, Linux, Cloud'},
+      {id:'T1485',name:'Data Destruction',sub:'Wiper malware, rm -rf, format storage',platforms:'Windows, macOS, Linux, IaaS'},
+      {id:'T1486',name:'Data Encrypted for Impact',sub:'Ransomware — encrypt files for ransom',platforms:'Windows, macOS, Linux, IaaS'},
+      {id:'T1565',name:'Data Manipulation',sub:'Stored/Transmitted/Runtime data integrity attacks',platforms:'Windows, macOS, Linux'},
+      {id:'T1491',name:'Defacement',sub:'External/Internal website defacement',platforms:'Windows, macOS, Linux, IaaS'},
+      {id:'T1561',name:'Disk Wipe',sub:'MBR wipe, disk overwrite — destroy OS',platforms:'Windows, macOS, Linux'},
+      {id:'T1499',name:'Endpoint Denial of Service',sub:'Resource exhaustion, service crash',platforms:'Windows, macOS, Linux'},
+      {id:'T1657',name:'Financial Theft',sub:'Cryptocurrency theft, banking fraud, BEC',platforms:'Windows, macOS, Linux, SaaS'},
+      {id:'T1495',name:'Firmware Corruption',sub:'Overwrite BIOS/UEFI to brick hardware',platforms:'Windows, Linux'},
+      {id:'T1490',name:'Inhibit System Recovery',sub:'Delete VSS, disable backups, wipe recovery',platforms:'Windows, macOS, Linux'},
+      {id:'T1498',name:'Network Denial of Service',sub:'Direct/Reflected DDoS against infrastructure',platforms:'Windows, macOS, Linux, Network'},
+      {id:'T1496',name:'Resource Hijacking',sub:'Cryptomining, botnet recruitment',platforms:'Windows, macOS, Linux, IaaS'},
+      {id:'T1489',name:'Service Stop',sub:'Stop critical services (AV, backup, database)',platforms:'Windows, macOS, Linux'},
+      {id:'T1529',name:'System Shutdown/Reboot',sub:'shutdown -r to complicate recovery',platforms:'Windows, macOS, Linux'},
+    ]},
+  ];
+
+  const platforms = ['All Platforms','Windows','Linux','macOS','Cloud','Containers','Network'];
+  let selPlat = 'All Platforms';
+
+  window.attckTactics = tactics;
+  return `
+<div>
+<div class="attck-controls">
+  <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase">Platform:</span>
+  ${platforms.map(p=>`<button class="attck-filter${p==='All Platforms'?' on':''}" onclick="attckFilter('${p}',this)">${p}</button>`).join('')}
+</div>
+<div class="attck-matrix">
+<div class="attck-grid" id="attck-grid">
+${tactics.map(tac=>`
+<div>
+  <div class="attck-tactic">
+    <div class="attck-tactic-name">${tac.name}</div>
+    <div class="attck-tactic-count">${tac.count} techniques</div>
+  </div>
+  <div class="attck-col" id="col-${tac.id}">
+    ${tac.techniques.slice(0,8).map(t=>`<div class="attck-tech" data-platforms="${t.platforms}" onclick="attckClick('${t.id}','${t.name.replace(/'/g,'&apos;')}','${tac.name}')">
+      <div class="attck-tech-name">${t.id}</div>
+      <div class="attck-tech-name" style="color:var(--text);font-weight:500;margin-top:1px;font-size:7.5px">${t.name}</div>
+      <div class="attck-tooltip">${t.id}: ${t.name}<br/>${t.platforms}</div>
+    </div>`).join('')}
+    ${tac.techniques.length>8?`<div style="font-family:'JetBrains Mono',monospace;font-size:7px;color:var(--text3);padding:3px 5px">+${tac.techniques.length-8} more</div>`:''}
+  </div>
+</div>`).join('')}
+</div>
+</div>
+<div id="attck-sel-detail" style="display:none;margin-top:14px;padding:14px 16px;background:rgba(29,111,204,0.06);border-radius:8px;border-left:3px solid #1d6fcc;font-size:13px;color:var(--text2)"></div>
+<div class="attck-legend">
+  <span><span class="attck-legend-dot" style="background:rgba(15,138,95,0.2);border:1px solid rgba(15,138,95,0.4)"></span>Tactic header</span>
+  <span><span class="attck-legend-dot" style="background:rgba(29,111,204,0.1);border:1px solid #1d6fcc"></span>Highlighted technique</span>
+  <span style="font-family:'JetBrains Mono',monospace;font-size:9px">Click any technique for detail · Hover for ID</span>
+</div>
+</div>`;
+}
+
+/* ─ D3FEND ─ */
+function iD3FEND() {
+  const cats = [
+    {id:'harden',label:'HARDEN',col:'#0f8a5f',icon:'🛡️',desc:'Techniques that reduce attack surface before exploitation occurs. Proactive defensive measures targeting weaknesses in configuration, software, credentials, and platform hardening.',techniques:[
+      {name:'Credential Hardening',sub:'Multi-factor authentication, credential vaulting, password complexity enforcement. Counters: T1110, T1078, T1003'},
+      {name:'Application Hardening',sub:'Input validation, application allowlisting, secure coding. Counters: T1190, T1059, T1203'},
+      {name:'Message Hardening',sub:'Email authentication (DMARC/DKIM/SPF), content filtering. Counters: T1566, T1598'},
+      {name:'Platform Hardening',sub:'OS hardening baselines, CIS benchmarks, patch management. Counters: T1068, T1547, T1574'},
+    ]},
+    {id:'detect',label:'DETECT',col:'#1d6fcc',icon:'🔎',desc:'Monitoring and identification techniques to discover adversary activity. Covers file, process, network, and user behaviour analysis to generate alerts and indicators.',techniques:[
+      {name:'File Analysis',sub:'Hash verification, YARA rules, static malware analysis. Detects: T1027, T1036, T1204'},
+      {name:'Process Analysis',sub:'Process tree inspection, parent-child anomalies, injection detection. Detects: T1055, T1059, T1047'},
+      {name:'Network Traffic Analysis',sub:'Flow analysis, protocol anomalies, beaconing detection. Detects: T1071, T1095, T1572'},
+      {name:'User Behaviour Analytics',sub:'Baseline deviation, impossible travel, access anomalies. Detects: T1078, T1087, T1110'},
+    ]},
+    {id:'isolate',label:'ISOLATE',col:'#7c3aed',icon:'🔒',desc:'Techniques that limit the blast radius of a compromise by restricting what an adversary can reach, execute, or access from a compromised position.',techniques:[
+      {name:'Execution Isolation',sub:'Sandboxing, containerisation, virtualisation-based security. Counters: T1059, T1203, T1106'},
+      {name:'Network Isolation',sub:'Network segmentation, microsegmentation, zero-trust. Counters: T1021, T1046, T1570'},
+      {name:'DNS Isolation',sub:'DNS filtering, RPZ, PDNS. Counters: T1568, T1071.004'},
+    ]},
+    {id:'deceive',label:'DECEIVE',col:'#c05c1a',icon:'🎭',desc:'Active deception techniques that mislead, confuse, or consume adversary resources. Creates false intelligence for the adversary while generating high-fidelity alerts for defenders.',techniques:[
+      {name:'Decoy Object',sub:'Honeytokens, canary files, decoy credentials, fake sensitive data. Detects: T1083, T1005, T1555'},
+      {name:'Decoy Environment',sub:'Honeypots, honeynet environments. Detects: T1046, T1021, T1210'},
+      {name:'Decoy User',sub:'Fake accounts with monitoring. Detects: T1087, T1110, T1078'},
+    ]},
+    {id:'evict',label:'EVICT',col:'#dc2626',icon:'🚫',desc:'Techniques to remove adversary presence and artefacts after detection. Covers credential resets, process termination, object removal, and infrastructure remediation.',techniques:[
+      {name:'Credential Eviction',sub:'Force password resets, revoke tokens, invalidate certificates. Counters: T1078, T1528, T1539'},
+      {name:'Process Eviction',sub:'Kill malicious processes, terminate C2 sessions. Counters: T1055, T1059'},
+      {name:'Object Eviction',sub:'Remove malware files, clean registry, purge persistence. Counters: T1547, T1543, T1505'},
+    ]},
+  ];
+  window.d3fCats = cats;
+  return `
+<div class="tiles" id="d3f-tiles">
+${cats.map((c,i)=>`<div class="tile${i===0?' sel':''}\" onclick="d3fSel('${c.id}')" style="${i===0?`background:${c.col};color:#fff;border-color:${c.col}`:`border-color:${c.col}22;color:${c.col}`}" id="d3ft-${c.id}">${c.icon} ${c.label}</div>`).join('')}
+</div>
+<div id="d3f-detail">
+<div class="tile-desc" style="border-left-color:${cats[0].col}">
+<strong style="color:${cats[0].col}">${cats[0].icon} ${cats[0].label}</strong>
+${cats[0].desc}
+<div style="margin-top:14px;display:flex;flex-direction:column;gap:7px">
+${cats[0].techniques.map(t=>`<div style="padding:9px 12px;background:var(--bg2);border-radius:6px;border:1px solid var(--border)"><strong style="font-size:13px;display:block;margin-bottom:3px">${t.name}</strong><span style="font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace">${t.sub}</span></div>`).join('')}
+</div>
+</div>
+</div>`;
+}
+
+/* ─ STIX ─ */
+function iSTIX() {
+  const objs = [
+    {type:'SDO',name:'Threat Actor',col:'#7c3aed',desc:'Represents an individual, group, or organisation believed responsible for intrusion activity. Has motivation, sophistication, and resource-level attributes.',rels:['uses → Malware','uses → Tool','targets → Identity','attributed-to → Intrusion Set','impersonates → Identity']},
+    {type:'SDO',name:'Campaign',col:'#1d6fcc',desc:'A grouping of intrusion activity conducted over a specific period with common targets and objectives. Links adversary activity across multiple incidents.',rels:['attributed-to → Threat Actor','uses → Attack Pattern','targets → Identity','uses → Malware']},
+    {type:'SDO',name:'Attack Pattern',col:'#0f8a5f',desc:'Represents a MITRE ATT&CK technique or other adversary behaviour. Described using CAPEC or ATT&CK IDs. Core connector between tactics and other STIX objects.',rels:['uses → Malware','targets → Vulnerability','mitigated-by → Course of Action']},
+    {type:'SDO',name:'Malware',col:'#c05c1a',desc:'A type of TTP representing malicious code or software. Has is_family flag, malware_types (ransomware, backdoor, etc.), and capability attributes.',rels:['uses → Attack Pattern','targets → Identity','uses → Infrastructure','variant-of → Malware']},
+    {type:'SDO',name:'Indicator',col:'#dc2626',desc:'A pattern for detecting adversary activity. Uses STIX Patterning Language or SNORT/YARA/SIGMA references. Has valid_from/valid_until dates.',rels:['indicates → Malware','indicates → Threat Actor','based-on → Observed Data']},
+    {type:'SDO',name:'Vulnerability',col:'#d97706',desc:'A mistake in software that can be directly exploited by an adversary. Maps to CVE identifiers. Links to attack patterns and threat actors.',rels:['targeted-by → Attack Pattern','related-to → Malware']},
+    {type:'SDO',name:'Infrastructure',col:'#0f8a5f',desc:'Systems, software, and services used by adversaries (C2 servers, bulletproof hosting, botnet nodes). Has infrastructure_types and linked indicators.',rels:['used-by → Threat Actor','hosts → Malware','communicates-with → Infrastructure']},
+    {type:'SDO',name:'Course of Action',col:'#1d6fcc',desc:'Represents a recommended action to prevent or respond to an attack. Links to techniques it mitigates and indicators it addresses.',rels:['mitigates → Attack Pattern','mitigates → Malware','investigates → Indicator']},
+    {type:'SRO',name:'Relationship',col:'#9ca3af',desc:'Links two STIX Domain Objects with a named relationship type. Core relationship types: uses, targets, indicates, mitigates, attributed-to, impersonates, variant-of.',rels:['source_ref → any SDO','target_ref → any SDO','relationship_type: uses/targets/indicates/mitigates']},
+    {type:'SCO',name:'Network Traffic',col:'#4b5563',desc:'Observed network traffic including src/dst IPs and ports, protocol, byte counts. Linked to infrastructure and indicators for enrichment.',rels:['related-to → Indicator','dst → Infrastructure','src → Identity']},
+  ];
+  window.stixObjs = objs;
+  return `
+<div class="stix-wrap">
+<div class="stix-objects" id="stix-objects">
+${objs.map((o,i)=>`<div class="stix-obj${i===0?' sel':''}" onclick="stixSel(${i})" id="stixo-${i}" style="${i===0?`border-color:${o.col};background:${o.col}11`:''}">
+  <span class="stix-type" style="background:${o.col}18;color:${o.col};border:1px solid ${o.col}33">${o.type}</span>
+  ${o.name}
+</div>`).join('')}
+</div>
+<div id="stix-detail" class="stix-detail" style="border-left-color:${objs[0].col}">
+  <h4 style="color:${objs[0].col}">${objs[0].type}: ${objs[0].name}</h4>
+  ${objs[0].desc}
+  <div class="sl" style="margin-top:12px">Relationships</div>
+  <div class="stix-rels">${objs[0].rels.map(r=>`<span class="stix-rel">${r}</span>`).join('')}</div>
+</div>
+</div>`;
+}
+
+/* ─ MISP ─ */
+function iMISP() {
+  const comps = [
+    {icon:'📋',title:'Events',col:'#0f8a5f',desc:'The primary container for a threat intelligence report. Each Event has a UUID, title, date, threat level (1-4), analysis status (0=initial/1=ongoing/2=complete), and distribution setting.',example:'{"id":"1234","info":"APT28 spearphishing campaign Feb 2025","threat_level_id":"2","analysis":"1","distribution":"1","Attribute":[...]}'},
+    {icon:'🔍',title:'Attributes',col:'#1d6fcc',desc:'Individual IOCs and observables attached to an Event. Each has a type (ip-dst, domain, md5, email-src, filename, url, etc.), category (Network activity, Payload delivery, etc.), and to_ids flag for automated export.',example:'{"type":"domain","category":"Network activity","value":"malware-c2[.]example[.]com","to_ids":true,"comment":"APT28 C2 domain observed Jan 2025"}'},
+    {icon:'📦',title:'Objects',col:'#c05c1a',desc:'Structured templates that group related Attributes. MISP Object templates include: file, network-connection, email, malware-sample, url, person, vulnerability, and 300+ community templates.',example:'MISP file object: filename, md5, sha256, sha1, size-in-bytes, ssdeep, tlsh — all grouped as one artefact'},
+    {icon:'🌐',title:'Galaxies',col:'#7c3aed',desc:'Pre-defined knowledge clusters for enrichment. Galaxy types include: MITRE ATT&CK (techniques and groups), Threat Actors, Ransomware, Sigma Rules, Sector tags, Country tags, and MITRE ATLAS.',example:'Galaxy: "MITRE ATT&CK Technique" → cluster: T1566.001 (Spearphishing Attachment)'},
+    {icon:'🔗',title:'Feeds & Sync',col:'#0f8a5f',desc:'MISP supports ingesting external threat feeds (CIRCL, OTX, abuse.ch, etc.) and federating between MISP instances via sync. Synchronisation can be push or pull, with attribute-level filtering.',example:'Feed: "CIRCL OSINT Feed" — fetch and import latest events automatically. Sync: push local events to community MISP instance'},
+    {icon:'📤',title:'Export & Integration',col:'#1d6fcc',desc:'MISP exports to STIX 1.x/2.x, OpenIOC, CSV, JSON, Suricata/Snort rules, YARA, RPZ for DNS, and direct SIEM integrations (Splunk, ElasticSIEM). API is RESTful with PyMISP library.',example:'curl -H "Authorization: API_KEY" https://misp.org/attributes/restSearch -d \'{"type":"ip-dst","last":"5d"}\''},
+  ];
+  return `
+<div class="misp-grid">
+${comps.map((c,i)=>`<div class="misp-comp${i===0?' sel':''}" onclick="mispSel(${i})" id="mispc-${i}">
+  <div class="misp-comp-title"><span class="misp-comp-icon">${c.icon}</span>${c.title}</div>
+  <div class="misp-comp-desc">${c.desc}</div>
+  <div class="misp-example">${c.example}</div>
+</div>`).join('')}
+</div>`;
+}
+
+/* ─ CAF ─ */
+function iCAF() {
+  const pillars = [
+    {id:'A',label:'A — Managing Security Risk',col:'#0f8a5f',objectives:[
+      {id:'A1',title:'Governance',desc:'Board-level ownership of cyber risk. Defined policies, accountability structures, and senior stakeholder engagement.'},
+      {id:'A2',title:'Risk Management',desc:'Systematic identification, assessment, and treatment of cyber risks proportionate to their potential impact on essential services.'},
+      {id:'A3',title:'Asset Management',desc:'Maintaining an accurate inventory of systems and data that support the delivery of essential services.'},
+      {id:'A4',title:'Supply Chain',desc:'Understanding and managing security risks arising from third-party suppliers and the supply chain.'},
+    ]},
+    {id:'B',label:'B — Protecting Against Cyber Attack',col:'#1d6fcc',objectives:[
+      {id:'B1',title:'Service Protection Policies',desc:'Security policies and processes defined, implemented, and communicated for protecting network and information systems.'},
+      {id:'B2',title:'Identity & Access Control',desc:'Understanding, authenticating, and controlling access to networks and systems — including privileged access management.'},
+      {id:'B3',title:'Data Security',desc:'Data is protected against unauthorised access, modification, or deletion in accordance with its sensitivity.'},
+      {id:'B4',title:'System Security',desc:'Network and information systems are protected from cyber attack through design, build, and operational security.'},
+      {id:'B5',title:'Resilient Networks & Systems',desc:'Resilient networks and systems built to resist and recover from attack or failure.'},
+      {id:'B6',title:'Staff Awareness & Training',desc:'Staff understand their security responsibilities and have appropriate knowledge and skills.'},
+    ]},
+    {id:'C',label:'C — Detecting Cyber Security Events',col:'#7c3aed',objectives:[
+      {id:'C1',title:'Security Monitoring',desc:'Monitoring tools and capabilities in place to detect cyber security events affecting systems supporting essential services.'},
+      {id:'C2',title:'Proactive Security Event Discovery',desc:'Anomaly detection and proactive searching for indicators of compromise beyond reactive alerting.'},
+    ]},
+    {id:'D',label:'D — Minimising Impact of Incidents',col:'#c05c1a',objectives:[
+      {id:'D1',title:'Response & Recovery Planning',desc:'Documented, tested incident response and recovery plans that minimise service disruption and enable restoration.'},
+      {id:'D2',title:'Lessons Learned',desc:'Processes to review and improve based on incidents, near-misses, and threat intelligence. Continuous improvement cycle.'},
+    ]},
+  ];
+  window.cafPillars = pillars;
+  return `
+<div class="caf-grid">
+${pillars.map((p,i)=>`<div class="caf-pillar${i===0?' sel':''}" onclick="cafSel('${p.id}')" id="cafp-${p.id}" style="${i===0?`border-color:${p.col}`:''}">
+  <div class="caf-ph" style="background:${p.col}12;color:${p.col}">${p.label}</div>
+  <div class="caf-objectives">
+    ${p.objectives.map(o=>`<div class="caf-obj">
+      <span class="caf-obj-id" style="background:${p.col}15;color:${p.col}">${o.id}</span>
+      <div><strong style="font-size:12px;color:var(--text)">${o.title}</strong><br>${o.desc}</div>
+    </div>`).join('')}
+  </div>
+</div>`).join('')}
+</div>`;
+}
+
+/* ─ NIST CSF ─ */
+function iNIST() {
+  const fns = [
+    {id:'GV',name:'Govern',col:'#7c3aed',isNew:true,desc:'NEW in CSF 2.0. Establishes organisational context, risk management strategy, supply chain risk management, roles and responsibilities.',cats:[
+      {id:'GV.OC',name:'Organisational Context',desc:'Understand the mission, stakeholder expectations, and legal/regulatory requirements'},
+      {id:'GV.RM',name:'Risk Management Strategy',desc:'Risk appetite, tolerance, and assumptions — including supply chain risk'},
+      {id:'GV.RR',name:'Roles & Responsibilities',desc:'Defined, communicated, and enforced cybersecurity roles across the organisation'},
+      {id:'GV.PO',name:'Policy',desc:'Cybersecurity policies established, communicated, and enforced'},
+      {id:'GV.OV',name:'Oversight',desc:'Results of cybersecurity risk management reviewed and communicated to inform strategy'},
+      {id:'GV.SC',name:'Supply Chain Risk',desc:'Cyber supply chain risk management — practices integrated into enterprise risk'},
+    ]},
+    {id:'ID',name:'Identify',col:'#1d6fcc',isNew:false,desc:'Develop understanding of cybersecurity risk to systems, people, assets, data, and capabilities.',cats:[
+      {id:'ID.AM',name:'Asset Management',desc:'Physical/software assets inventoried, managed proportionate to risk'},
+      {id:'ID.RA',name:'Risk Assessment',desc:'Cybersecurity risks identified, assessed, prioritised'},
+      {id:'ID.IM',name:'Improvement',desc:'Improvements to cybersecurity risk management identified across processes'},
+    ]},
+    {id:'PR',name:'Protect',col:'#0f8a5f',isNew:false,desc:'Develop and implement appropriate safeguards to ensure delivery of critical services.',cats:[
+      {id:'PR.AA',name:'Identity Management & Auth',desc:'Identity management, authentication, and access control — covering MFA, least privilege'},
+      {id:'PR.AT',name:'Awareness & Training',desc:'Organisation personnel are trained and made aware of their cybersecurity responsibilities'},
+      {id:'PR.DS',name:'Data Security',desc:'Data is managed consistent with risk strategy to protect integrity, confidentiality, and availability'},
+      {id:'PR.PS',name:'Platform Security',desc:'Hardware, software, services managed to reduce cybersecurity risk'},
+      {id:'PR.IR',name:'Technology Infrastructure Resilience',desc:'Security architectures manage and reduce cybersecurity risk'},
+    ]},
+    {id:'DE',name:'Detect',col:'#c05c1a',isNew:false,desc:'Develop and implement appropriate activities to identify the occurrence of a cybersecurity event.',cats:[
+      {id:'DE.CM',name:'Continuous Monitoring',desc:'Assets and infrastructure monitored to identify potential cybersecurity events'},
+      {id:'DE.AE',name:'Adverse Event Analysis',desc:'Anomalies and events detected, their potential impact understood'},
+    ]},
+    {id:'RS',name:'Respond',col:'#dc2626',isNew:false,desc:'Develop and implement appropriate activities to take action regarding a detected cybersecurity incident.',cats:[
+      {id:'RS.MA',name:'Incident Management',desc:'Responses to detected cybersecurity incidents managed'},
+      {id:'RS.AN',name:'Incident Analysis',desc:'Investigations conducted to ensure effective response and support recovery'},
+      {id:'RS.CO',name:'Incident Response Reporting',desc:'Response activities coordinated with internal and external stakeholders'},
+      {id:'RS.MI',name:'Incident Mitigation',desc:'Activities performed to prevent expansion and resolve the incident'},
+    ]},
+    {id:'RC',name:'Recover',col:'#d97706',isNew:false,desc:'Develop and implement appropriate activities to maintain plans for resilience and restore capabilities.',cats:[
+      {id:'RC.RP',name:'Incident Recovery Plan',desc:'Recovery activities documented and implemented to restore capabilities'},
+      {id:'RC.CO',name:'Incident Recovery Communication',desc:'Restoration activities coordinated with internal and external parties'},
+    ]},
+  ];
+  window.nistFns = fns;
+  return `
+<div class="nist-grid">
+${fns.map((f,i)=>`<div class="nist-fn${i===0?' sel':''}" onclick="nistSel('${f.id}')" id="nistf-${f.id}" style="${i===0?`border-color:${f.col};box-shadow:0 0 0 2px ${f.col}`:''}">
+  <div class="nist-fh">
+    <div class="nist-id" style="background:${f.col}18;color:${f.col}">${f.id}</div>
+    <div>
+      <div class="nist-fname">${f.name}</div>
+      <div style="font-size:11px;color:var(--text3)">${f.cats.length} categories</div>
+    </div>
+    ${f.isNew?'<div class="nist-fnew">NEW 2.0</div>':''}
+  </div>
+  <div class="nist-cats">
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px;padding:0 0 8px;border-bottom:1px solid var(--border)">${f.desc}</div>
+    ${f.cats.map(c=>`<div class="nist-cat">
+      <span class="nist-cat-id" style="background:${f.col}15;color:${f.col};border:1px solid ${f.col}25">${c.id}</span>
+      <div><strong style="font-size:11px;color:var(--text)">${c.name}</strong><br>${c.desc}</div>
+    </div>`).join('')}
+  </div>
+</div>`).join('')}
+</div>`;
+}
+
+/* ─ ISO 27001 ─ */
+function iISO() {
+  const themes = [
+    {id:'org',label:'Organisational (37)',col:'#1d6fcc',controls:[
+      'A.5.1 Policies for information security','A.5.2 Information security roles','A.5.3 Segregation of duties','A.5.4 Management responsibilities','A.5.5 Contact with authorities','A.5.7 Threat intelligence ★ NEW','A.5.23 Information security for cloud ★ NEW','A.5.29 Information security during disruption','A.5.30 ICT readiness for business continuity','A.5.36 Compliance with policies','A.5.37 Documented operating procedures'
+    ]},
+    {id:'ppl',label:'People (8)',col:'#0f8a5f',controls:[
+      'A.6.1 Screening','A.6.2 Terms and conditions of employment','A.6.3 Information security awareness & training','A.6.4 Disciplinary process','A.6.5 Responsibilities after termination','A.6.6 Confidentiality/NDA agreements','A.6.7 Remote working','A.6.8 Information security event reporting'
+    ]},
+    {id:'phys',label:'Physical (14)',col:'#c05c1a',controls:[
+      'A.7.1 Physical security perimeters','A.7.2 Physical entry controls','A.7.3 Securing offices, rooms, facilities','A.7.4 Physical security monitoring ★ NEW','A.7.5 Protecting against physical threats','A.7.6 Working in secure areas','A.7.7 Clear desk and clear screen','A.7.8 Equipment siting and protection','A.7.9 Security of assets off-premises','A.7.10 Storage media','A.7.11 Supporting utilities','A.7.12 Cabling security','A.7.13 Equipment maintenance','A.7.14 Secure disposal or re-use of equipment'
+    ]},
+    {id:'tech',label:'Technological (34)',col:'#7c3aed',controls:[
+      'A.8.1 User endpoint devices','A.8.2 Privileged access rights','A.8.3 Information access restriction','A.8.4 Access to source code','A.8.5 Secure authentication','A.8.6 Capacity management','A.8.7 Protection against malware','A.8.8 Management of technical vulnerabilities','A.8.9 Configuration management ★ NEW','A.8.10 Information deletion ★ NEW','A.8.11 Data masking ★ NEW','A.8.12 Data leakage prevention ★ NEW','A.8.15 Logging','A.8.16 Monitoring activities ★ NEW','A.8.20 Networks security','A.8.21 Security of network services','A.8.22 Segregation of networks','A.8.23 Web filtering ★ NEW','A.8.24 Use of cryptography','A.8.25 Secure development lifecycle','A.8.26 Application security requirements','A.8.27 Secure system architecture','A.8.28 Secure coding ★ NEW','A.8.29 Security testing in development','A.8.30 Outsourced development','A.8.31 Separation of dev/test/prod','A.8.32 Change management','A.8.33 Test information','A.8.34 Audit and penetration testing'
+    ]},
+  ];
+  window.isoThemes = themes;
+  return `
+<div class="tiles" style="margin-bottom:14px" id="iso-tiles">
+${themes.map((t,i)=>`<div class="tile${i===0?' sel':''}" onclick="isoSel('${t.id}')" id="isot-${t.id}" style="${i===0?`background:${t.col};color:#fff;border-color:${t.col}`:`border-color:${t.col}33;color:${t.col}`}">${t.label}</div>`).join('')}
+</div>
+<div id="iso-detail">
+  <div style="columns:2;column-gap:14px">
+    ${themes[0].controls.map(c=>`<div style="break-inside:avoid;padding:5px 8px;margin-bottom:4px;background:var(--bg3);border-radius:5px;border:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:9.5px;color:${c.includes('★')?themes[0].col:'var(--text2)'}">${c}</div>`).join('')}
+  </div>
+</div>`;
+}
+
+/* ─ INTELLIGENCE CYCLE ─ */
+function iIntCycle() {
+  const steps = [
+    {num:1,label:'Direction',col:'#c05c1a',desc:'Define intelligence requirements (IRs) — the specific questions that intelligence must answer to inform decision-making. Without clear direction, collection and analysis produce irrelevant output.',tips:['Define Priority Intelligence Requirements (PIRs)','Engage stakeholders to understand decision needs','Establish IR tiering: strategic vs operational vs tactical','Review and update IRs quarterly or after significant events']},
+    {num:2,label:'Collection',col:'#1d6fcc',desc:'Gather raw data from multiple sources mapped to intelligence requirements. Sources include OSINT (open web, dark web, social media), technical feeds (SIEM, EDR, firewall logs), HUMINT, and partner sharing (ISACs, government).',tips:['Map collection sources to specific IRs','Avoid collection without requirements — noise without purpose','Combine technical feeds with human-derived context','Document source reliability and information credibility (1-6 scale)']},
+    {num:3,label:'Processing',col:'#0f8a5f',desc:'Transform raw collected data into a usable format. Involves deduplication, normalisation, translation, decryption, and format conversion. Makes data ready for analytical exploitation.',tips:['Automate normalisation where possible (SIEM, MISP)','Tag data with source reliability at ingest','Deduplicate IOCs before analysis','Apply TLP markings during processing']},
+    {num:4,label:'Analysis',col:'#7c3aed',desc:'The intellectual core of the cycle. Evaluate significance, assess reliability, identify patterns, attribute activity, and produce intelligence judgements. Apply structured analytic techniques to reduce bias.',tips:['Apply ACH for high-stakes attribution assessments','Use confidence language: Highly likely / Likely / Unlikely','Distinguish between intelligence and information','Challenge assumptions — run key assumptions checks']},
+    {num:5,label:'Dissemination',col:'#c05c1a',desc:'Deliver intelligence products to consumers in the right format, at the right classification level, at the right time. Format must match consumer — tactical teams need IOCs, boards need risk summaries.',tips:['Match product type to consumer (TIR, Flash, Assessment)','Apply TLP marking before dissemination','Tactical consumers need near-real-time IOCs','Strategic consumers need trends and forecasts — not IOC lists']},
+    {num:6,label:'Feedback',col:'#1d6fcc',desc:'Consumers evaluate whether the intelligence answered their requirements, was timely, and was actionable. Feedback informs the next Direction phase — closing the cycle and enabling continuous improvement.',tips:['Conduct quarterly IR review sessions with stakeholders','Track whether intelligence was actioned (blocked, hunted, patched)','Measure intelligence quality: relevance, timeliness, accuracy','Use feedback to retire stale IRs and add emerging requirements']},
+  ];
+  window.icSteps = steps;
+  return `
+<div class="ic-wrap" id="ic-wrap">
+<div class="ic-steps">
+${steps.map((s,i)=>`<div class="ic-step${i===0?' active':''}" onclick="icSel(${i})" id="ics-${i}">
+  <div class="ic-step-num" style="color:${s.col};border-color:${s.col}">${s.num}</div>
+  <div class="ic-step-label">${s.label}</div>
+</div>`).join('')}
+</div>
+<div class="ic-detail" id="ic-detail" style="border-left-color:${steps[0].col}">
+  <h4 style="color:${steps[0].col}">${steps[0].label}</h4>
+  <p>${steps[0].desc}</p>
+  <div class="ic-tips">${steps[0].tips.map(t=>`<div class="ic-tip">${t}</div>`).join('')}</div>
+</div>
+</div>`;
+}
+
+/* ─ F3EAD ─ */
+function iF3EAD() {
+  const phases = [
+    {letter:'F',name:'Find',col:'#1d6fcc',phase:'Operations',desc:'Identify adversary presence in your environment. Sources include SIEM alerts, EDR detections, threat hunting, CTI tip-offs from ISACs, and partner indicators.',dfir:'DFIR context: Initial detection from EDR, SIEM correlation rule, or SOC analyst triage. Scope unknown at this stage.',actions:['Triage alert → confirm true positive','Gather initial IOCs (IP, hash, username)','Notify IR lead — begin formal engagement','Preserve initial evidence: log timestamps, screenshots']},
+    {letter:'F',name:'Fix',col:'#0f8a5f',phase:'Operations',desc:'Geolocate and confirm adversary activity. Validate scope, identify affected systems, determine whether adversary is still active or has achieved objectives.',dfir:'DFIR context: Scoping calls, shadow-and-observe phase. Confirm lateral movement extent. Map compromised accounts and systems.',actions:['Scope the intrusion — how many systems affected?','Confirm adversary still active vs completed objectives','Identify patient zero — initial entry point','Do NOT alert adversary — preserve evidence and observe if safe to do so']},
+    {letter:'F',name:'Finish',col:'#c05c1a',phase:'Operations',desc:'Execute the response action. Contain, eradicate, and begin remediation. Co-ordinate with stakeholders, legal, and communications teams for significant incidents.',dfir:'DFIR context: Containment decision (isolate vs monitor), account lockout, malware removal, credential reset, rebuild sequence.',actions:['Contain: isolate affected systems from network','Eradicate: remove malware, persistence mechanisms, attacker tools','Reset compromised credentials (all, not just known ones)','Communicate to stakeholders per IR plan']},
+    {letter:'E',name:'Exploit',col:'#7c3aed',phase:'Intelligence',desc:'Collect forensic artefacts and intelligence from the finished incident. This is the intelligence goldmine — everything collected here feeds the Analyse phase.',dfir:'DFIR context: Full forensic acquisition — disk images, memory dumps, log exports, network captures, malware samples.',actions:['Acquire disk images from key systems','Collect Windows Event Logs, Sysmon, EDR telemetry','Extract malware samples for reverse engineering','Capture network forensics (PCAP, flow records, proxy logs)']},
+    {letter:'A',name:'Analyse',col:'#c05c1a',phase:'Intelligence',desc:'Produce intelligence from collected artefacts. Map TTPs to MITRE ATT&CK. Attribute to known or new threat actors. Identify indicators for future detection.',dfir:'DFIR context: Malware analysis, timeline reconstruction, TTP mapping, attribution assessment, gap identification.',actions:['Reconstruct full attack timeline','Map TTPs to MITRE ATT&CK framework','Produce IOCs for platform sharing (MISP)','Assess attribution: cluster with known group if sufficient evidence']},
+    {letter:'D',name:'Disseminate',col:'#0f8a5f',phase:'Intelligence',desc:'Share intelligence with relevant stakeholders. Internal teams get detection rules and IOCs. Partners and ISACs get TLP-marked intel. Leadership gets an executive briefing.',dfir:'DFIR context: Post-incident report, threat briefing to CISO, IOC feeds to security tooling, ISAC/NCSC notification if required.',actions:['Update SIEM rules with new TTPs','Publish IOCs to MISP with TLP:AMBER','Brief CISO with executive incident summary','Share applicable indicators with sector ISAC']},
+  ];
+  window.f3Phases = phases;
+  return `
+<div class="f3-grid">
+${phases.map((p,i)=>`<div class="f3-box${i===0?' sel':''}" onclick="f3Sel(${i})" id="f3b-${i}" style="${i===0?`border-color:${p.col};background:${p.col}0a`:''}">
+  <div class="f3-letter" style="color:${p.col}">${p.letter}</div>
+  <div class="f3-name" style="color:${p.col}">${p.name}</div>
+  <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text3);margin-bottom:6px">${p.phase}</div>
+  <div class="f3-desc">
+    <div style="margin-bottom:8px">${p.desc}</div>
+    <div style="background:var(--bg2);border-radius:5px;padding:7px 9px;border:1px solid var(--border);margin-bottom:8px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);border-left:2px solid ${p.col}">${p.dfir}</div>
+    ${p.actions.map(a=>`<div style="font-size:11px;color:var(--text2);padding:3px 0;border-top:1px solid var(--border)">→ ${a}</div>`).join('')}
+  </div>
+</div>`).join('')}
+</div>`;
+}
+
+/* ─ PASTA ─ */
+function iPASTA() {
+  const stages = [
+    {num:1,title:'Define Business Objectives',col:'#1d6fcc',desc:'Establish the business and security objectives that this threat model must protect. Define what constitutes mission-critical functionality.',input:'Business requirements, regulatory obligations (GDPR, PCI-DSS), security policies, risk appetite',output:'Defined security objectives, abuse case list, compliance constraints'},
+    {num:2,title:'Define Technical Scope',col:'#0f8a5f',desc:'Identify the technical scope of the application or system. Components, dependencies, technologies, hosting environment.',input:'Architecture diagrams, network diagrams, technology stack, hosting environment, external dependencies',output:'Component list, technology profile, integration map, hosting model'},
+    {num:3,title:'Application Decomposition',col:'#7c3aed',desc:'Decompose the application into its constituent parts — data flows, entry/exit points, trust boundaries, authentication points, and data stores.',input:'Code repositories, design docs, API specs, authentication model, data classification',output:'DFDs (Data Flow Diagrams), trust boundary map, entry point inventory, data asset register'},
+    {num:4,title:'Threat Analysis',col:'#c05c1a',desc:'Identify threat agents and apply real threat intelligence to the specific application context. Who would want to attack this application, and how?',input:'CTI reports, OSINT on threat actors targeting this sector, historical incident data, bug bounty reports',output:'Threat actor profiles, attack motivation analysis, threat scenarios relevant to this application'},
+    {num:5,title:'Vulnerability Analysis',col:'#dc2626',desc:'Correlate identified threats with existing vulnerabilities. Cross-reference CVE databases, SAST/DAST findings, and known weak patterns in the tech stack.',input:'SAST results, DAST results, dependency scan, CVE feeds, penetration test findings',output:'Vulnerability inventory, CVE-to-threat mapping, exploitability assessment per threat scenario'},
+    {num:6,title:'Attack Modelling',col:'#d97706',desc:'Build attack trees simulating how adversaries would chain identified threats and vulnerabilities to achieve objectives. Model attacker decision logic.',input:'Threat scenarios, vulnerability inventory, MITRE ATT&CK techniques',output:'Attack trees per threat scenario, attack path diagrams, probability and impact estimates per path'},
+    {num:7,title:'Risk & Impact Analysis',col:'#7c3aed',desc:'Quantify residual risk per attack path and prioritise countermeasures based on business impact. Produce risk-based recommendations aligned to business objectives.',input:'Attack trees, business impact assessments, control maturity, risk appetite from Stage 1',output:'Residual risk register, prioritised countermeasures, cost-benefit analysis, PASTA findings report'},
+  ];
+  window.pastaStages = stages;
+  return `
+<div class="pasta-stages" id="pasta-stages">
+${stages.map((s,i)=>`<div class="pasta-stage${i===0?' sel':''}" onclick="pastaSel(${i})" id="pastas-${i}">
+  <div class="pasta-num" style="${i===0?`background:${s.col};color:#fff`:``}">${s.num}</div>
+  <div style="flex:1">
+    <div class="pasta-stitle" style="color:${s.col}">${s.title}</div>
+    <div class="pasta-sdesc">
+      ${s.desc}
+      <div class="pasta-io">
+        <div class="pasta-io-box">
+          <div class="pasta-io-label" style="color:${s.col}">Inputs</div>
+          <div class="pasta-io-val">${s.input}</div>
+        </div>
+        <div class="pasta-io-box">
+          <div class="pasta-io-label" style="color:${s.col}">Outputs</div>
+          <div class="pasta-io-val">${s.output}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>`).join('')}
+</div>`;
+}
+
+/* ─ STRIDE ─ */
+function iSTRIDE() {
+  const threats = [
+    {letter:'S',name:'Spoofing',col:'#1d6fcc',desc:'An adversary impersonates a legitimate user, process, system, or service to gain unauthorised access or bypass security controls.',examples:['Pass-the-Hash (T1550.002)','Kerberos ticket forging (T1558.001)','DNS spoofing / ARP poisoning','OAuth token abuse','Email sender spoofing (T1566)'],counters:['Multi-factor authentication','Digital certificates / PKI','Mutual TLS authentication','Kerberos armoring','DMARC/DKIM/SPF for email']},
+    {letter:'T',name:'Tampering',col:'#0f8a5f',desc:'Malicious modification of data in transit, at rest, or during processing. Attacks data integrity — the adversary changes what the system reads, stores, or transmits.',examples:['SQL injection (T1190)','Timestomping (T1070.006)','Log tampering (T1070.001)','Man-in-the-middle data modification','Registry key modification (T1112)'],counters:['Cryptographic integrity (HMAC, signatures)','File Integrity Monitoring (FIM)','Centralised immutable logging','Input validation and parameterised queries','Code signing']},
+    {letter:'R',name:'Repudiation',col:'#7c3aed',desc:'An adversary (or malicious insider) denies having performed an action. Without non-repudiation controls, it is impossible to prove accountability for security events.',examples:['Log deletion (T1070)','Audit log tampering','Use of shared accounts','Covering tracks via BITS jobs (T1197)'],counters:['Centralised SIEM log aggregation','Cryptographic audit trails','Individual user accounts (no shared)','Immutable log storage (WORM)','Multi-party approval for critical actions']},
+    {letter:'I',name:'Information Disclosure',col:'#c05c1a',desc:'Unauthorised exposure of sensitive data — whether through direct access, interception, or side-channel attack. Targets data confidentiality.',examples:['LSASS credential dumping (T1003.001)','Unsecured S3 buckets','Clear-text protocol sniffing (T1040)','Directory traversal','Browser history/cookie theft (T1539)'],counters:['Encryption at rest and in transit','Least privilege access control','Data Loss Prevention (DLP)','Secrets management (vault, no hardcoded creds)','Network segmentation']},
+    {letter:'D',name:'Denial of Service',col:'#dc2626',desc:'Disrupting the availability of a service, resource, or system. Ranges from volumetric network attacks to resource exhaustion of application logic.',examples:['Network DDoS (T1498)','Endpoint DoS (T1499)','Application-layer DoS','Ransomware (T1486)','Wiper malware (T1485)'],counters:['Rate limiting and throttling','DDoS scrubbing / CDN protection','Redundancy and failover architecture','Input validation (prevent resource exhaustion)','Backup and recovery planning']},
+    {letter:'E',name:'Elevation of Privilege',col:'#d97706',desc:'Gaining permissions beyond those authorised — from user to admin, from application process to OS, from tenant to root. Often the prerequisite for mission objectives.',examples:['UAC bypass (T1548.002)','Kerberoasting (T1558.003)','CVE exploitation for LPE (T1068)','DLL injection into privileged process','Sudo abuse / SUID exploitation'],counters:['Principle of least privilege','Privileged Access Management (PAM)','Just-in-time access provisioning','EDR with privilege escalation detection','Regular patching of LPE CVEs']},
+  ];
+  window.strideThreats = threats;
+  return `
+<div class="stride-grid">
+${threats.map((t,i)=>`<div class="stride-card${i===0?' sel':''}" onclick="strideSel(${i})" id="strided-${i}" style="${i===0?`border-color:${t.col};box-shadow:0 0 0 2px ${t.col}`:''}">
+  <div class="stride-head">
+    <div class="stride-letter" style="background:${t.col}18;color:${t.col}">${t.letter}</div>
+    <div>
+      <div class="stride-title" style="color:${t.col}">${t.name}</div>
+      <div class="stride-counter" style="background:${t.col}12;color:${t.col};border:1px solid ${t.col}25">× ${t.counters.length} countermeasures</div>
+    </div>
+  </div>
+  <div class="stride-body">
+    ${t.desc}
+    <div style="margin-top:10px">
+      <div class="sl" style="margin-bottom:5px">ATT&CK examples</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px">${t.examples.map(e=>`<span style="font-family:'JetBrains Mono',monospace;font-size:8.5px;padding:2px 7px;border-radius:3px;background:var(--bg4);color:var(--text3)">${e}</span>`).join('')}</div>
+      <div class="sl" style="margin-bottom:5px">Countermeasures</div>
+      ${t.counters.map(c=>`<div style="font-size:11px;padding:3px 0;color:var(--text2);border-top:1px solid var(--border)">✓ ${c}</div>`).join('')}
+    </div>
+  </div>
+</div>`).join('')}
+</div>`;
+}
+
+/* ─ SATs / ACH ─ */
+function iSAT() {
+  const evidence = [
+    'Custom malware (not commodity)','Targeted spearphish with sector knowledge','C2 infrastructure hosted in specific ASN','Lateral movement to OT/ICS systems','Long dwell time (90+ days)','Operating hours align with UTC+8'
+  ];
+  const hypotheses = [
+    {label:'H1: Nation-State APT',score:0},
+    {label:'H2: Criminal (Ransomware)',score:0},
+    {label:'H3: Insider Threat',score:0},
+    {label:'H4: Hacktivism',score:0},
+  ];
+  const matrix = [
+    ['C','I','I','N'],
+    ['C','N','I','I'],
+    ['C','N','N','N'],
+    ['C','N','N','N'],
+    ['C','I','N','N'],
+    ['C','N','I','I'],
+  ];
+  window.achMatrix = matrix.map(r=>[...r]);
+  window.achCycle = ['C','I','N'];
+  return `
+<div>
+<div style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.7">Analysis of Competing Hypotheses (ACH) — click cells to toggle Consistent (✓), Inconsistent (~), or N/A (✗) and observe which hypothesis has fewest inconsistencies.</div>
+<div class="ach-wrap">
+<table class="ach-table" id="ach-table">
+<thead><tr>
+  <th>Evidence Item</th>
+  ${hypotheses.map(h=>`<th>${h.label}</th>`).join('')}
+</tr></thead>
+<tbody>
+${evidence.map((ev,r)=>`<tr>
+  <td>${ev}</td>
+  ${matrix[r].map((v,c)=>`<td onclick="achToggle(${r},${c})" style="cursor:pointer" id="ach-${r}-${c}"><div class="ach-c ach-${v}">${v==='C'?'✓':v==='I'?'~':'✗'}</div></td>`).join('')}
+</tr>`).join('')}
+</tbody>
+<tfoot><tr>
+  <td style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3)">Inconsistency score ↓</td>
+  ${hypotheses.map((_,c)=>`<td><div class="ach-score" id="ach-score-${c}" style="background:rgba(15,138,95,0.1);color:#0f8a5f">0</div></td>`).join('')}
+</tr></tfoot>
+</table>
+</div>
+<div style="margin-top:12px;display:flex;gap:12px;font-family:'JetBrains Mono',monospace;font-size:10px;flex-wrap:wrap">
+  <span><span class="ach-c ach-C" style="display:inline-flex;width:18px;height:18px;margin-right:5px;vertical-align:middle">✓</span>Consistent with hypothesis</span>
+  <span><span class="ach-c ach-I" style="display:inline-flex;width:18px;height:18px;margin-right:5px;vertical-align:middle">~</span>Inconsistent — reduces confidence</span>
+  <span><span class="ach-c ach-N" style="display:inline-flex;width:18px;height:18px;margin-right:5px;vertical-align:middle">✗</span>Not applicable</span>
+  <span style="color:var(--text3);margin-left:auto">Lower inconsistency score = stronger hypothesis</span>
+</div>
+</div>`;
+}
+
+/* ─ TLP ─ */
+function iTLP() {
+  const levels = [
+    {badge:'TLP:CLEAR',col:'#6b7280',bg:'#f9fafb',desc:'No restrictions on sharing. Can be distributed publicly, posted on websites, shared with any audience.',scope:'Public — no restrictions',share:'Anyone, anywhere',example:'Public threat advisories, published NCSC alerts, open-source threat reports'},
+    {badge:'TLP:GREEN',col:'#0f8a5f',bg:'#f0faf5',desc:'Information can be shared with peers and partner organisations within the broader CTI community but should not be posted publicly.',scope:'CTI Community',share:'ISACs, partner organisations, sector peers',example:'ISAC member threat briefings, sector-specific IOC feeds, community TIP sharing'},
+    {badge:'TLP:AMBER',col:'#b45309',bg:'#fffbeb',desc:'Limited sharing. Recipients may share with clients or customers on a need-to-know basis, but only as required for them to protect themselves.',scope:'Organisation + clients who need to act',share:'Internal teams + affected clients/customers',example:'IR firm sharing findings with affected client. Vendor sharing breach intel with impacted customer.'},
+    {badge:'TLP:AMBER+STRICT',col:'#c05c1a',bg:'#fff7f0',desc:'Same as AMBER but no further sharing outside the receiving organisation. Added in TLP v2.0.',scope:'Receiving organisation only',share:'Internal use only — no external sharing',example:'Law enforcement intelligence shared with specific company. Sensitive vulnerability before patch is available.'},
+    {badge:'TLP:RED',col:'#dc2626',bg:'#fff5f5',desc:'Strictly restricted to the individuals named as recipients. Not for sharing with any other party, even within the same organisation.',scope:'Named recipients only',share:'Individual recipients — no sharing at all',example:'Sensitive intelligence shared in a crisis call. Attribution data shared bilaterally between government agencies.'},
+  ];
+  window.tlpLevels = levels;
+  return `
+<div class="tlp-sim">
+${levels.map((l,i)=>`<div class="tlp-row${i===0?' sel':''}" onclick="tlpSel(${i})" id="tlpr-${i}" style="background:${l.bg};border-color:${i===0?l.col:'var(--border)'}">
+  <span class="tlp-badge" style="background:${l.col}18;color:${l.col};border:1px solid ${l.col}33">${l.badge}</span>
+  <span class="tlp-desc">${l.desc}</span>
+  <div class="tlp-bar-wrap"><div class="tlp-bar" style="width:${[100,78,55,35,15][i]}%;background:${l.col}"></div></div>
+</div>`).join('')}
+<div class="tlp-detail" id="tlp-detail" style="border-left-color:${levels[0].col}">
+  <strong style="color:${levels[0].col}">${levels[0].badge}</strong>
+  <div><b>Sharing scope:</b> ${levels[0].scope}</div>
+  <div><b>Share with:</b> ${levels[0].share}</div>
+  <div style="margin-top:6px;padding:8px 10px;background:var(--bg2);border-radius:5px;border:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3)">Example: ${levels[0].example}</div>
+</div>
+</div>`;
+}
+
+/* ─ CTI-CMM ─ */
+function iCMM() {
+  const levels = [
+    {num:1,title:'Ad Hoc',col:'#dc2626',desc:'No formal CTI programme. Reactive posture — teams only respond to threats after impact. IOC consumption is opportunistic (copying hashes from blog posts). No dedicated resource, no requirements management, no measurement.',indicators:['No intelligence requirements defined','IOCs consumed reactively from public feeds','No dedicated CTI analyst','No structured sharing or contributions','Incidents analysed in isolation — no lessons fed back']},
+    {num:2,title:'Developing',col:'#d97706',desc:'Early-stage CTI capability emerging. Basic processes being defined. Some tooling deployed (MISP, TIP). Intelligence output is inconsistent and primarily tactical IOC-focused.',indicators:['Some PIRs defined but not systematically tracked','MISP or basic TIP deployed','Occasional CTI reports produced','Beginning to engage with sector ISAC','Detection rules sometimes updated from incidents']},
+    {num:3,title:'Defined',col:'#b45309',desc:'Documented, repeatable processes with dedicated CTI resource. Consistent intelligence output across tactical, operational, and emerging strategic levels. Regular stakeholder engagement.',indicators:['Formal PIR management process','Dedicated CTI analyst(s) in post','Regular threat intelligence reports to defined consumers','Active ISAC participation and sharing','ATT&CK-mapped detections reviewed quarterly']},
+    {num:4,title:'Managed',col:'#0f8a5f',desc:'Metrics-driven CTI programme integrated with detection, response, and vulnerability management. Threat-informed defence — controls and priorities driven by intelligence.',indicators:['Intelligence requirements met tracked with KPIs','CTI feeds into SOC detection tuning continuously','CTI informs vulnerability prioritisation (EPSS integration)','Threat actor profiles maintained and shared internally','CTI produces strategic assessments for leadership']},
+    {num:5,title:'Optimised',col:'#1d6fcc',desc:'Proactive, predictive intelligence capability. Anticipates adversary evolution. Contributes to community, produces original research. Continuous measurement and improvement cycle.',indicators:['Predictive assessments with documented accuracy tracking','Original threat research published or shared with community','Automated intelligence pipeline with human oversight','CTI team contributes to NCSC/ISAC working groups','Intelligence cycle fully closed with measurable stakeholder feedback']},
+  ];
+  window.cmmLevels = levels;
+  return `
+<div class="cmm-levels">
+${levels.map((l,i)=>`<div class="cmm-level${i===0?' sel':''}" onclick="cmmSel(${i})" id="cmml-${i}" style="${i===0?`background:${l.col}08`:''}">
+  <div class="cmm-lnum" style="background:${l.col}18;color:${l.col};border:1px solid ${l.col}33">${l.num}</div>
+  <div class="cmm-lbody">
+    <div class="cmm-ltitle" style="color:${l.col}">Level ${l.num} — ${l.title}</div>
+    <div class="cmm-ldesc">
+      <div style="margin-bottom:8px">${l.desc}</div>
+      ${l.indicators.map(ind=>`<div style="font-size:11px;color:var(--text2);padding:3px 0;border-top:1px solid var(--border)">→ ${ind}</div>`).join('')}
+    </div>
+  </div>
+  <div class="cmm-bar-wrap">
+    ${[1,2,3,4,5].map(n=>`<div class="cmm-bar-pip${n<=l.num?' on':''}" style="${n<=l.num?`background:${l.col}`:''};color:${l.col}"></div>`).join('')}
+  </div>
+</div>`).join('')}
+</div>`;
+}
+
+/* ─ CVSS/EPSS CALCULATOR ─ */
+function iCVSS() {
+  return `
+<div>
+<div class="cvss-grid" id="cvss-inputs">
+  <div class="cvss-field">
+    <div class="cvss-label">Attack Vector</div>
+    <select class="cvss-select" id="cv-av" onchange="cvssCalc()">
+      <option value="0.85">Network (N) — remotely exploitable</option>
+      <option value="0.62">Adjacent (A) — network adjacent</option>
+      <option value="0.55">Local (L) — requires local access</option>
+      <option value="0.20">Physical (P) — requires physical access</option>
+    </select>
+  </div>
+  <div class="cvss-field">
+    <div class="cvss-label">Attack Complexity</div>
+    <select class="cvss-select" id="cv-ac" onchange="cvssCalc()">
+      <option value="0.77">Low (L) — no special conditions</option>
+      <option value="0.44">High (H) — specific conditions required</option>
+    </select>
+  </div>
+  <div class="cvss-field">
+    <div class="cvss-label">Privileges Required</div>
+    <select class="cvss-select" id="cv-pr" onchange="cvssCalc()">
+      <option value="0.85">None (N) — no authentication needed</option>
+      <option value="0.62">Low (L) — low-privilege user account</option>
+      <option value="0.27">High (H) — admin/root privileges</option>
+    </select>
+  </div>
+  <div class="cvss-field">
+    <div class="cvss-label">User Interaction</div>
+    <select class="cvss-select" id="cv-ui" onchange="cvssCalc()">
+      <option value="0.85">None (N) — no user interaction</option>
+      <option value="0.62">Passive (P) — passive interaction (CVSS 4.0)</option>
+      <option value="0.50">Required (R) — active user interaction</option>
+    </select>
+  </div>
+  <div class="cvss-field">
+    <div class="cvss-label">Confidentiality Impact</div>
+    <select class="cvss-select" id="cv-c" onchange="cvssCalc()">
+      <option value="0.56">High (H) — all data accessible</option>
+      <option value="0.22">Low (L) — some data accessible</option>
+      <option value="0.00">None (N) — no impact</option>
+    </select>
+  </div>
+  <div class="cvss-field">
+    <div class="cvss-label">Integrity Impact</div>
+    <select class="cvss-select" id="cv-i" onchange="cvssCalc()">
+      <option value="0.56">High (H) — complete integrity loss</option>
+      <option value="0.22">Low (L) — limited integrity impact</option>
+      <option value="0.00">None (N) — no impact</option>
+    </select>
+  </div>
+  <div class="cvss-field">
+    <div class="cvss-label">Availability Impact</div>
+    <select class="cvss-select" id="cv-a" onchange="cvssCalc()">
+      <option value="0.56">High (H) — total availability loss</option>
+      <option value="0.22">Low (L) — reduced performance</option>
+      <option value="0.00">None (N) — no impact</option>
+    </select>
+  </div>
+  <div class="cvss-field">
+    <div class="cvss-label">EPSS Simulation (0–100%)</div>
+    <input type="range" min="0" max="100" value="12" id="cv-epss" oninput="cvssCalc()" style="width:100%;margin-top:8px;accent-color:#1d6fcc">
+  </div>
+</div>
+<div class="cvss-result" id="cvss-result">
+  <div>
+    <div class="cvss-score-big" id="cvss-score-num" style="color:#dc2626">9.8</div>
+    <div class="cvss-severity" id="cvss-sev" style="color:#dc2626">CRITICAL</div>
+  </div>
+  <div style="flex:1">
+    <div class="cvss-label" style="margin-bottom:4px">CVSS Score</div>
+    <div class="cvss-bar-outer"><div class="cvss-bar-inner" id="cvss-bar" style="width:98%;background:#dc2626"></div></div>
+    <div class="epss-wrap">
+      <div class="epss-label">EPSS Exploit Probability</div>
+      <div class="epss-val" id="epss-val">12%</div>
+      <div class="epss-note" id="epss-note">Moderate exploitation likelihood — monitor actively</div>
+    </div>
+  </div>
+  <div id="cvss-verdict" style="padding:12px 14px;background:rgba(220,38,38,0.06);border-radius:7px;border:1px solid rgba(220,38,38,0.15);font-size:12px;color:var(--text2);max-width:200px">
+    <strong style="color:#dc2626;display:block;margin-bottom:4px">Patch Urgency: IMMEDIATE</strong>
+    Critical CVSS with active exploitation — emergency patching within 24 hours.
+  </div>
+</div>
+</div>`;
+}
+
+/* ─ CS&R BILL ─ */
+function iCSR() {
+  const sectors = [
+    {name:'Energy',icon:'⚡'},
+    {name:'Transport',icon:'🚂'},
+    {name:'Health',icon:'🏥'},
+    {name:'Water',icon:'💧'},
+    {name:'Finance',icon:'🏦'},
+    {name:'Digital Infra',icon:'🌐'},
+  ];
+  const obligations = [
+    {icon:'📋',title:'In-Scope Assessment',desc:'Determine whether your organisation meets the CS&R Bill definition of an operator of essential services, relevant digital service provider, or managed service provider. The Bill expands scope beyond current NIS regulations.'},
+    {icon:'⏱️',title:'24-Hour Incident Notification',desc:'Significant cyber incidents must be reported to the relevant sector regulator and NCSC within 24 hours of detection. Define your incident classification thresholds and escalation procedures now.'},
+    {icon:'🔗',title:'Supply Chain Risk Management',desc:'Implement proportionate cyber security risk management practices for third-party suppliers. Document supplier security requirements, conduct assessments, and maintain a supplier risk register.'},
+    {icon:'🔍',title:'Regulatory Inspection Readiness',desc:'Regulators will have enhanced powers to inspect, audit, and issue binding technical directions. Maintain evidence of your security programme and be prepared to demonstrate compliance.'},
+    {icon:'📊',title:'Governance & Board Reporting',desc:'Cyber security must be reported at board level with clear accountability. Document your governance structure, risk appetite, and board engagement with cybersecurity.'},
+    {icon:'🛡️',title:'Incident Response Planning',desc:'Documented, tested incident response plans aligned to the Bill\'s reporting and recovery obligations. Plans must be tested at least annually and reviewed after significant incidents.'},
+  ];
+  return `
+<div>
+<div style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.7">The CS&R Bill expands obligations across all critical sectors. Select a sector to understand specific context, then review the core obligations applicable to all in-scope organisations.</div>
+<div class="csr-sectors" id="csr-sectors">
+${sectors.map((s,i)=>`<div class="csr-sector${i===0?' sel':''}" onclick="csrSel(${i})" id="csrs-${i}">
+  <div class="csr-sector-icon">${s.icon}</div>
+  <div class="csr-sector-name">${s.name}</div>
+</div>`).join('')}
+</div>
+<div id="csr-sector-note" style="margin-bottom:14px;padding:10px 14px;background:rgba(29,111,204,0.06);border-radius:7px;border-left:3px solid #1d6fcc;font-size:13px;color:var(--text2)">
+  <strong style="color:#1d6fcc">Energy sector context:</strong> Includes electricity generation, transmission and distribution, gas supply networks, and oil infrastructure. Ofgem is the lead regulator. High priority due to direct national security and public safety implications.
+</div>
+<div class="csr-obligations">
+${obligations.map(o=>`<div class="csr-ob">
+  <span class="csr-ob-icon">${o.icon}</span>
+  <div><strong>${o.title}</strong>${o.desc}</div>
+</div>`).join('')}
+</div>
+</div>`;
+}
+
+/* ─ NAVIGATOR HEATMAP ─ */
+function iNavigator() {
+  const tactics=['Recon','Res Dev','Init Access','Exec','Persist','Priv Esc','Def Eva','Cred','Discovery','Lat Move','Collect','C2','Exfil','Impact'];
+  const actors=[
+    {name:'APT28 (Fancy Bear)',coverage:[3,2,5,6,4,3,5,4,3,2,3,5,2,1]},
+    {name:'Lazarus Group',coverage:[2,4,4,5,5,4,6,3,4,3,4,4,4,5]},
+    {name:'Cl0p (Ransomware)',coverage:[1,1,3,4,5,4,5,5,4,2,3,4,4,6]},
+    {name:'Custom (build your own)',coverage:[0,0,0,0,0,0,0,0,0,0,0,0,0,0]},
+  ];
+  window.navActors = actors;
+  return `
+<div>
+<div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+  <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase">Threat Actor Profile:</span>
+  ${actors.map((a,i)=>`<button class="attck-filter${i===0?' on':''}" onclick="navActor(${i},this)">${a.name}</button>`).join('')}
+</div>
+<div style="overflow-x:auto">
+<div style="display:grid;grid-template-columns:repeat(14,1fr);gap:4px;min-width:840px" id="nav-grid">
+${tactics.map((t,i)=>`<div>
+  <div style="background:rgba(15,138,95,0.12);border:1px solid rgba(15,138,95,0.25);border-radius:4px;padding:5px 4px;text-align:center;margin-bottom:3px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:7px;color:#0f8a5f;font-weight:500">${t}</div>
+  </div>
+  <div id="nav-col-${i}" style="display:flex;flex-direction:column;gap:2px">
+  </div>
+</div>`).join('')}
+</div>
+</div>
+<div style="margin-top:14px;display:flex;gap:12px;font-family:'JetBrains Mono',monospace;font-size:9px;flex-wrap:wrap;align-items:center">
+  <span style="color:var(--text3)">Coverage intensity:</span>
+  ${[1,2,3,4,5,6].map(n=>`<span style="display:flex;align-items:center;gap:4px"><span style="width:14px;height:14px;border-radius:2px;background:${['rgba(29,111,204,0.15)','rgba(29,111,204,0.3)','rgba(29,111,204,0.45)','rgba(29,111,204,0.6)','rgba(29,111,204,0.75)','rgba(29,111,204,0.9)'][n-1]}"></span>${n}</span>`).join('')}
+</div>
+</div>`;
+}
+
+/* ══════════════════════════════════════════════
+   DATA
+══════════════════════════════════════════════ */
+const DATA = [
+  {id:'diamond',cat:'model',name:'Diamond Model',full:'Diamond Model of Intrusion Analysis',origin:'Caltagirone, Pendergast, Betz — 2013',maturity:'Established',complexity:2,
+   tagline:'Structures every intrusion event around four core features — adversary, capability, infrastructure, and victim — enabling analysts to pivot between attributes and build adversary profiles.',
+   description:'Each intrusion event is represented as a diamond with four vertices. The model enables analysts to pivot across attributes — knowing the infrastructure can reveal the adversary; knowing the capability can uncover other victims. Also includes meta-features: timestamps, phase, result, and direction. Particularly powerful for campaign-level correlation and attribution work.',
+   components:[{name:'Adversary',text:'Threat actor or group responsible'},{name:'Capability',text:'Tools, malware, and exploits used'},{name:'Infrastructure',text:'Physical or logical resources used (C2, IPs)'},{name:'Victim',text:'Target of the attack'}],
+   usecases:['Campaign correlation across incidents','Building adversary profiles from partial data','Pivot-based indicator enrichment','Strategic intelligence production'],
+   tags:['Intrusion Analysis','Attribution','Campaign Tracking','Pivoting'],interactive:iDiamond},
+
+  {id:'killchain',cat:'model',name:'Cyber Kill Chain',full:'Lockheed Martin Cyber Kill Chain',origin:'Lockheed Martin — 2011',maturity:'Established',complexity:1,
+   tagline:'A linear 7-stage model describing attacker progression from reconnaissance to achieving their objective. Used for detection planning, disruption strategy, and coverage measurement.',
+   description:'Based on military kill chain concepts, this model maps adversary actions to seven sequential stages. Defenders use it to identify which stage an attack is in, prioritise detection controls, and understand where breaking the chain stops the attack. Critics note it is less effective against insider threats and attacks that loop back.',
+   components:[{name:'1 — Reconnaissance',text:'Target research, OSINT, scanning'},{name:'2 — Weaponisation',text:'Build deliverable payload'},{name:'3 — Delivery',text:'Transmit weapon to target'},{name:'4 — Exploitation',text:'Trigger payload against vulnerability'},{name:'5 — Installation',text:'Install backdoor for persistence'},{name:'6 — C2',text:'Establish command channel'},{name:'7 — Actions',text:'Achieve objective'}],
+   usecases:['Detection engineering and control mapping','Measuring defender coverage by phase','Incident phase classification','Red team exercise scoping'],
+   tags:['Attack Lifecycle','Detection Mapping','Disruption','SOC','Red Team'],interactive:iKillChain},
+
+  {id:'pyramid',cat:'model',name:'Pyramid of Pain',full:'Pyramid of Pain',origin:'David Bianco — 2013',maturity:'Established',complexity:1,
+   tagline:'Classifies IOCs by the cost they impose on adversaries when defenders act on them — from trivial hash values to highly impactful TTPs.',
+   description:'The pyramid has six tiers. Blocking low-tier indicators is easy for defenders but trivially bypassed. Denying access to TTPs forces adversaries to fundamentally retool. The model guides defenders to focus detection investment where it hurts most.',
+   components:[{name:'Hash Values',text:'Trivial — single byte change defeats'},{name:'IP Addresses',text:'Easy — VPN/CDN rotation'},{name:'Domain Names',text:'Simple — new domain registration'},{name:'Network Artefacts',text:'Annoying — tooling rework needed'},{name:'Host Artefacts',text:'Annoying — significant retooling'},{name:'TTPs',text:'Tough — forces fundamental adversary rebuild'}],
+   usecases:['Prioritising IOC detections','Measuring detection maturity','Threat hunting focus','Defence investment strategy'],
+   tags:['IOC Prioritisation','Detection Strategy','Adversary Cost','TTPs'],interactive:iPyramid},
+
+  {id:'navigator',cat:'model',name:'ATT&CK Navigator',full:'MITRE ATT&CK Navigator — Heatmap Model',origin:'MITRE — 2018',maturity:'Established',complexity:2,
+   tagline:'A layer-based visual model for mapping ATT&CK techniques to detections, mitigations, or threat actor coverage — enabling gap analysis at a glance.',
+   description:'Analysts create "layers" representing red team findings, actor profiles, or detection coverage, then compare or overlay them. The result is a heatmap showing which techniques are covered, which are gaps, and which adversaries favour specific tactics.',
+   components:[{name:'Technique Layer',text:'Selected techniques with scores or colours'},{name:'Coverage Layer',text:'Detections or mitigations per technique'},{name:'Actor Profile Layer',text:'Techniques attributed to a threat group'},{name:'Gap Analysis',text:'Overlay coverage vs actor profile'}],
+   usecases:['SOC detection coverage mapping','Purple team gap analysis','Threat-informed defence planning','Stakeholder briefings'],
+   tags:['Coverage Analysis','Heatmap','Gap Analysis','Purple Team'],interactive:iNavigator},
+
+  {id:'attck',cat:'framework',name:'MITRE ATT&CK',full:'MITRE ATT&CK — Adversarial Tactics, Techniques & Common Knowledge',origin:'MITRE Corporation — 2015, continuously updated',maturity:'Industry Standard',complexity:3,
+   tagline:'The de facto standard knowledge base of adversary behaviours observed in the wild. 14 enterprise tactics, 200+ techniques, 400+ sub-techniques across Enterprise, Mobile, and ICS.',
+   description:'ATT&CK catalogues hundreds of techniques and sub-techniques. Each entry includes real-world procedure examples from named threat groups, mitigations, and detection guidance. Platform-specific (Windows, Linux, macOS, cloud) and continuously updated. The universal language for TTP-level threat communication.',
+   components:[{name:'14 Tactics',text:'From Reconnaissance through Impact'},{name:'Techniques & Sub-techniques',text:'Specific adversary methods with IDs'},{name:'Groups',text:'Named threat actor profiles'},{name:'Software',text:'Malware and tools catalogue'},{name:'Mitigations',text:'Defensive measures per technique'},{name:'Data Sources',text:'Evidence types for detection'}],
+   usecases:['Detection rule development','Threat actor profiling','Red/purple team planning','Security control gap analysis'],
+   tags:['TTPs','Threat Groups','Detection','Red Team','ICS','Cloud'],interactive:iATTCK},
+
+  {id:'d3fend',cat:'framework',name:'MITRE D3FEND',full:'MITRE D3FEND — Defensive Countermeasures Framework',origin:'MITRE / NSA — 2021',maturity:'Emerging',complexity:3,
+   tagline:'A companion to ATT&CK cataloguing defensive techniques mapped to the offensive techniques they counter. Enables threat-informed defence selection and justification.',
+   description:'D3FEND structures defensive techniques into Harden, Detect, Isolate, Deceive, and Evict. Each technique links to the ATT&CK techniques it counters, enabling defenders to start from a known adversary profile and derive required defensive capabilities.',
+   components:[{name:'Harden',text:'Reduce attack surface proactively'},{name:'Detect',text:'Monitoring and identification'},{name:'Isolate',text:'Limit blast radius'},{name:'Deceive',text:'Honeypots and deception'},{name:'Evict',text:'Remove adversary presence'}],
+   usecases:['Threat-informed defensive architecture','Security control justification','Mapping defences to ATT&CK profiles','Blue team playbook development'],
+   tags:['Defensive Techniques','ATT&CK Complement','Security Architecture','Blue Team'],interactive:iD3FEND},
+
+  {id:'stix',cat:'framework',name:'STIX / TAXII',full:'STIX 2.1 / TAXII 2.1 — Structured Threat Intelligence Exchange',origin:'OASIS — 2021',maturity:'Industry Standard',complexity:3,
+   tagline:'STIX is the structured language for describing cyber threat intelligence; TAXII is the transport protocol for sharing it. The backbone of machine-readable CTI exchange.',
+   description:'STIX 2.1 defines a JSON-based object model covering 18+ STIX Domain Objects. TAXII 2.1 defines REST APIs for publishing and subscribing to STIX content. Used by ISACs, CERTs, TIPs, and security vendors to share intelligence at scale.',
+   components:[{name:'STIX Domain Objects',text:'18 object types: Threat Actor, Malware, Indicator, etc.'},{name:'STIX Relationship Objects',text:'Links: "uses", "targets", "indicates"'},{name:'TAXII Collections',text:'REST endpoints for STIX bundles'},{name:'TAXII Channels',text:'Pub/sub for real-time distribution'},{name:'Marking Definitions',text:'TLP embedded in bundles'}],
+   usecases:['Automated IOC sharing','ISAC/CERT intelligence feeds','SIEM and SOAR integration','TIP data model'],
+   tags:['Machine-Readable','IOC Sharing','API','ISAC','Automation'],interactive:iSTIX},
+
+  {id:'misp',cat:'framework',name:'MISP',full:'MISP — Malware Information Sharing Platform',origin:'CIRCL / Community — 2011–present',maturity:'Industry Standard',complexity:2,
+   tagline:'Open-source threat intelligence platform widely deployed across ISACs, government CERTs, and enterprise security teams as a community CTI repository.',
+   description:'MISP provides a web interface and API for creating, sharing, and consuming threat intelligence. Supports STIX 1/2, OpenIOC, and MISP native format. Federation between instances enables community sharing without central control.',
+   components:[{name:'Events',text:'Container for intelligence reports'},{name:'Attributes',text:'Individual IOCs and observables'},{name:'Objects',text:'Structured templates (file, email, network)'},{name:'Galaxies',text:'Knowledge clusters: ATT&CK, threat actors'},{name:'Feeds & Sync',text:'External feeds and MISP federation'}],
+   usecases:['Community IOC sharing','CERT/ISAC platform','Threat intel management','SIEM feed generation'],
+   tags:['Open Source','IOC Sharing','Community','Federation','API'],interactive:iMISP},
+
+  {id:'caf',cat:'framework',name:'NCSC CAF',full:'NCSC Cyber Assessment Framework v4.0',origin:'NCSC UK — CAF v4.0 (2023)',maturity:'Established',complexity:3,
+   tagline:'UK framework for assessing cyber resilience of CNI and essential service operators. 14 objectives across 4 pillars with Indicators of Good Practice (IGPs).',
+   description:'The CAF provides 14 objectives across four pillars. Used by UK regulators (Ofcom, CAA, etc.) to assess Operators of Essential Services under NIS regulations. The IGPs provide specific evidence criteria for assessment.',
+   components:[{name:'A — Managing Security Risk',text:'4 objectives: governance, risk, assets, supply chain'},{name:'B — Protecting Against Attack',text:'6 objectives: protection, access, identity, data, resilience, awareness'},{name:'C — Detecting Events',text:'2 objectives: monitoring, anomaly detection'},{name:'D — Minimising Impact',text:'2 objectives: response/recovery, lessons learned'}],
+   usecases:['OES regulatory compliance','CNI security maturity baseline','NIS/CAF gap analysis','Resilience advisory'],
+   tags:['UK Regulation','CNI','NIS','OES','Resilience','NCSC'],interactive:iCAF},
+
+  {id:'nist',cat:'framework',name:'NIST CSF 2.0',full:'NIST Cybersecurity Framework 2.0',origin:'NIST — CSF 2.0 (February 2024)',maturity:'Industry Standard',complexity:2,
+   tagline:'Risk-based framework providing a common language for managing cybersecurity risk. Version 2.0 adds the Govern function and expands supply chain guidance.',
+   description:'CSF 2.0 organises activities around six Functions: Govern, Identify, Protect, Detect, Respond, Recover. The new Govern function addresses organisational context, risk strategy, and oversight. Used for programme benchmarking, board reporting, and cross-framework mapping.',
+   components:[{name:'GV — Govern (new)',text:'Org context, risk strategy, supply chain risk'},{name:'ID — Identify',text:'Asset management, risk assessment'},{name:'PR — Protect',text:'Identity, awareness, data, platform security'},{name:'DE — Detect',text:'Monitoring and event analysis'},{name:'RS — Respond',text:'Incident management and mitigation'},{name:'RC — Recover',text:'Recovery planning and comms'}],
+   usecases:['Programme maturity assessment','Board-level risk reporting','Cross-framework mapping','Supply chain risk management'],
+   tags:['Risk Management','Maturity','Governance','Supply Chain','2024'],interactive:iNIST},
+
+  {id:'iso27001',cat:'framework',name:'ISO 27001:2022',full:'ISO/IEC 27001:2022 — Information Security Management Systems',origin:'ISO/IEC — 2022 revision',maturity:'Industry Standard',complexity:3,
+   tagline:'The international certifiable standard for ISMS. 2022 revision updated Annex A to 93 controls across 4 themes, adding threat intelligence, cloud, and supply chain controls.',
+   description:'Provides a risk-based approach to managing information security through PDCA cycle. Certification granted by accredited auditors. The 2022 revision adds 11 new controls including threat intelligence (A.5.7), cloud security, and ICT supply chain.',
+   components:[{name:'Clauses 4–10',text:'Core ISMS: context, leadership, planning, support, operation, improvement'},{name:'Organisational (37)',text:'Policies, threat intel, supplier security, incidents'},{name:'People (8)',text:'Screening, training, HR security'},{name:'Physical (14)',text:'Physical access, equipment security'},{name:'Technological (34)',text:'Access, malware, logging, crypto, secure dev, cloud'}],
+   usecases:['ISMS certification','Third-party assurance','Security programme structure','Supply chain requirements'],
+   tags:['ISMS','Certification','Compliance','Risk Management','Global Standard'],interactive:iISO},
+
+  {id:'intcycle',cat:'methodology',name:'Intelligence Cycle',full:'The Intelligence Cycle',origin:'Intelligence Community — adapted for CTI',maturity:'Foundational',complexity:1,
+   tagline:'The foundational process model for all intelligence work: Direction → Collection → Processing → Analysis → Dissemination → Feedback. Ensures intelligence answers specific requirements.',
+   description:'Adapted from national intelligence tradecraft. The Direction phase is critical — poorly defined requirements produce irrelevant output. The cycle is iterative, with feedback loops refining future collection and analysis priorities.',
+   components:[{name:'1 — Direction',text:'Define intelligence requirements'},{name:'2 — Collection',text:'Gather raw data from multiple sources'},{name:'3 — Processing',text:'Normalise, deduplicate, correlate'},{name:'4 — Analysis',text:'Assess significance, attribute, judge'},{name:'5 — Dissemination',text:'Deliver to consumers in right format'},{name:'6 — Feedback',text:'Evaluate and refine cycle'}],
+   usecases:['CTI team operating model','Requirements management','Programme design','Output quality measurement'],
+   tags:['Process','Programme Design','Requirements','All-Source','Strategic'],interactive:iIntCycle},
+
+  {id:'f3ead',cat:'methodology',name:'F3EAD',full:'F3EAD — Find, Fix, Finish, Exploit, Analyse, Disseminate',origin:'US Military Targeting — adapted for CTI',maturity:'Established',complexity:2,
+   tagline:'A military targeting cycle adapted for incident-driven intelligence. Closes the loop between DFIR operations and CTI analysis, ensuring incidents produce intelligence for the next.',
+   description:'Originally used in counter-terrorism targeting. In CTI/DFIR context, the Finish phase (incident response) generates artefacts for Exploit (forensic collection) and Analyse (TTP mapping), which improves Find and Fix for future detections.',
+   components:[{name:'Find',text:'Detect adversary presence'},{name:'Fix',text:'Confirm and scope the intrusion'},{name:'Finish',text:'Contain and eradicate'},{name:'Exploit',text:'Collect forensic artefacts'},{name:'Analyse',text:'Map TTPs, attribute, produce IOCs'},{name:'Disseminate',text:'Share intelligence to improve detection'}],
+   usecases:['DFIR and CTI integration','Threat hunting programme design','Post-incident intelligence production','SOC-CTI feedback loop'],
+   tags:['DFIR','Threat Hunting','Incident Response','Operations'],interactive:iF3EAD},
+
+  {id:'pasta',cat:'methodology',name:'PASTA',full:'PASTA — Process for Attack Simulation and Threat Analysis',origin:'VerSprite — 2012',maturity:'Established',complexity:3,
+   tagline:'A risk-centric 7-stage threat modelling methodology bridging business context with technical threat analysis. Produces threat scenarios tied directly to business risk.',
+   description:'PASTA is attacker-centric and risk-aligned. Starts from business objectives and adversary perspective, builds attack trees, and concludes with risk and impact analysis. Unlike STRIDE (asset-centric), PASTA produces adversary-driven scenarios tied to business risk.',
+   components:[{name:'Stage 1',text:'Define business objectives'},{name:'Stage 2',text:'Define technical scope'},{name:'Stage 3',text:'Application decomposition (DFDs)'},{name:'Stage 4',text:'Threat analysis (CTI-driven)'},{name:'Stage 5',text:'Vulnerability analysis (CVE correlation)'},{name:'Stage 6',text:'Attack modelling (attack trees)'},{name:'Stage 7',text:'Risk and impact analysis'}],
+   usecases:['Application-level threat modelling','Risk-aligned security requirements','AppSec programme integration','Pre-deployment assessment'],
+   tags:['Threat Modelling','Risk-Centric','AppSec','Attack Trees'],interactive:iPASTA},
+
+  {id:'stride',cat:'methodology',name:'STRIDE',full:'STRIDE Threat Modelling',origin:'Microsoft — 1999',maturity:'Established',complexity:2,
+   tagline:'Structured threat classification methodology for identifying threats against system components during design. Six categories, each mapped to a countermeasure type.',
+   description:'STRIDE categorises threats by type against each element of a system\'s data flow diagram. Asset/component-centric (vs adversary-centric). Complementary to ATT&CK — STRIDE identifies what can go wrong; ATT&CK describes how adversaries do it.',
+   components:[{name:'Spoofing',text:'Counter: Authentication'},{name:'Tampering',text:'Counter: Integrity controls'},{name:'Repudiation',text:'Counter: Logging/Non-repudiation'},{name:'Information Disclosure',text:'Counter: Encryption/ACL'},{name:'Denial of Service',text:'Counter: Resilience/Rate limiting'},{name:'Elevation of Privilege',text:'Counter: Least privilege'}],
+   usecases:['Secure design reviews','SDL integration','Cloud architecture analysis','AppSec assessments'],
+   tags:['Threat Modelling','Secure Design','SDL','Architecture'],interactive:iSTRIDE},
+
+  {id:'sat',cat:'methodology',name:'Structured Analytic Techniques',full:'Structured Analytic Techniques (SATs)',origin:'Intelligence Community — Heuer & Pherson',maturity:'Established',complexity:3,
+   tagline:'Methods from national intelligence tradecraft to reduce cognitive bias in CTI analysis — ACH, key assumptions checks, red teaming, and scenario analysis.',
+   description:'SATs address human analytic vulnerabilities: confirmation bias, anchoring, and mirror imaging. Structured methods force alternative hypothesis consideration and explicit assumption testing. ACH is most widely adopted.',
+   components:[{name:'ACH',text:'Analysis of Competing Hypotheses — matrix-based'},{name:'Key Assumptions Check',text:'Surface and challenge analytical assumptions'},{name:'Red Cell',text:'Argue against analytical consensus'},{name:'Scenario Analysis',text:'Plausible futures to stress-test assessments'},{name:'Indicators Lists',text:'Observable indicators per hypothesis for monitoring'}],
+   usecases:['Strategic threat assessments','Attribution analysis','High-stakes CTI production','Reducing analyst bias'],
+   tags:['Analysis','Bias Reduction','ACH','Attribution','Strategic'],interactive:iSAT},
+
+  {id:'tlp',cat:'maturity',name:'TLP',full:'Traffic Light Protocol v2.0',origin:'FIRST — TLP v2.0 (2022)',maturity:'Industry Standard',complexity:1,
+   tagline:'A classification scheme for controlling how shared intelligence may be redistributed. Five levels from CLEAR (no restriction) to RED (named recipients only).',
+   description:'TLP provides a common vocabulary for sharing boundaries. v2.0 introduced TLP:CLEAR (replacing WHITE) and TLP:AMBER+STRICT. Embedded in STIX bundles and MISP events. Non-compliance undermines trust in sharing communities.',
+   components:[{name:'TLP:CLEAR',text:'No restrictions — public'},{name:'TLP:GREEN',text:'CTI community — not public'},{name:'TLP:AMBER',text:'Org + clients who need to act'},{name:'TLP:AMBER+STRICT',text:'Own organisation only'},{name:'TLP:RED',text:'Named recipients only'}],
+   usecases:['Sharing governance','ISAC/partner controls','STIX/MISP marking','Trust management'],
+   tags:['Sharing','Classification','Governance','FIRST','STIX','MISP'],interactive:iTLP},
+
+  {id:'cticmm',cat:'maturity',name:'CTI-CMM',full:'CTI Capability Maturity Model',origin:'Community / SOC-CMM-derived',maturity:'Emerging',complexity:2,
+   tagline:'A 5-level maturity model for assessing and developing a CTI capability across people, process, and technology — from ad hoc reactive to optimised proactive intelligence.',
+   description:'Evaluates intelligence programmes across requirements management, collection, analysis, dissemination, and tooling. Used by consultants and in-house teams to identify gaps and develop roadmaps.',
+   components:[{name:'Level 1 — Ad Hoc',text:'Reactive, IOC consumption only'},{name:'Level 2 — Developing',text:'Basic processes and tooling'},{name:'Level 3 — Defined',text:'Documented, consistent output'},{name:'Level 4 — Managed',text:'Metrics-driven, integrated with SOC'},{name:'Level 5 — Optimised',text:'Proactive, predictive, community contributor'}],
+   usecases:['Programme gap assessment','Roadmap development','Peer benchmarking','Advisory engagements'],
+   tags:['Maturity','Programme Development','Assessment','Advisory'],interactive:iCMM},
+
+  {id:'cvss',cat:'maturity',name:'CVSS / EPSS',full:'CVSS v4.0 + EPSS — Vulnerability Scoring & Prioritisation',origin:'FIRST — CVSS v4.0 (2023), EPSS v3 (2023)',maturity:'Industry Standard',complexity:2,
+   tagline:'Complementary scoring systems: CVSS measures inherent severity (0–10); EPSS predicts probability of exploitation in the wild within 30 days. Together they dramatically improve patch prioritisation.',
+   description:'CVSS alone is insufficient — a high CVSS score doesn\'t mean active exploitation. EPSS fills this gap with an ML model trained on threat feeds. High CVSS + high EPSS = immediate patching. Low CVSS + low EPSS = defer.',
+   components:[{name:'CVSS Base Score',text:'Exploitability + impact on CIA (0–10)'},{name:'CVSS Temporal',text:'Adjusts for exploit maturity and patch availability'},{name:'CVSS Environmental',text:'Org-specific context and asset criticality'},{name:'EPSS Score',text:'ML probability (0–100%) of exploitation in 30 days'},{name:'EPSS Percentile',text:'Relative rank across all CVEs'}],
+   usecases:['Vulnerability triage and patch prioritisation','Risk-based vuln management','Threat intel to patch pipeline','Remediation SLA definition'],
+   tags:['Vulnerability Management','Patching','Risk Scoring','FIRST','Exploit Prediction'],interactive:iCVSS},
+
+  {id:'csrbill',cat:'maturity',name:'UK CS&R Bill',full:'UK Cyber Security and Resilience Bill (2025)',origin:'UK Government — introduced 2025',maturity:'Emerging / Regulatory',complexity:3,
+   tagline:'Proposed UK legislation expanding NIS Regulations scope, introducing 24-hour mandatory incident reporting, and strengthening regulatory powers over critical sectors and MSPs.',
+   description:'Modernises the UK\'s cyber regulatory framework post-Brexit. Expands in-scope organisations, introduces 24-hour mandatory incident reporting, enables technical directions, and increases penalties. MSPs and supply chain entities explicitly brought into scope.',
+   components:[{name:'Expanded Scope',text:'MSPs and supply chain entities added'},{name:'24-hr Incident Reporting',text:'To regulator and NCSC for significant incidents'},{name:'Regulatory Powers',text:'Technical directions, inspections, higher penalties'},{name:'Supply Chain Obligations',text:'New duties for third-party risk management'},{name:'Cost Recovery',text:'Regulators can recover oversight costs'}],
+   usecases:['Regulatory gap assessment','Incident reporting readiness','Board advisory on obligations','Supply chain programme design'],
+   tags:['UK Regulation','CNI','Incident Reporting','MSP','Supply Chain','2025'],interactive:iCSR},
+];
+
+/* ─ Diamond pivot ─ */
+function dSel(id){
+  const nodes={
+    adv:{col:'#1d6fcc',label:'ADVERSARY',desc:'The operator or director of the intrusion. Can be a nation-state, criminal group, or insider. Attribution starts here — pivoting from capability or infrastructure can reveal identity.',pivot:'Pivot to capability used, campaigns run, victims targeted'},
+    cap:{col:'#c05c1a',label:'CAPABILITY',desc:'Tools, malware, exploits, and techniques employed. The same capability across incidents can fingerprint a threat actor even when infrastructure rotates. Links to MITRE ATT&CK TTPs.',pivot:'Pivot to other adversaries using same tools, other victims targeted'},
+    infra:{col:'#0f8a5f',label:'INFRASTRUCTURE',desc:'Physical or logical resources: C2 servers, IP addresses, domains, cloud accounts. Infrastructure often reused across campaigns — a high-value pivot point for hunting.',pivot:'Pivot to other adversaries on same infra, other campaigns using same C2'},
+    vic:{col:'#7c3aed',label:'VICTIM',desc:'Target organisation, person, or asset. Understanding victim profile (sector, geography, data held) helps predict future targets and prioritise defensive investments.',pivot:'Pivot to other victims in same sector, adversaries known to target this industry'},
+  };
+  const n=nodes[id];
+  document.getElementById('d-panel').style.borderLeftColor=n.col;
+  document.getElementById('d-panel').innerHTML='<h4 style="color:'+n.col+'">'+n.label+'</h4><p>'+n.desc+'</p><div class="d-pivot"><div class="d-pivot-label">Analyst Pivot</div><div class="d-pivot-tags"><span class="d-pivot-tag" style="background:'+n.col+'15;border:1px solid '+n.col+'33;color:'+n.col+'">'+n.pivot+'</span></div></div>';
+}
+
+/* ══════════════════════════════════════════════
+   RENDER ENGINE
+══════════════════════════════════════════════ */
+let activeFilter='all', searchQuery='', activeId=null;
+
+function matches(item,q){
+  if(!q) return true;
+  const hay=[item.name,item.full,item.tagline,item.description,...item.tags,...item.usecases,item.origin].join(' ').toLowerCase();
+  return q.toLowerCase().split(' ').every(w=>hay.includes(w));
+}
+function filtered(){return DATA.filter(d=>(activeFilter==='all'||d.cat===activeFilter)&&matches(d,searchQuery));}
+
+function setFilter(cat,btn){
+  activeFilter=cat;
+  document.querySelectorAll('.fb').forEach(b=>{b.className='fb';});
+  btn.className='fb '+(cat==='all'?'aa':cat==='model'?'am':cat==='framework'?'af':cat==='methodology'?'ao':'ap');
+  renderSidebar();
+}
+
+function renderSidebar(){
+  const items=filtered();
+  document.getElementById('rc').textContent=items.length+' entr'+(items.length===1?'y':'ies');
+  const sb=document.getElementById('sidebar');
+  if(!items.length){sb.innerHTML='<div class="nr">No results</div>';return;}
+  const groups={};
+  items.forEach(d=>{if(!groups[d.cat])groups[d.cat]=[];groups[d.cat].push(d);});
+  let html='';
+  ['model','framework','methodology','maturity'].forEach(cat=>{
+    if(!groups[cat]) return;
+    html+=`<div class="gl">${CL[cat]}s</div>`;
+    groups[cat].forEach(d=>{
+      html+=`<div class="ci${d.id===activeId?' active':''}" onclick="selectItem('${d.id}')">
+        <div class="cdot" style="background:${CC[d.cat]}"></div>
+        <div><div class="cn">${d.name}</div><div class="cs">${d.origin.split('—')[0].trim()}</div></div>
+      </div>`;
+    });
+  });
+  sb.innerHTML=html;
+}
+
+function pips(n){return [1,2,3].map(i=>`<div class="pip${i<=n?' on':''}"></div>`).join('');}
+
+function selectItem(id){
+  activeId=id;
+  const d=DATA.find(x=>x.id===id);
+  renderSidebar();
+  const color=CC[d.cat], dim=CD[d.cat], clabel=CL[d.cat];
+  const cxLabel=['','Foundational','Intermediate','Advanced'][d.complexity];
+
+  const interactiveHTML = d.interactive ? ipanel('Interactive View', 'click to explore', d.interactive()) : '';
+
+  document.getElementById('detail').innerHTML=`<div class="di">
+    <div class="badge" style="background:${dim};color:${color};border:1px solid ${color.replace('var(--a','rgba(').replace(')',',0.3)')}">
+      <span style="width:6px;height:6px;border-radius:50%;background:${color};display:inline-block"></span>${clabel}
+    </div>
+    <div class="dh">${d.name}</div>
+    <div class="df">${d.full}</div>
+    <div class="dt">${d.tagline}</div>
+
+    ${interactiveHTML}
+
+    <div class="mr">
+      <div><div class="ml">Origin</div><div class="mv">${d.origin}</div></div>
+      <div><div class="ml">Status</div><div class="mv">${d.maturity}</div></div>
+      <div><div class="ml">Complexity</div><div style="display:flex;align-items:center;gap:8px;margin-top:4px"><div class="pips">${pips(d.complexity)}</div><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3)">${cxLabel}</span></div></div>
+    </div>
+
+    <div class="divider"></div>
+    <div style="margin-bottom:22px"><div class="sl">Overview</div><div class="sb">${d.description}</div></div>
+    <div class="divider"></div>
+
+    <div style="margin-bottom:22px">
+      <div class="sl">Key Components</div>
+      <div class="cl">${d.components.map((c,i)=>`<div class="cit"><div class="cn2" style="color:${color}">${i+1}</div><div class="ct"><strong>${c.name}</strong> — ${c.text}</div></div>`).join('')}</div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="tc">
+      <div><div class="sl">Primary Use Cases</div><div class="ucg">${d.usecases.map(u=>`<div class="uc" style="border-left-color:${color}">${u}</div>`).join('')}</div></div>
+      <div><div class="sl">Tags</div><div class="tgs">${d.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div></div>
+    </div>
+  </div>`;
+}
+
+document.getElementById('search').addEventListener('input',e=>{searchQuery=e.target.value;renderSidebar();});
+renderSidebar();
+selectItem('diamond');
+
+
+/* ══ PANEL HANDLERS (globalised from innerHTML) ══ */
+function kcSel(i){
+  document.querySelectorAll('.kc-stage').forEach((el,j)=>{
+    el.classList.toggle('sel',j===i);
+  });
+  const s=kcStages[i];
+  document.getElementById('kc-detail').innerHTML='<strong>'+s.label+'</strong> '+s.desc+'<div class="kc-detect">'+s.detect.map(d=>'<span>'+d+'</span>').join('')+'</div><div style="margin-top:10px;font-size:12px;color:var(--text3);font-family:JetBrains Mono,monospace">↯ '+s.disrupt+'</div>';
+}
+
+function pyrSel(i){
+  document.querySelectorAll('.pyr-tier').forEach((el,j)=>{
+    const t=pyrTiers[j];
+    el.classList.toggle('sel',j===i);
+    el.style.background=j===i?t.col+'10':'';
+    el.style.borderColor=j===i?t.col+'33':'transparent';
+  });
+  const t=pyrTiers[i];
+  document.getElementById('pyr-detail').style.borderLeftColor=t.col;
+  document.getElementById('pyr-detail').innerHTML='<h4 style="color:'+t.col+'">'+t.label+' — '+t.pain+'</h4><p>'+t.desc+'</p><div class="sl">Examples</div><div class="pyr-examples">'+t.examples.map(e=>'<span class="pyr-ex">'+e+'</span>').join('')+'</div><div style="margin-top:12px;padding:10px 12px;background:'+t.col+'11;border-radius:6px;border:1px solid '+t.col+'22;font-size:12px;color:var(--text2)"><strong style="color:'+t.col+';font-size:11px;font-family:JetBrains Mono,monospace;letter-spacing:.06em;display:block;margin-bottom:3px">DEFENDER ACTION</strong>'+t.action+'</div>';
+}
+
+function attckFilter(plat,btn){
+  document.querySelectorAll('.attck-filter').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.attck-tech').forEach(el=>{
+    const p=el.dataset.platforms||'';
+    el.style.opacity=(plat==='All Platforms'||p.includes(plat))?'1':'0.2';
+  });
+}
+function attckClick(id,name,tactic){
+  document.querySelectorAll('.attck-tech').forEach(el=>el.classList.remove('hl'));
+  const all=document.querySelectorAll('.attck-tech');
+  all.forEach(el=>{if(el.querySelector('.attck-tech-name')&&el.querySelector('.attck-tech-name').textContent===id)el.classList.add('hl')});
+  const tac=attckTactics.find(t=>t.name===tactic);
+  const tech=tac?tac.techniques.find(t=>t.id===id):null;
+  const d=document.getElementById('attck-sel-detail');
+  d.style.display='block';
+  d.innerHTML='<strong style="color:#1d6fcc;font-size:14px">'+id+' — '+name+'</strong><div style="font-family:JetBrains Mono,monospace;font-size:9px;color:var(--text3);margin:4px 0 8px">Tactic: '+tactic+(tech?' · Platforms: '+tech.platforms:'')+'</div>'+(tech?tech.sub:'')+'<div style="margin-top:10px;font-family:JetBrains Mono,monospace;font-size:9px;color:#1d6fcc">→ ATT&CK Navigator: attack.mitre.org/techniques/'+id+'</div>';
+}
+
+function d3fSel(id){
+  const c=d3fCats.find(x=>x.id===id);
+  d3fCats.forEach(x=>{
+    const el=document.getElementById('d3ft-'+x.id);
+    if(x.id===id){el.style.background=x.col;el.style.color='#fff';el.style.borderColor=x.col;el.classList.add('sel')}
+    else{el.style.background='';el.style.color=x.col;el.style.borderColor=x.col+'22';el.classList.remove('sel')}
+  });
+  document.getElementById('d3f-detail').innerHTML='<div class="tile-desc" style="border-left-color:'+c.col+'"><strong style="color:'+c.col+'">'+c.icon+' '+c.label+'</strong>'+c.desc+'<div style="margin-top:14px;display:flex;flex-direction:column;gap:7px">'+c.techniques.map(t=>'<div style="padding:9px 12px;background:var(--bg2);border-radius:6px;border:1px solid var(--border)"><strong style="font-size:13px;display:block;margin-bottom:3px">'+t.name+'</strong><span style="font-size:12px;color:var(--text3);font-family:JetBrains Mono,monospace">'+t.sub+'</span></div>').join('')+'</div></div>';
+}
+
+function stixSel(i){
+  stixObjs.forEach((o,j)=>{
+    const el=document.getElementById('stixo-'+j);
+    if(j===i){el.classList.add('sel');el.style.borderColor=o.col;el.style.background=o.col+'11'}
+    else{el.classList.remove('sel');el.style.borderColor='';el.style.background=''}
+  });
+  const o=stixObjs[i];
+  document.getElementById('stix-detail').style.borderLeftColor=o.col;
+  document.getElementById('stix-detail').innerHTML='<h4 style="color:'+o.col+'">'+o.type+': '+o.name+'</h4>'+o.desc+'<div class="sl" style="margin-top:12px">Relationships</div><div class="stix-rels">'+o.rels.map(r=>'<span class="stix-rel">'+r+'</span>').join('')+'</div>';
+}
+
+function mispSel(i){
+  document.querySelectorAll('.misp-comp').forEach((el,j)=>{
+    el.classList.toggle('sel',j===i);
+  });
+}
+
+function cafSel(id){
+  cafPillars.forEach(p=>{
+    const el=document.getElementById('cafp-'+p.id);
+    el.classList.toggle('sel',p.id===id);
+    el.style.borderColor=p.id===id?p.col:'';
+  });
+}
+
+function nistSel(id){
+  nistFns.forEach(f=>{
+    const el=document.getElementById('nistf-'+f.id);
+    el.classList.toggle('sel',f.id===id);
+    el.style.borderColor=f.id===id?f.col:'';
+    el.style.boxShadow=f.id===id?'0 0 0 2px '+f.col:'';
+  });
+}
+
+function isoSel(id){
+  isoThemes.forEach(t=>{
+    const el=document.getElementById('isot-'+t.id);
+    if(t.id===id){el.style.background=t.col;el.style.color='#fff';el.style.borderColor=t.col}
+    else{el.style.background='';el.style.color=t.col;el.style.borderColor=t.col+'33'}
+    el.classList.toggle('sel',t.id===id);
+  });
+  const t=isoThemes.find(x=>x.id===id);
+  document.getElementById('iso-detail').innerHTML='<div style="columns:2;column-gap:14px">'+t.controls.map(c=>'<div style="break-inside:avoid;padding:5px 8px;margin-bottom:4px;background:var(--bg3);border-radius:5px;border:1px solid var(--border);font-family:JetBrains Mono,monospace;font-size:9.5px;color:'+(c.includes('★')?t.col:'var(--text2)')+'">'+c+'</div>').join('')+'</div>';
+}
+
+function icSel(i){
+  icSteps.forEach((_,j)=>{
+    const el=document.getElementById('ics-'+j);
+    el.classList.toggle('active',j===i);
+    el.querySelector('.ic-step-num').style.color=icSteps[j].col;
+    el.querySelector('.ic-step-num').style.borderColor=icSteps[j].col;
+    if(j===i){el.style.background=icSteps[j].col+'15';el.style.borderColor=icSteps[j].col}
+    else{el.style.background='';el.style.borderColor=''}
+  });
+  const s=icSteps[i];
+  document.getElementById('ic-detail').style.borderLeftColor=s.col;
+  document.getElementById('ic-detail').innerHTML='<h4 style="color:'+s.col+'">'+s.label+'</h4><p>'+s.desc+'</p><div class="ic-tips">'+s.tips.map(t=>'<div class="ic-tip">'+t+'</div>').join('')+'</div>';
+}
+
+function f3Sel(i){
+  f3Phases.forEach((p,j)=>{
+    const el=document.getElementById('f3b-'+j);
+    el.classList.toggle('sel',j===i);
+    el.style.borderColor=j===i?p.col:'';
+    el.style.background=j===i?p.col+'0a':'';
+  });
+}
+
+function pastaSel(i){
+  pastaStages.forEach((s,j)=>{
+    const el=document.getElementById('pastas-'+j);
+    el.classList.toggle('sel',j===i);
+    const num=el.querySelector('.pasta-num');
+    num.style.background=j===i?s.col:'';
+    num.style.color=j===i?'#fff':'';
+  });
+}
+
+function strideSel(i){
+  strideThreats.forEach((t,j)=>{
+    const el=document.getElementById('strided-'+j);
+    el.classList.toggle('sel',j===i);
+    el.style.borderColor=j===i?t.col:'';
+    el.style.boxShadow=j===i?'0 0 0 2px '+t.col:'';
+  });
+}
+
+function achToggle(r,c){
+  const cur=achMatrix[r][c];
+  const next=achCycle[(achCycle.indexOf(cur)+1)%3];
+  achMatrix[r][c]=next;
+  const cell=document.getElementById('ach-'+r+'-'+c);
+  cell.innerHTML='<div class="ach-c ach-'+next+'">'+(next==='C'?'✓':next==='I'?'~':'✗')+'</div>';
+  achUpdateScores();
+}
+function achUpdateScores(){
+  for(let c=0;c<4;c++){
+    let score=0;
+    for(let r=0;r<6;r++) if(achMatrix[r][c]==='I') score++;
+    const el=document.getElementById('ach-score-'+c);
+    el.textContent=score;
+    el.style.background=score<=1?'rgba(15,138,95,0.1)':score<=3?'rgba(232,195,74,0.15)':'rgba(200,80,80,0.12)';
+    el.style.color=score<=1?'#0f8a5f':score<=3?'#b45309':'#dc2626';
+  }
+}
+achUpdateScores();
+
+function tlpSel(i){
+  tlpLevels.forEach((l,j)=>{
+    const el=document.getElementById('tlpr-'+j);
+    el.classList.toggle('sel',j===i);
+    el.style.borderColor=j===i?l.col:'var(--border)';
+    el.style.borderWidth=j===i?'1.5px':'1px';
+  });
+  const l=tlpLevels[i];
+  document.getElementById('tlp-detail').style.borderLeftColor=l.col;
+  document.getElementById('tlp-detail').innerHTML='<strong style="color:'+l.col+'">'+l.badge+'</strong><div><b>Sharing scope:</b> '+l.scope+'</div><div><b>Share with:</b> '+l.share+'</div><div style="margin-top:6px;padding:8px 10px;background:var(--bg2);border-radius:5px;border:1px solid var(--border);font-family:JetBrains Mono,monospace;font-size:10px;color:var(--text3)">Example: '+l.example+'</div>';
+}
+
+function cmmSel(i){
+  cmmLevels.forEach((l,j)=>{
+    const el=document.getElementById('cmml-'+j);
+    el.classList.toggle('sel',j===i);
+    el.style.background=j===i?l.col+'08':'';
+  });
+}
+
+function cvssCalc(){
+  const av=parseFloat(document.getElementById('cv-av').value);
+  const ac=parseFloat(document.getElementById('cv-ac').value);
+  const pr=parseFloat(document.getElementById('cv-pr').value);
+  const ui=parseFloat(document.getElementById('cv-ui').value);
+  const c=parseFloat(document.getElementById('cv-c').value);
+  const ii=parseFloat(document.getElementById('cv-i').value);
+  const a=parseFloat(document.getElementById('cv-a').value);
+  const epss=parseInt(document.getElementById('cv-epss').value);
+  const iss=1-(1-c)*(1-ii)*(1-a);
+  const impact=iss<=0?0:6.42*iss;
+  const exploit=8.22*av*ac*pr*ui;
+  let score=impact<=0?0:Math.min(10,(impact+exploit)*1.08);
+  score=Math.round(score*10)/10;
+  let sev,scol;
+  if(score>=9.0){sev='CRITICAL';scol='#dc2626';}
+  else if(score>=7.0){sev='HIGH';scol='#c05c1a';}
+  else if(score>=4.0){sev='MEDIUM';scol='#d97706';}
+  else if(score>0){sev='LOW';scol='#0f8a5f';}
+  else{sev='NONE';scol='#9ca3af';}
+  document.getElementById('cvss-score-num').textContent=score.toFixed(1);
+  document.getElementById('cvss-score-num').style.color=scol;
+  document.getElementById('cvss-sev').textContent=sev;
+  document.getElementById('cvss-sev').style.color=scol;
+  document.getElementById('cvss-bar').style.width=(score*10)+'%';
+  document.getElementById('cvss-bar').style.background=scol;
+  document.getElementById('epss-val').textContent=epss+'%';
+  const enote=epss>=50?'High exploitation likelihood — patch urgently':epss>=20?'Moderate exploitation likelihood — monitor actively':'Low exploitation likelihood — standard patching cycle';
+  document.getElementById('epss-note').textContent=enote;
+  let urgency,urgnote,urgcol;
+  if(score>=9&&epss>=30){urgency='IMMEDIATE';urgnote='Critical CVSS + active exploitation — emergency patch within 24h.';urgcol='#dc2626';}
+  else if(score>=7&&epss>=20){urgency='URGENT';urgnote='High severity with meaningful exploitation — patch within 72h.';urgcol='#c05c1a';}
+  else if(score>=7||epss>=50){urgency='HIGH';urgnote='High severity or active exploitation — patch within 7 days.';urgcol='#d97706';}
+  else if(score>=4){urgency='MEDIUM';urgnote='Standard vulnerability management cycle — patch within 30 days.';urgcol='#b45309';}
+  else{urgency='LOW';urgnote='Low risk — include in next maintenance cycle.';urgcol='#0f8a5f';}
+  document.getElementById('cvss-verdict').innerHTML='<strong style="color:'+urgcol+';display:block;margin-bottom:4px">Patch Urgency: '+urgency+'</strong>'+urgnote;
+  document.getElementById('cvss-verdict').style.background=urgcol+'09';
+  document.getElementById('cvss-verdict').style.borderColor=urgcol+'25';
+}
+
+const csrSectors=[
+  {name:'Energy',note:'Includes electricity generation, transmission and distribution, gas supply networks, and oil infrastructure. Ofgem is the lead regulator. High priority due to direct national security and public safety implications.',col:'#d97706'},
+  {name:'Transport',note:'Covers aviation (CAA as regulator), maritime, rail, and road haulage. CIRAS and CAA have oversight roles. Particular focus on operational technology (OT) and safety-critical systems.',col:'#1d6fcc'},
+  {name:'Health',note:'NHS trusts, private healthcare providers, and digital health service providers. DHSC and NHS England are key oversight bodies. Ransomware targeting health sector is a primary concern.',col:'#dc2626'},
+  {name:'Water',note:'Water and wastewater treatment operators regulated by OFWAT and Drinking Water Inspectorate. OT/ICS security and supply resilience are primary compliance focus areas.',col:'#0f8a5f'},
+  {name:'Finance',note:'Banks, payment systems, and financial market infrastructure regulated by FCA and Bank of England (DORA also applies for EU nexus). Operational resilience and outsourcing risk are central.',col:'#7c3aed'},
+  {name:'Digital Infrastructure',note:'Internet exchange points, DNS resolvers, TLD registries, cloud providers, and data centres. DSIT is the responsible department. MSPs are explicitly brought into scope under the Bill.',col:'#1d6fcc'},
+];
+function csrSel(i){
+  document.querySelectorAll('.csr-sector').forEach((el,j)=>el.classList.toggle('sel',j===i));
+  const s=csrSectors[i];
+  document.getElementById('csr-sector-note').innerHTML='<strong style="color:'+s.col+'">'+s.name+' sector context:</strong> '+s.note;
+  document.getElementById('csr-sector-note').style.borderLeftColor=s.col;
+  document.getElementById('csr-sector-note').style.background=s.col+'09';
+}
+
+const navTechCounts=[10,8,9,12,18,13,22,14,26,9,17,16,9,14];
+function navRender(actorIdx){
+  navActors.forEach((a,i)=>{
+    const btns=document.querySelectorAll('.attck-filter');
+    if(btns[i]) btns[i].classList.toggle('on',i===actorIdx);
+  });
+  const a=navActors[actorIdx];
+  a.coverage.forEach((cov,col)=>{
+    const el=document.getElementById('nav-col-'+col);
+    const count=navTechCounts[col];
+    let html='';
+    for(let r=0;r<Math.min(count,8);r++){
+      const intensity=r<cov?Math.min(1,0.15+r*0.15):0.04;
+      html+='<div style="height:14px;border-radius:2px;border:1px solid rgba(29,111,204,'+(r<cov?'0.3':'0.08')+');background:rgba(29,111,204,'+intensity+');cursor:pointer" title="'+(r<cov?'Technique covered by '+a.name:'No coverage')+'"></div>';
+    }
+    if(count>8) html+='<div style="font-family:JetBrains Mono,monospace;font-size:7px;color:var(--text3);padding:2px 0">+'+( count-8)+'</div>';
+    el.innerHTML=html;
+  });
+}
+function navActor(i,btn){navRender(i);}
+navRender(0);
+
+// ── Panel handler init ──
+if(typeof cvssCalc==='function') cvssCalc();
+if(typeof navRender==='function') navRender(0);
+if(typeof achUpdateScores==='function') achUpdateScores();
+</script>
+</body>
+</html>
