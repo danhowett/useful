@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Threat Intelligence Workflow & Dissemination</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f5f7fa; --surface:#ffffff; --panel:#ffffff; --border:#dde3ec; --border2:#b8c5d6;
+  --text:#1a2535; --muted:#5c6f84; --faint:#edf1f7;
+  --cyan:#0077aa; --cyan-dim:#ddeef6;
+  --green:#1a7a4a; --green-dim:#e3f5ec;
+  --amber:#a05f00; --amber-dim:#fef3dc;
+  --red:#c0243a; --red-dim:#fdeaed;
+  --violet:#6b35c0; --violet-dim:#ede8fa;
+  --blue:#1d5bbf; --blue-dim:#e3edfb;
+  --orange:#b84c00; --orange-dim:#fdeede;
+  --teal:#1a7272; --teal-dim:#e0f4f4;
+  --radius:6px; --font-mono:'JetBrains Mono',monospace; --font-head:'Syne',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-mono);font-size:13px;line-height:1.6;min-height:100vh;overflow-x:hidden;}
+#app{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100vh;}
+header{border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:center;gap:20px;height:58px;background:#ffffff;box-shadow:0 1px 4px rgba(0,0,0,.08);position:sticky;top:0;z-index:100;flex-wrap:wrap;}
+.logo{font-family:var(--font-head);font-size:16px;font-weight:800;letter-spacing:.08em;color:var(--cyan);text-transform:uppercase;white-space:nowrap;}
+.logo span{color:var(--text);font-weight:400;}
+.header-tag{font-size:10px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;border:1px solid var(--border);padding:2px 8px;border-radius:3px;}
+header nav{margin-left:auto;display:flex;gap:3px;flex-wrap:wrap;}
+.nav-btn{background:none;border:1px solid transparent;color:var(--muted);padding:5px 11px;font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border-radius:var(--radius);transition:all .2s;}
+.nav-btn:hover{color:var(--cyan);border-color:var(--cyan);}
+.nav-btn.active{color:var(--cyan);border-color:var(--cyan);background:var(--cyan-dim);}
+main{display:flex;flex:1;}
+aside{width:220px;flex-shrink:0;border-right:1px solid var(--border);padding:20px 0;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;background:#f0f3f8;}
+.sidebar-section{margin-bottom:24px;}
+.sidebar-label{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);padding:0 18px 8px;display:block;}
+.sidebar-item{display:flex;align-items:center;gap:10px;padding:7px 18px;cursor:pointer;transition:all .15s;border-left:2px solid transparent;color:var(--muted);font-size:11px;}
+.sidebar-item:hover{color:var(--text);background:rgba(0,0,0,.04);}
+.sidebar-item.active{color:var(--cyan);border-left-color:var(--cyan);background:var(--cyan-dim);}
+.sidebar-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0;}
+.content{flex:1;padding:28px 32px;overflow-y:auto;}
+.view{display:none;animation:fadeIn .3s ease;}
+.view.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.page-header{margin-bottom:28px;}
+.page-header h1{font-family:var(--font-head);font-size:24px;font-weight:800;color:var(--text);letter-spacing:.02em;margin-bottom:5px;}
+.page-header h1 em{color:var(--cyan);font-style:normal;}
+.page-subtitle{color:var(--muted);font-size:11px;}
+.pipeline{display:flex;gap:0;margin-bottom:32px;overflow-x:auto;}
+.pipe-stage{flex:1;min-width:110px;padding:12px 14px;background:var(--panel);border:1px solid var(--border);border-right:none;cursor:pointer;transition:all .2s;position:relative;}
+.pipe-stage:first-child{border-radius:var(--radius) 0 0 var(--radius);}
+.pipe-stage:last-child{border-right:1px solid var(--border);border-radius:0 var(--radius) var(--radius) 0;}
+.pipe-stage:hover{background:var(--faint);}
+.pipe-stage.active{background:var(--cyan-dim);border-color:var(--cyan);}
+.pipe-stage.active .pipe-num,.pipe-stage.active .pipe-name{color:var(--cyan);}
+.pipe-arrow{position:absolute;right:-10px;top:50%;transform:translateY(-50%);width:0;height:0;border-top:9px solid transparent;border-bottom:9px solid transparent;border-left:9px solid var(--border);z-index:2;}
+.pipe-stage.active .pipe-arrow{border-left-color:var(--cyan);}
+.pipe-num{font-size:9px;color:var(--muted);letter-spacing:.1em;margin-bottom:3px;}
+.pipe-name{font-family:var(--font-head);font-size:11px;font-weight:700;color:var(--text);}
+.pipe-icon{font-size:15px;margin-bottom:5px;}
+.section-title{font-family:var(--font-head);font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;margin-bottom:26px;}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px;transition:all .2s;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent,var(--cyan));}
+.card:hover{border-color:var(--border2);transform:translateY(-1px);}
+.card-title{font-family:var(--font-head);font-size:12px;font-weight:700;color:var(--text);margin-bottom:7px;display:flex;align-items:center;gap:7px;}
+.card-icon{font-size:13px;}
+.card-body{color:var(--muted);font-size:11px;line-height:1.7;}
+.card-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:9px;}
+.tag{font-size:10px;padding:2px 7px;border-radius:3px;letter-spacing:.05em;}
+.source-table{width:100%;border-collapse:collapse;margin-bottom:22px;}
+.source-table th{text-align:left;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:7px 11px;border-bottom:1px solid var(--border);font-weight:500;}
+.source-table td{padding:9px 11px;border-bottom:1px solid var(--border);font-size:11px;vertical-align:top;}
+.source-table tr:hover td{background:var(--faint);}
+.source-name{color:var(--text);font-weight:500;}
+.source-url{color:var(--muted);font-size:10px;}
+.process-flow{display:flex;flex-direction:column;gap:0;margin-bottom:26px;}
+.process-step{display:flex;gap:0;position:relative;}
+.step-connector{display:flex;flex-direction:column;align-items:center;width:38px;flex-shrink:0;}
+.step-num-wrap{width:30px;height:30px;border-radius:50%;border:2px solid var(--accent,var(--cyan));background:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent,var(--cyan));flex-shrink:0;z-index:1;}
+.step-line{width:2px;flex:1;min-height:14px;background:var(--border);margin:3px 0;}
+.process-step:last-child .step-line{display:none;}
+.step-content{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:7px;margin-left:10px;transition:border-color .2s;}
+.step-content:hover{border-color:var(--border2);}
+.step-title{font-family:var(--font-head);font-size:12px;font-weight:700;color:var(--text);margin-bottom:5px;}
+.step-desc{color:var(--muted);font-size:11px;line-height:1.7;}
+.step-outputs{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px;}
+.tlp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:26px;}
+.tlp-card{border-radius:var(--radius);padding:16px;border:1px solid;position:relative;overflow:hidden;}
+.tlp-card::before{content:'';position:absolute;inset:0;opacity:.06;background:currentColor;}
+.tlp-label{font-family:'Syne Mono',monospace;font-size:17px;font-weight:700;margin-bottom:7px;}
+.tlp-name{font-family:var(--font-head);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:9px;}
+.tlp-desc{font-size:10px;line-height:1.7;}
+.tlp-rule{margin-top:9px;padding-top:9px;border-top:1px solid currentColor;font-size:10px;opacity:.7;}
+.intel-matrix{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-bottom:26px;}
+.intel-type{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px;border-left:3px solid var(--accent,var(--cyan));}
+.intel-type-header{display:flex;align-items:center;gap:9px;margin-bottom:11px;}
+.intel-type-name{font-family:var(--font-head);font-size:12px;font-weight:700;color:var(--text);}
+.intel-type-badge{font-size:9px;padding:2px 6px;border-radius:3px;letter-spacing:.07em;text-transform:uppercase;background:var(--faint);color:var(--muted);margin-left:auto;}
+.intel-items{list-style:none;}
+.intel-items li{font-size:11px;color:var(--muted);padding:3px 0;border-bottom:1px solid var(--border);display:flex;gap:7px;align-items:flex-start;}
+.intel-items li:last-child{border-bottom:none;}
+.intel-items li::before{content:'▸';color:var(--accent,var(--cyan));flex-shrink:0;margin-top:1px;}
+.feed-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-bottom:26px;}
+.feed-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px;position:relative;}
+.feed-header{display:flex;align-items:center;gap:7px;margin-bottom:9px;}
+.feed-icon{font-size:14px;}
+.feed-name{font-family:var(--font-head);font-size:11px;font-weight:700;color:var(--text);}
+.feed-inputs{font-size:10px;color:var(--muted);line-height:1.8;}
+.feed-badge{position:absolute;top:9px;right:9px;font-size:9px;padding:2px 5px;border-radius:3px;letter-spacing:.05em;}
+.accordion{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:10px;}
+.accordion-header{padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:11px;background:var(--panel);transition:background .15s;user-select:none;}
+.accordion-header:hover{background:var(--faint);}
+.accordion-title{font-family:var(--font-head);font-size:12px;font-weight:700;color:var(--text);flex:1;}
+.accordion-chevron{color:var(--muted);transition:transform .2s;font-size:10px;}
+.accordion.open .accordion-chevron{transform:rotate(90deg);}
+.accordion-body{display:none;padding:14px 16px;border-top:1px solid var(--border);background:var(--faint);}
+.accordion.open .accordion-body{display:block;}
+.checklist{list-style:none;}
+.checklist li{display:flex;align-items:flex-start;gap:9px;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;color:var(--muted);}
+.checklist li:last-child{border-bottom:none;}
+.check-box{width:15px;height:15px;border:1px solid var(--border2);border-radius:3px;flex-shrink:0;margin-top:1px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-size:10px;}
+.check-box.checked{background:var(--green-dim);border-color:var(--green);color:var(--green);}
+.scoring-table{width:100%;border-collapse:collapse;margin-bottom:22px;}
+.scoring-table th{background:var(--panel);padding:9px 13px;text-align:left;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border:1px solid var(--border);}
+.scoring-table td{padding:8px 13px;border:1px solid rgba(30,49,72,.5);font-size:11px;vertical-align:top;}
+.email-flow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px;}
+.email-stage{flex:1;min-width:130px;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:12px;position:relative;}
+.email-stage::after{content:'→';position:absolute;right:-14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;z-index:2;}
+.email-stage:last-child::after{display:none;}
+.email-stage-name{font-family:var(--font-head);font-size:11px;font-weight:700;color:var(--text);margin-bottom:5px;}
+.email-stage-items{font-size:10px;color:var(--muted);line-height:1.8;}
+.priority-matrix{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:26px;}
+.prio-cell{padding:14px;border-radius:var(--radius);border:1px solid var(--border);}
+.prio-label{font-size:9px;letter-spacing:.13em;text-transform:uppercase;margin-bottom:7px;}
+.prio-items{font-size:11px;color:var(--muted);line-height:2;}
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:500;letter-spacing:.05em;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+@media(max-width:860px){aside{display:none;}.tlp-grid{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <div class="logo">TI<span>flow</span></div>
+  <div class="header-tag">Threat Intelligence</div>
+  <div class="header-tag">Workflow &amp; Dissemination</div>
+  <nav>
+    <button class="nav-btn active" onclick="showView('lifecycle')">Lifecycle</button>
+    <button class="nav-btn" onclick="showView('sources')">Sources</button>
+    <button class="nav-btn" onclick="showView('intel-types')">Intel Types</button>
+    <button class="nav-btn" onclick="showView('dissemination')">Dissemination</button>
+    <button class="nav-btn" onclick="showView('email-sec')">Email Security</button>
+    <button class="nav-btn" onclick="showView('tlp')">TLP</button>
+    <button class="nav-btn" onclick="showView('prioritisation')">Prioritisation</button>
+  </nav>
+</header>
+<main>
+<aside>
+  <div class="sidebar-section">
+    <span class="sidebar-label">Intelligence Lifecycle</span>
+    <div class="sidebar-item active" onclick="showView('lifecycle');setSidebar(this)"><span class="sidebar-dot"></span>Overview &amp; Pipeline</div>
+    <div class="sidebar-item" onclick="showView('sources');setSidebar(this)"><span class="sidebar-dot"></span>Collection &amp; Sources</div>
+    <div class="sidebar-item" onclick="showView('intel-types');setSidebar(this)"><span class="sidebar-dot"></span>Intel Types</div>
+    <div class="sidebar-item" onclick="showView('dissemination');setSidebar(this)"><span class="sidebar-dot"></span>Dissemination</div>
+  </div>
+  <div class="sidebar-section">
+    <span class="sidebar-label">Specialist Domains</span>
+    <div class="sidebar-item" onclick="showView('email-sec');setSidebar(this)"><span class="sidebar-dot"></span>Email Security</div>
+    <div class="sidebar-item" onclick="showView('tlp');setSidebar(this)"><span class="sidebar-dot"></span>TLP Framework</div>
+    <div class="sidebar-item" onclick="showView('prioritisation');setSidebar(this)"><span class="sidebar-dot"></span>Prioritisation</div>
+  </div>
+  <div class="sidebar-section">
+    <span class="sidebar-label">PoC Note</span>
+    <div style="padding:0 18px;font-size:10px;color:var(--muted);line-height:1.6;">Exploratory reference only. Not a substitute for a commercial TI platform or professional assessment.</div>
+  </div>
+</aside>
+<div class="content">
+
+<!-- LIFECYCLE -->
+<div id="view-lifecycle" class="view active">
+  <div class="page-header"><h1>Intelligence <em>Lifecycle</em></h1><p class="page-subtitle">End-to-end process from requirements through collection, analysis, dissemination, and feedback</p></div>
+  <div class="pipeline" id="pipeline">
+    <div class="pipe-stage active" onclick="showStage(0)"><div class="pipe-icon">📋</div><div class="pipe-num">01</div><div class="pipe-name">Requirements</div><div class="pipe-arrow"></div></div>
+    <div class="pipe-stage" onclick="showStage(1)"><div class="pipe-icon">📡</div><div class="pipe-num">02</div><div class="pipe-name">Collection</div><div class="pipe-arrow"></div></div>
+    <div class="pipe-stage" onclick="showStage(2)"><div class="pipe-icon">⚙️</div><div class="pipe-num">03</div><div class="pipe-name">Processing</div><div class="pipe-arrow"></div></div>
+    <div class="pipe-stage" onclick="showStage(3)"><div class="pipe-icon">🔬</div><div class="pipe-num">04</div><div class="pipe-name">Analysis</div><div class="pipe-arrow"></div></div>
+    <div class="pipe-stage" onclick="showStage(4)"><div class="pipe-icon">📤</div><div class="pipe-num">05</div><div class="pipe-name">Dissemination</div><div class="pipe-arrow"></div></div>
+    <div class="pipe-stage" onclick="showStage(5)"><div class="pipe-icon">🔄</div><div class="pipe-num">06</div><div class="pipe-name">Feedback</div></div>
+  </div>
+  <div id="stage-content"></div>
+</div>
+
+<!-- SOURCES -->
+<div id="view-sources" class="view">
+  <div class="page-header"><h1>Collection <em>Sources</em></h1><p class="page-subtitle">Open source, government, commercial, community, and internal intelligence feeds</p></div>
+
+  <div class="section-title">OSINT — Open Source Intelligence</div>
+  <table class="source-table">
+    <thead><tr><th>Source</th><th>Type</th><th>Intelligence Value</th><th>Access</th><th>Freq</th></tr></thead>
+    <tbody>
+      <tr><td><span class="source-name">VirusTotal</span><br><span class="source-url">virustotal.com</span></td><td><span class="badge" style="background:var(--cyan-dim);color:var(--cyan);border:1px solid var(--cyan)">Technical</span></td><td>File hashes, URL/domain/IP reputation, multi-AV scanning, behaviour sandboxing, YARA rules, community comments</td><td>Free + API; Enterprise</td><td>Real-time</td></tr>
+      <tr><td><span class="source-name">Shodan</span><br><span class="source-url">shodan.io</span></td><td><span class="badge" style="background:var(--violet-dim);color:var(--violet);border:1px solid var(--violet)">Infra</span></td><td>Internet-facing asset discovery, banner grabbing, CVE exposure, open ports, certificate data, honeypot detection</td><td>Free (limited); API sub</td><td>Continuous</td></tr>
+      <tr><td><span class="source-name">Censys</span><br><span class="source-url">censys.io</span></td><td><span class="badge" style="background:var(--violet-dim);color:var(--violet);border:1px solid var(--violet)">Infra</span></td><td>Internet-wide scanning, TLS certificate inventory, ASN analysis, attack surface mapping</td><td>Free (limited); Enterprise</td><td>Daily</td></tr>
+      <tr><td><span class="source-name">AlienVault OTX</span><br><span class="source-url">otx.alienvault.com</span></td><td><span class="badge" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green)">Community</span></td><td>Crowdsourced IOC pulses, threat actor profiles, malware signatures, community YARA/Snort/Sigma rules</td><td>Free; API</td><td>Real-time</td></tr>
+      <tr><td><span class="source-name">URLhaus / MalwareBazaar</span><br><span class="source-url">abuse.ch</span></td><td><span class="badge" style="background:var(--cyan-dim);color:var(--cyan);border:1px solid var(--cyan)">Technical</span></td><td>Active malware distribution URLs, samples with tags, C2 infrastructure, botnet trackers (Feodo, SSL Blacklist)</td><td>Free; API</td><td>Real-time</td></tr>
+      <tr><td><span class="source-name">CIRCL CVE Search</span><br><span class="source-url">cve.circl.lu</span></td><td><span class="badge" style="background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber)">Vuln</span></td><td>CVE details with CVSS, CPE data, CWE classification, vendor advisories, exploit references</td><td>Free API</td><td>Daily</td></tr>
+      <tr><td><span class="source-name">Exploit-DB / GHDB</span><br><span class="source-url">exploit-db.com</span></td><td><span class="badge" style="background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber)">Vuln</span></td><td>Public exploit code, PoC availability timeline, Google Hacking Database — direct applicability indicator for CVE triage</td><td>Free</td><td>Continuous</td></tr>
+      <tr><td><span class="source-name">RiskIQ / PassiveDNS</span><br><span class="source-url">community.riskiq.com</span></td><td><span class="badge" style="background:var(--violet-dim);color:var(--violet);border:1px solid var(--violet)">Infra</span></td><td>Historical DNS resolution, domain registration pivoting, IP-to-domain mapping over time, certificate transparency</td><td>Free community; Enterprise</td><td>Continuous</td></tr>
+      <tr><td><span class="source-name">MISP Threat Sharing</span><br><span class="source-url">misp-project.org</span></td><td><span class="badge" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green)">Community</span></td><td>Structured TI sharing platform; IOCs, malware artefacts, TTP correlation. Used by CIRCL, ISACs, CERTs globally</td><td>Self-hosted / community</td><td>Real-time</td></tr>
+      <tr><td><span class="source-name">GreyNoise</span><br><span class="source-url">greynoise.io</span></td><td><span class="badge" style="background:var(--violet-dim);color:var(--violet);border:1px solid var(--violet)">Infra</span></td><td>Mass internet scanner vs targeted attacker classification. Reduces false positives from benign scanner IPs in SIEM</td><td>Free (limited); API</td><td>Continuous</td></tr>
+    </tbody>
+  </table>
+
+  <div class="section-title">Government &amp; National Cyber Agencies</div>
+  <table class="source-table">
+    <thead><tr><th>Source</th><th>Region</th><th>Intelligence Value</th><th>Sharing Format</th></tr></thead>
+    <tbody>
+      <tr><td><span class="source-name">NCSC (UK)</span><br><span class="source-url">ncsc.gov.uk</span></td><td>UK</td><td>Threat advisories, Malware Analysis Reports, joint advisories with CISA/NSA, PDNS, Active Cyber Defence services, Early Warning platform</td><td>Advisories, STIX/TAXII (Early Warning)</td></tr>
+      <tr><td><span class="source-name">CISA (US)</span><br><span class="source-url">cisa.gov</span></td><td>US / Allied</td><td>KEV catalogue (Known Exploited Vulnerabilities), joint cybersecurity advisories, ICS-CERT alerts, #StopRansomware</td><td>Advisories, STIX/TAXII, KEV JSON feed</td></tr>
+      <tr><td><span class="source-name">ENISA</span><br><span class="source-url">enisa.europa.eu</span></td><td>EU</td><td>Annual Threat Landscape report, sector threat reports, NIS2 guidance, CSIRT network intelligence (limited public)</td><td>Reports, advisories</td></tr>
+      <tr><td><span class="source-name">NVD (NIST)</span><br><span class="source-url">nvd.nist.gov</span></td><td>US / Global</td><td>Authoritative CVE database with CVSS v3/v4 scores, CPE/CWE data, vendor statements. Primary CVE enrichment source</td><td>JSON feeds, API</td></tr>
+      <tr><td><span class="source-name">ASD / ACSC (AU)</span><br><span class="source-url">cyber.gov.au</span></td><td>Australia</td><td>Joint advisories with Five Eyes partners, sector alerts, ransomware guidance</td><td>Advisories</td></tr>
+    </tbody>
+  </table>
+
+  <div class="section-title">Commercial Threat Intelligence</div>
+  <table class="source-table">
+    <thead><tr><th>Vendor</th><th>Strengths</th><th>Typical Output</th></tr></thead>
+    <tbody>
+      <tr><td><span class="source-name">Recorded Future</span></td><td>Real-time indexing of dark web, paste sites, forums, technical sources; risk scores; API integration</td><td>IOC feeds, actor profiles, CVE intelligence with exploitation likelihood scoring, brand monitoring</td></tr>
+      <tr><td><span class="source-name">Mandiant (Google)</span></td><td>Nation-state threat actor attribution, APT group tracking, frontline IR intelligence</td><td>Advantage platform: IOCs, actor profiles, malware intelligence, vulnerability intelligence with weaponisation data</td></tr>
+      <tr><td><span class="source-name">CrowdStrike Falcon Intel</span></td><td>Adversary-centric intelligence; eCrime and nation-state actor tracking; TTP-focused</td><td>Adversary profiles, malware family reports, campaign reports, IOC integration via Falcon platform</td></tr>
+      <tr><td><span class="source-name">Intel 471</span></td><td>Deep and dark web collection; underground forum monitoring; initial access broker tracking</td><td>Actor profiles, credential leak monitoring, malware intelligence, criminal market surveillance</td></tr>
+      <tr><td><span class="source-name">Digital Shadows (ReliaQuest)</span></td><td>Digital risk protection; brand monitoring; data leak detection; attack surface management</td><td>Leaked credential alerts, brand impersonation, domain squatting, paste site monitoring</td></tr>
+      <tr><td><span class="source-name">Palo Alto Unit 42</span></td><td>Ransomware group tracking; threat actor TTPs; malware analysis; cloud threat intelligence</td><td>Threat research reports, ransomware intelligence, IOCs via AutoFocus</td></tr>
+      <tr><td><span class="source-name">Team Cymru</span></td><td>BGP routing data; IP reputation; infrastructure attribution; Pure Signal platform</td><td>IP/ASN threat intelligence, malware hosting attribution, C2 infrastructure mapping</td></tr>
+    </tbody>
+  </table>
+
+  <div class="section-title">ISACs &amp; Sector Sharing</div>
+  <div class="card-grid">
+    <div class="card" style="--accent:var(--teal)"><div class="card-title"><span class="card-icon">🏦</span>FS-ISAC</div><div class="card-body">Financial Services. Global financial sector TI sharing. TLP-governed IOC feeds, sector-specific threat reports, real-time alerts. Membership-based.</div></div>
+    <div class="card" style="--accent:var(--teal)"><div class="card-title"><span class="card-icon">🏥</span>H-ISAC</div><div class="card-body">Health. Healthcare sector. Ransomware alerts targeting healthcare, medical device vulnerability intelligence, sector-specific IOCs.</div></div>
+    <div class="card" style="--accent:var(--teal)"><div class="card-title"><span class="card-icon">⚡</span>E-ISAC</div><div class="card-body">Energy. Electric subsector TI, grid-specific IOCs, ICS/SCADA advisories, real-time incident coordination.</div></div>
+    <div class="card" style="--accent:var(--teal)"><div class="card-title"><span class="card-icon">🛡️</span>CiSP (UK)</div><div class="card-body">NCSC's Cyber Information Sharing Partnership. UK-focused. TLP-governed sharing across sectors. Requires NCSC membership/vetting.</div></div>
+    <div class="card" style="--accent:var(--teal)"><div class="card-title"><span class="card-icon">🌐</span>MS-ISAC</div><div class="card-body">Multi-State. US state/local/tribal/territorial government. CISA-supported. Free IOC feeds, malware analysis, threat advisories for public sector.</div></div>
+    <div class="card" style="--accent:var(--teal)"><div class="card-title"><span class="card-icon">✈️</span>A-ISAC</div><div class="card-body">Aviation. Airline, airport, and aerospace sector TI. ATM-specific threats, physical-cyber convergence, supply chain intelligence.</div></div>
+  </div>
+
+  <div class="section-title">Internal Sources</div>
+  <div class="card-grid">
+    <div class="card" style="--accent:var(--orange)"><div class="card-title"><span class="card-icon">🖥️</span>EDR / XDR Platform</div><div class="card-body">Process telemetry, network events, file writes, memory injection attempts. Highest-fidelity internal TI. Feeds directly back into threat hunting and detection refinement.</div></div>
+    <div class="card" style="--accent:var(--orange)"><div class="card-title"><span class="card-icon">📊</span>SIEM &amp; UEBA</div><div class="card-body">Aggregated log intelligence, anomaly baselines, user behaviour deviations, insider threat signals. Alert data informs what external intelligence to prioritise.</div></div>
+    <div class="card" style="--accent:var(--orange)"><div class="card-title"><span class="card-icon">🍯</span>Honeypots / Deception</div><div class="card-body">Internal honeytokens, honeypot systems, decoy credentials. Lateral movement detection; near-zero false positives. Excellent TTPs signal.</div></div>
+    <div class="card" style="--accent:var(--orange)"><div class="card-title"><span class="card-icon">🔍</span>DFIR Investigations</div><div class="card-body">Post-incident forensic findings: new TTPs, novel persistence mechanisms, previously unknown infrastructure. Every investigation produces net-new intelligence.</div></div>
+    <div class="card" style="--accent:var(--orange)"><div class="card-title"><span class="card-icon">📧</span>Phishing Submissions</div><div class="card-body">User-reported phishing emails. First-party intelligence on active campaigns targeting the organisation. Sender infrastructure, lures, payload URLs.</div></div>
+    <div class="card" style="--accent:var(--orange)"><div class="card-title"><span class="card-icon">🔐</span>Vulnerability Scans</div><div class="card-body">Authenticated internal scans (Qualys, Tenable, Rapid7). Combined with NVD/CISA KEV data drives evidence-based patch prioritisation.</div></div>
+  </div>
+</div>
+
+<!-- INTEL TYPES -->
+<div id="view-intel-types" class="view">
+  <div class="page-header"><h1>Intelligence <em>Types</em></h1><p class="page-subtitle">Categories of intelligence beyond IOCs — CVEs, zero-days, domain registration, infrastructure, email, credentials, and strategic</p></div>
+
+  <div class="section-title">Intelligence Type Matrix</div>
+  <div class="intel-matrix">
+    <div class="intel-type" style="--accent:var(--cyan)">
+      <div class="intel-type-header"><span style="font-size:17px">🎯</span><div class="intel-type-name">Technical IOCs</div><div class="intel-type-badge">Tactical</div></div>
+      <ul class="intel-items">
+        <li>File hashes (MD5, SHA-1, SHA-256, imphash, TLSH)</li>
+        <li>IPv4/IPv6 addresses and CIDR ranges</li>
+        <li>Domain names and subdomains</li>
+        <li>URLs and URI patterns</li>
+        <li>Email addresses and sender infrastructure</li>
+        <li>Mutexes, registry keys, named pipes</li>
+        <li>YARA rules, Sigma rules, Snort/Suricata rules</li>
+        <li>JA3/JA3S TLS fingerprints</li>
+        <li>User-agent strings, HTTP headers</li>
+        <li>X.509 certificate hashes and serial numbers</li>
+      </ul>
+    </div>
+    <div class="intel-type" style="--accent:var(--amber)">
+      <div class="intel-type-header"><span style="font-size:17px">⚠️</span><div class="intel-type-name">Vulnerability Intelligence</div><div class="intel-type-badge">Operational</div></div>
+      <ul class="intel-items">
+        <li>CVE details with CVSS v3.1 / v4.0 base scores</li>
+        <li>EPSS scores (Exploit Prediction Scoring System)</li>
+        <li>CISA KEV (Known Exploited Vulnerabilities) status</li>
+        <li>PoC / exploit availability and maturity</li>
+        <li>Zero-day tracking and vendor patch timelines</li>
+        <li>Affected product/version CPE data</li>
+        <li>Patch availability and workaround status</li>
+        <li>Active exploitation in the wild evidence</li>
+        <li>Ransomware / eCrime exploitation association</li>
+        <li>VEX (Vulnerability Exploitability eXchange) data</li>
+      </ul>
+    </div>
+    <div class="intel-type" style="--accent:var(--violet)">
+      <div class="intel-type-header"><span style="font-size:17px">🌐</span><div class="intel-type-name">Infrastructure Intelligence</div><div class="intel-type-badge">Operational</div></div>
+      <ul class="intel-items">
+        <li>Domain registration data (WHOIS, registrar, creation date)</li>
+        <li>Passive DNS historical resolution data</li>
+        <li>BGP routing and ASN attribution</li>
+        <li>IP geolocation and hosting provider attribution</li>
+        <li>Certificate Transparency Log monitoring</li>
+        <li>Newly registered domains (NRD) monitoring</li>
+        <li>Fast-flux and bulletproof hosting patterns</li>
+        <li>Domain squatting / typosquat detection</li>
+        <li>Shared hosting / infrastructure clustering</li>
+        <li>C2 framework fingerprinting (Cobalt Strike, Sliver)</li>
+      </ul>
+    </div>
+    <div class="intel-type" style="--accent:var(--red)">
+      <div class="intel-type-header"><span style="font-size:17px">🎭</span><div class="intel-type-name">Threat Actor Intelligence</div><div class="intel-type-badge">Strategic</div></div>
+      <ul class="intel-items">
+        <li>Threat actor profiles and attribution confidence</li>
+        <li>Motivation: espionage, financial, hacktivism, destructive</li>
+        <li>Targeting: sector, geography, victim profile</li>
+        <li>TTPs mapped to MITRE ATT&amp;CK</li>
+        <li>Infrastructure patterns and reuse</li>
+        <li>Campaign tracking and temporal patterns</li>
+        <li>Toolset: known malware families and custom tools</li>
+        <li>Initial access broker relationships</li>
+        <li>RaaS affiliate structure intelligence</li>
+        <li>Leadership / persona attribution (where attributable)</li>
+      </ul>
+    </div>
+    <div class="intel-type" style="--accent:var(--green)">
+      <div class="intel-type-header"><span style="font-size:17px">📧</span><div class="intel-type-name">Email &amp; Phishing Intelligence</div><div class="intel-type-badge">Operational</div></div>
+      <ul class="intel-items">
+        <li>Phishing kit fingerprints and infrastructure</li>
+        <li>DMARC/DKIM/SPF abuse and spoofing patterns</li>
+        <li>Lookalike domain registration monitoring</li>
+        <li>Business email compromise (BEC) lure patterns</li>
+        <li>Malicious attachment hashes and document macros</li>
+        <li>Phishing-as-a-service (PhaaS) platform tracking</li>
+        <li>Credential harvesting page infrastructure</li>
+        <li>QR code phishing (quishing) lure analysis</li>
+        <li>EvilProxy / AiTM phishing proxy detection</li>
+        <li>Callback phishing / vishing campaign patterns</li>
+      </ul>
+    </div>
+    <div class="intel-type" style="--accent:var(--teal)">
+      <div class="intel-type-header"><span style="font-size:17px">🔒</span><div class="intel-type-name">Credential &amp; Exposure Intel</div><div class="intel-type-badge">Operational</div></div>
+      <ul class="intel-items">
+        <li>Dark web credential dump monitoring</li>
+        <li>Stealer log data (Redline, Vidar, Raccoon)</li>
+        <li>Paste site credential exposure</li>
+        <li>Initial access broker listings (org-specific)</li>
+        <li>Data leak site monitoring (ransomware groups)</li>
+        <li>Brand impersonation on dark web forums</li>
+        <li>Access listings (RDP, VPN, webshell sales)</li>
+        <li>Sensitive document exposure monitoring</li>
+        <li>Corporate email appearance in combolists</li>
+        <li>HIBP API integration for employee exposure</li>
+      </ul>
+    </div>
+    <div class="intel-type" style="--accent:var(--blue)">
+      <div class="intel-type-header"><span style="font-size:17px">🏛️</span><div class="intel-type-name">Strategic Intelligence</div><div class="intel-type-badge">Strategic</div></div>
+      <ul class="intel-items">
+        <li>Geopolitical context and threat actor motivations</li>
+        <li>Nation-state campaign targeting patterns</li>
+        <li>Sector-level threat landscape assessments</li>
+        <li>Regulatory environment changes affecting risk</li>
+        <li>Hacktivist movement tracking and targeting</li>
+        <li>Critical event calendars (elections, sanctions)</li>
+        <li>Supply chain / third-party risk intelligence</li>
+        <li>Industry incident reporting and trends</li>
+        <li>Insurance market signals (ransomware frequency)</li>
+        <li>Board / executive threat briefing materials</li>
+      </ul>
+    </div>
+    <div class="intel-type" style="--accent:var(--orange)">
+      <div class="intel-type-header"><span style="font-size:17px">🏭</span><div class="intel-type-name">OT / ICS Intelligence</div><div class="intel-type-badge">Operational</div></div>
+      <ul class="intel-items">
+        <li>ICS/SCADA-specific CVE and advisory tracking</li>
+        <li>PLC/HMI firmware vulnerability monitoring</li>
+        <li>Nation-state OT campaign intelligence</li>
+        <li>Dragos WorldView / Claroty CTR reporting</li>
+        <li>CISA ICS-CERT advisories</li>
+        <li>IT-OT boundary threat patterns</li>
+        <li>Critical infrastructure targeting intelligence</li>
+        <li>Safety system (SIS) threat intelligence</li>
+        <li>Industrial protocol exploitation (Modbus, DNP3)</li>
+        <li>Living-off-the-land in OT environments</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-title">Vulnerability Prioritisation — Scoring Framework</div>
+  <p style="color:var(--muted);font-size:11px;margin-bottom:14px;">Combining CVSS, EPSS, and contextual factors to prioritise remediation. CVSS alone is insufficient — EPSS exploitation likelihood and CISA KEV status are critical additional signals.</p>
+  <table class="scoring-table">
+    <thead><tr><th>Factor</th><th>Source</th><th>Weight / Use</th><th>Threshold / Action</th></tr></thead>
+    <tbody>
+      <tr><td><strong style="color:var(--text)">CVSS v3.1 Base Score</strong></td><td>NVD / vendor</td><td>Baseline severity. Use as initial filter only — not as sole prioritisation signal.</td><td>Critical ≥9.0 · High 7.0–8.9 · Medium 4.0–6.9</td></tr>
+      <tr><td><strong style="color:var(--text)">EPSS Score</strong></td><td>FIRST.org</td><td>Probability of exploitation in next 30 days. Updated daily. High EPSS + High CVSS = immediate priority.</td><td>&gt;10% = elevated priority · &gt;50% = critical action</td></tr>
+      <tr><td><strong style="color:var(--text)">CISA KEV Status</strong></td><td>CISA KEV catalogue</td><td>Confirmed exploitation in the wild. KEV listing overrides scoring — patch immediately.</td><td>KEV = 24–72hr patch target internet-facing; 7 days internal</td></tr>
+      <tr><td><strong style="color:var(--text)">PoC / Exploit Availability</strong></td><td>Exploit-DB, GitHub, TI platforms</td><td>Public PoC dramatically increases exploitation likelihood. Elevates priority independently of CVSS.</td><td>Public weaponised exploit = treat as KEV until confirmed otherwise</td></tr>
+      <tr><td><strong style="color:var(--text)">Asset Exposure</strong></td><td>Internal CMDB / scan data</td><td>Internet-facing assets with the vulnerability are higher priority than internal-only.</td><td>Internet-facing: highest priority · Crown-jewel system: immediate escalation</td></tr>
+      <tr><td><strong style="color:var(--text)">Threat Actor Association</strong></td><td>TI platform / advisories</td><td>Is this CVE being actively exploited by actors targeting your sector or geography?</td><td>Sector-targeted exploitation = immediate escalation regardless of other scores</td></tr>
+      <tr><td><strong style="color:var(--text)">Compensating Controls</strong></td><td>Internal assessment</td><td>WAF, network segmentation, authentication controls may reduce exploitability. Adjust effective priority.</td><td>Documented compensating control signed by CISO can extend SLA by up to 50%</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- DISSEMINATION -->
+<div id="view-dissemination" class="view">
+  <div class="page-header"><h1>Dissemination <em>Targets</em></h1><p class="page-subtitle">Where intelligence flows — detection engineering, vuln management, executive briefing, regulatory sharing, and beyond</p></div>
+
+  <div class="section-title">Intelligence Feed Targets</div>
+  <div class="feed-grid">
+    <div class="feed-card"><div class="feed-header"><span class="feed-icon">🔍</span><div class="feed-name">SIEM — Detection Rules</div></div><span class="feed-badge badge" style="background:var(--cyan-dim);color:var(--cyan)">Automated</span><div class="feed-inputs"><strong style="color:var(--text)">Ingests:</strong> IOCs, Sigma rules, YARA rules, attack pattern indicators<br><strong style="color:var(--text)">Output:</strong> New detection rules, IOC correlation alerts, hunt queries<br><strong style="color:var(--text)">SLA:</strong> Critical IOCs &lt;1hr; vetted rules &lt;24hr<br><strong style="color:var(--text)">Owner:</strong> Detection Engineering / SOC</div></div>
+    <div class="feed-card"><div class="feed-header"><span class="feed-icon">🛡️</span><div class="feed-name">EDR — IOC Feeds</div></div><span class="feed-badge badge" style="background:var(--cyan-dim);color:var(--cyan)">Automated</span><div class="feed-inputs"><strong style="color:var(--text)">Ingests:</strong> File hashes, process names, registry keys, C2 IPs/domains, YARA rules<br><strong style="color:var(--text)">Output:</strong> Endpoint block/alert actions, real-time threat hunting<br><strong style="color:var(--text)">SLA:</strong> High-confidence IOCs &lt;2hr via API integration</div></div>
+    <div class="feed-card"><div class="feed-header"><span class="feed-icon">🔥</span><div class="feed-name">Firewall / Proxy Blocklists</div></div><span class="feed-badge badge" style="background:var(--cyan-dim);color:var(--cyan)">Automated</span><div class="feed-inputs"><strong style="color:var(--text)">Ingests:</strong> Malicious IPs, domains, URLs, ASNs, geo-blocks<br><strong style="color:var(--text)">Output:</strong> Network-layer blocking, proxy category updates<br><strong style="color:var(--text)">SLA:</strong> Critical C2 IPs &lt;1hr<br><strong style="color:var(--text)">Caution:</strong> Validate before bulk push — FP risk</div></div>
+    <div class="feed-card"><div class="feed-header"><span class="feed-icon">🔐</span><div class="feed-name">Email Security Gateway</div></div><span class="feed-badge badge" style="background:var(--amber-dim);color:var(--amber)">Hybrid</span><div class="feed-inputs"><strong style="color:var(--text)">Ingests:</strong> Sender IPs, phishing domains, attachment hashes, URL patterns, DMARC signals<br><strong style="color:var(--text)">Output:</strong> Block/quarantine/tag rules, sandbox triggers<br><strong style="color:var(--text)">SLA:</strong> Active phishing IOCs &lt;1hr</div></div>
+    <div class="feed-card"><div class="feed-header"><span class="feed-icon">🩹</span><div class="feed-name">Vulnerability Management</div></div><span class="feed-badge badge" style="background:var(--amber-dim);color:var(--amber)">Hybrid</span><div class="feed-inputs"><strong style="color:var(--text)">Ingests:</strong> CVE details, CVSS, EPSS, CISA KEV, PoC availability, threat actor association<br><strong style="color:var(--text)">Output:</strong> Prioritised patch schedule, emergency patch tickets, compensating control decisions</div></div>
+    <div class="feed-card"><div class="feed-header"><span class="feed-icon">🎯</span><div class="feed-name">Threat Hunting</div></div><span class="feed-badge badge" style="background:var(--violet-dim);color:var(--violet)">Analyst</span><div class="feed-inputs"><strong style="color:var(--text)">Ingests:</strong> New TTPs, actor profiles, infrastructure patterns, anomaly baselines<br><strong style="color:var(--text)">Output:</strong> Hunt packages (hypotheses + queries), new detections, IOC refinement<br><strong style="color:var(--text)">Cadence:</strong> Weekly + ad-hoc on new TI</div></div>
+    <div class="feed-card"><div class="feed-header"><span class="feed-icon">📊</span><div class="feed-name">Executive / Board Briefing</div></div><span class="feed-badge badge" style="background:var(--violet-dim);color:var(--violet)">Analyst</span><div class="feed-inputs"><strong style="color:var(--text)">Ingests:</strong> Strategic threat landscape, sector-targeting trends, major incidents, regulatory TI<br><strong style="color:var(--text)">Output:</strong> Monthly threat brief, ad-hoc for significant events<br><strong style="color:var(--text)">Format:</strong> Non-technical narrative; business impact framing</div></div>
+    <div class="feed-card"><div class="feed-header"><span class="feed-icon">🤝</span><div class="feed-name">Sector / Regulatory Sharing</div></div><span class="feed-badge badge" style="background:var(--green-dim);color:var(--green)">Governed</span><div class="feed-inputs"><strong style="color:var(--text)">Shares to:</strong> NCSC, ISAC, CiSP, sector peers, CERT/CC<br><strong style="color:var(--text)">Format:</strong> STIX 2.1, TAXII 2.1, TLP-governed advisories, MISP events<br><strong style="color:var(--text)">Governance:</strong> Legal review required for cross-org sharing</div></div>
+    <div class="feed-card"><div class="feed-header"><span class="feed-icon">🛒</span><div class="feed-name">Third-Party / Procurement</div></div><span class="feed-badge badge" style="background:var(--violet-dim);color:var(--violet)">Analyst</span><div class="feed-inputs"><strong style="color:var(--text)">Ingests:</strong> Supplier compromise intelligence, supply chain campaign targeting<br><strong style="color:var(--text)">Output:</strong> Supplier security alerts, contract review triggers, emergency notifications</div></div>
+    <div class="feed-card"><div class="feed-header"><span class="feed-icon">📋</span><div class="feed-name">SOC Playbook Updates</div></div><span class="feed-badge badge" style="background:var(--amber-dim);color:var(--amber)">Hybrid</span><div class="feed-inputs"><strong style="color:var(--text)">Ingests:</strong> New malware TTPs, actor behaviour patterns, novel attack chains<br><strong style="color:var(--text)">Output:</strong> Updated triage playbooks, new runbooks, analyst training notes<br><strong style="color:var(--text)">Cadence:</strong> Monthly review; immediate for novel significant TTPs</div></div>
+    <div class="feed-card"><div class="feed-header"><span class="feed-icon">🏗️</span><div class="feed-name">Architecture &amp; Red Team</div></div><span class="feed-badge badge" style="background:var(--violet-dim);color:var(--violet)">Analyst</span><div class="feed-inputs"><strong style="color:var(--text)">Ingests:</strong> Attack surface intelligence, LOLBin evolution, novel exploitation chains<br><strong style="color:var(--text)">Output:</strong> Control gap identification, red team briefs, purple team exercises, hardening recommendations</div></div>
+    <div class="feed-card"><div class="feed-header"><span class="feed-icon">🏷️</span><div class="feed-name">Brand &amp; Digital Risk</div></div><span class="feed-badge badge" style="background:var(--cyan-dim);color:var(--cyan)">Automated</span><div class="feed-inputs"><strong style="color:var(--text)">Ingests:</strong> Lookalike domain registrations, brand impersonation on dark web, credential exposure, social media impersonation<br><strong style="color:var(--text)">Output:</strong> Takedown requests, monitoring alerts</div></div>
+  </div>
+
+  <div class="section-title">Intelligence Report Types</div>
+  <table class="source-table">
+    <thead><tr><th>Report Type</th><th>Audience</th><th>Cadence</th><th>TLP</th><th>Content</th></tr></thead>
+    <tbody>
+      <tr><td><strong style="color:var(--text)">Flash Report</strong></td><td>SOC, IR, Detection Eng</td><td>Ad-hoc (&lt;2hrs)</td><td><span class="badge" style="background:var(--red-dim);color:var(--red)">TLP:RED/AMBER</span></td><td>Breaking threat with immediate action required. Single-page max. IOCs, affected systems, immediate mitigations.</td></tr>
+      <tr><td><strong style="color:var(--text)">Daily Threat Digest</strong></td><td>SOC, TI, Security Leadership</td><td>Daily</td><td><span class="badge" style="background:var(--amber-dim);color:var(--amber)">TLP:AMBER</span></td><td>Curated summary of overnight alerts, new CVEs, active campaigns, notable IOCs. 1–2 pages.</td></tr>
+      <tr><td><strong style="color:var(--text)">Malware / Campaign Report</strong></td><td>SOC, Detection Eng, Threat Hunters</td><td>Ad-hoc</td><td><span class="badge" style="background:var(--amber-dim);color:var(--amber)">TLP:AMBER</span></td><td>Deep-dive analysis of a specific malware family or campaign. IOCs, TTPs, hunt queries, detection logic.</td></tr>
+      <tr><td><strong style="color:var(--text)">Actor Profile</strong></td><td>SOC, CISO, IR, Red Team</td><td>Quarterly / on change</td><td><span class="badge" style="background:var(--amber-dim);color:var(--amber)">TLP:AMBER</span></td><td>Threat actor profile: motivation, TTPs, targeting, infrastructure, historical campaigns, defensive recommendations.</td></tr>
+      <tr><td><strong style="color:var(--text)">Executive Threat Brief</strong></td><td>CISO, Board, CLO</td><td>Monthly</td><td><span class="badge" style="background:var(--green-dim);color:var(--green)">TLP:GREEN</span></td><td>Non-technical strategic brief. Business risk framing. Sector threat landscape. No IOCs. 2–3 pages max.</td></tr>
+      <tr><td><strong style="color:var(--text)">CVE / Vuln Advisory</strong></td><td>Vuln Mgmt, IT Ops, CISO</td><td>Ad-hoc</td><td><span class="badge" style="background:var(--amber-dim);color:var(--amber)">TLP:AMBER</span></td><td>Specific CVE advisory with internal applicability assessment, EPSS/KEV context, patch/workaround guidance, SLA.</td></tr>
+      <tr><td><strong style="color:var(--text)">Threat Landscape Assessment</strong></td><td>Board, CISO, Risk</td><td>Annual</td><td><span class="badge" style="background:var(--green-dim);color:var(--green)">TLP:GREEN</span></td><td>Annual strategic threat assessment. Risk register input. Sector benchmarking. Investment recommendations.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- EMAIL SECURITY -->
+<div id="view-email-sec" class="view">
+  <div class="page-header"><h1>Email Security <em>Intelligence</em></h1><p class="page-subtitle">DMARC, DKIM, SPF — authentication workflows, intelligence value, and phishing threat intelligence</p></div>
+
+  <div class="section-title">Email Authentication Protocols</div>
+  <div class="card-grid" style="grid-template-columns:repeat(3,1fr)">
+    <div class="card" style="--accent:var(--cyan)">
+      <div class="card-title"><span class="card-icon">🔒</span>SPF</div>
+      <div class="card-body">Sender Policy Framework. DNS TXT record defining which IP addresses are authorised to send email for a domain. Receiver checks sending server IP against SPF record at envelope evaluation.<div class="card-tags"><span class="tag" style="background:var(--cyan-dim);color:var(--cyan)">RFC 7208</span><span class="tag" style="background:var(--faint);color:var(--muted)">IP-based</span><span class="tag" style="background:var(--faint);color:var(--muted)">DNS TXT</span></div></div>
+    </div>
+    <div class="card" style="--accent:var(--violet)">
+      <div class="card-title"><span class="card-icon">✍️</span>DKIM</div>
+      <div class="card-body">DomainKeys Identified Mail. Cryptographic signature applied to outbound email headers and body. Receiver validates against public key in sender DNS. Proves message was not modified in transit.<div class="card-tags"><span class="tag" style="background:var(--violet-dim);color:var(--violet)">RFC 6376</span><span class="tag" style="background:var(--faint);color:var(--muted)">Cryptographic</span><span class="tag" style="background:var(--faint);color:var(--muted)">Content integrity</span></div></div>
+    </div>
+    <div class="card" style="--accent:var(--amber)">
+      <div class="card-title"><span class="card-icon">📋</span>DMARC</div>
+      <div class="card-body">Domain-based Message Authentication. Policy layer on SPF and DKIM. Specifies handling for failing messages (none/quarantine/reject) and where to send aggregate (RUA) and forensic (RUF) reports.<div class="card-tags"><span class="tag" style="background:var(--amber-dim);color:var(--amber)">RFC 7489</span><span class="tag" style="background:var(--faint);color:var(--muted)">Policy + Reporting</span><span class="tag" style="background:var(--faint);color:var(--muted)">Alignment</span></div></div>
+    </div>
+  </div>
+
+  <div class="section-title">DMARC Deployment Lifecycle</div>
+  <div class="email-flow">
+    <div class="email-stage"><div class="email-stage-name">📊 Inventory</div><div class="email-stage-items">Map all sending domains<br>Identify all email streams<br>Third-party senders (CRM, ticketing)<br>Subdomains in use<br>Legacy / inactive domains</div></div>
+    <div class="email-stage"><div class="email-stage-name">⚙️ SPF Deploy</div><div class="email-stage-items">Publish SPF TXT record<br>Authorise all sending IPs<br>Avoid &gt;10 DNS lookups<br>Use ~all (softfail) first<br>Flatten where needed</div></div>
+    <div class="email-stage"><div class="email-stage-name">✍️ DKIM Deploy</div><div class="email-stage-items">Generate 2048-bit keypair<br>Publish public key in DNS<br>Configure signing on MTA<br>Enable for all mail streams<br>Rotate keys annually</div></div>
+    <div class="email-stage"><div class="email-stage-name">📋 p=none</div><div class="email-stage-items">Publish p=none policy<br>Configure rua= reporting<br>Collect aggregate reports<br>Analyse all sending sources<br>Identify misconfigs / gaps</div></div>
+    <div class="email-stage"><div class="email-stage-name">⚠️ p=quarantine</div><div class="email-stage-items">Move to p=quarantine<br>Monitor spam folder impact<br>Resolve legitimate failures<br>Confirm all streams passing<br>Target: pct=100</div></div>
+    <div class="email-stage"><div class="email-stage-name">🔴 p=reject</div><div class="email-stage-items">Full enforcement active<br>Spoofing now blocked<br>Monitor for false positives<br>Maintain rua reporting<br>Review quarterly</div></div>
+  </div>
+
+  <div class="section-title">DMARC as an Intelligence Source</div>
+  <div class="card-grid">
+    <div class="card" style="--accent:var(--red)"><div class="card-title"><span class="card-icon">📩</span>Aggregate Reports (RUA)</div><div class="card-body">Daily XML reports from receiving mail servers: sending IPs, volumes, SPF/DKIM pass/fail, disposition. Intelligence value: identify spoofing attempts, misconfigured senders, shadow IT email streams, and mail volume anomalies.<div class="card-tags"><span class="tag" style="background:var(--red-dim);color:var(--red)">Spoofing detection</span><span class="tag" style="background:var(--faint);color:var(--muted)">XML / Daily</span></div></div></div>
+    <div class="card" style="--accent:var(--red)"><div class="card-title"><span class="card-icon">🔍</span>Forensic Reports (RUF)</div><div class="card-body">Per-message failure reports including full message headers for emails that fail DMARC. Intelligence value: phishing lure analysis, attacker infrastructure identification, spoofed sender patterns.<div class="card-tags"><span class="tag" style="background:var(--red-dim);color:var(--red)">Phishing analysis</span><span class="tag" style="background:var(--faint);color:var(--muted)">Per-message</span></div></div></div>
+    <div class="card" style="--accent:var(--amber)"><div class="card-title"><span class="card-icon">🌐</span>Lookalike Domain Monitoring</div><div class="card-body">Monitor Certificate Transparency logs and domain registration feeds for lookalike registrations (typosquats, homoglyphs, combosquats). Correlate with DMARC failure reports to identify active impersonation campaigns.<div class="card-tags"><span class="tag" style="background:var(--amber-dim);color:var(--amber)">Brand protection</span><span class="tag" style="background:var(--faint);color:var(--muted)">Proactive</span></div></div></div>
+    <div class="card" style="--accent:var(--violet)"><div class="card-title"><span class="card-icon">📊</span>BIMI</div><div class="card-body">Brand Indicators for Message Identification. Requires DMARC at p=quarantine/reject. Displays verified brand logo in supporting mail clients. Signals authentication maturity and deters impersonation at scale.<div class="card-tags"><span class="tag" style="background:var(--violet-dim);color:var(--violet)">Brand trust</span><span class="tag" style="background:var(--faint);color:var(--muted)">VMC required</span></div></div></div>
+  </div>
+
+  <div class="section-title">Broader Email Security Intelligence Areas</div>
+  <table class="source-table">
+    <thead><tr><th>Area</th><th>Intelligence Signals</th><th>Tooling / Sources</th><th>Feed Target</th></tr></thead>
+    <tbody>
+      <tr><td><strong style="color:var(--text)">Header Analysis</strong></td><td>Received chain anomalies, X-Originating-IP, authentication-results header, Reply-To mismatch, envelope From ≠ header From</td><td>MXToolbox, Mail Header Analyser, email gateway logs</td><td>SOC triage, phishing response playbooks</td></tr>
+      <tr><td><strong style="color:var(--text)">MX / Mail Infrastructure Recon</strong></td><td>MX record changes (possible hijack), mail server fingerprinting, open relay detection, SMTP STARTTLS enforcement status</td><td>MXToolbox, DNSlytics, nmap</td><td>Vulnerability management, infrastructure monitoring</td></tr>
+      <tr><td><strong style="color:var(--text)">Phishing Kit Intelligence</strong></td><td>Kit source code patterns, hosting provider patterns, certificate reuse, phishing page HTML fingerprints, credential exfil destination analysis</td><td>PhishTank, OpenPhish, FortiGuard, manual analysis</td><td>Email gateway rules, proxy blocklists</td></tr>
+      <tr><td><strong style="color:var(--text)">BEC Pattern Analysis</strong></td><td>Display name spoofing patterns, CEO/CFO impersonation lures, vendor impersonation (invoice fraud), urgency and wire transfer language patterns</td><td>Email gateway logs, user-reported phishing, DMARC RUF</td><td>Email gateway rules, user awareness training</td></tr>
+      <tr><td><strong style="color:var(--text)">AiTM / EvilProxy Detection</strong></td><td>Adversary-in-the-Middle phishing proxy indicators: cookie theft after MFA, unusual token reuse, logon from unexpected IP post-MFA</td><td>Entra ID sign-in logs, Defender for Identity, UEBA</td><td>SOC detection rules, identity security</td></tr>
+      <tr><td><strong style="color:var(--text)">Quishing (QR Phishing)</strong></td><td>QR code payloads in email bodies/attachments, URL extraction from QR images, sandbox detonation of QR-delivered URLs</td><td>Email sandbox, computer vision tooling, URL detonation</td><td>Email gateway (QR scanning), user awareness</td></tr>
+      <tr><td><strong style="color:var(--text)">Credential Dump Monitoring</strong></td><td>Corporate email addresses in leaked credential dumps, stealer log data with email credentials, combo list appearance</td><td>HIBP, Intel 471, Flare, Digital Shadows</td><td>Identity security, forced resets, SOC alerting</td></tr>
+      <tr><td><strong style="color:var(--text)">Malicious Attachment Intel</strong></td><td>Document-based malware (macro, template injection, HTML smuggling), archive-based delivery, LNK/ISO container abuse</td><td>VirusTotal, MalwareBazaar, ANY.RUN, Tria.ge sandbox</td><td>Email gateway (file type blocking), EDR rules</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- TLP -->
+<div id="view-tlp" class="view">
+  <div class="page-header"><h1>TLP <em>Framework</em></h1><p class="page-subtitle">Traffic Light Protocol 2.0 — governing intelligence sharing, handling, and dissemination</p></div>
+
+  <div class="tlp-grid">
+    <div class="tlp-card" style="color:var(--red);border-color:var(--red-dim);background:var(--red-dim)">
+      <div class="tlp-label">TLP:RED</div><div class="tlp-name">Strictly Restricted</div>
+      <div class="tlp-desc">Not for disclosure. Restricted to recipients only — not to be forwarded, stored in shared systems, or discussed beyond named individuals in the conversation.</div>
+      <div class="tlp-rule">Use when: information could damage the source, ongoing operations, or specific individuals if shared beyond direct recipients.<br><br>Examples: active law enforcement operations, named victim details before public disclosure.</div>
+    </div>
+    <div class="tlp-card" style="color:var(--amber);border-color:var(--amber-dim);background:var(--amber-dim)">
+      <div class="tlp-label">TLP:AMBER</div><div class="tlp-name">Limited Distribution</div>
+      <div class="tlp-desc">Restricted to the recipient organisation and their clients on a need-to-know basis. Cannot be shared publicly or with other organisations without explicit permission.</div>
+      <div class="tlp-rule">TLP:AMBER+STRICT = organisation only, not to clients/third parties.<br><br>Use when: information could harm the source or recipient's operations if shared beyond the immediate community.</div>
+    </div>
+    <div class="tlp-card" style="color:var(--green);border-color:var(--green-dim);background:var(--green-dim)">
+      <div class="tlp-label">TLP:GREEN</div><div class="tlp-name">Community Sharing</div>
+      <div class="tlp-desc">Can be shared within the community (sector, ISAC, peer group). Not to be shared publicly or posted to internet-accessible resources.</div>
+      <div class="tlp-rule">Use when: information is useful for the community but could harm the source if made fully public.<br><br>Examples: sector-specific IOC feeds, ISAC advisories, CERT bulletins within closed communities.</div>
+    </div>
+    <div class="tlp-card" style="color:var(--text);border-color:var(--border2);background:#f0f3f8">
+      <div class="tlp-label" style="color:var(--muted)">TLP:WHITE</div><div class="tlp-name" style="color:var(--text)">Unrestricted</div>
+      <div class="tlp-desc">No restriction on disclosure. Can be shared publicly without restriction. Subject to standard copyright rules.</div>
+      <div class="tlp-rule">Use when: information carries minimal risk of misuse and can freely circulate.<br><br>Examples: NCSC public advisories, CVE descriptions, published threat research, public YARA rules.</div>
+    </div>
+  </div>
+
+  <div class="section-title">TLP Handling in Practice</div>
+  <table class="source-table">
+    <thead><tr><th>Scenario</th><th>TLP</th><th>Handling Requirement</th></tr></thead>
+    <tbody>
+      <tr><td>Active phishing campaign targeting your org — shared by NCSC Early Warning</td><td><span class="badge" style="background:var(--amber-dim);color:var(--amber)">TLP:AMBER</span></td><td>Share internally with SOC and email team. Do not publish IOCs publicly or share with other organisations without NCSC permission.</td></tr>
+      <tr><td>Zero-day PoC shared by a peer in a closed ISAC community call</td><td><span class="badge" style="background:var(--red-dim);color:var(--red)">TLP:RED</span></td><td>Share only with named participants. Do not log in shared systems. Cannot be quoted or referenced outside the call.</td></tr>
+      <tr><td>CISA KEV listing for a new actively exploited CVE</td><td><span class="badge" style="background:var(--border2);color:var(--text)">TLP:WHITE</span></td><td>No restrictions. Share freely. Use in public-facing comms, vendor advisories, blog posts.</td></tr>
+      <tr><td>Dark web intelligence indicating org credentials for sale — sourced from commercial TI vendor</td><td><span class="badge" style="background:var(--amber-dim);color:var(--amber)">TLP:AMBER+STRICT</span></td><td>Organisation only — HR, CISO, Legal, Identity team. Not to clients, partners, or public.</td></tr>
+      <tr><td>ISAC sector threat bulletin — distributed to ISAC members</td><td><span class="badge" style="background:var(--green-dim);color:var(--green)">TLP:GREEN</span></td><td>Share within your sector community and ISAC members. Do not post to public forums, social media, or websites.</td></tr>
+      <tr><td>YARA rule derived from malware analysis, no attribution to sensitive source</td><td><span class="badge" style="background:var(--border2);color:var(--text)">TLP:WHITE</span></td><td>Can be published on GitHub, shared via OTX, or submitted to VirusTotal. Community sharing encouraged.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="section-title">STIX 2.1 / TAXII 2.1 — Structured Sharing</div>
+  <div class="card-grid">
+    <div class="card" style="--accent:var(--blue)"><div class="card-title"><span class="card-icon">🔗</span>STIX 2.1 Objects</div><div class="card-body">Core SDO types:<br><br><strong style="color:var(--text)">attack-pattern</strong> → MITRE ATT&amp;CK techniques<br><strong style="color:var(--text)">campaign</strong> → Threat campaigns<br><strong style="color:var(--text)">indicator</strong> → IOCs with pattern language<br><strong style="color:var(--text)">malware</strong> → Malware family descriptions<br><strong style="color:var(--text)">threat-actor</strong> → Group profiles<br><strong style="color:var(--text)">vulnerability</strong> → CVE references<br><strong style="color:var(--text)">course-of-action</strong> → Mitigations</div></div>
+    <div class="card" style="--accent:var(--blue)"><div class="card-title"><span class="card-icon">📡</span>TAXII 2.1 Transport</div><div class="card-body">REST API for STIX bundle exchange.<br><br><strong style="color:var(--text)">Collections</strong> → Named groups of STIX content<br><strong style="color:var(--text)">Authentication</strong> → API key, OAuth 2.0, certificate<br><br>Compatible: MISP, OpenCTI, ThreatQ, Recorded Future, MITRE ATT&amp;CK TAXII server</div></div>
+    <div class="card" style="--accent:var(--blue)"><div class="card-title"><span class="card-icon">🔄</span>MISP Integration</div><div class="card-body">MISP supports STIX import/export and native TAXII server integration.<br><br>• Ingest ISAC feeds<br>• Share events with sector peers<br>• TLP marking on all objects<br>• Automated IOC push to SIEM/EDR via sync<br>• Correlation across feeds to reduce duplicates</div></div>
+  </div>
+</div>
+
+<!-- PRIORITISATION -->
+<div id="view-prioritisation" class="view">
+  <div class="page-header"><h1>Intelligence <em>Prioritisation</em></h1><p class="page-subtitle">IOC triage and validation workflow, priority matrix, zero-day handling, and programme metrics</p></div>
+
+  <div class="section-title">IOC Triage &amp; Validation Workflow</div>
+  <div class="process-flow">
+    <div class="process-step"><div class="step-connector"><div class="step-num-wrap" style="border-color:var(--cyan);color:var(--cyan)">1</div><div class="step-line"></div></div><div class="step-content"><div class="step-title">Ingest &amp; Deduplication</div><div class="step-desc">New intelligence arrives from feeds, advisories, ISAC, internal systems. Normalise to common format (STIX or internal schema). Deduplicate against existing IOC database — avoid alert fatigue from reprocessing known indicators. Volume control is critical: a 100,000-IOC SIEM rule set degrades performance.</div><div class="step-outputs"><span class="tag" style="background:var(--cyan-dim);color:var(--cyan)">Output: normalised IOC set</span><span class="tag" style="background:var(--faint);color:var(--muted)">SLA: automated &lt;15min</span></div></div></div>
+    <div class="process-step"><div class="step-connector"><div class="step-num-wrap" style="border-color:var(--amber);color:var(--amber)">2</div><div class="step-line"></div></div><div class="step-content"><div class="step-title">Source Reliability Assessment</div><div class="step-desc">Assess source reliability and information credibility independently using an Admiralty Scale or equivalent — Source (A–F) × Information (1–6). High-volume automated feeds require statistical false-positive analysis before deployment. Government/CERT sources default to high reliability; community feeds require validation.</div><div class="step-outputs"><span class="tag" style="background:var(--amber-dim);color:var(--amber)">Output: reliability score per indicator</span></div></div></div>
+    <div class="process-step"><div class="step-connector"><div class="step-num-wrap" style="border-color:var(--violet);color:var(--violet)">3</div><div class="step-line"></div></div><div class="step-content"><div class="step-title">Context Enrichment</div><div class="step-desc">Enrich indicators with additional context: VirusTotal reputation, passive DNS history, WHOIS data, ASN/geolocation, related malware families, associated threat actors, MITRE ATT&amp;CK mapping. Context transforms a raw IP address into an indicator with operational value — know what you're blocking and why.</div><div class="step-outputs"><span class="tag" style="background:var(--violet-dim);color:var(--violet)">Output: enriched indicator</span><span class="tag" style="background:var(--faint);color:var(--muted)">Tools: VT API, Shodan, PassiveDNS</span></div></div></div>
+    <div class="process-step"><div class="step-connector"><div class="step-num-wrap" style="border-color:var(--green);color:var(--green)">4</div><div class="step-line"></div></div><div class="step-content"><div class="step-title">Relevance Assessment</div><div class="step-desc">Determine relevance to your organisation: Does this threat actor target your sector? Is the affected product in your environment? Is the campaign geographically relevant? Low-relevance indicators may be ingested at lower priority with monitoring-only disposition rather than blocking rules.</div><div class="step-outputs"><span class="tag" style="background:var(--green-dim);color:var(--green)">High / Medium / Low / Not applicable</span></div></div></div>
+    <div class="process-step"><div class="step-connector"><div class="step-num-wrap" style="border-color:var(--red);color:var(--red)">5</div><div class="step-line"></div></div><div class="step-content"><div class="step-title">Confidence Scoring</div><div class="step-desc">Assign confidence level based on: source reliability, corroboration from multiple independent sources, recency, and specificity. High-confidence + high-relevance = candidate for automated blocking. Low-confidence = alert-only until validated. Track confidence decay — old IOCs lose value and become false-positive risk.</div><div class="step-outputs"><span class="tag" style="background:var(--red-dim);color:var(--red)">High / Medium / Low</span><span class="tag" style="background:var(--faint);color:var(--muted)">TTL: set expiry on all IOCs</span></div></div></div>
+    <div class="process-step"><div class="step-connector"><div class="step-num-wrap" style="border-color:var(--teal);color:var(--teal)">6</div><div class="step-line"></div></div><div class="step-content"><div class="step-title">Disposition &amp; Action</div><div class="step-desc">Assign disposition: Block (automated, high-confidence) → EDR/FW/Proxy. Alert (monitoring, medium) → SIEM rule. Hunt (new TTP) → Threat hunting package. Watch (lower priority) → periodic review. Archive (low relevance) → retain for future correlation only.</div><div class="step-outputs"><span class="tag" style="background:var(--teal-dim);color:var(--teal)">Block → EDR/FW/Proxy</span><span class="tag" style="background:var(--blue-dim);color:var(--blue)">Alert → SIEM</span><span class="tag" style="background:var(--violet-dim);color:var(--violet)">Hunt → TH package</span></div></div></div>
+    <div class="process-step"><div class="step-connector"><div class="step-num-wrap" style="border-color:var(--muted);color:var(--muted)">7</div></div><div class="step-content"><div class="step-title">Lifecycle Management &amp; Expiry</div><div class="step-desc">IOCs have a shelf life. C2 IPs may be repurposed as legitimate infrastructure within weeks. Set TTL for all indicators: IPs (7–30 days), domains (30–90 days), file hashes (indefinite for known malware families). Automated expiry prevents false positives from stale intelligence degrading detection quality.</div><div class="step-outputs"><span class="tag" style="background:var(--faint);color:var(--muted)">IPs: 7–30d · Domains: 30–90d · Hashes: indefinite</span></div></div></div>
+  </div>
+
+  <div class="section-title">Intelligence Priority Matrix</div>
+  <div class="priority-matrix">
+    <div class="prio-cell" style="background:rgba(255,69,96,.07);border-color:var(--red-dim)"><div class="prio-label" style="color:var(--red)">P1 — IMMEDIATE (&lt;2 hours)</div><div class="prio-items">Active exploitation of your infrastructure<br>Credentials for sale on dark web (your org)<br>Zero-day in production software, no patch<br>Active phishing campaign targeting your users<br>Ransomware precursor IOCs detected internally<br>NCSC / CISA emergency alert — sector-specific</div></div>
+    <div class="prio-cell" style="background:rgba(255,184,0,.05);border-color:var(--amber-dim)"><div class="prio-label" style="color:var(--amber)">P2 — URGENT (&lt;24 hours)</div><div class="prio-items">CISA KEV addition affecting your software<br>New PoC for Critical CVE in your environment<br>EPSS &gt;50% on unpatched vulnerability<br>Threat actor actively targeting your sector<br>Supply chain compromise of a key vendor<br>Major peer breach — similar architecture</div></div>
+    <div class="prio-cell" style="background:rgba(59,130,246,.05);border-color:var(--blue-dim)"><div class="prio-label" style="color:var(--blue)">P3 — ELEVATED (2–7 days)</div><div class="prio-items">High CVSS + EPSS 10–50% — assess exposure<br>New threat actor TTPs — update detections<br>Sector ISAC advisory — non-immediate<br>New malware family — YARA/hunt package<br>Infrastructure changes in known threat actor<br>DMARC failure spike — investigate spoofing</div></div>
+    <div class="prio-cell" style="background:rgba(0,229,160,.04);border-color:var(--green-dim)"><div class="prio-label" style="color:var(--green)">P4 — ROUTINE (Weekly cycle)</div><div class="prio-items">Monthly patch cycle CVE assessment<br>Threat landscape report review<br>IOC feed refresh and expiry management<br>Threat actor profile updates<br>Vendor security advisory review<br>Executive briefing preparation</div></div>
+  </div>
+
+  <div class="section-title">Zero-Day Intelligence Workflow</div>
+  <div class="accordion open">
+    <div class="accordion-header" onclick="toggleAccordion(this)"><span style="color:var(--red)">⚡</span><div class="accordion-title">Zero-Day Detection &amp; Initial Triage</div><span class="accordion-chevron">▶</span></div>
+    <div class="accordion-body"><ul class="checklist">
+      <li><div class="check-box" onclick="toggleCheck(this)"></div>Verify the zero-day claim — distinguish between "unpatched CVE" and a genuinely novel vulnerability with no vendor acknowledgement</li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div>Identify the vulnerable product and version range — cross-reference with internal CMDB/asset inventory immediately</li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div>Assess exploitation complexity and pre-requisites (authentication required? network access? user interaction?)</li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div>Determine: is there evidence of active exploitation in the wild? (Threat actor use, CISA/NCSC advisory, incident reports)</li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div>Assess internet exposure of affected assets — internet-facing = highest immediate priority</li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div>Check vendor advisory status — has the vendor acknowledged? Is there a patch timeline?</li>
+    </ul></div>
+  </div>
+  <div class="accordion">
+    <div class="accordion-header" onclick="toggleAccordion(this)"><span style="color:var(--amber)">🛡️</span><div class="accordion-title">Compensating Controls — While Awaiting Patch</div><span class="accordion-chevron">▶</span></div>
+    <div class="accordion-body"><ul class="checklist">
+      <li><div class="check-box" onclick="toggleCheck(this)"></div>Deploy WAF rule / IPS signature if available (vendor or community-supplied)</li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div>Network segment / isolate affected systems where operational impact allows</li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div>Restrict network access to affected service to known-good IPs / VPN-only where possible</li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div>Enable enhanced logging on affected systems — prepare detection if exploit is attempted</li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div>Create SIEM detection rule for known exploit indicators or anomalous behaviour patterns</li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div>Disable unnecessary features / components of vulnerable software that expand attack surface</li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div>Document compensating controls formally with CISO sign-off and review date</li>
+    </ul></div>
+  </div>
+  <div class="accordion">
+    <div class="accordion-header" onclick="toggleAccordion(this)"><span style="color:var(--green)">📤</span><div class="accordion-title">Dissemination &amp; Escalation Actions</div><span class="accordion-chevron">▶</span></div>
+    <div class="accordion-body"><ul class="checklist">
+      <li><div class="check-box" onclick="toggleCheck(this)"></div>Issue internal Flash Report to SOC, vulnerability management, and affected system owners within 2 hours</li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div>Escalate to CISO if: internet-facing, no patch, active exploitation, crown-jewel system affected</li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div>Notify IT Ops / patch management with SLA requirement and compensating control guidance</li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div>Share with ISAC / sector peers at appropriate TLP if intelligence suggests broad targeting</li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div>Report to NCSC Early Warning or equivalent if significant and novel</li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div>Track vendor patch release — trigger emergency change as soon as patch is available and validated</li>
+      <li><div class="check-box" onclick="toggleCheck(this)"></div>Post-patch: validate, update intelligence record, produce lessons-learned note for TI programme review</li>
+    </ul></div>
+  </div>
+
+  <div class="section-title" style="margin-top:22px">Intelligence Programme Metrics</div>
+  <table class="source-table">
+    <thead><tr><th>Metric</th><th>What It Measures</th><th>Target</th></tr></thead>
+    <tbody>
+      <tr><td><strong style="color:var(--text)">MTTD — TI-Driven</strong></td><td>Time from threat actor activity to TI-informed detection — measures intelligence lead time over traditional alerting</td><td>TI-informed detection &lt;24hrs before SOC alert</td></tr>
+      <tr><td><strong style="color:var(--text)">IOC Hit Rate</strong></td><td>Percentage of deployed IOCs generating at least one alert — measures intelligence relevance and quality</td><td>&gt;5% hit rate; low rate = poor source quality</td></tr>
+      <tr><td><strong style="color:var(--text)">False Positive Rate</strong></td><td>Percentage of IOC-generated alerts that are false positives — measures operational impact on SOC</td><td>&lt;10% FP on blocking rules; higher acceptable on alert-only</td></tr>
+      <tr><td><strong style="color:var(--text)">Mean Time to Operationalise</strong></td><td>Time from intelligence receipt to deployed detection/blocking rule — measures analyst efficiency</td><td>P1: &lt;2hrs · P2: &lt;24hrs · P3: &lt;7 days</td></tr>
+      <tr><td><strong style="color:var(--text)">Requirements Coverage</strong></td><td>Percentage of PIRs addressed by current intelligence programme</td><td>&gt;80% coverage; gaps drive source acquisition</td></tr>
+      <tr><td><strong style="color:var(--text)">IOC Expiry Compliance</strong></td><td>Percentage of IOCs with defined TTL and active expiry management — prevents stale FP risk</td><td>100% of deployed IOCs with assigned TTL</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</div><!-- .content -->
+</main>
+</div><!-- #app -->
+
+<script>
+const stages=[
+  {title:'Requirements Definition',color:'var(--cyan)',steps:[
+    {n:'1',t:'Define Priority Intelligence Requirements (PIRs)',d:'Work with CISO, SOC Lead, Business leadership and Risk to define what questions the intelligence programme must answer. PIRs should be specific and measurable: "What threat actors are actively targeting UK financial services with ransomware in Q1 2026?" Not: "Tell us about threats." Generic requirements produce generic intelligence.',tags:['Output: PIR register','Owner: TI Lead + CISO','Review: Quarterly']},
+    {n:'2',t:'Identify Intelligence Consumers',d:'Map who will consume intelligence and in what form: SOC analysts need IOCs and Sigma rules; CISO needs strategic briefings; Vulnerability Management needs CVE prioritisation data; IT Ops needs patch guidance. Each consumer has different format, cadence, and depth requirements. A YARA rule document is not an executive briefing.',tags:['Output: consumer map','Format requirements per consumer']},
+    {n:'3',t:'Gap Analysis — Current vs. Required',d:'Assess current intelligence sources against PIRs. Identify coverage gaps: sectors not covered, threat actor groups not tracked, vulnerability classes not monitored, geographic blind spots. Gap analysis drives source acquisition and tooling investment decisions. Not every gap needs a commercial platform — some are addressable via OSINT or community sharing.',tags:['Output: gap register','Input: source acquisition decisions']},
+    {n:'4',t:'Define Collection Plan',d:'For each PIR, identify the collection methods and sources required. Map internal capabilities (EDR telemetry, SIEM data, honeypots) against external requirements (commercial feeds, ISAC membership, open source). Collection plan should be reviewed quarterly and when PIRs change.',tags:['Output: collection plan','Aligns sources to requirements']},
+  ]},
+  {title:'Collection',color:'var(--violet)',steps:[
+    {n:'1',t:'Automated Feed Ingestion',d:'Ingest structured feeds via TAXII 2.1, MISP sync, API pull, or file import. Sources: ISAC feeds, NCSC Early Warning, commercial TI platform feeds, abuse.ch feeds, CISA KEV JSON, NVD API. Automate normalisation and deduplication on ingest. Set collection frequency per source: real-time for critical threat feeds; daily for lower-priority sources.',tags:['TAXII 2.1 / STIX 2.1','MISP sync','API / JSON feeds']},
+    {n:'2',t:'Human Collection — OSINT',d:'Analyst-driven collection from open sources: threat research blogs (Mandiant, CrowdStrike, Sekoia), paste sites, code repositories (GitHub), social media (threat actor personas, researcher posts), sector news. Requires analyst curation — high noise, high value when properly curated. Define a daily monitoring checklist to ensure consistent coverage.',tags:['Analyst-driven','Daily monitoring cadence','Curated output']},
+    {n:'3',t:'Internal Telemetry Collection',d:'Collect intelligence from internal security systems: EDR detections, SIEM alerts, phishing submissions from users, vulnerability scan results, honeypot interactions, DFIR investigation outputs. Internal intelligence is highest-confidence and directly relevant — often the most underutilised source in TI programmes.',tags:['EDR / SIEM','Phishing submissions','DFIR findings']},
+    {n:'4',t:'Dark Web & Underground Monitoring',d:'Authorised collection from dark web markets, forums, and paste sites via commercial platform or specialist tooling — never via direct manual browsing. Targets: credential exposure, access-for-sale listings, data leak site monitoring, ransomware group announcements, pre-CVE vulnerability disclosure.',tags:['Commercial platform required','Intel 471 / Flare / Digital Shadows']},
+  ]},
+  {title:'Processing & Enrichment',color:'var(--amber)',steps:[
+    {n:'1',t:'Normalisation & Deduplication',d:'Convert all ingested intelligence to a common internal schema or STIX 2.1. Deduplicate against existing intelligence database — the same IP or hash may appear in dozens of feeds simultaneously. Deduplication is critical to prevent alert fatigue and bloated IOC databases that degrade SIEM performance and analyst trust.',tags:['Schema normalisation','Hash-based dedup','Automated']},
+    {n:'2',t:'Automated Enrichment',d:'Enrich indicators automatically via API: VirusTotal (reputation, community scores), Shodan (ports, banners, CVEs), PassiveDNS (historical resolutions), WHOIS (registration data, creation date), AbuseIPDB (community reports), GreyNoise (mass internet scanning vs. targeted traffic classification). Store enrichment alongside indicator in TI platform.',tags:['VT API','Shodan API','PassiveDNS','WHOIS']},
+    {n:'3',t:'Threat Actor & Campaign Correlation',d:'Link indicators to known threat actor profiles and campaigns using the TI platform. A single IP in isolation is tactical intelligence. That same IP linked to a tracked APT group, a current campaign, and a specific MITRE ATT&CK technique becomes strategic intelligence with immediate operational value.',tags:['MITRE ATT&CK mapping','Campaign correlation','Graph relationships']},
+    {n:'4',t:'False Positive Filtering',d:'Apply false-positive filters before indicators reach operational systems. Common FP sources: CDN IP ranges (Cloudflare, Akamai, Fastly), popular public DNS resolvers (8.8.8.8, 1.1.1.1), legitimate certificate authorities, high-traffic hosting providers. Maintain an internal FP suppression list and review quarterly.',tags:['CDN whitelist','FP suppression','Critical for blocking rules']},
+  ]},
+  {title:'Analysis & Production',color:'var(--green)',steps:[
+    {n:'1',t:'Indicator Analysis & Triage',d:'Analyst review of enriched indicators before operational deployment. For high-volume feeds, triage by confidence and relevance score — only high-scoring indicators proceed to full analyst review. Focus analyst time on novel, high-priority intelligence. Document analysis rationale for every disposition decision to support future review and tuning.',tags:['Confidence scoring','Relevance assessment','Analyst triage']},
+    {n:'2',t:'Strategic Analysis',d:'Synthesise multiple intelligence items into a higher-level picture: What TTPs is this threat actor using? How has their infrastructure changed? Is this campaign specifically targeting our sector this quarter? Strategic analysis answers PIRs — it goes beyond individual indicators to patterns, trends, and implications for the security programme.',tags:['TTP analysis','Campaign attribution','Trend identification']},
+    {n:'3',t:'Intelligence Production',d:'Create finished intelligence products tailored to each consumer: Flash Reports for immediate threats, technical malware reports for SOC, CVE advisories for patch management, actor profiles for CISO, executive briefings for board. Format and depth must match the consumer. A board brief is not a YARA rule document — and vice versa.',tags:['Flash Report','Technical Report','Executive Brief']},
+    {n:'4',t:'Peer Review & Quality Assurance',d:'All finished intelligence products should be peer-reviewed before dissemination — especially for attribution claims, which require high confidence and multiple independent sources. QA checks: accuracy, source protection, TLP classification, actionability, timeliness, audience appropriateness. Incorrect attribution is worse than no attribution.',tags:['Peer review','Attribution QA','TLP verification']},
+  ]},
+  {title:'Dissemination',color:'var(--red)',steps:[
+    {n:'1',t:'Consumer-Targeted Distribution',d:'Distribute intelligence to the right consumer in the right format at the right time. SOC: IOC push via TI platform API with SIEM/EDR. Vulnerability Management: CVE advisory with internal applicability assessment. Executive: monthly brief. Each consumer receives only what is relevant — information overload is as damaging as information absence.',tags:['API integration','Targeted distribution','No overload']},
+    {n:'2',t:'Automated IOC Deployment',d:'High-confidence, time-sensitive IOCs should be deployed automatically to security controls: EDR, SIEM, firewall, proxy. Human-in-the-loop for blocking rules on critical production infrastructure; automated for alert-only rules. Maintain a complete audit trail of all automated deployments — know exactly what you have pushed and when.',tags:['SLA: &lt;1hr for P1','Audit trail required','Auto + human-in-loop']},
+    {n:'3',t:'External Sharing — TLP Governed',d:'Share intelligence externally with ISAC, NCSC, sector peers, and CERTs under appropriate TLP marking. Sharing increases the value of your intelligence programme — reciprocal sharing creates a positive feedback loop. Ensure sharing agreements are in place and legal has reviewed. Strip source-identifying details before sharing where required by the originating TLP.',tags:['ISAC sharing','NCSC CiSP','TLP compliance','Legal review']},
+    {n:'4',t:'Regulatory Reporting',d:'Some threat intelligence creates regulatory notification obligations: NCSC reporting for significant incidents, CISA reporting for critical infrastructure sectors, NIS2 early warning obligations. Intelligence may also be required by regulators as evidence of threat-informed security controls. Maintain records of all regulatory intelligence sharing.',tags:['NCSC','CISA / NIS2','Audit trail']},
+  ]},
+  {title:'Feedback & Review',color:'var(--teal)',steps:[
+    {n:'1',t:'Consumer Feedback Collection',d:'Actively solicit feedback from intelligence consumers: Was the intelligence actionable? Was it timely? Was the format appropriate? Did it answer the PIR it was meant to address? Quarterly structured feedback survey plus a continuous feedback channel. Low satisfaction scores are a signal to adjust source selection, format, or cadence — not to produce more of the same.',tags:['Quarterly survey','Continuous channel','Track trends']},
+    {n:'2',t:'Intelligence Hit Rate Analysis',d:'Measure how many deployed IOCs generated alerts or confirmed detections. A feed with very low hit rates may be low-quality, irrelevant to your environment, or too stale to be useful. High hit rates validate source investment. Analyse by source, indicator type, and threat actor to identify which intelligence is delivering genuine operational value.',tags:['Hit rate per source','FP rate','Value-per-source']},
+    {n:'3',t:'PIR Review & Update',d:'Reassess Priority Intelligence Requirements quarterly or after a major incident. Threat landscape changes, business priorities shift, and the intelligence programme must adapt. New acquisitions, geographic expansion, cloud migration, or regulatory changes may all create new PIRs. Retire PIRs that are no longer relevant — an old PIR creates wasted collection effort.',tags:['Quarterly review','Post-incident update','Aligns with strategy']},
+    {n:'4',t:'Source Review & Optimisation',d:'Evaluate each intelligence source against its cost (financial and analyst time) versus intelligence value delivered. Drop sources with consistently low relevance or high false-positive rates. Invest in sources filling identified gaps. Review commercial platform contracts annually against demonstrated value — the threat landscape changes, and your source portfolio should too.',tags:['Cost/value analysis','Annual contract review','Gap-driven acquisition']},
+  ]},
+];
+
+function showStage(idx){
+  document.querySelectorAll('.pipe-stage').forEach((s,i)=>s.classList.toggle('active',i===idx));
+  const stage=stages[idx];
+  document.getElementById('stage-content').innerHTML=`
+    <div class="section-title">${stage.title}</div>
+    <div class="process-flow">
+      ${stage.steps.map((s,i)=>`
+        <div class="process-step">
+          <div class="step-connector">
+            <div class="step-num-wrap" style="border-color:${stage.color};color:${stage.color}">${s.n}</div>
+            ${i<stage.steps.length-1?'<div class="step-line"></div>':''}
+          </div>
+          <div class="step-content">
+            <div class="step-title">${s.t}</div>
+            <div class="step-desc">${s.d}</div>
+            <div class="step-outputs">${s.tags.map(t=>`<span class="tag" style="background:var(--faint);color:var(--muted)">${t}</span>`).join('')}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+showStage(0);
+
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const v=document.getElementById('view-'+id);
+  if(v)v.classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>{if(b.getAttribute('onclick')?.includes("'"+id+"'"))b.classList.add('active');});
+}
+
+function setSidebar(el){
+  document.querySelectorAll('.sidebar-item').forEach(i=>i.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function toggleAccordion(h){h.parentElement.classList.toggle('open');}
+
+function toggleCheck(el){
+  el.classList.toggle('checked');
+  el.textContent=el.classList.contains('checked')?'✓':'';
+}
+</script>
+</body>
+</html>
