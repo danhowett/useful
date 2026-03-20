@@ -1,0 +1,1735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cyber Incident Decision Tree</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;600;700&display=swap');
+
+:root {
+  --bg:#0d0f14; --surface:#13161d; --surface2:#1a1e28; --surface3:#20253200;
+  --border:rgba(255,255,255,0.08); --border2:rgba(255,255,255,0.14);
+  --text:#e8eaf0; --muted:#7a8099; --dim:#4a506a;
+  --c-green:#2ddd96; --c-green-bg:rgba(45,221,150,0.09); --c-green-border:rgba(45,221,150,0.25);
+  --c-yellow:#f5c842; --c-yellow-bg:rgba(245,200,66,0.09); --c-yellow-border:rgba(245,200,66,0.25);
+  --c-orange:#ff8c42; --c-orange-bg:rgba(255,140,66,0.09); --c-orange-border:rgba(255,140,66,0.25);
+  --c-red:#ff4757; --c-red-bg:rgba(255,71,87,0.09); --c-red-border:rgba(255,71,87,0.3);
+  --c-purple:#a78bfa; --c-purple-bg:rgba(167,139,250,0.1); --c-purple-border:rgba(167,139,250,0.25);
+  --c-blue:#60a5fa; --c-blue-bg:rgba(96,165,250,0.09); --c-blue-border:rgba(96,165,250,0.22);
+  --c-gray:#9ca3b0; --c-gray-bg:rgba(156,163,176,0.08); --c-gray-border:rgba(156,163,176,0.2);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.65;min-height:100vh;}
+
+.shell{display:flex;min-height:100vh;}
+.sidebar{width:272px;min-height:100vh;background:var(--surface);border-right:1px solid var(--border);padding:24px 18px;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column;}
+.main{flex:1;padding:36px 44px;max-width:900px;}
+
+.wordmark{font-family:'Syne',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:24px;}
+.nav-section-label{font-size:10px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--dim);margin:18px 0 7px;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;cursor:pointer;color:var(--muted);font-size:12px;transition:all 0.15s;border:1px solid transparent;text-decoration:none;background:none;width:100%;text-align:left;font-family:'IBM Plex Mono',monospace;}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.active{background:var(--surface2);border-color:var(--border2);color:var(--text);}
+.nav-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+
+.sev{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:4px;font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;}
+.sev-0{background:var(--c-green-bg);color:var(--c-green);border:1px solid var(--c-green-border);}
+.sev-1{background:var(--c-yellow-bg);color:var(--c-yellow);border:1px solid var(--c-yellow-border);}
+.sev-2{background:var(--c-orange-bg);color:var(--c-orange);border:1px solid var(--c-orange-border);}
+.sev-3{background:var(--c-red-bg);color:var(--c-red);border:1px solid var(--c-red-border);}
+.sev-4{background:var(--c-purple-bg);color:var(--c-purple);border:1px solid var(--c-purple-border);}
+
+.imt-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:4px;font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;background:rgba(96,165,250,0.1);color:var(--c-blue);border:1px solid var(--c-blue-border);margin-left:6px;}
+.dfir-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:4px;font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;background:rgba(167,139,250,0.1);color:var(--c-purple);border:1px solid var(--c-purple-border);margin-left:6px;}
+.badges-row{display:flex;flex-wrap:wrap;gap:4px;margin:10px 0 18px;align-items:center;}
+
+.progress-bar-wrap{margin-bottom:26px;}
+.progress-meta{display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-bottom:5px;}
+.progress-track{height:2px;background:var(--border);border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,#2ddd96,#60a5fa);border-radius:2px;transition:width 0.3s ease;}
+
+.timer-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:var(--bg);border:1px solid var(--border);border-radius:4px;font-size:10px;color:var(--muted);margin-bottom:18px;}
+.timer-dot{width:6px;height:6px;border-radius:50%;background:var(--c-green);animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
+
+.back-btn{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--dim);cursor:pointer;padding:4px 0;margin-bottom:22px;background:none;border:none;font-family:'IBM Plex Mono',monospace;transition:color 0.12s;}
+.back-btn:hover{color:var(--muted);}
+
+.q-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:26px 30px;margin-bottom:22px;animation:slideIn 0.18s ease;}
+@keyframes slideIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.q-number{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;}
+.q-text{font-family:'Syne',sans-serif;font-size:17px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:7px;}
+.q-hint{color:var(--muted);font-size:11px;margin-bottom:20px;line-height:1.65;padding:10px 12px;background:var(--bg);border-radius:6px;border-left:2px solid var(--border2);}
+
+.options{display:flex;flex-direction:column;gap:8px;}
+.opt-btn{display:flex;align-items:flex-start;gap:12px;padding:13px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;cursor:pointer;text-align:left;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.6;transition:all 0.12s;}
+.opt-btn:hover{border-color:var(--border2);transform:translateX(3px);}
+.opt-btn.opt-unknown{border-style:dashed;opacity:0.8;}
+.opt-btn.opt-unknown:hover{opacity:1;border-color:var(--c-gray-border);}
+.opt-key{display:flex;align-items:center;justify-content:center;width:21px;height:21px;border-radius:4px;background:var(--bg);border:1px solid var(--border2);font-size:10px;font-weight:500;color:var(--muted);flex-shrink:0;margin-top:2px;}
+.opt-content{flex:1;}
+.opt-label{color:var(--text);font-weight:500;margin-bottom:2px;}
+.opt-desc{color:var(--muted);font-size:11px;line-height:1.5;}
+.opt-tag{display:inline;padding:1px 5px;border-radius:3px;font-size:9px;background:var(--c-gray-bg);border:1px solid var(--c-gray-border);color:var(--c-gray);margin-left:6px;letter-spacing:0.05em;text-transform:uppercase;vertical-align:middle;}
+.opt-arrow{opacity:0;color:var(--muted);font-size:13px;transition:opacity 0.12s;flex-shrink:0;align-self:center;}
+.opt-btn:hover .opt-arrow{opacity:1;}
+
+/* OUTCOME */
+.outcome-card{border-radius:10px;padding:26px 30px;border:1px solid;margin-bottom:22px;animation:slideIn 0.18s ease;}
+.outcome-0{background:var(--c-green-bg);border-color:var(--c-green-border);}
+.outcome-1{background:var(--c-yellow-bg);border-color:var(--c-yellow-border);}
+.outcome-2{background:var(--c-orange-bg);border-color:var(--c-orange-border);}
+.outcome-3{background:var(--c-red-bg);border-color:var(--c-red-border);}
+.outcome-4{background:var(--c-purple-bg);border-color:var(--c-purple-border);}
+.outcome-title{font-family:'Syne',sans-serif;font-size:19px;font-weight:700;margin:10px 0 7px;}
+.outcome-desc{color:var(--muted);font-size:12px;margin-bottom:18px;line-height:1.75;max-width:600px;}
+
+/* ACTION SECTIONS */
+.action-section{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px 18px;margin-bottom:10px;}
+.action-section-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.action-section-icon{font-size:13px;}
+.action-section-label{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--dim);font-weight:500;}
+.action-section-badge{display:inline-flex;padding:2px 7px;border-radius:3px;font-size:9px;text-transform:uppercase;letter-spacing:0.07em;}
+.badge-now{background:rgba(255,71,87,0.15);color:var(--c-red);border:1px solid rgba(255,71,87,0.25);}
+.badge-soon{background:rgba(245,200,66,0.12);color:var(--c-yellow);border:1px solid rgba(245,200,66,0.22);}
+.badge-parallel{background:rgba(96,165,250,0.1);color:var(--c-blue);border:1px solid var(--c-blue-border);}
+
+.action-list{list-style:none;}
+.action-list li{display:flex;align-items:flex-start;gap:8px;padding:5px 0;color:var(--muted);font-size:11px;line-height:1.55;}
+.action-list li::before{content:'→';color:var(--dim);flex-shrink:0;margin-top:0;}
+.action-list li strong{color:var(--text);font-weight:500;}
+.action-list.dense li{padding:3px 0;}
+
+/* STEPS GRID — 2 col for immediate, stacked for rest */
+.steps-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.steps-grid-wide{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px;}
+
+/* TRIGGER CALLOUT */
+.trigger-callout{border-radius:8px;padding:14px 18px;border:1px solid;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;}
+.trigger-imt{background:var(--c-blue-bg);border-color:var(--c-blue-border);}
+.trigger-dfir{background:var(--c-purple-bg);border-color:var(--c-purple-border);}
+.trigger-icon{font-size:15px;flex-shrink:0;margin-top:1px;}
+.trigger-content{}
+.trigger-label{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;font-weight:500;margin-bottom:4px;}
+.trigger-imt .trigger-label{color:var(--c-blue);}
+.trigger-dfir .trigger-label{color:var(--c-purple);}
+.trigger-text{font-size:11px;color:var(--muted);line-height:1.6;}
+
+/* ESCALATION ROW */
+.esc-row{display:flex;flex-wrap:wrap;gap:6px;padding-top:14px;border-top:1px solid var(--border);margin-top:6px;align-items:center;}
+.esc-label{font-size:10px;letter-spacing:0.09em;text-transform:uppercase;color:var(--dim);margin-right:4px;}
+.esc-pill{padding:3px 9px;border-radius:4px;font-size:10px;background:var(--surface2);border:1px solid var(--border2);color:var(--muted);}
+.esc-pill.esc-urgent{background:rgba(255,71,87,0.1);border-color:rgba(255,71,87,0.25);color:var(--c-red);}
+.esc-pill.esc-high{background:rgba(255,140,66,0.1);border-color:rgba(255,140,66,0.25);color:var(--c-orange);}
+.esc-pill.esc-info{background:var(--c-blue-bg);border-color:var(--c-blue-border);color:var(--c-blue);}
+
+/* DECISION LOG */
+.decision-log{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 18px;margin-bottom:20px;}
+.decision-log-title{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;}
+.log-entry{display:flex;gap:10px;padding:4px 0 4px 10px;font-size:11px;color:var(--muted);border-left:2px solid var(--border);margin-left:4px;line-height:1.5;}
+.log-entry:not(:last-child){margin-bottom:2px;}
+.log-q{color:var(--dim);min-width:18px;flex-shrink:0;}
+.log-unknown{color:var(--c-yellow);font-style:italic;}
+
+/* BUTTONS */
+.btn-row{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;cursor:pointer;transition:all 0.12s;border:1px solid var(--border2);background:var(--surface2);color:var(--text);}
+.btn:hover{background:var(--surface);border-color:rgba(255,255,255,0.2);}
+.btn-primary{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.16);}
+
+/* LANDING */
+.landing-eyebrow{font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--dim);margin-bottom:12px;}
+.landing-title{font-family:'Syne',sans-serif;font-size:30px;font-weight:700;line-height:1.2;color:var(--text);margin-bottom:12px;}
+.landing-sub{color:var(--muted);font-size:12px;max-width:500px;line-height:1.8;margin-bottom:26px;}
+
+.tier-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:36px;}
+.tier-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:13px 11px;cursor:pointer;transition:all 0.15s;text-align:left;}
+.tier-card:hover{border-color:var(--border2);transform:translateY(-2px);}
+.tc-num{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:5px;line-height:1;}
+.tc-name{font-size:11px;color:var(--muted);margin-bottom:3px;}
+.tc-desc{font-size:10px;color:var(--dim);line-height:1.5;}
+.tc-0 .tc-num{color:var(--c-green);}
+.tc-1 .tc-num{color:var(--c-yellow);}
+.tc-2 .tc-num{color:var(--c-orange);}
+.tc-3 .tc-num{color:var(--c-red);}
+.tc-4 .tc-num{color:var(--c-purple);}
+
+.start-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;background:rgba(45,221,150,0.1);border:1px solid var(--c-green-border);border-radius:7px;color:var(--c-green);font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;}
+.start-btn:hover{background:rgba(45,221,150,0.17);}
+
+.divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
+
+/* TABLES */
+.ref-table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:18px;}
+.ref-table th{text-align:left;padding:7px 11px;color:var(--dim);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;border-bottom:1px solid var(--border);font-weight:500;}
+.ref-table td{padding:7px 11px;color:var(--muted);border-bottom:1px solid var(--border);vertical-align:top;line-height:1.55;}
+.ref-table td:first-child{color:var(--text);font-weight:500;}
+.ref-table tr:last-child td{border-bottom:none;}
+
+/* UNKNOWN WARNING */
+.unknown-note{background:rgba(245,200,66,0.07);border:1px solid rgba(245,200,66,0.2);border-radius:6px;padding:10px 14px;font-size:11px;color:var(--c-yellow);margin-bottom:16px;line-height:1.6;}
+
+@media(max-width:768px){.sidebar{display:none;}.main{padding:22px 18px;}.tier-grid{grid-template-columns:repeat(2,1fr);}.steps-grid{grid-template-columns:1fr;}}
+@media print{.sidebar{display:none;}.main{padding:20px;max-width:100%;}.opt-btn{pointer-events:none;}body{background:#fff;color:#000;}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<nav class="sidebar">
+  <div class="wordmark">// IR Decision Tool</div>
+  <div class="nav-section-label">Triage</div>
+  <button class="nav-item active" id="nav-triage" onclick="goHome()"><span class="nav-dot" style="background:var(--c-green)"></span>Start triage</button>
+  <button class="nav-item" id="nav-decision" style="pointer-events:none;opacity:0.4"><span class="nav-dot" style="background:var(--c-yellow)"></span>Decision tree</button>
+  <button class="nav-item" id="nav-outcome" style="pointer-events:none;opacity:0.4"><span class="nav-dot" style="background:var(--c-orange)"></span>Outcome</button>
+  <div class="nav-section-label">Reference</div>
+  <button class="nav-item" onclick="showSeverityRef()"><span class="nav-dot" style="background:var(--dim)"></span>Severity guide</button>
+  <button class="nav-item" onclick="showEscRef()"><span class="nav-dot" style="background:var(--dim)"></span>Escalation matrix</button>
+  <button class="nav-item" onclick="showIMTRef()"><span class="nav-dot" style="background:var(--c-blue)"></span>IMT guide</button>
+  <button class="nav-item" onclick="showDFIRRef()"><span class="nav-dot" style="background:var(--c-purple)"></span>DFIR triggers</button>
+  <div style="margin-top:auto;padding-top:32px">
+    <div class="nav-section-label">Session</div>
+    <button class="nav-item" onclick="resetAll()"><span class="nav-dot" style="background:var(--dim)"></span>Reset</button>
+    <button class="nav-item" onclick="window.print()"><span class="nav-dot" style="background:var(--dim)"></span>Print / save</button>
+  </div>
+</nav>
+
+<main class="main" id="main"></main>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+// TREE DATA
+// Each node is either a question node or an outcome node.
+// question: { q, hint, opts: [{label, desc, tag, next}] }
+// outcome:  { outcome:N, sev:N, title, desc, imt, dfir, immediate, notify, ircActions, escalation, docActions }
+// tag: 'unknown' renders the option with dashed styling
+// ─────────────────────────────────────────────────────────────
+const TREE = {
+
+  // ── ENTRY POINT ───────────────────────────────────────────
+  start: {
+    q: 'What is the nature of the initial detection signal?',
+    hint: 'Select the category that most closely matches what triggered this triage. If the alert source is unclear or multiple signals have fired simultaneously, select the most severe applicable category.',
+    opts: [
+      { label: 'Alert fired — no evidence of successful access', desc: 'Firewall block, IPS deny, AV quarantine, MFA challenge failed, credential spray blocked at perimeter', next: 'blocked_entry' },
+      { label: 'Suspicious or anomalous activity inside the environment', desc: 'Unusual process, recon behaviour, anomalous user activity, phishing link clicked — no confirmed breach yet', next: 'suspicious_entry' },
+      { label: 'Access has been confirmed or is strongly suspected', desc: 'Verified logon from unexpected source, confirmed malware execution, EDR detects active intrusion', next: 'access_entry' },
+      { label: 'Impact is already visible', desc: 'Systems encrypted, data observed exiting, services down, ransom note present', next: 'impact_entry' },
+      { label: 'Unknown — alert received but nature unclear', desc: 'SIEM correlation rule fired, third-party tip, ambiguous indicators — unable to classify yet', tag: 'unknown', next: 'unknown_entry' },
+    ]
+  },
+
+  // ── UNKNOWN ENTRY ─────────────────────────────────────────
+  unknown_entry: {
+    q: 'What can you confirm from the alert source right now?',
+    hint: 'Check the raw alert, SIEM context, and EDR console before answering. Do not assume — only select what you can verify.',
+    opts: [
+      { label: 'I can confirm activity came from inside the network / an authenticated session', desc: 'Source IP is internal, or a valid account token was used', next: 'suspicious_entry' },
+      { label: 'I can confirm only external / perimeter activity so far', desc: 'Traffic blocked at edge, no internal indicators visible yet', next: 'blocked_entry' },
+      { label: 'I cannot confirm scope or origin at this stage', desc: 'Insufficient visibility — logs missing, EDR not deployed on affected host, or alert context too thin', tag: 'unknown', next: 'unknown_insufficient_vis' },
+    ]
+  },
+
+  unknown_insufficient_vis: {
+    outcome: 2,
+    sev: 2,
+    title: 'Insufficient Visibility — Treat as Active Incident',
+    imt: true,
+    dfir: false,
+    desc: 'You cannot determine whether a breach has occurred because you lack the visibility to confirm or deny it. This is itself a risk indicator. Treat conservatively as a P2 until proven otherwise. Gaining visibility is the first objective.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>EDR:</strong> Identify which systems in scope have no EDR coverage — document the gap immediately',
+        '<strong>SIEM:</strong> Pull all events from the alert source for T-24hrs. Look for any correlated alerts you may have missed',
+        '<strong>Firewall / proxy logs:</strong> Query for unusual outbound connections or denied traffic spikes in the relevant window',
+        '<strong>AD / IdP:</strong> Run a query for any account lockouts, MFA failures, or impossible travel events in last 24 hrs',
+        'Do NOT attempt remediation until you understand what you are dealing with — premature action can destroy evidence',
+      ]},
+      { when: 'parallel', steps: [
+        'Stand up a secure comms channel (out-of-band — not email if environment may be compromised)',
+        'Brief security manager — P2 pending investigation, visibility gap identified',
+        'Identify the asset owner for any systems in the unknown zone',
+        'If visibility gap is due to missing log sources, escalate to engineering to enable urgently',
+      ]},
+    ],
+    notify: ['Security manager — immediate', 'CISO — awareness within 2 hrs', 'Asset owners of systems in scope'],
+    ircActions: ['IR analyst assigned to visibility-gain workstream', 'Document all log sources checked and their coverage status'],
+    escalation: [
+      { label: 'Security manager', type: 'high' },
+      { label: 'CISO (2 hr)', type: 'high' },
+    ],
+    docActions: ['Open P2 incident ticket. Log: alert source, time of detection, log sources checked, coverage gaps, investigative actions taken'],
+  },
+
+  // ── BLOCKED ───────────────────────────────────────────────
+  blocked_entry: {
+    q: 'Were the blocked attempts isolated or part of a pattern?',
+    hint: 'Correlate across SIEM: same source IP, same account target, same attack technique. Look back at least 7 days.',
+    opts: [
+      { label: 'Single isolated attempt — no pattern detected', desc: 'One event, no related alerts, no repeat activity', next: 'blocked_single' },
+      { label: 'Multiple attempts — same source targeting same or multiple targets', desc: 'Credential spray, scanning, persistent external probing', next: 'blocked_persistent_target' },
+      { label: 'Cannot determine — insufficient log retention or correlation', tag: 'unknown', next: 'blocked_unknown_pattern' },
+    ]
+  },
+
+  blocked_unknown_pattern: {
+    outcome: 1,
+    sev: 1,
+    title: 'Blocked — Pattern Unclear',
+    imt: false,
+    dfir: false,
+    desc: 'You cannot determine whether this is isolated or part of a campaign due to log gaps. Treat as P3, investigate log coverage, and review again once visibility improves.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>SIEM:</strong> Document exactly which log sources are missing or have insufficient retention',
+        '<strong>Firewall / edge:</strong> Check raw device logs directly if SIEM ingestion has gaps',
+        '<strong>TI platform:</strong> Run the source IP and any domains/hashes through threat intel — known actor or scanner?',
+        'Check whether the same IP has appeared in any other alert in the past 30 days',
+      ]},
+      { when: 'soon', steps: [
+        'Tag IoC and flag for monitoring — set alert rule if source reappears',
+        'Raise log coverage gap as a separate finding to the security engineering team',
+        'If source is attributed to a known threat actor via TI, re-escalate to P2',
+      ]},
+    ],
+    notify: ['Security manager — FYI'],
+    ircActions: ['No formal IR invocation. Analyst assigned to investigate log gap'],
+    escalation: [{ label: 'Security manager (FYI)', type: 'info' }],
+    docActions: ['Log ticket: alert detail, IoC, log sources checked, gaps identified. Review in 24 hrs'],
+  },
+
+  blocked_single: {
+    outcome: 0,
+    sev: 0,
+    title: 'Blocked — Isolated Attempt',
+    imt: false,
+    dfir: false,
+    desc: 'Single blocked attempt consistent with background internet noise or opportunistic scanning. No escalation required. Log and close.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>Firewall / EDR:</strong> Confirm block was effective — verify no subsequent connection succeeded',
+        '<strong>SIEM:</strong> Check ±4 hr window for any correlated activity from the same source',
+        '<strong>TI platform:</strong> Enrich source IP / hash / domain — tag known scanner/commodity vs targeted',
+        'Confirm no internal system initiated outbound connection to the same destination',
+      ]},
+      { when: 'soon', steps: [
+        'Tag IoC in threat intel platform with confidence level',
+        'Close ticket — no further action unless same source reappears',
+      ]},
+    ],
+    notify: ['None required'],
+    ircActions: ['No IR involvement required'],
+    escalation: [],
+    docActions: ['Close ticket: source, vector, block confirmation, IoC tag, TI enrichment note'],
+  },
+
+  blocked_persistent_target: {
+    q: 'What accounts or systems are being targeted?',
+    hint: 'Check whether targeted accounts have elevated privilege, MFA status, or access to sensitive data or critical systems.',
+    opts: [
+      { label: 'Standard user accounts or non-critical systems only', desc: 'No admin rights, no sensitive data access, no critical infrastructure', next: 'blocked_persistent_low' },
+      { label: 'Privileged accounts, service accounts, or critical systems', desc: 'Domain admin, C-suite, VPN gateway, Azure AD, cloud management plane, IT admins', next: 'blocked_persistent_high' },
+      { label: 'Unknown — cannot determine which accounts are being targeted', tag: 'unknown', next: 'blocked_persistent_unknown_target' },
+    ]
+  },
+
+  blocked_persistent_unknown_target: {
+    outcome: 2,
+    sev: 2,
+    title: 'Targeted Campaign — Target Criticality Unknown',
+    imt: true,
+    dfir: false,
+    desc: 'Persistent attack campaign in progress but you cannot determine whether privileged accounts are in scope. Assume the worst-case targeting profile until confirmed otherwise.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>AD / Azure AD:</strong> Run an immediate query — which accounts match the usernames being sprayed? What are their roles and group memberships?',
+        '<strong>SIEM / IdP:</strong> Check for any successful authentications from the campaign source IPs in the last 7 days across ALL services (VPN, OWA, O365, cloud portals)',
+        '<strong>Edge controls:</strong> Block source IP ranges at perimeter firewall and WAF while investigation continues',
+        '<strong>MFA:</strong> Verify MFA status on all accounts appearing in the spray attempts',
+      ]},
+      { when: 'parallel', steps: [
+        'Notify security manager and CISO — active campaign, target criticality TBC',
+        'Stand up incident comms channel',
+        'Begin IMT assembly — incident commander assigned, first call within 30 mins',
+      ]},
+    ],
+    notify: ['Security manager — immediate', 'CISO — within 1 hr'],
+    ircActions: ['Invoke IMT — incident commander assigned', 'Analyst workstream: enumerate targeted accounts and their privilege levels'],
+    escalation: [
+      { label: 'Security manager', type: 'urgent' },
+      { label: 'CISO (1 hr)', type: 'high' },
+    ],
+    docActions: ['Open P2 incident. Log: attack timeline, source IPs, targeted account list (partial), initial blocks applied'],
+  },
+
+  blocked_persistent_low: {
+    outcome: 1,
+    sev: 1,
+    title: 'Persistent Campaign — Standard Targets, All Blocked',
+    imt: false,
+    dfir: false,
+    desc: 'Active campaign against standard accounts. All blocked. Warrants monitoring uplift and hardening, but no formal IR invocation yet.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>Firewall / WAF:</strong> Block source IP/ASN range at perimeter',
+        '<strong>IdP / AD:</strong> Enforce account lockout review — check if any targeted accounts have unusually low thresholds',
+        '<strong>SIEM:</strong> Enable enhanced logging and alerting on all targeted accounts for next 7 days',
+        '<strong>TI platform:</strong> Enrich all IoCs — is this a known campaign? Check industry threat feeds',
+        'Verify all targeted accounts have MFA enrolled and not bypassed by legacy auth',
+      ]},
+      { when: 'soon', steps: [
+        'Block legacy authentication protocols if not already done (SMTP AUTH, IMAP, basic auth on O365)',
+        'Consider temporary geo-restriction if campaign originates from unusual regions',
+        'Notify targeted account owners — do not disclose attack detail, just prompt password review',
+      ]},
+    ],
+    notify: ['Security manager — FYI notification'],
+    ircActions: ['No formal IR invocation. Senior analyst assigned to track. Re-escalate if any successful auth detected'],
+    escalation: [{ label: 'Security manager (FYI)', type: 'info' }],
+    docActions: ['Open tracked ticket. Log: campaign timeline, IoC list, target accounts, blocks applied, TI enrichment'],
+  },
+
+  blocked_persistent_high: {
+    q: 'Can you confirm no successful authentication occurred for any targeted privileged account during the campaign window?',
+    hint: 'Check: VPN auth logs, Azure AD sign-in logs, on-prem AD event ID 4624/4625, OWA, third-party SSO, cloud consoles. The window should be the full duration of the campaign plus 48 hrs prior.',
+    opts: [
+      { label: 'Confirmed — all attempts failed, no successful auths detected', next: 'blocked_privileged_clean' },
+      { label: 'At least one successful authentication was detected', next: 'access_entry' },
+      { label: 'Cannot confirm — log sources incomplete or retention insufficient', tag: 'unknown', next: 'blocked_privileged_unknown_auth' },
+    ]
+  },
+
+  blocked_privileged_unknown_auth: {
+    outcome: 2,
+    sev: 2,
+    title: 'Privileged Account Targeted — Auth Status Unconfirmed',
+    imt: true,
+    dfir: false,
+    desc: 'Privileged accounts are being targeted by a persistent campaign and you cannot confirm whether any access succeeded. This must be treated as a potential breach of privileged access until ruled out.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>AD / Azure AD:</strong> Immediately disable or restrict all targeted privileged accounts pending investigation — coordinate with IT to minimise disruption',
+        '<strong>PAM / CyberArk / LAPS:</strong> Rotate credentials for all targeted privileged accounts',
+        '<strong>Log sources:</strong> Urgently request any missing logs — contact cloud providers, MSSP, or SIEM team for raw log access',
+        '<strong>EDR:</strong> Check all systems the targeted accounts last authenticated to for signs of active sessions or suspicious processes',
+        '<strong>VPN / remote access:</strong> Review active sessions — terminate any from unknown sources',
+      ]},
+      { when: 'parallel', steps: [
+        'Invoke IMT immediately — cannot rule out privileged compromise',
+        'Notify CISO — active risk to privileged access, status unconfirmed',
+        'Begin building a scope hypothesis: what could those accounts access if compromised?',
+      ]},
+    ],
+    notify: ['CISO — immediate', 'Security manager — immediate', 'Relevant IT system owners'],
+    ircActions: ['IMT invoked', 'Incident commander assigned', 'Parallel workstreams: (1) log acquisition, (2) account restriction, (3) scope mapping'],
+    escalation: [
+      { label: 'CISO — immediate', type: 'urgent' },
+      { label: 'Security manager', type: 'urgent' },
+    ],
+    docActions: ['Open P2 incident record. Log: targeted accounts, privilege levels, authentication sources checked, gaps in visibility, actions taken'],
+  },
+
+  blocked_privileged_clean: {
+    outcome: 2,
+    sev: 2,
+    title: 'Privileged Accounts Targeted — All Blocked',
+    imt: true,
+    dfir: false,
+    desc: 'All attempts blocked, but the targeting of privileged accounts by a persistent campaign is a significant threat indicator. Formal security review required. IMT assembled for coordinated response.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>AD / Azure AD:</strong> Verify MFA is active and not bypassable via legacy auth on ALL targeted accounts',
+        '<strong>Privileged access:</strong> Rotate passwords on all targeted accounts as a precaution — coordinate with PAM team',
+        '<strong>Firewall / WAF:</strong> Block all source IP ranges. Submit IoCs to MSSP/MDR if applicable',
+        '<strong>SIEM:</strong> Extend log retention for affected account activity to 90 days minimum',
+        '<strong>TI:</strong> Attribute campaign — is this a known TA? Share IoCs with sector ISAC if applicable',
+      ]},
+      { when: 'soon', steps: [
+        'Review privileged account access paths — reduce attack surface (JIT access, tiering review)',
+        'Consider temporary restriction of privileged account access to jump hosts only',
+        'Notify affected account holders — reset and re-enrol MFA',
+      ]},
+    ],
+    notify: ['CISO — within 2 hrs', 'Security manager — immediate', 'Affected account holders'],
+    ircActions: ['IMT assembled', 'Incident commander and security lead assigned', 'Assign TI analyst to attribution workstream'],
+    escalation: [
+      { label: 'CISO (2 hr)', type: 'high' },
+      { label: 'Security manager', type: 'urgent' },
+    ],
+    docActions: ['Open P2 incident record. Log: campaign timeline, targeted accounts, privilege levels, blocks applied, credential rotation log, TI enrichment'],
+  },
+
+  // ── SUSPICIOUS ACTIVITY ───────────────────────────────────
+  suspicious_entry: {
+    q: 'What is the privilege level of the affected account or system?',
+    hint: 'Consider: Is the account domain admin, service account, or cloud management plane? Does the system hold sensitive data, provide authentication services, or have unrestricted network access?',
+    opts: [
+      { label: 'Standard user — no admin rights, no access to sensitive data or critical systems', next: 'susp_standard' },
+      { label: 'Elevated user — local admin, or access to sensitive but not critical systems', next: 'susp_elevated' },
+      { label: 'Privileged account or critical system', desc: 'Domain admin, cloud admin, service account with broad access, security tooling, infrastructure systems', next: 'susp_privileged' },
+      { label: 'Unknown — account privilege level not yet established', tag: 'unknown', next: 'susp_unknown_priv' },
+    ]
+  },
+
+  susp_unknown_priv: {
+    q: 'Can you at least confirm whether the activity is confined to a single endpoint or account?',
+    opts: [
+      { label: 'Yes — isolated to one endpoint or one account', next: 'susp_unknown_priv_single' },
+      { label: 'No — multiple systems or accounts involved', next: 'susp_privileged' },
+      { label: 'Cannot determine — no lateral movement visibility', tag: 'unknown', next: 'susp_unknown_all' },
+    ]
+  },
+
+  susp_unknown_priv_single: {
+    outcome: 2,
+    sev: 2,
+    title: 'Suspicious Activity — Privilege Level Unknown, Single System',
+    imt: true,
+    dfir: false,
+    desc: 'You have isolated suspicious activity to a single host or account but cannot confirm privilege level. Treat as elevated risk until privilege is confirmed. Containment first, investigation second.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>AD / Azure AD:</strong> Immediately look up the affected account — group memberships, admin roles, service account flags',
+        '<strong>EDR:</strong> Soft-isolate the affected endpoint from the network (allow EDR/management traffic only)',
+        '<strong>SIEM:</strong> Pull full activity timeline for the account and host for the past 7 days',
+        '<strong>Auth logs:</strong> Check for any lateral authentication from this account to other systems',
+        'Do not log off the active session — preserve in-memory forensic artefacts if possible',
+      ]},
+      { when: 'parallel', steps: [
+        'Invoke IMT — assemble incident commander and assign investigation analyst',
+        'Notify security manager immediately',
+        'If account turns out to be privileged during investigation, re-escalate to P1 immediately',
+      ]},
+    ],
+    notify: ['Security manager — immediate', 'CISO — within 2 hrs'],
+    ircActions: ['IMT invoked', 'Incident commander assigned', 'Analyst assigned to privilege determination workstream'],
+    escalation: [{ label: 'Security manager', type: 'urgent' }, { label: 'CISO (2 hr)', type: 'high' }],
+    docActions: ['Open P2 incident. Log: affected host, account, suspicious activity detail, privilege lookup result, containment actions'],
+  },
+
+  susp_unknown_all: {
+    outcome: 3,
+    sev: 3,
+    title: 'Suspicious Activity — Scope and Privilege Unknown',
+    imt: true,
+    dfir: true,
+    desc: 'You have confirmed suspicious activity but cannot determine how far it has spread or what privilege level is involved. No visibility into lateral movement. This is a P1 — assume broad compromise until proven otherwise.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>EDR:</strong> Push isolation policy to all endpoints that are not covered by EDR — document the gap',
+        '<strong>AD:</strong> Immediately disable any accounts whose activity triggered the initial alert',
+        '<strong>Network:</strong> Apply emergency micro-segmentation or VLAN isolation to the affected network segment if identifiable',
+        '<strong>SIEM:</strong> Run a threat hunt query for the observed TTPs across the entire estate',
+        'Preserve memory and disk images on affected systems before any remediation',
+      ]},
+      { when: 'parallel', steps: [
+        'IMT full assembly — P1 war room',
+        'Engage external DFIR retainer — scope visibility requires specialist forensic capability',
+        'Notify CISO, legal, and cyber insurer',
+        'Do NOT begin eradication until DFIR team confirms full scope',
+      ]},
+    ],
+    notify: ['CISO — immediate', 'Security manager — immediate', 'Legal / DPO — flag potential data risk', 'Cyber insurer — notify per policy'],
+    ircActions: ['IMT full invocation — P1', 'External DFIR retainer engaged', 'Evidence preservation workstream started immediately'],
+    escalation: [{ label: 'CISO', type: 'urgent' }, { label: 'Legal / DPO', type: 'high' }, { label: 'Cyber insurer', type: 'high' }],
+    docActions: ['Open P1 incident record. Log: all observed IoAs, systems in scope (known), log gaps, DFIR engagement details, preservation actions'],
+  },
+
+  susp_standard: {
+    q: 'Has the suspicious activity been confirmed as isolated to that single account/endpoint?',
+    hint: 'Check: EDR process tree for child processes spawning network connections, auth logs for lateral movement, proxy/DNS for unusual outbound, email gateway for unusual sending behaviour.',
+    opts: [
+      { label: 'Yes — fully contained to one endpoint, no lateral movement indicators', next: 'susp_standard_contained' },
+      { label: 'No — lateral movement, privilege escalation, or multi-host indicators seen', next: 'susp_elevated' },
+      { label: 'Cannot confirm containment — visibility gap', tag: 'unknown', next: 'susp_unknown_priv_single' },
+    ]
+  },
+
+  susp_standard_contained: {
+    q: 'Is there any evidence of attacker tooling, C2 communication, or encoded execution?',
+    hint: 'Look for: known malware hashes in EDR, beaconing to external IPs in proxy logs, base64/PowerShell encoded commands, LOLBAS abuse (certutil, bitsadmin, mshta), unusual scheduled tasks or services.',
+    opts: [
+      { label: 'No — anomalous but no clear attacker tooling confirmed', desc: 'Could be user error, misconfiguration, or legitimate tool misuse', next: 'susp_standard_unclear' },
+      { label: 'Yes — confirmed attacker tooling, C2 traffic, or encoded execution', next: 'susp_elevated' },
+      { label: 'Unknown — cannot determine from available telemetry', tag: 'unknown', next: 'susp_standard_unknown_tooling' },
+    ]
+  },
+
+  susp_standard_unclear: {
+    outcome: 1,
+    sev: 1,
+    title: 'Suspicious Activity — Low Privilege, Contained, No Confirmed Tooling',
+    imt: false,
+    dfir: false,
+    desc: 'Low-risk profile: single standard account, contained to one endpoint, no clear attacker tooling. Investigate fully before closing — could be a precursor to a larger incident.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>EDR:</strong> Soft-isolate endpoint (cut network, maintain EDR connection). Pull process tree, parent-child chain, file writes, and network connections',
+        '<strong>SIEM:</strong> Pull full timeline for account and host — T-7 days minimum',
+        '<strong>Auth logs:</strong> Verify no other systems authenticated to by this account in the activity window',
+        '<strong>Proxy / DNS:</strong> Check for any outbound to unusual or low-reputation domains',
+        'Interview the user — confirm whether the activity was intentional (be careful not to tip off a malicious insider)',
+      ]},
+      { when: 'soon', steps: [
+        'Collect memory image if persistence mechanism suspected',
+        'Verify endpoint security controls are up to date and functioning',
+        'If investigation confirms legitimate activity: document, re-enable host, close',
+        'If any attacker indicators found during investigation: re-escalate immediately',
+      ]},
+    ],
+    notify: ['Security manager — awareness only'],
+    ircActions: ['IR analyst assigned to investigate. No formal IMT invocation. Re-escalate if tooling confirmed'],
+    escalation: [{ label: 'Security manager (awareness)', type: 'info' }],
+    docActions: ['Open investigation ticket. Log: endpoint, account, process tree, investigation hypothesis, interview notes, outcome'],
+  },
+
+  susp_standard_unknown_tooling: {
+    outcome: 2,
+    sev: 2,
+    title: 'Suspicious Activity — Tooling Status Unknown',
+    imt: true,
+    dfir: false,
+    desc: 'You cannot determine from available telemetry whether attacker tooling is present. Absent visibility, treat conservatively — assume potential compromise and begin formal investigation.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>EDR:</strong> Hard-isolate endpoint immediately — loss of function is acceptable given unknown tooling risk',
+        '<strong>Memory:</strong> Capture full memory image before isolation if timing allows (use Magnet RAM Capture, WinPMEM, or EDR native memory acquisition)',
+        '<strong>SIEM:</strong> Pull all events for host and account — send to analyst for manual review',
+        '<strong>Identify telemetry gap:</strong> Why can you not determine tooling presence? Missing EDR? Disabled AV? Log forwarding broken?',
+        'Do not re-image the endpoint until memory and disk forensics are complete',
+      ]},
+      { when: 'parallel', steps: [
+        'Invoke IMT — incident commander assigned',
+        'Notify CISO — active investigation, unknown tooling risk',
+        'If memory/disk forensics require specialist resource, pre-brief DFIR retainer',
+      ]},
+    ],
+    notify: ['Security manager — immediate', 'CISO — within 2 hrs'],
+    ircActions: ['IMT invoked', 'Forensic analyst assigned', 'DFIR retainer on standby — invoke if tooling confirmed or scope expands'],
+    escalation: [{ label: 'Security manager', type: 'urgent' }, { label: 'CISO (2 hr)', type: 'high' }],
+    docActions: ['Open P2 incident. Log: endpoint state, memory capture status, telemetry gaps, containment actions'],
+  },
+
+  susp_elevated: {
+    q: 'Is there evidence of active credential abuse, privilege escalation, or lateral movement?',
+    hint: 'Check: Kerberoasting/AS-REP roasting tickets in EDR, new local admin accounts, LSASS access in EDR, pass-the-hash/pass-the-ticket indicators, RDP/SMB lateral movement in network logs, unusual WMI/PSRemoting usage.',
+    opts: [
+      { label: 'No — suspicious but no confirmed credential abuse or lateral movement', next: 'susp_elevated_contained' },
+      { label: 'Yes — confirmed credential abuse, privilege escalation, or lateral movement', next: 'access_entry' },
+      { label: 'Unknown — cannot confirm or rule out', tag: 'unknown', next: 'susp_elevated_unknown_lateral' },
+    ]
+  },
+
+  susp_elevated_unknown_lateral: {
+    outcome: 2,
+    sev: 2,
+    title: 'Elevated Activity — Lateral Movement Status Unknown',
+    imt: true,
+    dfir: false,
+    desc: 'Elevated account or system showing suspicious activity and you cannot confirm whether lateral movement has occurred. The risk of undetected spread is too high to treat this as contained.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>AD / Azure AD:</strong> Disable the affected account immediately and revoke all active tokens (run Revoke-AzureADUserAllRefreshToken / Disable-ADAccount)',
+        '<strong>EDR:</strong> Isolate the affected host. Query for any new processes spawned by the account in the past 24 hrs across ALL hosts',
+        '<strong>SIEM:</strong> Run a hunt for event ID 4648 (explicit logon), 4768/4769 (Kerberos TGT/service tickets), 4624 type 3/10 (network/remote interactive logon) from the affected account across the estate',
+        '<strong>Network:</strong> Check for any new SMB connections, RDP sessions, or WinRM activity from the affected host',
+        'Preserve memory and disk images on affected host before further intervention',
+      ]},
+      { when: 'parallel', steps: [
+        'Invoke IMT — lateral movement may have occurred',
+        'Notify CISO — elevated account, lateral movement unconfirmed but possible',
+        'Prepare DFIR retainer briefing — likely to be engaged if scope expands',
+      ]},
+    ],
+    notify: ['Security manager — immediate', 'CISO — within 1 hr'],
+    ircActions: ['IMT invoked', 'Incident commander assigned', 'Threat hunt workstream opened for lateral movement detection'],
+    escalation: [{ label: 'CISO (1 hr)', type: 'urgent' }, { label: 'Security manager', type: 'urgent' }],
+    docActions: ['Open P2 incident. Log: affected account, suspicious activity detail, hunt queries run, results, containment actions'],
+  },
+
+  susp_elevated_contained: {
+    outcome: 2,
+    sev: 2,
+    title: 'Elevated Account Anomaly — No Confirmed Lateral Movement',
+    imt: true,
+    dfir: false,
+    desc: 'Elevated privilege account or critical system showing suspicious activity. No lateral movement confirmed but risk is high. Treat as active investigation with formal IR.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>AD / Azure AD:</strong> Restrict the account — disable or reduce to read-only pending investigation',
+        '<strong>EDR:</strong> Isolate affected host. Pull process tree and check for any credential dumping tools (Mimikatz artefacts, LSASS access)',
+        '<strong>PAM:</strong> If service account or privileged account, rotate credentials immediately via PAM system',
+        '<strong>SIEM:</strong> Pull all activity for account and host T-7 days — look for staging indicators, data enumeration, unusual file access',
+        '<strong>Email gateway:</strong> Check if account was used to send phishing or forward email externally',
+      ]},
+      { when: 'soon', steps: [
+        'Run a full hunt for the observed TTPs across the estate — confirm this is truly contained',
+        'Review what data and systems the account had access to — this informs your blast radius assessment',
+        'Brief CISO with investigation findings before close',
+      ]},
+    ],
+    notify: ['Security manager — immediate', 'CISO — within 2 hrs', 'Legal / DPO if data access suspected'],
+    ircActions: ['IMT invoked', 'Incident commander and forensic analyst assigned', 'DFIR retainer on standby'],
+    escalation: [{ label: 'CISO (2 hr)', type: 'high' }, { label: 'Security manager', type: 'urgent' }],
+    docActions: ['Open P2 incident. Log: account, host, activity detail, privilege assessment, credential rotation, containment actions, blast radius assessment'],
+  },
+
+  susp_privileged: {
+    q: 'Is there any evidence of data access, enumeration, or staging behaviour on the privileged account or system?',
+    hint: 'Look for: large file access in DLP/file server logs, LDAP enumeration queries, database queries outside normal pattern, access to backup systems, unusual outbound via proxy, cloud storage uploads.',
+    opts: [
+      { label: 'No evidence of data access or staging', next: 'susp_privileged_clean' },
+      { label: 'Yes — confirmed or suspected data access / enumeration / staging', next: 'access_entry' },
+      { label: 'Unknown — cannot determine from available logs', tag: 'unknown', next: 'susp_privileged_unknown_data' },
+    ]
+  },
+
+  susp_privileged_unknown_data: {
+    outcome: 3,
+    sev: 3,
+    title: 'Privileged System Anomaly — Data Access Status Unknown',
+    imt: true,
+    dfir: true,
+    desc: 'A privileged account or critical system is exhibiting suspicious behaviour and you cannot determine whether sensitive data was accessed. Given the privilege level, assume data was accessed until DFIR confirms otherwise.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>AD / Azure AD:</strong> Immediately disable all affected privileged accounts — involve IT leads to mitigate service disruption',
+        '<strong>EDR:</strong> Hard-isolate all affected systems immediately',
+        '<strong>PAM:</strong> Rotate all credentials associated with the affected accounts through PAM — including service account passwords and any stored credentials',
+        '<strong>Memory:</strong> Prioritise memory capture on affected systems — engage DFIR team for this immediately',
+        '<strong>DLP / CASB:</strong> Pull any alerts or events for the affected account in last 30 days',
+        'Do NOT begin eradication until DFIR has completed initial forensic triage',
+      ]},
+      { when: 'parallel', steps: [
+        'Invoke IMT at P1 level — full command structure',
+        'Engage external DFIR retainer — formal scope mandate required',
+        'Notify CISO, legal, DPO immediately',
+        'Notify cyber insurer — potential data breach scenario',
+        'Begin 72-hour regulatory assessment clock — you may need to notify ICO',
+      ]},
+    ],
+    notify: ['CISO — immediate', 'Legal — immediate', 'DPO — immediate', 'Cyber insurer — notify per policy', 'Security manager — immediate'],
+    ircActions: ['IMT P1 full invocation', 'External DFIR retainer engaged immediately', 'Evidence preservation as first priority before any eradication'],
+    escalation: [{ label: 'CISO', type: 'urgent' }, { label: 'Legal / DPO', type: 'urgent' }, { label: 'Cyber insurer', type: 'urgent' }],
+    docActions: ['Open P1 incident record. Log: affected accounts/systems, privilege levels, DFIR engagement, evidence preservation log, regulatory timeline tracker'],
+  },
+
+  susp_privileged_clean: {
+    outcome: 2,
+    sev: 2,
+    title: 'Privileged Account Anomaly — No Confirmed Data Access',
+    imt: true,
+    dfir: false,
+    desc: 'Privileged account or critical system showing anomalous behaviour, no data access confirmed. High-risk scenario requiring formal IR. Treat until proven benign.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>AD / Azure AD:</strong> Restrict or disable affected account — notify account owner',
+        '<strong>EDR:</strong> Isolate affected system from network (soft isolation if possible to maintain investigation access)',
+        '<strong>PAM:</strong> Rotate privileged account credentials through PAM system',
+        '<strong>SIEM:</strong> Pull T-30 day activity timeline for account and all systems it authenticated to',
+        '<strong>EDR — credential hunting:</strong> Check for LSASS access, credential dumping artefacts, token manipulation',
+      ]},
+      { when: 'soon', steps: [
+        'Conduct full access review — what systems and data could this account have reached?',
+        'Verify anomaly is not related to legitimate admin activity (change management review)',
+        'If investigation expands to data access suspicion, escalate to P1 and invoke DFIR',
+      ]},
+    ],
+    notify: ['CISO — within 2 hrs', 'Security manager — immediate'],
+    ircActions: ['IMT invoked', 'Senior IR analyst and incident commander assigned', 'DFIR retainer on notice'],
+    escalation: [{ label: 'CISO (2 hr)', type: 'high' }, { label: 'Security manager', type: 'urgent' }],
+    docActions: ['Open P2 incident. Log: account, system, anomalous activity, access review findings, containment actions'],
+  },
+
+  // ── CONFIRMED ACCESS ──────────────────────────────────────
+  access_entry: {
+    q: 'Can you establish when the threat actor first gained access?',
+    hint: 'Review: earliest suspicious event in SIEM, EDR first detection timestamp, authentication logs for first anomalous logon. Be conservative — first known event is not necessarily first access.',
+    opts: [
+      { label: 'Yes — first access within the last 4 hours', desc: 'Caught quickly — session may still be active', next: 'access_fresh' },
+      { label: 'Yes — first access between 4 and 24 hours ago', next: 'access_today' },
+      { label: 'Yes — first access between 1 and 7 days ago', next: 'access_days' },
+      { label: 'Yes — first access more than 7 days ago', next: 'access_extended' },
+      { label: 'Unknown — cannot determine first access time', tag: 'unknown', next: 'access_unknown_dwell' },
+    ]
+  },
+
+  access_unknown_dwell: {
+    q: 'Can you find the earliest artefact that could indicate actor presence, even if not definitive?',
+    hint: 'Check: earliest unusual logon event, first appearance of unknown process hash in EDR, oldest suspicious registry key or scheduled task, earliest anomalous outbound connection in proxy logs.',
+    opts: [
+      { label: 'Earliest artefact is within the last 24 hours', next: 'access_today' },
+      { label: 'Earliest artefact is older than 24 hours', next: 'access_unknown_extended' },
+      { label: 'No artefact baseline — cannot establish any timeline at all', tag: 'unknown', next: 'access_unknown_extended' },
+    ]
+  },
+
+  access_unknown_extended: {
+    outcome: 3,
+    sev: 3,
+    title: 'Confirmed Access — Dwell Time Unknown / Potentially Extended',
+    imt: true,
+    dfir: true,
+    desc: 'Access is confirmed but you cannot establish how long the actor has been present. Unknown dwell must be treated as extended dwell — assume the actor has had significant time in the environment. This is a P1.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>IMMEDIATE:</strong> Stand up an out-of-band communications channel — assume primary comms (email, Teams, Slack) may be compromised',
+        '<strong>EDR:</strong> Hard-isolate all known-compromised systems. Do NOT reboot or shutdown — preserve in-memory artefacts',
+        '<strong>AD / Azure AD:</strong> Perform a full privileged account audit — identify any new accounts created, group membership changes, or role assignments made in the last 30 days',
+        '<strong>Network:</strong> Pull all proxy/firewall outbound logs for past 30 days — look for beaconing patterns, large data transfers, connections to unknown infrastructure',
+        '<strong>Backup systems:</strong> Immediately assess backup integrity — check if backups are accessible, unencrypted, and not connected to the compromised estate',
+        'Do NOT begin remediation or eradication until DFIR completes initial scope assessment',
+      ]},
+      { when: 'parallel', steps: [
+        'Invoke IMT immediately — P1 war room, full command structure',
+        'Engage external DFIR retainer — unknown dwell requires specialist forensic timeline reconstruction',
+        'Notify CISO, legal, DPO, and cyber insurer immediately',
+        'Assess regulatory notification obligations — 72-hour clock may be running',
+        'If backup integrity is unconfirmed, begin DR planning in parallel',
+      ]},
+    ],
+    notify: ['CISO — immediate', 'Legal — immediate', 'DPO — immediate', 'Cyber insurer — immediate', 'Board (via CISO) — within 2 hrs'],
+    ircActions: ['IMT P1 full invocation', 'External DFIR retainer engaged — priority mandate', 'Forensic timeline reconstruction as primary objective'],
+    escalation: [{ label: 'CISO', type: 'urgent' }, { label: 'Legal / DPO', type: 'urgent' }, { label: 'Cyber insurer', type: 'urgent' }, { label: 'Board (2 hr)', type: 'high' }],
+    docActions: ['Open P1 incident. Log: all known IoCs, compromised system list, privileged account audit findings, backup status, DFIR engagement, regulatory timeline'],
+  },
+
+  access_fresh: {
+    q: 'Is the threat actor session still active, and have you been able to fully contain access?',
+    hint: 'Check: active EDR sessions, live network connections from compromised host, active VPN/RDP sessions, running processes on host.',
+    opts: [
+      { label: 'Session terminated / actor contained — confirmed no active access', next: 'access_fresh_contained' },
+      { label: 'Session potentially still active or containment unconfirmed', next: 'access_fresh_active' },
+      { label: 'Unknown — cannot determine session status', tag: 'unknown', next: 'access_fresh_active' },
+    ]
+  },
+
+  access_fresh_active: {
+    outcome: 2,
+    sev: 2,
+    title: 'Active Intrusion — Session Potentially Live',
+    imt: true,
+    dfir: false,
+    desc: 'The threat actor may currently be active in the environment. Speed is critical — contain before the actor can establish persistence, escalate privileges, or access sensitive data.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>EDR — IMMEDIATE:</strong> Hard-isolate the compromised host right now — cut network access while maintaining EDR management channel',
+        '<strong>AD / Azure AD:</strong> Immediately disable the compromised account and revoke all active tokens (use Revoke-AzureADUserAllRefreshToken or equivalent)',
+        '<strong>VPN / remote access:</strong> Terminate all active sessions for the compromised account across all gateways',
+        '<strong>Check for persistence:</strong> Run EDR query for any new scheduled tasks, services, registry run keys, or startup items created in the last 4 hours',
+        '<strong>Memory capture:</strong> If the host can be preserved before isolation, capture memory now — active session may contain actor tooling in-memory',
+        'Check for any new accounts created or privilege changes since first access timestamp',
+      ]},
+      { when: 'parallel', steps: [
+        'Invoke IMT — incident commander assigned immediately',
+        'Notify CISO — active intrusion in progress',
+        'Stand up out-of-band comms channel',
+        'Have DFIR retainer briefed and on standby — invoke if actor establishes persistence or scope expands',
+      ]},
+    ],
+    notify: ['CISO — immediate', 'Security manager — immediate'],
+    ircActions: ['IMT invoked immediately', 'Incident commander assigned', 'DFIR retainer briefed and on standby'],
+    escalation: [{ label: 'CISO', type: 'urgent' }, { label: 'Security manager', type: 'urgent' }],
+    docActions: ['Open P2 incident. Real-time log of containment actions taken. Timestamp every action'],
+  },
+
+  access_fresh_contained: {
+    q: 'Has the actor accessed any privileged credentials, sensitive data, or moved to additional systems?',
+    hint: 'Check: AD admin panel for privilege changes, DLP for data egress, EDR for lateral movement events, file server access logs.',
+    opts: [
+      { label: 'No — appears contained to initial entry point, no privilege escalation or data access', next: 'access_ejected_clean' },
+      { label: 'Yes — privilege escalation, lateral movement, or data access confirmed or suspected', next: 'access_today' },
+      { label: 'Unknown — cannot confirm scope of access during the session', tag: 'unknown', next: 'access_fresh_unknown_scope' },
+    ]
+  },
+
+  access_fresh_unknown_scope: {
+    outcome: 2,
+    sev: 2,
+    title: 'Access Contained — Scope of Activity Unknown',
+    imt: true,
+    dfir: true,
+    desc: 'Actor is contained but you do not know what they accessed during the session. Forensic investigation of the session is required before this can be closed. DFIR engaged for session reconstruction.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>Preserve everything:</strong> Do not reimage, shutdown, or modify the isolated host — full forensic preservation required',
+        '<strong>Memory image:</strong> Capture memory immediately via EDR native acquisition or WinPMEM/Magnet RAM Capture',
+        '<strong>Disk image:</strong> Initiate forensic disk imaging via DFIR team',
+        '<strong>Auth logs:</strong> Pull complete authentication events for the compromised account for the session window',
+        '<strong>Proxy / DLP:</strong> Pull all outbound traffic from the host during the session window — look for data egress',
+        '<strong>EDR timeline:</strong> Export full process execution timeline and file write events for the session',
+      ]},
+      { when: 'parallel', steps: [
+        'Invoke IMT — incident commander assigned',
+        'Engage DFIR retainer for session reconstruction',
+        'Notify CISO — contained but scope unknown, DFIR engaged',
+        'If DLP shows any outbound data, immediately escalate to P1 and notify legal/DPO',
+      ]},
+    ],
+    notify: ['CISO — within 1 hr', 'Security manager — immediate', 'Legal / DPO if data egress suspected'],
+    ircActions: ['IMT invoked', 'DFIR retainer engaged for forensic session reconstruction', 'Incident commander assigned'],
+    escalation: [{ label: 'CISO (1 hr)', type: 'high' }, { label: 'Security manager', type: 'urgent' }],
+    docActions: ['Open P2 incident. Log: session timeline, preservation actions, DFIR engagement, scope assessment status'],
+  },
+
+  access_ejected_clean: {
+    outcome: 2,
+    sev: 2,
+    title: 'Intrusion — Contained at Entry Point',
+    imt: true,
+    dfir: false,
+    desc: 'Actor gained access but appears contained to initial entry point with no privilege escalation, lateral movement, or data access. Full IR process required — scope must be confirmed through investigation.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>Initial access vector:</strong> Identify and close it immediately — patch vulnerability, revoke credential, or block IP at all edge controls',
+        '<strong>EDR:</strong> Full process tree and file write analysis for the compromised host',
+        '<strong>Persistence sweep:</strong> Check scheduled tasks, services, registry HKLM/HKCU Run keys, startup folder, WMI subscriptions',
+        '<strong>Credential exposure check:</strong> Were any credential files, browser saved passwords, or stored tokens accessible on the host?',
+        '<strong>AD / Azure AD:</strong> Force password reset for compromised account and revoke all tokens',
+      ]},
+      { when: 'soon', steps: [
+        'Rebuild or reimage compromised host after forensic imaging',
+        'Review and tighten the initial access vector — was this a known vulnerability? Why was it not patched?',
+        'Confirm no persistence mechanism was missed by running a second-pass hunt',
+      ]},
+    ],
+    notify: ['CISO — within 2 hrs', 'Security manager — immediate', 'Cyber insurer — notify per policy terms'],
+    ircActions: ['IMT invoked', 'Incident commander and forensic analyst assigned', 'Formal incident record opened'],
+    escalation: [{ label: 'CISO (2 hr)', type: 'high' }, { label: 'Security manager', type: 'urgent' }, { label: 'Cyber insurer', type: 'info' }],
+    docActions: ['P2 incident record. Log: entry vector, session timeline, persistence findings, credential exposure assessment, remediation actions'],
+  },
+
+  access_today: {
+    q: 'Has the actor moved laterally or accessed systems beyond the initial entry point?',
+    hint: 'Check: authentication to additional hosts, SMB/RDP connection events in network logs, any new accounts or privilege changes, unusual access to file servers, databases, or cloud resources.',
+    opts: [
+      { label: 'No — confined to initial entry point and immediately surrounding systems', next: 'access_today_limited' },
+      { label: 'Yes — confirmed lateral movement to additional systems', next: 'access_today_lateral' },
+      { label: 'Unknown — cannot confirm or rule out lateral movement', tag: 'unknown', next: 'access_today_unknown_lateral' },
+    ]
+  },
+
+  access_today_unknown_lateral: {
+    outcome: 3,
+    sev: 3,
+    title: 'Access up to 24 hrs — Lateral Movement Unconfirmed',
+    imt: true,
+    dfir: true,
+    desc: 'Up to 24 hours of confirmed access with unknown lateral movement scope. This combination requires immediate full IR response — the uncertainty about scope means you must assume the worst.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>CRITICAL:</strong> Stand up out-of-band comms — email and collaboration tools may be compromised',
+        '<strong>AD — emergency credential reset:</strong> Force reset ALL privileged account passwords immediately — tier 0 first (Domain Admin, Enterprise Admin, Schema Admin), then service accounts',
+        '<strong>EDR estate-wide hunt:</strong> Run queries for: new scheduled tasks, new services, LSASS access events, PowerShell encoded commands, network connections to external IPs — across ALL endpoints',
+        '<strong>Network segmentation:</strong> Apply emergency network isolation to affected network segments — prevent lateral spread',
+        '<strong>Backup integrity:</strong> Check backup status immediately — are they online and accessible?',
+        'Preserve all compromised hosts — do not reimage until DFIR completes scope assessment',
+      ]},
+      { when: 'parallel', steps: [
+        'Invoke IMT at P1 — full war room command structure immediately',
+        'Engage external DFIR retainer — scope determination is the first objective',
+        'Notify CISO, legal, DPO, cyber insurer in parallel',
+        'Assess 72-hour regulatory notification window — DPO to advise',
+        'Board notification via CISO — brief within 2 hours',
+      ]},
+    ],
+    notify: ['CISO — immediate', 'Legal — immediate', 'DPO — immediate', 'Cyber insurer — immediate', 'Board (2 hr)'],
+    ircActions: ['IMT P1 full invocation', 'External DFIR retainer engaged immediately', 'Command structure: IC + forensics lead + comms lead + containment lead'],
+    escalation: [{ label: 'CISO', type: 'urgent' }, { label: 'Legal / DPO', type: 'urgent' }, { label: 'Cyber insurer', type: 'urgent' }, { label: 'Board (2 hr)', type: 'high' }],
+    docActions: ['Open P1 incident record immediately. Real-time action log. DFIR evidence register. Regulatory timeline tracker'],
+  },
+
+  access_today_limited: {
+    outcome: 2,
+    sev: 2,
+    title: 'Access up to 24 hrs — Limited Scope, No Lateral Movement',
+    imt: true,
+    dfir: true,
+    desc: 'Confirmed access for up to 24 hours, scope limited to initial entry area. DFIR engaged to verify scope and conduct forensic investigation. IMT assembled for coordinated containment.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>EDR:</strong> Hard-isolate all affected systems — enumerate every system the actor touched',
+        '<strong>Auth log sweep:</strong> Pull all authentication events for the compromised account — confirm no undiscovered lateral movement',
+        '<strong>Persistence sweep:</strong> Check all affected hosts for new scheduled tasks, services, WMI subscriptions, registry run keys, browser extensions',
+        '<strong>Credential exposure:</strong> Identify every credential file, token, or password the actor could have accessed on the compromised systems',
+        '<strong>Data access assessment:</strong> What data did the compromised systems hold or have access to? Pull file access logs',
+        'Preserve all host images before any remediation',
+      ]},
+      { when: 'parallel', steps: [
+        'Invoke IMT — incident commander and IR team assigned',
+        'Engage DFIR retainer for forensic investigation and scope validation',
+        'Notify CISO within 1 hour',
+        'Cyber insurer notification',
+        'Legal / DPO — assess data exposure and regulatory obligations',
+      ]},
+    ],
+    notify: ['CISO — within 1 hr', 'Security manager — immediate', 'Legal / DPO — assess data exposure', 'Cyber insurer — notify'],
+    ircActions: ['IMT invoked', 'Incident commander assigned', 'External DFIR engaged for scope validation and forensics'],
+    escalation: [{ label: 'CISO (1 hr)', type: 'high' }, { label: 'Legal / DPO', type: 'high' }, { label: 'Cyber insurer', type: 'info' }],
+    docActions: ['Open P2 incident record. Evidence register. Credential exposure log. Forensic scope report (DFIR)'],
+  },
+
+  access_today_lateral: {
+    outcome: 3,
+    sev: 3,
+    title: 'Access up to 24 hrs — Lateral Movement Confirmed',
+    imt: true,
+    dfir: true,
+    desc: 'Actor has moved laterally within the environment. Multiple systems compromised. Scope is actively expanding or recently expanded. This is a P1.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>Network — emergency segmentation:</strong> Isolate affected network segments. Coordinate with network team to apply ACLs or VLAN changes immediately',
+        '<strong>AD — full credential reset:</strong> Tier 0 accounts first (Domain Admins, Enterprise Admins, Schema Admins, KRBTGT), then tier 1, then service accounts. Assume credentials are compromised.',
+        '<strong>EDR estate-wide:</strong> Push isolation to all known-compromised hosts. Run estate-wide hunt for actor TTPs simultaneously',
+        '<strong>KRBTGT reset:</strong> If Kerberos authentication compromise suspected, perform dual KRBTGT reset (reset twice, 10 hrs apart)',
+        '<strong>Cloud identity:</strong> Revoke all Azure AD / M365 refresh tokens estate-wide if cloud access is in scope',
+        'Preserve all compromised host images before any eradication — forensic scope determination is DFIR priority one',
+      ]},
+      { when: 'parallel', steps: [
+        'Invoke IMT at P1 — full war room now',
+        'Engage external DFIR retainer immediately — lateral movement scope must be determined',
+        'Notify CISO, legal, DPO, cyber insurer simultaneously',
+        'Board notification via CISO within 1–2 hours',
+        'Assess regulatory notification obligations — 72-hour clock',
+        'Stand up out-of-band comms channel',
+      ]},
+    ],
+    notify: ['CISO — immediate', 'Legal — immediate', 'DPO — immediate', 'Cyber insurer — immediate', 'Board (1–2 hr)'],
+    ircActions: ['IMT P1 full invocation', 'External DFIR engaged as priority', 'Command structure: IC + forensics + containment + comms + legal workstreams'],
+    escalation: [{ label: 'CISO', type: 'urgent' }, { label: 'Legal / DPO', type: 'urgent' }, { label: 'Cyber insurer', type: 'urgent' }, { label: 'Board (1–2 hr)', type: 'high' }],
+    docActions: ['Open P1 incident immediately. Real-time action log. Lateral movement scope map. Credential reset log. DFIR mandate. Regulatory timeline tracker'],
+  },
+
+  access_days: {
+    q: 'Has any data been accessed, enumerated, or staged? (1–7 day dwell)',
+    hint: 'Review: DLP / CASB alerts for data egress, file server logs for bulk access, database query logs for unusual SELECT patterns, cloud storage for new or unusual uploads, SharePoint/OneDrive audit log.',
+    opts: [
+      { label: 'No confirmed data access or exfiltration', next: 'access_days_nodata' },
+      { label: 'Data access, enumeration, or staging confirmed', next: 'impact_entry' },
+      { label: 'Unknown — DLP/data access logs not available or insufficient', tag: 'unknown', next: 'access_days_unknown_data' },
+    ]
+  },
+
+  access_days_unknown_data: {
+    outcome: 3,
+    sev: 3,
+    title: '1–7 Days Dwell — Data Status Unknown',
+    imt: true,
+    dfir: true,
+    desc: 'Actor has been in the environment for multiple days and data access status is unknown. Given dwell time, data exfiltration must be assumed. Regulatory obligations may apply. Treat as P1.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>Out-of-band comms — FIRST:</strong> Do not use potentially compromised channels for this investigation',
+        '<strong>Network logs — egress focus:</strong> Pull all outbound traffic logs for the past 7+ days. Look for: large transfers to external IPs, DNS tunnelling patterns, cloud storage upload traffic (Dropbox, Mega, Google Drive, rclone signatures in proxy)',
+        '<strong>Email gateway:</strong> Check for auto-forward rules, unusual external email volume, or mailbox exports for affected accounts',
+        '<strong>Cloud / CASB:</strong> Review SharePoint, OneDrive, Teams exports and any OAuth app authorisations in the relevant period',
+        '<strong>DLP gap assessment:</strong> Document why data access visibility is missing — what controls are absent?',
+        'Preserve all evidence before any remediation action',
+      ]},
+      { when: 'parallel', steps: [
+        'Invoke IMT at P1 — full command structure',
+        'Engage external DFIR retainer immediately — data status determination is priority one',
+        'Notify CISO, legal, DPO, cyber insurer simultaneously',
+        '<strong>Regulatory clock:</strong> DPO to assess 72-hour notification obligation — clock may already be running from date of first known access',
+        'Board briefing within 1–2 hours',
+      ]},
+    ],
+    notify: ['CISO — immediate', 'Legal — immediate', 'DPO — immediate (regulatory assessment)', 'Cyber insurer — immediate', 'Board (1–2 hr)'],
+    ircActions: ['IMT P1 full invocation', 'External DFIR engaged — data status determination mandate', 'Regulatory notification workstream opened in parallel'],
+    escalation: [{ label: 'CISO', type: 'urgent' }, { label: 'Legal / DPO', type: 'urgent' }, { label: 'Cyber insurer', type: 'urgent' }, { label: 'Board (1–2 hr)', type: 'high' }],
+    docActions: ['Open P1 incident. Regulatory timeline tracker. DFIR scope mandate. Data exposure hypothesis log. Evidence preservation register'],
+  },
+
+  access_days_nodata: {
+    outcome: 3,
+    sev: 3,
+    title: '1–7 Days Dwell — Persistent Access, No Confirmed Data Impact',
+    imt: true,
+    dfir: true,
+    desc: 'Multi-day dwell with no confirmed data access. Given the duration, assume full knowledge of the environment — actor has had time for extensive reconnaissance. Full compromise response required.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>Assume full AD compromise:</strong> Begin Tier 0 credential reset immediately (KRBTGT x2, Domain Admins, Enterprise Admins). Do not assume any credential in the environment is clean',
+        '<strong>Identify all persistence mechanisms before eradication:</strong> New accounts, new group memberships, scheduled tasks, services, GPO modifications, WMI subscriptions, Golden/Silver ticket risk',
+        '<strong>Network — C2 mapping:</strong> Map all outbound connections from compromised hosts over the full dwell period — identify all C2 infrastructure the actor was using',
+        '<strong>Cloud identity review:</strong> Check for new OAuth app authorisations, new federation trusts, new service principals, role assignments in Azure AD / M365 admin centre',
+        '<strong>Backup integrity:</strong> Verify backups are clean, accessible, and not connected to the estate. Snapshot backups from before first known compromise',
+      ]},
+      { when: 'parallel', steps: [
+        'Invoke IMT P1 — full war room with command structure',
+        'Engage external DFIR retainer immediately',
+        'Notify CISO, legal, DPO, cyber insurer simultaneously',
+        'Board briefing within 1–2 hours',
+        'Consider NCSC voluntary disclosure',
+      ]},
+    ],
+    notify: ['CISO — immediate', 'Legal — immediate', 'DPO — immediate', 'Cyber insurer — immediate', 'Board (1–2 hr)'],
+    ircActions: ['IMT P1 full invocation', 'External DFIR engaged', 'Rebuild planning workstream opened alongside investigation'],
+    escalation: [{ label: 'CISO', type: 'urgent' }, { label: 'Legal / DPO', type: 'urgent' }, { label: 'Cyber insurer', type: 'urgent' }, { label: 'Board (1–2 hr)', type: 'high' }],
+    docActions: ['P1 incident record. Persistence inventory log. C2 infrastructure map. Credential reset tracker. Backup status report. DFIR mandate'],
+  },
+
+  access_extended: {
+    outcome: 4,
+    sev: 4,
+    title: 'Extended Dwell — 7+ Days, Full Compromise Response',
+    imt: true,
+    dfir: true,
+    desc: 'Actor has been present for over a week. Assume full domain compromise, credential theft, extensive reconnaissance, and potential data staging or exfiltration. Rebuild planning must start now alongside forensic investigation.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>Out-of-band comms — non-negotiable:</strong> Assume email, Teams, Slack compromised. Use mobile phones, Signal, or an isolated out-of-band system for all incident comms',
+        '<strong>Full Tier 0 credential reset NOW:</strong> KRBTGT (twice, 10 hrs apart), all Domain Admins, Enterprise Admins, Schema Admins, DSRM passwords on all DCs, all cloud break-glass accounts',
+        '<strong>Do NOT eradicate yet:</strong> DFIR must complete scope determination before remediation — premature eradication destroys evidence and risks re-infection from unidentified persistence',
+        '<strong>Network isolation:</strong> Apply emergency segmentation to prevent further spread while preserving forensic state',
+        '<strong>Backup assessment — critical:</strong> Identify your last known-good backup prior to the compromise window. Assess RPO/RTO. Begin parallel DR planning',
+        '<strong>Cloud identity audit:</strong> Full audit of Azure AD / M365 — new accounts, app registrations, federation changes, privileged role assignments in the past 30 days',
+      ]},
+      { when: 'parallel', steps: [
+        'Invoke IMT at P0 — incident commander, legal, comms, forensics, containment, recovery workstreams all active simultaneously',
+        'Engage external DFIR retainer with full mandate — extended dwell scope reconstruction',
+        'Notify CISO, CEO, board, legal, DPO, cyber insurer all in parallel',
+        'Regulatory assessment: ICO notification obligation (72-hour clock from awareness date)',
+        'Consider NCSC reporting and NCA reporting if criminal',
+        'Media/external comms holding statement prepared by comms team',
+      ]},
+    ],
+    notify: ['CISO — immediate', 'CEO — immediate', 'Board — immediate', 'Legal — immediate', 'DPO — immediate', 'Cyber insurer — immediate', 'NCSC — recommend notify', 'NCA — if criminal activity', 'ICO — 72-hr assessment'],
+    ircActions: ['IMT P0 — full command structure. All workstreams active', 'External DFIR retainer engaged with full mandate', 'Dedicated war room established'],
+    escalation: [{ label: 'CISO', type: 'urgent' }, { label: 'CEO / Board', type: 'urgent' }, { label: 'Legal / DPO', type: 'urgent' }, { label: 'Cyber insurer', type: 'urgent' }, { label: 'NCSC', type: 'high' }],
+    docActions: ['P0 Major Incident record. Full command log. Evidence register. Regulatory timeline. Recovery planning tracker. External comms log. Legal advice log'],
+  },
+
+  // ── IMPACT EVENTS ─────────────────────────────────────────
+  impact_entry: {
+    q: 'What type of impact is confirmed or strongly suspected?',
+    hint: 'Select all that apply — choose the highest severity category if multiple types are present.',
+    opts: [
+      { label: 'Data exfiltration — personal, financial, or sensitive data has left the environment', next: 'impact_exfil' },
+      { label: 'Ransomware — systems encrypted, ransom note observed, or encryption in progress', next: 'impact_ransom' },
+      { label: 'Destructive attack — data wiped, logs deleted, systems rendered inoperable', next: 'impact_destructive' },
+      { label: 'Business disruption — services degraded or down, without confirmed encryption or exfiltration', next: 'impact_disruption' },
+      { label: 'Unknown impact type — clear impact visible but cannot yet categorise it', tag: 'unknown', next: 'impact_unknown' },
+    ]
+  },
+
+  impact_unknown: {
+    outcome: 3,
+    sev: 3,
+    title: 'Impact Confirmed — Type Unknown',
+    imt: true,
+    dfir: true,
+    desc: 'You can see that something has gone wrong but cannot yet categorise the impact. Treat as P1 minimum. First objective: determine impact type within 30 minutes to enable appropriate response.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>Visual triage — 10 minutes:</strong> Look for: ransom notes in file systems (README.txt, HOW_TO_DECRYPT, DECRYPT_FILES), encrypted file extensions, missing or wiped files, unexpected data on external threat actor infrastructure',
+        '<strong>Service status:</strong> What is operational and what is not? Map the impact rapidly',
+        '<strong>EDR / SIEM:</strong> Pull latest alerts — what processes have run, what files have been touched, what outbound connections were made in the last 2 hours?',
+        '<strong>Network egress:</strong> Check for any large outbound data transfers in the last 24 hours',
+        'Based on findings, navigate to the specific impact type outcome in this tool',
+      ]},
+      { when: 'parallel', steps: [
+        'Invoke IMT at P1 immediately — do not wait to categorise impact before assembling the team',
+        'Engage external DFIR retainer — impact determination requires specialist support',
+        'Stand up out-of-band comms',
+        'Notify CISO immediately',
+      ]},
+    ],
+    notify: ['CISO — immediate', 'Security manager — immediate', 'Legal — flag potential data impact'],
+    ircActions: ['IMT P1 invoked', 'DFIR retainer engaged', 'Impact categorisation as first objective — re-route to specific outcome once confirmed'],
+    escalation: [{ label: 'CISO', type: 'urgent' }, { label: 'Legal', type: 'high' }],
+    docActions: ['Open P1 incident. Log: visible impact indicators, services affected, initial triage findings. Update record when impact type confirmed'],
+  },
+
+  impact_exfil: {
+    outcome: 3,
+    sev: 3,
+    title: 'Data Exfiltration Confirmed',
+    imt: true,
+    dfir: true,
+    desc: 'Personal or sensitive data has been taken. Regulatory obligations are triggered. DPO and legal must be engaged immediately. The 72-hour ICO notification clock is running from the point you became aware.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>REGULATORY CLOCK:</strong> Document the exact date and time you first became aware of a potential personal data breach — this starts the 72-hour ICO notification window',
+        '<strong>Identify exfiltration pathway:</strong> Proxy logs, DLP alerts, firewall egress logs — where did the data go? What protocol? What destination IP/domain?',
+        '<strong>Quantify scope:</strong> What data? How many records? What classification? Personal, financial, health, credentials? Which individuals are affected?',
+        '<strong>Close the pathway:</strong> Block exfiltration destination at proxy/firewall. Terminate any active C2/exfil connections immediately',
+        '<strong>Preserve evidence of egress:</strong> Export and preserve proxy logs, DLP alerts, CASB events, cloud audit logs before any remediation',
+        '<strong>Email — check for forwarding rules:</strong> Review all auto-forward rules and external delegates on affected mailboxes immediately',
+      ]},
+      { when: 'parallel', steps: [
+        'Invoke IMT P1 — breach notification workstream starts immediately in parallel with containment',
+        'Engage external DFIR retainer — data quantification and pathway analysis',
+        'Notify DPO immediately — legal obligation assessment and ICO notification decision',
+        'Notify legal counsel — breach notification obligations, potential liability',
+        'Notify cyber insurer — invoke policy, breach coach engagement',
+        'Board notification — brief within 1 hour',
+        'Begin drafting affected individual notification (DPO-led) — you may need to issue quickly',
+      ]},
+    ],
+    notify: ['CISO — immediate', 'DPO — immediate (ICO notification assessment)', 'Legal — immediate', 'Cyber insurer — immediate (breach coach)', 'Board — within 1 hr', 'CEO — within 1 hr'],
+    ircActions: ['IMT P1 invocation', 'DFIR engaged — data quantification and pathway forensics', 'Breach notification workstream: DPO + legal + comms'],
+    escalation: [{ label: 'CISO', type: 'urgent' }, { label: 'DPO / Legal', type: 'urgent' }, { label: 'Cyber insurer', type: 'urgent' }, { label: 'ICO (72 hr)', type: 'high' }, { label: 'CEO / Board', type: 'high' }],
+    docActions: ['P1 incident record. Regulatory notification log (date/time of awareness). Affected data register (type, volume, subjects). Exfiltration pathway log. ICO notification draft (DPO-led)'],
+  },
+
+  impact_ransom: {
+    outcome: 4,
+    sev: 4,
+    title: 'Ransomware — P0 Major Incident',
+    imt: true,
+    dfir: true,
+    desc: 'Ransomware is a P0. Speed of initial containment is critical. Do not attempt recovery on encrypted systems until scope is fully understood. Do not pay without legal and insurer guidance.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>ISOLATE IMMEDIATELY:</strong> Hard-isolate ALL systems — disconnect from network at switch level if necessary. Do not wait to identify scope before isolating',
+        '<strong>Do NOT shut down encrypted systems:</strong> Preserve for forensics — ransomware variants leave decryption keys in memory on some versions',
+        '<strong>Do NOT restart or attempt to decrypt:</strong> Wait for DFIR and insurer guidance before any recovery action',
+        '<strong>Identify encryption boundary:</strong> Which systems are encrypted? Which are not? Protect unencrypted systems with immediate isolation',
+        '<strong>Backup integrity — URGENT:</strong> Can you reach your backups? Are they encrypted too? Identify last known-good snapshot. Do not mount backups into the compromised network',
+        '<strong>Preserve ransom note:</strong> Photograph/screenshot ransom notes on all affected screens — note exact file name and location',
+        '<strong>Identify patient zero:</strong> Where did the ransomware first execute? EDR first execution event — preserve this host as forensic priority',
+      ]},
+      { when: 'parallel', steps: [
+        'Invoke IMT P0 — war room now. Full command structure: IC, forensics, recovery, legal, comms workstreams',
+        'Engage external DFIR retainer immediately — priority mandate',
+        'Notify cyber insurer IMMEDIATELY — before any ransom payment discussions, negotiations, or communications with threat actor',
+        'Notify CISO, CEO, board in parallel',
+        'Notify legal — criminal offence considerations, regulatory obligations',
+        'Notify DPO — if personal data is in scope of encrypted systems, 72-hour clock is running',
+        'Notify NCSC — ransomware is a reportable incident; NCSC guidance and potential decryption support',
+        'Notify NCA — criminal reporting',
+        'Prepare holding statement for potential media/customer enquiries',
+        '<strong>Do NOT communicate with threat actor without legal and insurer approval</strong>',
+      ]},
+    ],
+    notify: ['CISO — immediate', 'CEO — immediate', 'Board — immediate', 'Cyber insurer — BEFORE any payment discussions', 'Legal — immediate', 'DPO — immediate', 'NCSC — report', 'NCA — report', 'ICO — if personal data affected'],
+    ircActions: ['IMT P0 — full war room. All workstreams active simultaneously', 'External DFIR retainer engaged as priority', 'Recovery planning starts in parallel — do not wait for forensic completion'],
+    escalation: [{ label: 'CEO / Board', type: 'urgent' }, { label: 'Cyber insurer (FIRST)', type: 'urgent' }, { label: 'Legal / DPO', type: 'urgent' }, { label: 'NCSC', type: 'high' }, { label: 'NCA', type: 'high' }],
+    docActions: ['P0 Major Incident record. Encryption scope map. Backup status report. Ransom note preservation log. Regulatory timeline. All comms logged (legal privilege where possible). Recovery planning document'],
+  },
+
+  impact_destructive: {
+    outcome: 4,
+    sev: 4,
+    title: 'Destructive Attack — P0',
+    imt: true,
+    dfir: true,
+    desc: 'Destructive attacks — wiper malware, log deletion, targeted destruction — may indicate nation-state involvement or a deliberate cover-up of a larger compromise. Assume the worst and engage specialist support immediately.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>Isolate ALL systems immediately</strong> — destructive activity may still be in progress',
+        '<strong>Preserve what remains:</strong> Memory images on any surviving systems — wiper malware may still be in memory on unaffected hosts',
+        '<strong>Identify blast radius:</strong> What has been wiped? What is intact? Map surviving vs destroyed systems',
+        '<strong>Verify it is not cover-up activity:</strong> Destruction often follows exfiltration — check for prior data egress in the logs that survive',
+        '<strong>Backup assessment:</strong> As per ransomware — identify last known-good backup outside the blast radius',
+        'Do not attempt recovery without DFIR guidance — re-execution risk',
+      ]},
+      { when: 'parallel', steps: [
+        'Invoke IMT P0 immediately',
+        'Engage external DFIR with destructive attack/nation-state experience',
+        'Notify NCSC — destructive attacks may have national security dimensions',
+        'Notify NCA, cyber insurer, legal, DPO, board in parallel',
+        'Government sector contacts if CNI or regulated industry',
+      ]},
+    ],
+    notify: ['CISO — immediate', 'CEO / Board — immediate', 'Cyber insurer — immediate', 'NCSC — immediate', 'NCA', 'Legal / DPO', 'ICO if personal data destroyed'],
+    ircActions: ['IMT P0 full invocation', 'DFIR retainer engaged — specialist destructive attack experience required', 'Evidence preservation before any recovery'],
+    escalation: [{ label: 'CEO / Board', type: 'urgent' }, { label: 'NCSC', type: 'urgent' }, { label: 'Cyber insurer', type: 'urgent' }, { label: 'Legal / DPO', type: 'urgent' }],
+    docActions: ['P0 Major Incident. Destruction scope map. Surviving evidence log. NCSC/NCA reporting log. Backup viability assessment. Regulatory timeline'],
+  },
+
+  impact_disruption: {
+    q: 'Can you determine whether the disruption is cyber-caused or a technical/operational failure?',
+    opts: [
+      { label: 'Confirmed cyber-caused — malicious activity has been identified', next: 'impact_disruption_cyber' },
+      { label: 'Confirmed non-cyber — infrastructure failure, misconfiguration, or operational cause', next: 'impact_disruption_noncyber' },
+      { label: 'Unknown — cannot determine root cause', tag: 'unknown', next: 'impact_disruption_unknown' },
+    ]
+  },
+
+  impact_disruption_unknown: {
+    outcome: 2,
+    sev: 2,
+    title: 'Business Disruption — Root Cause Unknown',
+    imt: true,
+    dfir: false,
+    desc: 'Services are down and you cannot determine whether this is a cyber attack or an operational failure. Run both tracks in parallel — do not assume it is non-cyber until confirmed.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>Parallel tracks:</strong> Simultaneously investigate (a) cyber hypothesis — check SIEM, EDR for attack indicators, and (b) operational hypothesis — check infrastructure, change records, monitoring',
+        '<strong>Do not restore services into a potentially compromised environment:</strong> If cyber cause cannot be ruled out, recovery must wait',
+        '<strong>SIEM:</strong> Look for any security alerts in the 24 hours prior to disruption — is there a precursor event?',
+        '<strong>EDR:</strong> Check for any unusual process activity or network connections on affected systems before they went down',
+        '<strong>Change management:</strong> Review all change records for the 48 hours prior — was a change made that could explain this?',
+      ]},
+      { when: 'parallel', steps: [
+        'Invoke IMT — both cyber and operations represented',
+        'Activate business continuity failover if available',
+        'Notify CISO within 30 minutes',
+        'If cyber cause confirmed during investigation, escalate to appropriate impact type outcome',
+      ]},
+    ],
+    notify: ['CISO — within 30 mins', 'Security manager — immediate', 'Operations / IT director — immediate', 'Business stakeholders — service status update'],
+    ircActions: ['IMT invoked — cyber and ops workstreams', 'Incident commander assigned', 'Root cause determination as primary objective'],
+    escalation: [{ label: 'CISO (30 min)', type: 'high' }, { label: 'Operations director', type: 'high' }],
+    docActions: ['Open incident record — parallel cyber/operational investigation. Log: affected services, change records reviewed, SIEM findings, EDR findings, timeline'],
+  },
+
+  impact_disruption_noncyber: {
+    outcome: 1,
+    sev: 1,
+    title: 'Business Disruption — Non-Cyber Cause Confirmed',
+    imt: false,
+    dfir: false,
+    desc: 'Root cause confirmed as non-cyber. Handle as an operational incident. Continue monitoring for cyber activity during the disruption window — adversaries sometimes exploit recovery windows.',
+    immediate: [
+      { when: 'now', steps: [
+        'Hand off to operational incident management process',
+        '<strong>Maintain cyber watch during recovery:</strong> Disruption windows are exploitation opportunities — keep SIEM and EDR monitoring active',
+        'Document the cyber investigation steps taken and the confirmation of non-cyber cause',
+      ]},
+      { when: 'soon', steps: [
+        'Close cyber incident ticket — link to operational incident record',
+        'Consider whether the disruption exposed any security weaknesses that should be addressed',
+      ]},
+    ],
+    notify: ['Operations / IT director', 'Security manager — FYI, cyber ruled out'],
+    ircActions: ['No IR team invocation. Hand off to ops incident management'],
+    escalation: [{ label: 'Operations director', type: 'info' }],
+    docActions: ['Close cyber ticket with: investigation steps, root cause confirmation, handoff to ops incident reference number'],
+  },
+
+  impact_disruption_cyber: {
+    outcome: 3,
+    sev: 3,
+    title: 'Business Disruption — Cyber Cause Confirmed',
+    imt: true,
+    dfir: true,
+    desc: 'Cyber-caused disruption to business services. This is a P1. Restoration cannot precede forensic investigation — eradication must happen before recovery to prevent re-infection.',
+    immediate: [
+      { when: 'now', steps: [
+        '<strong>Do not restore services into a compromised environment — eradication first</strong>',
+        '<strong>EDR:</strong> Identify initial access vector and all affected systems — scope must be understood before recovery',
+        '<strong>Activate BCP/DR:</strong> Identify manual workarounds and failover options to maintain critical business functions',
+        '<strong>Isolate affected systems:</strong> Hard isolation from network while preserving forensic state for DFIR',
+        '<strong>Assess data exposure:</strong> Did the disruption involve data systems? Could data have been accessed or exfiltrated before the disruption?',
+      ]},
+      { when: 'parallel', steps: [
+        'Invoke IMT P1 — forensics, recovery, and business continuity workstreams in parallel',
+        'Engage external DFIR retainer',
+        'Notify CISO, legal, cyber insurer',
+        'Board notification if customer or public-facing impact',
+        'DPO assessment if personal data systems are in scope',
+        'Prepare customer/stakeholder communications if services are visibly impacted',
+      ]},
+    ],
+    notify: ['CISO — immediate', 'Legal — immediate', 'Cyber insurer — immediate', 'Board if customer impact', 'DPO if data systems affected'],
+    ircActions: ['IMT P1 invoked — forensics + BCP/recovery in parallel', 'External DFIR engaged', 'Incident commander assigned'],
+    escalation: [{ label: 'CISO', type: 'urgent' }, { label: 'Legal / DPO', type: 'high' }, { label: 'Cyber insurer', type: 'high' }, { label: 'Board (if public impact)', type: 'high' }],
+    docActions: ['P1 incident record. Service impact log. BCP activation record. Forensic scope report. Customer comms log. Regulatory timeline'],
+  },
+
+};
+
+// ─────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────
+let path = [];
+let currentNode = 'start';
+let sessionStart = Date.now();
+let timerTick;
+const SEV_LABELS = ['P4 — Informational','P3 — Low','P2 — Moderate','P1 — High','P0 — Critical'];
+const SEV_COLORS = ['var(--c-green)','var(--c-yellow)','var(--c-orange)','var(--c-red)','var(--c-purple)'];
+
+function elapsed() {
+  const s = Math.floor((Date.now()-sessionStart)/1000);
+  if(s<60) return s+'s'; if(s<3600) return Math.floor(s/60)+'m '+( s%60)+'s';
+  return Math.floor(s/3600)+'h '+Math.floor((s%3600)/60)+'m';
+}
+
+// ─────────────────────────────────────────
+// NAV
+// ─────────────────────────────────────────
+function setNav(a){
+  ['nav-triage','nav-decision','nav-outcome'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    el.classList.remove('active');
+    el.style.pointerEvents='auto';el.style.opacity='1';
+  });
+  document.getElementById('nav-'+a)?.classList.add('active');
+  if(a==='triage'){['nav-decision','nav-outcome'].forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity='0.4';el.style.pointerEvents='none';}});}
+  if(a==='decision'){const el=document.getElementById('nav-outcome');if(el){el.style.opacity='0.4';el.style.pointerEvents='none';}}
+}
+
+// ─────────────────────────────────────────
+// RENDER: LANDING
+// ─────────────────────────────────────────
+function renderLanding(){
+  clearInterval(timerTick);
+  setNav('triage');
+  const m=document.getElementById('main');
+  m.innerHTML=`
+    <div class="landing-eyebrow">// Cyber Incident Response</div>
+    <h1 class="landing-title">Incident Decision Tree</h1>
+    <p class="landing-sub">Answer questions about the current incident to determine severity, required actions, who to notify, and whether to assemble an IMT or engage DFIR. Every question includes an "unknown" path — answer honestly based on what you can confirm right now.</p>
+    <button class="start-btn" onclick="startTree()">Begin triage &nbsp;→</button>
+
+    <hr class="divider" style="margin-top:36px">
+    <div class="nav-section-label" style="margin-bottom:12px">Severity reference</div>
+    <div class="tier-grid">
+      ${[{n:'P4',nm:'Informational',d:'Blocked. No access. Log and close.'},{n:'P3',nm:'Low',d:'Suspicious / contained. Investigate.'},{n:'P2',nm:'Moderate',d:'Confirmed access. IR team invoked.'},{n:'P1',nm:'High',d:'Significant breach. IMT + DFIR.'},{n:'P0',nm:'Critical',d:'Major incident. All escalations.'}].map((t,i)=>`
+      <div class="tier-card tc-${i}" onclick="startTree()">
+        <div class="tc-num">${t.n}</div>
+        <div class="tc-name">${t.nm}</div>
+        <div class="tc-desc">${t.d}</div>
+      </div>`).join('')}
+    </div>
+
+    <div class="nav-section-label" style="margin-bottom:12px">IMT & DFIR triggers at a glance</div>
+    <table class="ref-table">
+      <thead><tr><th>Trigger</th><th>IMT</th><th>External DFIR</th></tr></thead>
+      <tbody>
+        <tr><td>Blocked attempt, standard target</td><td>—</td><td>—</td></tr>
+        <tr><td>Blocked, privileged target, auth unconfirmed</td><td>✓ Assemble</td><td>—</td></tr>
+        <tr><td>Suspicious activity, unknown privilege or scope</td><td>✓ Assemble</td><td>Standby / engage if scope expands</td></tr>
+        <tr><td>Confirmed access, contained &lt;4 hrs, scope confirmed</td><td>✓ Assemble</td><td>✓ Engage for session reconstruction</td></tr>
+        <tr><td>Confirmed access, dwell &gt;4 hrs or scope unknown</td><td>✓ Assemble P1</td><td>✓ Engage immediately</td></tr>
+        <tr><td>Any dwell &gt;24 hrs</td><td>✓ P1 war room</td><td>✓ Priority mandate</td></tr>
+        <tr><td>Exfiltration confirmed</td><td>✓ P1 — breach notification workstream</td><td>✓ Engage immediately</td></tr>
+        <tr><td>Ransomware / destructive</td><td>✓ P0 war room</td><td>✓ Engage immediately</td></tr>
+      </tbody>
+    </table>
+  `;
+}
+
+// ─────────────────────────────────────────
+// RENDER: QUESTION
+// ─────────────────────────────────────────
+function renderQuestion(nodeKey){
+  currentNode=nodeKey;
+  const node=TREE[nodeKey];
+  setNav('decision');
+  const m=document.getElementById('main');
+  const depth=path.length;
+  const pct=Math.min(Math.round((depth/7)*88),88);
+  const unknownInPath=path.some(p=>p.isUnknown);
+
+  m.innerHTML=`
+    <div class="timer-badge"><span class="timer-dot"></span><span id="td">Elapsed: ${elapsed()}</span></div>
+    <div class="progress-bar-wrap">
+      <div class="progress-meta"><span>Triage progress</span><span>${pct}%</span></div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    </div>
+    ${path.length>0?`<button class="back-btn" onclick="goBack()">← Back</button>`:''}
+    ${unknownInPath?`<div class="unknown-note">⚠ One or more answers marked as unknown — outcome will be conservatively escalated until you can confirm.</div>`:''}
+    <div class="q-card">
+      <div class="q-number">Question ${depth+1}</div>
+      <div class="q-text">${node.q}</div>
+      ${node.hint?`<div class="q-hint">${node.hint}</div>`:''}
+      <div class="options">
+        ${node.opts.map((opt,i)=>`
+          <button class="opt-btn${opt.tag==='unknown'?' opt-unknown':''}" onclick="choose(${i})">
+            <span class="opt-key">${String.fromCharCode(65+i)}</span>
+            <span class="opt-content">
+              <div class="opt-label">${opt.label}${opt.tag==='unknown'?` <span class="opt-tag">unknown</span>`:''}</div>
+              ${opt.desc?`<div class="opt-desc">${opt.desc}</div>`:''}
+            </span>
+            <span class="opt-arrow">→</span>
+          </button>
+        `).join('')}
+      </div>
+    </div>
+    ${path.length>0?renderDecisionLog():''}
+  `;
+  timerTick=setInterval(()=>{const el=document.getElementById('td');if(el)el.textContent='Elapsed: '+elapsed();},1000);
+}
+
+// ─────────────────────────────────────────
+// RENDER: OUTCOME
+// ─────────────────────────────────────────
+function renderOutcome(nodeKey){
+  clearInterval(timerTick);
+  const node=TREE[nodeKey];
+  const s=node.sev;
+  setNav('outcome');
+  const m=document.getElementById('main');
+  const unknownInPath=path.some(p=>p.isUnknown);
+
+  const imtHtml=node.imt?`
+    <div class="trigger-callout trigger-imt">
+      <div class="trigger-icon">🔷</div>
+      <div class="trigger-content">
+        <div class="trigger-label">IMT — Assemble now</div>
+        <div class="trigger-text">This incident meets the threshold for Incident Management Team assembly. Assign an Incident Commander. Establish a dedicated war room and out-of-band comms channel. All workstreams reported to IC.</div>
+      </div>
+    </div>`:'';
+
+  const dfirHtml=node.dfir?`
+    <div class="trigger-callout trigger-dfir">
+      <div class="trigger-icon">🔬</div>
+      <div class="trigger-content">
+        <div class="trigger-label">External DFIR — Engage retainer</div>
+        <div class="trigger-text">This incident meets the threshold for external Digital Forensics &amp; Incident Response engagement. Contact your retained DFIR provider immediately. Provide them with the known scope, preserve all forensic artefacts, and do not begin eradication without their guidance.</div>
+      </div>
+    </div>`:'';
+
+  const immediateHtml=node.immediate.map(block=>`
+    <div class="action-section">
+      <div class="action-section-header">
+        <span class="action-section-icon">${block.when==='now'?'⚡':block.when==='parallel'?'⟳':'◷'}</span>
+        <span class="action-section-label">${block.when==='now'?'Do now':'Initiate in parallel'}</span>
+        <span class="action-section-badge ${block.when==='now'?'badge-now':block.when==='parallel'?'badge-parallel':'badge-soon'}">${block.when==='now'?'Immediate':'Parallel'}</span>
+      </div>
+      <ul class="action-list">${block.steps.map(s=>`<li>${s}</li>`).join('')}</ul>
+    </div>
+  `).join('');
+
+  const notifyHtml=`
+    <div class="action-section">
+      <div class="action-section-header"><span class="action-section-icon">📣</span><span class="action-section-label">Notifications</span></div>
+      <ul class="action-list">${node.notify.map(n=>`<li>${n}</li>`).join('')}</ul>
+    </div>`;
+
+  const ircHtml=`
+    <div class="action-section">
+      <div class="action-section-header"><span class="action-section-icon">👥</span><span class="action-section-label">IR team actions</span></div>
+      <ul class="action-list">${node.ircActions.map(a=>`<li>${a}</li>`).join('')}</ul>
+    </div>`;
+
+  const docHtml=`
+    <div class="action-section">
+      <div class="action-section-header"><span class="action-section-icon">📋</span><span class="action-section-label">Documentation</span></div>
+      <ul class="action-list">${node.docActions.map(a=>`<li>${a}</li>`).join('')}</ul>
+    </div>`;
+
+  const escHtml=node.escalation.length>0?`
+    <div class="esc-row">
+      <span class="esc-label">Escalate to:</span>
+      ${node.escalation.map(e=>`<span class="esc-pill ${e.type==='urgent'?'esc-urgent':e.type==='high'?'esc-high':'esc-info'}">${e.label}</span>`).join('')}
+    </div>`:'';
+
+  m.innerHTML=`
+    <div class="timer-badge"><span class="timer-dot" style="background:${SEV_COLORS[s]}"></span><span>Completed in ${elapsed()}</span></div>
+    <div class="outcome-card outcome-${s}">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span class="sev sev-${s}">${SEV_LABELS[s]}</span>
+        ${node.imt?`<span class="imt-badge">IMT</span>`:''}
+        ${node.dfir?`<span class="dfir-badge">DFIR</span>`:''}
+      </div>
+      <div class="outcome-title">${node.title}</div>
+      <div class="outcome-desc">${node.desc}</div>
+      ${unknownInPath?`<div class="unknown-note">⚠ This outcome includes conservative escalation due to one or more "unknown" answers in your triage. Revisit and update when you have confirmed information.</div>`:''}
+      ${escHtml}
+    </div>
+
+    ${imtHtml}${dfirHtml}
+
+    <div style="margin-bottom:4px">
+      ${immediateHtml}
+      ${notifyHtml}
+      ${ircHtml}
+      ${docHtml}
+    </div>
+
+    ${renderDecisionLog()}
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="goHome()">↺ &nbsp;New triage</button>
+      <button class="btn" onclick="goBack()">← &nbsp;Back</button>
+      <button class="btn" onclick="window.print()">⊞ &nbsp;Print / save</button>
+    </div>
+  `;
+}
+
+// ─────────────────────────────────────────
+// DECISION LOG
+// ─────────────────────────────────────────
+function renderDecisionLog(){
+  if(path.length===0)return'';
+  return`<div class="decision-log">
+    <div class="decision-log-title">Decision log</div>
+    ${path.map((p,i)=>`<div class="log-entry"><span class="log-q">Q${i+1}</span><span class="${p.isUnknown?'log-unknown':''}">${p.isUnknown?'[Unknown] ':''}${p.label}</span></div>`).join('')}
+  </div>`;
+}
+
+// ─────────────────────────────────────────
+// INTERACTIONS
+// ─────────────────────────────────────────
+function choose(i){
+  clearInterval(timerTick);
+  const node=TREE[currentNode];
+  const opt=node.opts[i];
+  path.push({nodeKey:currentNode,choiceIndex:i,label:opt.label,isUnknown:opt.tag==='unknown'});
+  const next=TREE[opt.next];
+  if(next.outcome!==undefined){renderOutcome(opt.next);}
+  else{renderQuestion(opt.next);}
+}
+
+function goBack(){
+  clearInterval(timerTick);
+  if(path.length===0){renderLanding();return;}
+  const prev=path.pop();
+  const node=TREE[prev.nodeKey];
+  if(node.outcome!==undefined){renderOutcome(prev.nodeKey);}
+  else{renderQuestion(prev.nodeKey);}
+}
+
+function startTree(){path=[];sessionStart=Date.now();renderQuestion('start');}
+function goHome(){clearInterval(timerTick);path=[];currentNode='start';renderLanding();}
+function resetAll(){clearInterval(timerTick);path=[];currentNode='start';sessionStart=Date.now();renderLanding();}
+
+// ─────────────────────────────────────────
+// REFERENCE PAGES
+// ─────────────────────────────────────────
+function showSeverityRef(){
+  setNav('triage');
+  document.getElementById('main').innerHTML=`
+    <button class="back-btn" onclick="renderLanding()">← Back</button>
+    <div class="landing-eyebrow">Reference</div>
+    <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:18px">Severity Guide</h2>
+    <table class="ref-table">
+      <thead><tr><th>Sev</th><th>Profile</th><th>Dwell</th><th>Impact</th><th>IMT</th><th>DFIR</th></tr></thead>
+      <tbody>
+        <tr><td><span class="sev sev-0">P4</span></td><td>Blocked/failed, no access</td><td>—</td><td>None</td><td>—</td><td>—</td></tr>
+        <tr><td><span class="sev sev-1">P3</span></td><td>Suspicious, contained, no breach confirmed</td><td>N/A</td><td>None</td><td>—</td><td>—</td></tr>
+        <tr><td><span class="sev sev-2">P2</span></td><td>Confirmed access, rapid containment, limited scope</td><td>&lt;4 hrs</td><td>Minimal</td><td>✓</td><td>Scope-dependent</td></tr>
+        <tr><td><span class="sev sev-3">P1</span></td><td>Breach, lateral movement, data exposure risk</td><td>Hours–days</td><td>Data / ops</td><td>✓ Full</td><td>✓</td></tr>
+        <tr><td><span class="sev sev-4">P0</span></td><td>Ransomware, destruction, extended compromise</td><td>Days–weeks</td><td>Critical</td><td>✓ War room</td><td>✓ Priority</td></tr>
+      </tbody>
+    </table>`;
+}
+
+function showEscRef(){
+  setNav('triage');
+  document.getElementById('main').innerHTML=`
+    <button class="back-btn" onclick="renderLanding()">← Back</button>
+    <div class="landing-eyebrow">Reference</div>
+    <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:18px">Escalation Matrix</h2>
+    <table class="ref-table">
+      <thead><tr><th>Stakeholder</th><th>P4</th><th>P3</th><th>P2</th><th>P1</th><th>P0</th></tr></thead>
+      <tbody>
+        <tr><td>Security analyst</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><td>Security manager</td><td>—</td><td>FYI</td><td>✓</td><td>✓</td><td>✓</td></tr>
+        <tr><td>CISO</td><td>—</td><td>—</td><td>✓ &lt;2hr</td><td>✓ &lt;1hr</td><td>✓ Immediate</td></tr>
+        <tr><td>C-suite / CEO</td><td>—</td><td>—</td><td>—</td><td>✓ &lt;2hr</td><td>✓ Immediate</td></tr>
+        <tr><td>Board</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>✓ Immediate</td></tr>
+        <tr><td>Legal counsel</td><td>—</td><td>—</td><td>Assess</td><td>✓</td><td>✓ Immediate</td></tr>
+        <tr><td>DPO</td><td>—</td><td>—</td><td>If data risk</td><td>✓</td><td>✓ Immediate</td></tr>
+        <tr><td>Cyber insurer</td><td>—</td><td>—</td><td>Notify</td><td>✓</td><td>✓ Before payments</td></tr>
+        <tr><td>ICO (UK GDPR)</td><td>—</td><td>—</td><td>—</td><td>Assess 72hr</td><td>✓ 72hr clock</td></tr>
+        <tr><td>NCSC</td><td>—</td><td>—</td><td>—</td><td>Consider</td><td>✓ Recommend</td></tr>
+        <tr><td>NCA / Police</td><td>—</td><td>—</td><td>—</td><td>If criminal</td><td>✓</td></tr>
+        <tr><td>ISAC / sector body</td><td>—</td><td>IoC share</td><td>Consider</td><td>✓</td><td>✓</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:12px;font-size:10px;color:var(--dim)">✓ = notify/engage | — = not required | Assess = legal/DPO judgement | FYI = awareness only</div>`;
+}
+
+function showIMTRef(){
+  setNav('triage');
+  document.getElementById('main').innerHTML=`
+    <button class="back-btn" onclick="renderLanding()">← Back</button>
+    <div class="landing-eyebrow">Reference</div>
+    <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:8px">IMT Assembly Guide</h2>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:20px;line-height:1.7">The Incident Management Team (IMT) is assembled when an incident requires coordinated multi-function response. It is not the same as the technical IR team — it provides command, control, and coordination across legal, comms, operations, and technical workstreams.</p>
+    <div class="action-section" style="margin-bottom:10px">
+      <div class="action-section-header"><span class="action-section-label">Assemble IMT when any of these conditions are met</span></div>
+      <ul class="action-list">
+        <li>Confirmed access to privileged accounts or critical systems where auth cannot be confirmed clean</li>
+        <li>Confirmed access with dwell time &gt; 4 hours or unknown dwell time</li>
+        <li>Lateral movement confirmed or cannot be ruled out</li>
+        <li>Data access suspected on sensitive, personal, or regulated data</li>
+        <li>Any confirmed or suspected data exfiltration</li>
+        <li>Ransomware, destructive attack, or any P0 trigger</li>
+        <li>Incident involves a third party, supplier, or partner with data access</li>
+        <li>Incident is likely to require external communications or regulatory notification</li>
+        <li>Uncertainty about scope is too high to manage at analyst level alone</li>
+      </ul>
+    </div>
+    <div class="action-section" style="margin-bottom:10px">
+      <div class="action-section-header"><span class="action-section-label">IMT core roles</span></div>
+      <ul class="action-list">
+        <li><strong>Incident Commander (IC):</strong> Single decision authority. Owns the incident, chairs all calls, manages workstream leads</li>
+        <li><strong>Technical Lead:</strong> Senior IR analyst or CISO. Owns forensics, containment, and eradication workstreams</li>
+        <li><strong>Legal / DPO Lead:</strong> Manages regulatory obligation assessment, legal privilege, and notification decisions</li>
+        <li><strong>Comms Lead:</strong> Internal and external communications, media, customer notifications</li>
+        <li><strong>Operations Lead:</strong> BCP activation, service restoration, IT infrastructure coordination</li>
+        <li><strong>DFIR Liaison:</strong> Interface with external DFIR retainer — scope mandate, evidence handover, reporting</li>
+      </ul>
+    </div>
+    <div class="action-section">
+      <div class="action-section-header"><span class="action-section-label">First 30 minutes after IMT assembly</span></div>
+      <ul class="action-list">
+        <li>Establish out-of-band comms channel (mobile, Signal, isolated system — not corporate email/Teams)</li>
+        <li>Incident Commander opens incident record and assigns all workstream leads</li>
+        <li>Technical lead provides initial scope briefing — known, unknown, and hypothesised</li>
+        <li>Legal/DPO lead begins regulatory clock assessment</li>
+        <li>Agree on cadence of IMT updates (e.g. every 2 hours until stable)</li>
+        <li>Document all decisions and rationale from this point forward</li>
+      </ul>
+    </div>`;
+}
+
+function showDFIRRef(){
+  setNav('triage');
+  document.getElementById('main').innerHTML=`
+    <button class="back-btn" onclick="renderLanding()">← Back</button>
+    <div class="landing-eyebrow">Reference</div>
+    <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:8px">External DFIR Engagement Guide</h2>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:20px;line-height:1.7">External DFIR provides specialist forensic capability, independent scope determination, and defensible evidence for regulatory or legal proceedings. Engage early — waiting degrades evidence quality and delays scope confidence.</p>
+    <div class="action-section" style="margin-bottom:10px">
+      <div class="action-section-header"><span class="action-section-label">Engage external DFIR when</span></div>
+      <ul class="action-list">
+        <li>Dwell time is confirmed or suspected &gt;4 hours — internal forensic resource alone is insufficient for scope reconstruction</li>
+        <li>Dwell time is unknown — timeline reconstruction requires specialist forensics</li>
+        <li>Lateral movement has occurred — multi-host forensics at scale</li>
+        <li>Data exfiltration is confirmed or cannot be ruled out — data quantification requires DFIR</li>
+        <li>Ransomware or destructive attack — specialist tooling and threat actor attribution</li>
+        <li>Regulatory notification is likely — independent investigation provides defensible evidence</li>
+        <li>Internal visibility is insufficient to confirm scope — DFIR can deploy sensors and acquire artefacts</li>
+        <li>Privileged account compromise is confirmed or unconfirmed — blast radius assessment requires DFIR</li>
+      </ul>
+    </div>
+    <div class="action-section" style="margin-bottom:10px">
+      <div class="action-section-header"><span class="action-section-label">What to provide DFIR on engagement</span></div>
+      <ul class="action-list">
+        <li>Known timeline: first detection event, first suspected access, current state</li>
+        <li>Known scope: affected systems, accounts, network segments</li>
+        <li>Current containment state: what is isolated, what is still live</li>
+        <li>Log sources available: SIEM coverage, EDR coverage gaps, retention periods</li>
+        <li>Forensic artefacts preserved: memory images, disk images, SIEM exports</li>
+        <li>Initial hypothesis: suspected access vector, actor TTPs observed</li>
+        <li>Environment overview: AD topology, cloud tenants, key data repositories</li>
+      </ul>
+    </div>
+    <div class="action-section">
+      <div class="action-section-header"><span class="action-section-label">Critical: do not do this before DFIR arrives</span></div>
+      <ul class="action-list">
+        <li><strong>Do not reimage or wipe any compromised system</strong> — destroys forensic evidence</li>
+        <li><strong>Do not restart encrypted systems</strong> — may destroy in-memory decryption artefacts</li>
+        <li><strong>Do not run eradication scripts or clean-up tools</strong> — overwrites persistence mechanism evidence</li>
+        <li><strong>Do not restore services into the compromised environment</strong> — risk of re-infection</li>
+        <li><strong>Do not patch the initial access vector before DFIR has evidenced it</strong> — may destroy the forensic chain</li>
+      </ul>
+    </div>`;
+}
+
+// ─────────────────────────────────────────
+// KEYBOARD
+// ─────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  const node=TREE[currentNode];
+  if(!node||node.outcome!==undefined)return;
+  const i=e.key.toUpperCase().charCodeAt(0)-65;
+  if(i>=0&&i<(node.opts||[]).length){choose(i);}
+  if(e.key==='Backspace'||e.key==='Escape'){e.preventDefault();goBack();}
+});
+
+renderLanding();
+</script>
+</body>
+</html>
