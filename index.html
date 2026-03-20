@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Security Tools — Dan Howett</title>
+<meta name="description" content="A collection of interactive security and risk management tools. All tools run entirely in-browser — no data is sent or stored externally.">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --border: #e5e7eb;
+  --border2: #d1d5db;
+  --text: #111827;
+  --text2: #374151;
+  --muted: #6b7280;
+  --dim: #9ca3af;
+  --radius: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* NAV */
+.topnav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 40px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.nav-sep { color: var(--border2); font-weight: 300; font-size: 20px; margin: 0 2px; }
+.nav-sub { font-size: 13px; color: var(--muted); font-weight: 400; }
+.nav-right { display: flex; align-items: center; gap: 20px; font-size: 12px; color: var(--muted); }
+.nav-right a { color: var(--muted); text-decoration: none; }
+.nav-right a:hover { color: var(--text); }
+.nav-pill { background: var(--bg); border: 1px solid var(--border); border-radius: 5px; padding: 2px 9px; font-size: 11px; font-weight: 600; color: var(--text2); }
+
+/* PAGE */
+.page { max-width: 860px; margin: 0 auto; padding: 52px 40px 96px; }
+
+/* HERO */
+.hero { margin-bottom: 36px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+.hero-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); margin-bottom: 10px; }
+.hero-title { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); line-height: 1.15; margin-bottom: 12px; }
+.hero-title em { font-style: italic; }
+.hero-sub { font-size: 14px; color: var(--muted); line-height: 1.75; max-width: 560px; margin-bottom: 16px; }
+.hero-meta { font-size: 12px; color: var(--dim); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.hero-meta a { color: var(--muted); text-decoration: none; }
+.hero-meta a:hover { color: var(--text); }
+.hero-meta-sep { color: var(--border2); }
+
+/* NOTICE */
+.notice {
+  display: flex; gap: 10px;
+  background: #fffbeb; border: 1px solid #fde68a;
+  border-radius: var(--radius); padding: 12px 16px;
+  font-size: 12px; color: #92400e; line-height: 1.6;
+  margin-bottom: 44px;
+}
+.notice strong { font-weight: 600; }
+
+/* SECTION */
+.section { margin-bottom: 40px; }
+.section-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+.section-title { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text2); }
+.section-count { font-size: 11px; color: var(--dim); }
+
+/* TOOL LIST — the main layout primitive */
+.tool-list {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* TOOL ROW */
+.tool-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 24px;
+  text-decoration: none;
+  color: inherit;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+.tool-row:last-child { border-bottom: none; }
+.tool-row:hover { background: var(--bg); }
+.tool-row:hover .row-arrow { opacity: 1; transform: translateX(2px); }
+
+/* Featured rows get a left accent bar */
+.tool-row.prominent { border-left: 3px solid var(--text2); padding-left: 21px; }
+
+.row-body { flex: 1; min-width: 0; }
+
+.row-meta { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; flex-wrap: wrap; }
+.row-category { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+.row-version { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; background: var(--text); color: var(--surface); }
+.row-badge { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; }
+.badge-latest { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+.badge-new    { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+.badge-doc    { background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; }
+
+.row-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; letter-spacing: -0.01em; line-height: 1.35; }
+.row-desc { font-size: 13px; color: var(--muted); line-height: 1.65; margin-bottom: 12px; }
+
+/* Stat strip — inline row of numbers, sits between desc and tags */
+.row-stats {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.stat-cell {
+  padding: 5px 14px;
+  text-align: center;
+  border-right: 1px solid var(--border);
+  background: var(--bg);
+}
+.stat-cell:last-child { border-right: none; }
+.stat-num { font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.2; letter-spacing: -0.01em; }
+.stat-label { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--dim); }
+
+.row-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tag { font-size: 11px; padding: 2px 7px; border-radius: 4px; background: var(--bg); border: 1px solid var(--border); color: var(--muted); }
+
+/* CTA arrow at right edge */
+.row-cta { flex-shrink: 0; display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--dim); white-space: nowrap; padding-left: 16px; }
+.row-arrow { opacity: 0.3; transition: all 0.12s; display: inline-block; font-size: 13px; }
+
+/* FOOTER */
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 22px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--dim);
+  background: var(--surface);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.footer a { color: var(--dim); text-decoration: none; }
+.footer a:hover { color: var(--text); }
+
+/* SNAKE */
+#snake-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.93); z-index: 999;
+  flex-direction: column; align-items: center; justify-content: center;
+  font-family: monospace;
+}
+#snake-overlay.active { display: flex; }
+#snake-esc { position: absolute; top: 20px; right: 24px; color: #444; font-size: 11px; cursor: pointer; letter-spacing: 0.1em; }
+#snake-header { color: #ef4444; font-size: 11px; letter-spacing: 0.15em; margin-bottom: 8px; }
+#snake-canvas { border: 1px solid #222; background: #0a0a0a; display: block; }
+#snake-info { display: flex; gap: 32px; margin-top: 10px; font-size: 11px; color: #444; letter-spacing: 0.1em; }
+#snake-score { color: #22c55e; }
+#snake-start { margin-top: 14px; padding: 6px 20px; background: none; border: 1px solid #333; color: #555; font-family: monospace; font-size: 11px; letter-spacing: 0.12em; cursor: pointer; display: none; }
+#snake-start.visible { display: inline-block; }
+
+/* RESPONSIVE */
+@media (max-width: 640px) {
+  .page { padding: 28px 16px 72px; }
+  .topnav { padding: 0 16px; }
+  .footer { padding: 16px; }
+  .hero-title { font-size: 24px; }
+  .tool-row { padding: 16px; }
+  .row-cta { display: none; }
+  .nav-pill { display: none; }
+  .row-stats { flex-wrap: wrap; }
+}
+@media print {
+  .topnav, .footer { display: none; }
+  .page { padding: 20px; max-width: 100%; }
+  body { background: white; }
+}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <a href="https://danhowett.github.io/useful/" class="nav-brand">
+    Dan Howett <span class="nav-sep">/</span> <span class="nav-sub">Security Tools</span>
+  </a>
+  <div class="nav-right">
+    <a href="https://github.com/danhowett/General" target="_blank" rel="noopener">github.com/danhowett/General</a>
+    <span class="nav-pill">14 TOOLS</span>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="hero">
+    <div class="hero-eyebrow">danhowett.github.io/useful</div>
+    <h1 class="hero-title">Security <em>Tools</em></h1>
+    <p class="hero-sub">A collection of interactive security and risk management tools — assessments, frameworks, visualisations and references. All tools run entirely in-browser, no data is sent or stored externally.</p>
+    <div class="hero-meta">
+      <span>Created with Claude.ai</span>
+      <span class="hero-meta-sep">·</span>
+      <a href="https://github.com/danhowett/General" target="_blank" rel="noopener">github.com/danhowett/General</a>
+      <span class="hero-meta-sep">·</span>
+      <span>14 tools</span>
+    </div>
+  </div>
+
+  <div class="notice">
+    <span>⚠</span>
+    <span><strong>Proof of concept only.</strong> These tools are provided for exploratory and educational purposes. They are not professional security assessments and results should not be relied upon for compliance, audit, or risk management decisions. Use at your own risk.</span>
+  </div>
+
+  <!-- INCIDENT READINESS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Incident Readiness</span>
+      <span class="section-count">3 tools</span>
+    </div>
+    <div class="tool-list">
+
+      <a href="cyber-readiness-assessment.html" class="tool-row prominent">
+        <div class="row-body">
+          <div class="row-meta">
+            <span class="row-category">Incident Readiness &middot; Full Suite</span>
+            <span class="row-version">v3.0</span>
+            <span class="row-badge badge-latest">Latest</span>
+          </div>
+          <div class="row-title">Cyber Incident Readiness Assessment (CIRA)</div>
+          <div class="row-desc">Comprehensive incident readiness platform. Tiered assessment across 8 domains and 40 controls with sector overlays for 10 regulated industries, threat profiling, live maturity radar with peer benchmarking, evidence status tracking, improvement plan with owner and due date fields, retest tracking, 8 tabletop exercise scenarios with inject-based facilitation, AI-assisted gap narrative, and full PDF report generation. Saves and loads state in-browser.</div>
+          <div class="row-stats">
+            <div class="stat-cell"><div class="stat-num">40</div><div class="stat-label">Controls</div></div>
+            <div class="stat-cell"><div class="stat-num">8</div><div class="stat-label">Domains</div></div>
+            <div class="stat-cell"><div class="stat-num">10</div><div class="stat-label">Sectors</div></div>
+            <div class="stat-cell"><div class="stat-num">8</div><div class="stat-label">Tabletops</div></div>
+            <div class="stat-cell"><div class="stat-num">AI</div><div class="stat-label">Narrative</div></div>
+            <div class="stat-cell"><div class="stat-num">PDF</div><div class="stat-label">Export</div></div>
+          </div>
+          <div class="row-tags">
+            <span class="tag">CIRA v3</span><span class="tag">40 Controls</span><span class="tag">8 Domains</span><span class="tag">10 Sector Overlays</span><span class="tag">DORA</span><span class="tag">CAF</span><span class="tag">NIS2</span><span class="tag">DSPT</span><span class="tag">PCI DSS</span><span class="tag">8 Tabletops</span><span class="tag">AI Analysis</span><span class="tag">Radar Chart</span><span class="tag">PDF Export</span><span class="tag">Save / Load</span>
+          </div>
+        </div>
+        <div class="row-cta">Open tool <span class="row-arrow">&#8594;</span></div>
+      </a>
+
+      <a href="cyber-incident-decision-tree.html" class="tool-row">
+        <div class="row-body">
+          <div class="row-meta">
+            <span class="row-category">Incident Triage</span>
+            <span class="row-version">v1.0</span>
+            <span class="row-badge badge-new">New</span>
+          </div>
+          <div class="row-title">Cyber Incident Decision Tree</div>
+          <div class="row-desc">Step-by-step triage tool for active cyber incidents. Determines severity (P0&ndash;P4), when to assemble an IMT, when to engage external DFIR, and who to notify. Every decision point includes an &ldquo;unknown&rdquo; path for honest triage under uncertainty. Actionable initial steps sized for large enterprise environments.</div>
+          <div class="row-tags">
+            <span class="tag">Decision Tree</span><span class="tag">P0&ndash;P4</span><span class="tag">IMT</span><span class="tag">DFIR</span><span class="tag">Escalation</span><span class="tag">Triage</span><span class="tag">SOC</span><span class="tag">Large Corp</span>
+          </div>
+        </div>
+        <div class="row-cta">Open tool <span class="row-arrow">&#8594;</span></div>
+      </a>
+
+      <a href="cyber-incident-lifecycle.html" class="tool-row">
+        <div class="row-body">
+          <div class="row-meta">
+            <span class="row-category">Incident Management</span>
+          </div>
+          <div class="row-title">Cyber Incident Lifecycle</div>
+          <div class="row-desc">Visual guide to the cyber incident lifecycle phases — from initial detection through containment, eradication, recovery and lessons learned. Reference tool for incident responders and SOC teams.</div>
+          <div class="row-tags">
+            <span class="tag">Incident Response</span><span class="tag">DFIR</span><span class="tag">SOC</span><span class="tag">Reference</span>
+          </div>
+        </div>
+        <div class="row-cta">Open tool <span class="row-arrow">&#8594;</span></div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- FRAMEWORKS & ASSESSMENT -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Frameworks &amp; Assessment</span>
+      <span class="section-count">4 tools</span>
+    </div>
+    <div class="tool-list">
+
+      <a href="v2_NCSC-CAF-v4-Assessment-Tool.html" class="tool-row">
+        <div class="row-body">
+          <div class="row-meta">
+            <span class="row-category">Framework Assessment</span>
+            <span class="row-version">v2.0</span>
+          </div>
+          <div class="row-title">NCSC CAF v4.0 Assessment Tool</div>
+          <div class="row-desc">Full interactive assessment tool covering all 41 Contributing Outcomes across 4 objectives and 14 principles of the NCSC Cyber Assessment Framework v4.0 (August 2025). Includes risk matrix, improvement plan, maturity radar and exportable report.</div>
+          <div class="row-tags">
+            <span class="tag">CAF v4.0</span><span class="tag">NCSC</span><span class="tag">41 COs</span><span class="tag">Risk Matrix</span><span class="tag">CNI</span><span class="tag">Radar Chart</span>
+          </div>
+        </div>
+        <div class="row-cta">Open tool <span class="row-arrow">&#8594;</span></div>
+      </a>
+
+      <a href="cyber-maturity-mapper.html" class="tool-row">
+        <div class="row-body">
+          <div class="row-meta">
+            <span class="row-category">Maturity Assessment</span>
+          </div>
+          <div class="row-title">Cyber Maturity Mapper</div>
+          <div class="row-desc">Map and visualise your organisation's cyber security maturity across key capability domains. Score capabilities against a defined maturity model to identify gaps, track improvement over time and produce a prioritised development roadmap.</div>
+          <div class="row-tags">
+            <span class="tag">Maturity Model</span><span class="tag">Capability Mapping</span><span class="tag">Gap Analysis</span><span class="tag">Roadmap</span>
+          </div>
+        </div>
+        <div class="row-cta">Open tool <span class="row-arrow">&#8594;</span></div>
+      </a>
+
+      <a href="control-effectiveness-matrix.html" class="tool-row">
+        <div class="row-body">
+          <div class="row-meta">
+            <span class="row-category">Control Assessment</span>
+          </div>
+          <div class="row-title">Control Effectiveness Matrix</div>
+          <div class="row-desc">Assess and visualise the effectiveness of security controls mapped across threat categories. Rate controls by coverage and effectiveness to identify gaps and optimise your defensive posture.</div>
+          <div class="row-tags">
+            <span class="tag">Controls</span><span class="tag">Effectiveness</span><span class="tag">Gap Analysis</span><span class="tag">Threat Mapping</span>
+          </div>
+        </div>
+        <div class="row-cta">Open tool <span class="row-arrow">&#8594;</span></div>
+      </a>
+
+      <a href="csr_tiers.html" class="tool-row">
+        <div class="row-body">
+          <div class="row-meta">
+            <span class="row-category">Security Classification</span>
+          </div>
+          <div class="row-title">CSR Tiers</div>
+          <div class="row-desc">Interactive reference tool for Cyber Security Requirements tiering. Classify organisations or systems by tier based on criticality, data sensitivity and threat exposure, with mapped control expectations per tier.</div>
+          <div class="row-tags">
+            <span class="tag">CSR</span><span class="tag">Tiering</span><span class="tag">Classification</span><span class="tag">Control Mapping</span>
+          </div>
+        </div>
+        <div class="row-cta">Open tool <span class="row-arrow">&#8594;</span></div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- RISK & THREAT INTELLIGENCE -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Risk &amp; Threat Intelligence</span>
+      <span class="section-count">4 tools</span>
+    </div>
+    <div class="tool-list">
+
+      <a href="cyber-risk-matrix.html" class="tool-row">
+        <div class="row-body">
+          <div class="row-meta">
+            <span class="row-category">Risk Management</span>
+          </div>
+          <div class="row-title">Cyber Risk Matrix</div>
+          <div class="row-desc">Interactive cyber risk matrix for plotting and managing risks by likelihood and impact. Supports custom risk entries, risk scoring, and visual risk appetite overlay to prioritise treatment decisions.</div>
+          <div class="row-tags">
+            <span class="tag">Risk Register</span><span class="tag">5&times;5 Matrix</span><span class="tag">Risk Appetite</span><span class="tag">Risk Scoring</span>
+          </div>
+        </div>
+        <div class="row-cta">Open tool <span class="row-arrow">&#8594;</span></div>
+      </a>
+
+      <a href="threat-actor-profiles.html" class="tool-row">
+        <div class="row-body">
+          <div class="row-meta">
+            <span class="row-category">Threat Intelligence</span>
+          </div>
+          <div class="row-title">Threat Actor Profiles</div>
+          <div class="row-desc">Reference profiles for key threat actor groups — covering motivations, typical TTPs, targeted sectors and geographic focus. Useful for threat modelling, risk assessments and briefing stakeholders.</div>
+          <div class="row-tags">
+            <span class="tag">Threat Actors</span><span class="tag">TTPs</span><span class="tag">MITRE ATT&amp;CK</span><span class="tag">CTI</span>
+          </div>
+        </div>
+        <div class="row-cta">Open tool <span class="row-arrow">&#8594;</span></div>
+      </a>
+
+      <a href="ti-workflow.html" class="tool-row">
+        <div class="row-body">
+          <div class="row-meta">
+            <span class="row-category">Threat Intelligence</span>
+          </div>
+          <div class="row-title">TI Workflow &amp; Dissemination</div>
+          <div class="row-desc">End-to-end threat intelligence workflow covering the full intelligence lifecycle — from requirements and collection through processing, analysis, dissemination and feedback. Covers CVE/zero-day prioritisation, infrastructure intelligence, email security (DMARC/DKIM/SPF), credential exposure, TLP framework, STIX/TAXII, and feed targets across SIEM, EDR, firewall, vuln management and executive briefing.</div>
+          <div class="row-tags">
+            <span class="tag">TI Lifecycle</span><span class="tag">IOCs</span><span class="tag">CVE / EPSS</span><span class="tag">DMARC</span><span class="tag">TLP</span><span class="tag">STIX / TAXII</span><span class="tag">Dissemination</span>
+          </div>
+        </div>
+        <div class="row-cta">Open tool <span class="row-arrow">&#8594;</span></div>
+      </a>
+
+      <a href="cti-reference.html" class="tool-row">
+        <div class="row-body">
+          <div class="row-meta">
+            <span class="row-category">Threat Intelligence &middot; Reference</span>
+          </div>
+          <div class="row-title">CTI Reference Guide</div>
+          <div class="row-desc">Comprehensive cyber threat intelligence reference covering the full intelligence lifecycle, source taxonomy, intelligence types beyond IOCs, DMARC/DKIM/SPF email security intelligence, TLP framework, STIX 2.1 / TAXII 2.1 structured sharing, and dissemination targets. Reference companion to the TI Workflow tool.</div>
+          <div class="row-tags">
+            <span class="tag">CTI</span><span class="tag">TI Lifecycle</span><span class="tag">IOCs</span><span class="tag">DMARC</span><span class="tag">TLP</span><span class="tag">STIX / TAXII</span><span class="tag">Reference</span>
+          </div>
+        </div>
+        <div class="row-cta">Open tool <span class="row-arrow">&#8594;</span></div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- COMPLIANCE & REGULATION -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Compliance &amp; Regulation</span>
+      <span class="section-count">1 tool</span>
+    </div>
+    <div class="tool-list">
+
+      <a href="sector-cyber-compliance.html" class="tool-row prominent">
+        <div class="row-body">
+          <div class="row-meta">
+            <span class="row-category">Sector Compliance Reference</span>
+            <span class="row-version">v1.0</span>
+          </div>
+          <div class="row-title">Sector Cyber Compliance Reference</div>
+          <div class="row-desc">Interactive reference covering the primary cyber regulations, frameworks, and incident notification obligations across 10 UK industry sectors. UK-primary with EU, US, and global overlays for international organisations. Expandable regulation cards with core obligations, notification windows, regulatory contacts, and maximum penalty exposure per sector.</div>
+          <div class="row-stats">
+            <div class="stat-cell"><div class="stat-num">10</div><div class="stat-label">Sectors</div></div>
+            <div class="stat-cell"><div class="stat-num">80+</div><div class="stat-label">Regulations</div></div>
+            <div class="stat-cell"><div class="stat-num">4</div><div class="stat-label">Jurisdictions</div></div>
+            <div class="stat-cell"><div class="stat-num">1hr</div><div class="stat-label">Fastest Notify</div></div>
+            <div class="stat-cell"><div class="stat-num">UK</div><div class="stat-label">Primary</div></div>
+            <div class="stat-cell"><div class="stat-num">2025</div><div class="stat-label">Edition</div></div>
+          </div>
+          <div class="row-tags">
+            <span class="tag">UK Primary</span><span class="tag">EU Overlay</span><span class="tag">US Overlay</span><span class="tag">Global Overlay</span><span class="tag">10 Sectors</span><span class="tag">NIS Regs</span><span class="tag">UK GDPR</span><span class="tag">DORA</span><span class="tag">NIS2</span><span class="tag">CAF</span><span class="tag">CS&amp;R Bill</span><span class="tag">PCI DSS</span><span class="tag">HIPAA</span><span class="tag">Notification Windows</span><span class="tag">Regulatory Contacts</span>
+          </div>
+        </div>
+        <div class="row-cta">Open tool <span class="row-arrow">&#8594;</span></div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- OPERATIONS & TOOLING -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Operations &amp; Tooling</span>
+      <span class="section-count">2 tools</span>
+    </div>
+    <div class="tool-list">
+
+      <a href="v2dfir-dashboard.html" class="tool-row">
+        <div class="row-body">
+          <div class="row-meta">
+            <span class="row-category">DFIR &middot; Forensics</span>
+          </div>
+          <div class="row-title">DFIR Dashboard</div>
+          <div class="row-desc">Browser-based Digital Forensics and Incident Response analysis dashboard. Upload and parse triage artefacts, visualise event timelines, surface ransomware and threat indicators, and track investigation findings — all client-side with no data leaving the browser.</div>
+          <div class="row-tags">
+            <span class="tag">DFIR</span><span class="tag">Ransomware Analysis</span><span class="tag">EVTX Parsing</span><span class="tag">Timeline</span><span class="tag">Threat Indicators</span><span class="tag">Client-Side</span>
+          </div>
+        </div>
+        <div class="row-cta">Open tool <span class="row-arrow">&#8594;</span></div>
+      </a>
+
+      <a href="client-portal.html" class="tool-row">
+        <div class="row-body">
+          <div class="row-meta">
+            <span class="row-category">Client Services</span>
+          </div>
+          <div class="row-title">Mock Client Portal</div>
+          <div class="row-desc">Demonstration client portal for managed security services — showcasing how security findings, incident updates, reports and risk posture can be presented to clients in a clean, professional interface.</div>
+          <div class="row-tags">
+            <span class="tag">Client Portal</span><span class="tag">MSS</span><span class="tag">Reporting</span><span class="tag">Dashboard</span>
+          </div>
+        </div>
+        <div class="row-cta">Open tool <span class="row-arrow">&#8594;</span></div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- REFERENCE DOCUMENTS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Reference Documents</span>
+      <span class="section-count">2 docs</span>
+    </div>
+    <div class="tool-list">
+
+      <a href="https://github.com/danhowett/General/raw/main/DFIR_Workflow.docx" class="tool-row">
+        <div class="row-body">
+          <div class="row-meta">
+            <span class="row-category">DFIR &middot; Forensics</span>
+            <span class="row-badge badge-doc">.docx</span>
+          </div>
+          <div class="row-title">DFIR Workflow — End-to-End Investigation Framework</div>
+          <div class="row-desc">Comprehensive Word document covering the full DFIR investigation lifecycle across 10 sections: governance &amp; audit framework, preservation order of volatility, Windows endpoint collection, network &amp; perimeter sources, cloud collection (AWS / Azure / GCP), investigation objectives, analysis workflow, reporting, recommendations, and post-incident review.</div>
+          <div class="row-tags">
+            <span class="tag">DFIR</span><span class="tag">Chain of Custody</span><span class="tag">Windows Forensics</span><span class="tag">Cloud Evidence</span><span class="tag">AWS</span><span class="tag">Azure</span><span class="tag">ATT&amp;CK Mapping</span><span class="tag">Word Document</span>
+          </div>
+        </div>
+        <div class="row-cta">Download <span class="row-arrow">&#8595;</span></div>
+      </a>
+
+      <a href="https://github.com/danhowett/General/raw/main/IR_Playbooks.docx" class="tool-row">
+        <div class="row-body">
+          <div class="row-meta">
+            <span class="row-category">Incident Response</span>
+            <span class="row-badge badge-doc">.docx</span>
+          </div>
+          <div class="row-title">IR Playbook Suite — 5 Scenario Playbooks</div>
+          <div class="row-desc">Five fully structured incident response playbooks covering: Ransomware (Enterprise-Wide), Supply Chain Compromise (Software/MSP), Insider Threat (Privileged Exfiltration), Nation-State (Persistent Intrusion), and OT/ICS Attack (Operational Disruption). Each playbook includes RACI matrix, phase-by-phase step tables, decision callout boxes, pre-action checklists, and multi-jurisdiction compliance notes.</div>
+          <div class="row-tags">
+            <span class="tag">Ransomware</span><span class="tag">Supply Chain</span><span class="tag">Insider Threat</span><span class="tag">Nation-State</span><span class="tag">OT / ICS</span><span class="tag">RACI</span><span class="tag">IR Phases</span><span class="tag">Word Document</span>
+          </div>
+        </div>
+        <div class="row-cta">Download <span class="row-arrow">&#8595;</span></div>
+      </a>
+
+    </div>
+  </div>
+
+</div>
+
+<footer class="footer">
+  <div>
+    <a href="https://github.com/danhowett/General" target="_blank" rel="noopener">github.com/danhowett/General</a>
+    &nbsp;&middot;&nbsp; Tools created with Claude.ai
+    &nbsp;&middot;&nbsp; All processing is client-side, no data leaves your browser
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <span>14 tools &nbsp;&middot;&nbsp; Proof of concept only</span>
+    <span id="snake-trigger" onclick="openSnake()" title="psst" style="font-size:14px;opacity:0.15;cursor:pointer;transition:opacity 0.25s;user-select:none;" onmouseenter="this.style.opacity='0.7'" onmouseleave="this.style.opacity='0.15'">&#x1F40D;</span>
+  </div>
+</footer>
+
+<div id="snake-overlay">
+  <div id="snake-esc" onclick="closeSnake()">[ ESC ]</div>
+  <div id="snake-header">// BREACH DETECTED &#x2014; SNAKE PROTOCOL INITIATED</div>
+  <canvas id="snake-canvas" width="360" height="360"></canvas>
+  <div id="snake-info">
+    <span>SCORE: <span id="snake-score">0</span></span>
+    <span>ARROW KEYS / WASD</span>
+  </div>
+  <button id="snake-start" onclick="initSnake()">INITIALISE &#x2192;</button>
+</div>
+
+<script>
+const KONAMI = [38,38,40,40,37,39,37,39,66,65];
+let kIdx = 0;
+document.addEventListener('keydown', e => {
+  kIdx = e.keyCode === KONAMI[kIdx] ? kIdx + 1 : 0;
+  if (kIdx === KONAMI.length) { openSnake(); kIdx = 0; }
+  if (e.keyCode === 27) closeSnake();
+});
+function openSnake() {
+  document.getElementById('snake-overlay').classList.add('active');
+  document.getElementById('snake-start').classList.add('visible');
+}
+function closeSnake() {
+  document.getElementById('snake-overlay').classList.remove('active');
+  snakeRunning = false;
+}
+
+const canvas = document.getElementById('snake-canvas');
+const ctx = canvas.getContext('2d');
+const GRID = 20, COLS = 18, ROWS = 18;
+const OX = (360 - COLS * GRID) / 2, OY = (360 - ROWS * GRID) / 2;
+let snake, dir, nextDir, food, score, snakeRunning, animId;
+
+function initSnake() {
+  document.getElementById('snake-start').classList.remove('visible');
+  snake = [{x:9,y:9},{x:8,y:9},{x:7,y:9}];
+  dir = {x:1,y:0}; nextDir = {x:1,y:0};
+  score = 0; document.getElementById('snake-score').textContent = 0;
+  placeFood(); snakeRunning = true; cancelAnimationFrame(animId);
+  let last = 0;
+  function loop(ts) {
+    if (!snakeRunning) return;
+    animId = requestAnimationFrame(loop);
+    if (ts - last < 120) return;
+    last = ts; dir = nextDir;
+    const head = {x: snake[0].x + dir.x, y: snake[0].y + dir.y};
+    if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) { gameOver(); return; }
+    if (snake.some(s => s.x === head.x && s.y === head.y)) { gameOver(); return; }
+    snake.unshift(head);
+    if (head.x === food.x && head.y === food.y) {
+      score++; document.getElementById('snake-score').textContent = score; placeFood();
+    } else { snake.pop(); }
+    draw();
+  }
+  requestAnimationFrame(loop);
+}
+function placeFood() {
+  let f;
+  do { f = {x: Math.floor(Math.random()*COLS), y: Math.floor(Math.random()*ROWS)}; }
+  while (snake.some(s => s.x === f.x && s.y === f.y));
+  food = f;
+}
+function draw() {
+  ctx.fillStyle = '#0a0a0a'; ctx.fillRect(0,0,360,360);
+  ctx.fillStyle = '#161616';
+  for (let x=0;x<COLS;x++) for (let y=0;y<ROWS;y++)
+    ctx.fillRect(OX+x*GRID+GRID/2-1, OY+y*GRID+GRID/2-1, 2, 2);
+  ctx.fillStyle = '#ef4444';
+  ctx.fillRect(OX+food.x*GRID+3, OY+food.y*GRID+3, GRID-6, GRID-6);
+  snake.forEach((s,i) => {
+    ctx.fillStyle = i===0 ? '#22c55e' : `hsl(${142+i*2},${65-i}%,${38-i*0.4}%)`;
+    ctx.fillRect(OX+s.x*GRID+1, OY+s.y*GRID+1, GRID-2, GRID-2);
+  });
+}
+function gameOver() {
+  snakeRunning = false;
+  ctx.fillStyle = 'rgba(0,0,0,0.75)'; ctx.fillRect(0,0,360,360);
+  ctx.fillStyle = '#ef4444'; ctx.font = '600 12px monospace'; ctx.textAlign = 'center';
+  ctx.fillText('BREACH CONTAINED', 180, 172);
+  ctx.fillStyle = '#444'; ctx.font = '11px monospace';
+  ctx.fillText('FINAL SCORE: ' + score, 180, 192);
+  document.getElementById('snake-start').textContent = 'REINITIALISE \u2192';
+  document.getElementById('snake-start').classList.add('visible');
+}
+document.addEventListener('keydown', e => {
+  if (!snakeRunning) return;
+  const map = {
+    ArrowUp:{x:0,y:-1},ArrowDown:{x:0,y:1},ArrowLeft:{x:-1,y:0},ArrowRight:{x:1,y:0},
+    w:{x:0,y:-1},s:{x:0,y:1},a:{x:-1,y:0},d:{x:1,y:0},
+    W:{x:0,y:-1},S:{x:0,y:1},A:{x:-1,y:0},D:{x:1,y:0}
+  };
+  const nd = map[e.key];
+  if (nd && !(nd.x === -dir.x && nd.y === -dir.y)) { nextDir = nd; e.preventDefault(); }
+});
+</script>
+</body>
+</html>
