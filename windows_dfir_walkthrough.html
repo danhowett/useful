@@ -1,0 +1,2120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Windows DFIR Investigation Walkthrough</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Syne:wght@400;600;700;800&display=swap');
+
+  :root {
+    --bg: #0a0c10;
+    --surface: #0f1318;
+    --surface2: #151b22;
+    --surface3: #1c2430;
+    --border: #1e2a38;
+    --border-bright: #2a3f55;
+    --accent: #00c8ff;
+    --accent2: #ff6b35;
+    --accent3: #39d353;
+    --accent4: #f0c040;
+    --accent5: #c678dd;
+    --danger: #ff4757;
+    --text: #c9d1d9;
+    --text-dim: #6e8399;
+    --text-bright: #e6edf3;
+    --glow: rgba(0, 200, 255, 0.08);
+    --phase-1: #00c8ff;
+    --phase-2: #39d353;
+    --phase-3: #f0c040;
+    --phase-4: #ff6b35;
+    --phase-5: #c678dd;
+    --phase-6: #ff4757;
+    --phase-7: #56b6c2;
+    --phase-8: #e06c75;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,200,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* HEADER */
+  header {
+    padding: 48px 0 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+
+  .header-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .header-tag::before {
+    content: '';
+    width: 20px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 800;
+    color: var(--text-bright);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  h1 span {
+    color: var(--accent);
+  }
+
+  .header-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+
+  /* PROGRESS BAR */
+  .progress-bar-container {
+    margin: 32px 0;
+    padding: 20px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .progress-info {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .progress-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: 8px;
+  }
+
+  .progress-track {
+    height: 6px;
+    background: var(--surface3);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+    border-radius: 3px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  .progress-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-bright);
+  }
+
+  .progress-count span {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .btn-reset {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid var(--border-bright);
+    color: var(--text-dim);
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    transition: all 0.2s;
+  }
+
+  .btn-reset:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+
+  .btn-export {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    transition: all 0.2s;
+  }
+
+  .btn-export:hover {
+    background: rgba(0,200,255,0.1);
+  }
+
+  /* PHASE NAV */
+  .phase-nav {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+  }
+
+  .phase-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 8px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  .phase-btn:hover, .phase-btn.active {
+    border-color: var(--phase-color, var(--accent));
+    color: var(--phase-color, var(--accent));
+    background: rgba(255,255,255,0.02);
+  }
+
+  .phase-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--phase-color, var(--accent));
+  }
+
+  /* SECTIONS */
+  .phase-section {
+    margin-bottom: 48px;
+  }
+
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .phase-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+  }
+
+  .phase-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-bright);
+  }
+
+  .phase-desc {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-left: auto;
+  }
+
+  /* SUBSECTIONS */
+  .subsection {
+    margin-bottom: 28px;
+  }
+
+  .subsection-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .subsection-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* CHECKLIST ITEMS */
+  .checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .check-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: transparent;
+    transition: background 0.2s;
+  }
+
+  .check-item:hover {
+    border-color: var(--border-bright);
+    background: var(--surface2);
+  }
+
+  .check-item.done {
+    opacity: 0.55;
+  }
+
+  .check-item.done::before {
+    background: var(--accent3);
+  }
+
+  .check-item.done .check-text {
+    text-decoration: line-through;
+    color: var(--text-dim);
+  }
+
+  .check-item.critical::before {
+    background: var(--danger);
+  }
+
+  .check-item.critical .check-label-badge {
+    display: inline-flex;
+  }
+
+  .check-box {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    border: 1.5px solid var(--border-bright);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+    transition: all 0.15s;
+  }
+
+  .check-item.done .check-box {
+    background: var(--accent3);
+    border-color: var(--accent3);
+  }
+
+  .check-tick {
+    font-size: 11px;
+    color: #0a0c10;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .check-item.done .check-tick {
+    opacity: 1;
+  }
+
+  .check-content {
+    flex: 1;
+  }
+
+  .check-text {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.5;
+    transition: all 0.15s;
+  }
+
+  .check-detail {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    line-height: 1.6;
+  }
+
+  .check-label-badge {
+    display: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    padding: 2px 6px;
+    background: rgba(255,71,87,0.15);
+    border: 1px solid rgba(255,71,87,0.4);
+    color: var(--danger);
+    border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-left: auto;
+    white-space: nowrap;
+    align-self: flex-start;
+    margin-top: 1px;
+  }
+
+  .evtid {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 1px 5px;
+    background: rgba(0,200,255,0.1);
+    border: 1px solid rgba(0,200,255,0.25);
+    color: var(--accent);
+    border-radius: 2px;
+    margin: 1px 2px;
+    white-space: nowrap;
+  }
+
+  .evtid.warn {
+    background: rgba(240,192,64,0.1);
+    border-color: rgba(240,192,64,0.25);
+    color: var(--accent4);
+  }
+
+  .evtid.danger {
+    background: rgba(255,71,87,0.1);
+    border-color: rgba(255,71,87,0.25);
+    color: var(--danger);
+  }
+
+  .evtid.green {
+    background: rgba(57,211,83,0.1);
+    border-color: rgba(57,211,83,0.25);
+    color: var(--accent3);
+  }
+
+  .evtid.purple {
+    background: rgba(198,120,221,0.1);
+    border-color: rgba(198,120,221,0.25);
+    color: var(--accent5);
+  }
+
+  /* NOTES AREA */
+  .notes-area {
+    margin-top: 6px;
+    width: 100%;
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 10px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    resize: vertical;
+    min-height: 60px;
+    display: none;
+    outline: none;
+  }
+
+  .notes-area:focus {
+    border-color: var(--border-bright);
+  }
+
+  .check-item.has-notes .notes-area {
+    display: block;
+  }
+
+  .note-toggle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.15s;
+  }
+
+  .note-toggle:hover {
+    color: var(--accent);
+  }
+
+  /* INFO CARDS */
+  .info-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+  }
+
+  .info-card.blue { border-left: 3px solid var(--accent); }
+  .info-card.yellow { border-left: 3px solid var(--accent4); }
+  .info-card.red { border-left: 3px solid var(--danger); }
+  .info-card.green { border-left: 3px solid var(--accent3); }
+
+  .info-card-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: 10px;
+  }
+
+  .info-card.blue .info-card-title { color: var(--accent); }
+  .info-card.yellow .info-card-title { color: var(--accent4); }
+  .info-card.red .info-card-title { color: var(--danger); }
+  .info-card.green .info-card-title { color: var(--accent3); }
+
+  .info-card p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  /* TWO COLUMN */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 900px) {
+    .two-col { grid-template-columns: 1fr; }
+  }
+
+  /* TAG GRID */
+  .tag-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 3px;
+  }
+
+  /* SCROLLSPY */
+  html { scroll-behavior: smooth; }
+
+  /* FOOTER */
+  .dfir-footer {
+    margin-top: 60px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: gap;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-tag">Windows DFIR &bull; Networked Environment</div>
+    <h1>Incident Investigation<br><span>Walkthrough & Checklist</span></h1>
+    <p class="header-sub">
+      Step-by-step artefact collection &amp; analysis guide // Windows endpoints + network infrastructure<br>
+      Log sources &bull; Event IDs &bull; MFT/USN &bull; Registry &bull; Memory &bull; Network &bull; Threat Actor TTPs
+    </p>
+  </header>
+
+  <!-- PROGRESS -->
+  <div class="progress-bar-container">
+    <div class="progress-info">
+      <div class="progress-label">Investigation Progress</div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+    <div class="progress-count" id="progressCount">0 <span>/ 0 complete</span></div>
+    <button class="btn-export" onclick="exportChecklist()">⬇ Export Report</button>
+    <button class="btn-reset" onclick="resetAll()">↺ Reset</button>
+  </div>
+
+  <!-- PHASE NAV -->
+  <div class="phase-nav" id="phaseNav">
+    <button class="phase-btn active" style="--phase-color: var(--phase-1)" onclick="scrollToPhase('phase1')"><span class="phase-dot"></span>1. Scoping</button>
+    <button class="phase-btn" style="--phase-color: var(--phase-2)" onclick="scrollToPhase('phase2')"><span class="phase-dot"></span>2. Log Sources</button>
+    <button class="phase-btn" style="--phase-color: var(--phase-3)" onclick="scrollToPhase('phase3')"><span class="phase-dot"></span>3. Event IDs</button>
+    <button class="phase-btn" style="--phase-color: var(--phase-4)" onclick="scrollToPhase('phase4')"><span class="phase-dot"></span>4. Filesystem</button>
+    <button class="phase-btn" style="--phase-color: var(--phase-5)" onclick="scrollToPhase('phase5')"><span class="phase-dot"></span>5. Registry</button>
+    <button class="phase-btn" style="--phase-color: var(--phase-6)" onclick="scrollToPhase('phase6')"><span class="phase-dot"></span>6. Memory</button>
+    <button class="phase-btn" style="--phase-color: var(--phase-7)" onclick="scrollToPhase('phase7')"><span class="phase-dot"></span>7. Network</button>
+    <button class="phase-btn" style="--phase-color: var(--phase-8)" onclick="scrollToPhase('phase8')"><span class="phase-dot"></span>8. Threat Actor TTPs</button>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PHASE 1: SCOPING & INITIAL RESPONSE -->
+  <!-- ============================================================ -->
+  <div class="phase-section" id="phase1">
+    <div class="phase-header">
+      <div class="phase-number" style="background:rgba(0,200,255,0.12);color:var(--phase-1)">PHASE 01</div>
+      <div class="phase-title">Scoping &amp; Initial Response</div>
+      <div class="phase-desc">Before touching the environment</div>
+    </div>
+
+    <div class="info-card red">
+      <div class="info-card-title">⚠ Evidence Integrity Warning</div>
+      <p>Live triage modifies timestamps, pagefile, and memory. Always document your actions. Collect volatile data first. Never run tools directly from suspect media.</p>
+    </div>
+
+    <div class="two-col">
+      <div class="subsection">
+        <div class="subsection-title">Case Initialisation</div>
+        <div class="checklist">
+          <div class="check-item" onclick="toggle(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div class="check-content">
+              <div class="check-text">Document initial alert/report source and timestamp</div>
+              <div class="check-detail">Record detection method: EDR alert, SIEM rule, user report, threat intel, third-party notification</div>
+              <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+              <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+            </div>
+          </div>
+          <div class="check-item critical" onclick="toggle(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div class="check-content">
+              <div class="check-text">Open formal incident case, assign severity (P0–P4)</div>
+              <div class="check-detail">Trigger IMT if P0/P1. Notify CISO/DPO if personal data at risk (UK GDPR 72hr clock starts)</div>
+              <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+              <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+            </div>
+            <span class="check-label-badge">CRITICAL</span>
+          </div>
+          <div class="check-item" onclick="toggle(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div class="check-content">
+              <div class="check-text">Identify affected systems, users, and business services</div>
+              <div class="check-detail">Asset owner, criticality tier, connected dependencies, data classification of hosted data</div>
+              <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+              <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+            </div>
+          </div>
+          <div class="check-item" onclick="toggle(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div class="check-content">
+              <div class="check-text">Confirm investigation legal authority / scope of access</div>
+              <div class="check-detail">Employment contracts, BYOD considerations, legal hold requirements, cloud jurisdiction</div>
+              <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+              <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+            </div>
+          </div>
+          <div class="check-item" onclick="toggle(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div class="check-content">
+              <div class="check-text">Establish chain of custody for all acquired evidence</div>
+              <div class="check-detail">Hash all acquired images (SHA-256). Label physical/digital media. CoC form completed per exhibit</div>
+              <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+              <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title">Scoping Questions</div>
+        <div class="checklist">
+          <div class="check-item" onclick="toggle(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div class="check-content">
+              <div class="check-text">Determine approximate time of compromise (T0)</div>
+              <div class="check-detail">Earliest known indicator. Work backwards from detection. Define log lookback window</div>
+              <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+              <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+            </div>
+          </div>
+          <div class="check-item critical" onclick="toggle(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div class="check-content">
+              <div class="check-text">Identify initial access vector (phishing, exposed service, supply chain, insider)</div>
+              <div class="check-detail">Review: email logs, proxy/firewall, VPN auth, RDP exposure, vulnerable service versioning</div>
+              <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+              <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+            </div>
+            <span class="check-label-badge">CRITICAL</span>
+          </div>
+          <div class="check-item" onclick="toggle(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div class="check-content">
+              <div class="check-text">Confirm whether active threat actor presence is suspected</div>
+              <div class="check-detail">If yes: consider isolation strategy, comms channel security, avoid tipping off TA</div>
+              <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+              <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+            </div>
+          </div>
+          <div class="check-item" onclick="toggle(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div class="check-content">
+              <div class="check-text">Identify blast radius: lateral movement / domain compromise suspected?</div>
+              <div class="check-detail">Check: AD replication, Kerberos tickets, Golden/Silver ticket indicators, admin share usage</div>
+              <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+              <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+            </div>
+          </div>
+          <div class="check-item" onclick="toggle(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div class="check-content">
+              <div class="check-text">Confirm data exfiltration: is data at risk or confirmed exfiltrated?</div>
+              <div class="check-detail">DLP alerts, large outbound transfers, cloud sync activity, staging directories</div>
+              <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+              <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PHASE 2: LOG SOURCES -->
+  <!-- ============================================================ -->
+  <div class="phase-section" id="phase2">
+    <div class="phase-header">
+      <div class="phase-number" style="background:rgba(57,211,83,0.12);color:var(--phase-2)">PHASE 02</div>
+      <div class="phase-title">Log Source Collection</div>
+      <div class="phase-desc">Preserve before requesting; timestamps degrade</div>
+    </div>
+
+    <div class="two-col">
+      <div class="subsection">
+        <div class="subsection-title">Windows Endpoint Logs</div>
+        <div class="checklist">
+          <div class="check-item" onclick="toggle(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div class="check-content">
+              <div class="check-text">Security event log — <code>Security.evtx</code></div>
+              <div class="check-detail">Authentication, privilege use, object access, policy changes. Location: <code>%SystemRoot%\System32\winevt\Logs\Security.evtx</code></div>
+              <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+              <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+            </div>
+          </div>
+          <div class="check-item" onclick="toggle(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div class="check-content">
+              <div class="check-text">System event log — <code>System.evtx</code></div>
+              <div class="check-detail">Service installs, driver loads, boot events, crashes, USB device connections</div>
+              <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+              <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+            </div>
+          </div>
+          <div class="check-item" onclick="toggle(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div class="check-content">
+              <div class="check-text">Application event log — <code>Application.evtx</code></div>
+              <div class="check-detail">App crashes, AV detections, installer events, .NET runtime errors</div>
+              <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+              <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+            </div>
+          </div>
+          <div class="check-item critical" onclick="toggle(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div class="check-content">
+              <div class="check-text">PowerShell Operational &amp; Script Block logs</div>
+              <div class="check-detail">
+                <code>Microsoft-Windows-PowerShell%4Operational.evtx</code><br>
+                <code>Microsoft-Windows-PowerShell%4Analytic.etl</code><br>
+                Script block logging (EID 4104) captures deobfuscated PS content
+              </div>
+              <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+              <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+            </div>
+            <span class="check-label-badge">CRITICAL</span>
+          </div>
+          <div class="check-item" onclick="toggle(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div class="check-content">
+              <div class="check-text">Sysmon event log (if deployed)</div>
+              <div class="check-detail"><code>Microsoft-Windows-Sysmon%4Operational.evtx</code> — Process create, network conn, file create, registry, DNS queries, pipe events</div>
+              <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+              <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+            </div>
+          </div>
+          <div class="check-item" onclick="toggle(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div class="check-content">
+              <div class="check-text">WMI Activity &amp; Microsoft-Windows-WMI-Activity logs</div>
+              <div class="check-detail">WMI subscriptions used for persistence. Check <code>WBEM\Repository</code> binaries</div>
+              <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+              <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+            </div>
+          </div>
+          <div class="check-item" onclick="toggle(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div class="check-content">
+              <div class="check-text">Task Scheduler log — <code>Microsoft-Windows-TaskScheduler%4Operational.evtx</code></div>
+              <div class="check-detail">EID 106 (task created), 200 (task executed). Review <code>%SystemRoot%\System32\Tasks\</code></div>
+              <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+              <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+            </div>
+          </div>
+          <div class="check-item" onclick="toggle(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div class="check-content">
+              <div class="check-text">RDP/Terminal Services logs</div>
+              <div class="check-detail"><code>Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx</code> — session connect/disconnect/reconnect</div>
+              <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+              <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+            </div>
+          </div>
+          <div class="check-item" onclick="toggle(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div class="check-content">
+              <div class="check-text">Windows Defender / AV operational log</div>
+              <div class="check-detail"><code>Microsoft-Windows-Windows Defender%4Operational.evtx</code> — detections, real-time protection state, exclusions added</div>
+              <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+              <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+            </div>
+          </div>
+          <div class="check-item" onclick="toggle(this)">
+            <div class="check-box"><span class="check-tick">✓</span></div>
+            <div class="check-content">
+              <div class="check-text">Bits Client operational log</div>
+              <div class="check-detail"><code>Microsoft-Windows-Bits-Client%4Operational.evtx</code> — BITS used for stealthy downloads (living-off-the-land)</div>
+              <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+              <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="subsection">
+          <div class="subsection-title">Network &amp; Infrastructure Logs</div>
+          <div class="checklist">
+            <div class="check-item critical" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Firewall logs (perimeter &amp; host-based)</div>
+                <div class="check-detail">Inbound/outbound connections, blocked traffic, port scans. Correlate with endpoint artefacts for C2 IPs</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+              <span class="check-label-badge">CRITICAL</span>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Proxy / web gateway logs</div>
+                <div class="check-detail">HTTP/HTTPS destinations, user-agent strings, referrers, POST body sizes. Look for DGA domains, beaconing patterns</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">DNS logs (resolver + recursive)</div>
+                <div class="check-detail">DNS tunnelling (high-entropy subdomains, large TXT records), DGA lookups, unusual PTR queries</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">VPN / remote access authentication logs</div>
+                <div class="check-detail">Source IPs, geolocations, authentication timestamps, concurrent sessions, impossible travel</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Network flow data (NetFlow / IPFIX / sFlow)</div>
+                <div class="check-detail">Traffic volume anomalies, lateral movement between hosts, port scans, data staging volumes</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Active Directory / LDAP logs (DC Security logs)</div>
+                <div class="check-detail">Account creation, group membership changes, GPO modifications, replication events, DCSync activity</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Email gateway / MTA logs</div>
+                <div class="check-detail">Phishing delivery, header anomalies, attachment types, sender reputation, forwarding rules set by attackers</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">DHCP logs — lease history for IP-to-hostname mapping</div>
+                <div class="check-detail">Essential for attributing network activity to specific endpoints. Rogue DHCP servers indicate network compromise</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">EDR telemetry (CrowdStrike, Defender for Endpoint, SentinelOne)</div>
+                <div class="check-detail">Process trees, network connections, file writes, parent-child anomalies, AMSI events</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">Cloud / Identity Logs</div>
+          <div class="checklist">
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Azure AD / Entra ID sign-in &amp; audit logs</div>
+                <div class="check-detail">MFA bypass, legacy auth, conditional access failures, OAuth app consent grants, guest account activity</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Microsoft 365 Unified Audit Log (UAL)</div>
+                <div class="check-detail">Email rules, Teams messages, SharePoint file access, mail forwarding, eDiscovery searches by attacker</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PHASE 3: KEY EVENT IDs -->
+  <!-- ============================================================ -->
+  <div class="phase-section" id="phase3">
+    <div class="phase-header">
+      <div class="phase-number" style="background:rgba(240,192,64,0.12);color:var(--phase-3)">PHASE 03</div>
+      <div class="phase-title">Key Windows Event IDs</div>
+      <div class="phase-desc">What to hunt in Security.evtx and beyond</div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div class="subsection">
+          <div class="subsection-title">Authentication &amp; Account Activity</div>
+          <div class="checklist">
+            <div class="check-item critical" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Logon / Logoff events reviewed</div>
+                <div class="check-detail">
+                  <span class="evtid danger">4624</span> Successful logon (check logon type: 3=network, 10=RemoteInteractive)<br>
+                  <span class="evtid danger">4625</span> Failed logon — brute force indicator<br>
+                  <span class="evtid">4634</span> Logoff<br>
+                  <span class="evtid warn">4648</span> Explicit credentials logon (runas / pass-the-hash pivot)<br>
+                  <span class="evtid warn">4672</span> Special privileges assigned — admin logon
+                </div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+              <span class="check-label-badge">CRITICAL</span>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Kerberos authentication events reviewed</div>
+                <div class="check-detail">
+                  <span class="evtid warn">4768</span> TGT requested<br>
+                  <span class="evtid warn">4769</span> Service ticket requested (look for RC4 encryption — downgrade attack)<br>
+                  <span class="evtid danger">4771</span> Kerberos pre-auth failed — password spray<br>
+                  <span class="evtid danger">4776</span> NTLM auth — lateral movement indicator
+                </div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Account creation and privilege changes</div>
+                <div class="check-detail">
+                  <span class="evtid danger">4720</span> User account created<br>
+                  <span class="evtid danger">4728</span>/<span class="evtid danger">4732</span> Member added to security group<br>
+                  <span class="evtid danger">4756</span> Member added to universal group<br>
+                  <span class="evtid warn">4738</span> User account changed<br>
+                  <span class="evtid warn">4723</span>/<span class="evtid warn">4724</span> Password reset
+                </div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Account lockout events (source workstation logged)</div>
+                <div class="check-detail"><span class="evtid danger">4740</span> Account locked out — source workstation field identifies spray origin. Check on DCs</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">Process &amp; Command Execution</div>
+          <div class="checklist">
+            <div class="check-item critical" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Process creation (command line auditing enabled)</div>
+                <div class="check-detail">
+                  <span class="evtid danger">4688</span> Process created with full command line (requires audit policy)<br>
+                  Sysmon <span class="evtid green">EID 1</span> provides richer data including parent process, hashes<br>
+                  Look for: cmd.exe spawning from Office apps, unusual parent-child chains
+                </div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+              <span class="check-label-badge">CRITICAL</span>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">PowerShell script block logging reviewed</div>
+                <div class="check-detail">
+                  <span class="evtid danger">4104</span> Script block (deobfuscated content)<br>
+                  <span class="evtid">4103</span> Module logging<br>
+                  <span class="evtid">400/800</span> Engine started/stopped — console host history at <code>%AppData%\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt</code>
+                </div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Scheduled task creation / modification</div>
+                <div class="check-detail">
+                  <span class="evtid warn">4698</span> Scheduled task created<br>
+                  <span class="evtid warn">4702</span> Scheduled task updated<br>
+                  <span class="evtid">106</span>/<span class="evtid">200</span> Task Scheduler operational log
+                </div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Service installation events</div>
+                <div class="check-detail">
+                  <span class="evtid danger">4697</span> Service installed (Security log)<br>
+                  System <span class="evtid warn">7045</span> New service installed — common for malware persistence<br>
+                  <span class="evtid warn">7036</span> Service started/stopped
+                </div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="subsection">
+          <div class="subsection-title">Object Access &amp; Privilege Use</div>
+          <div class="checklist">
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Sensitive privilege use (credential access)</div>
+                <div class="check-detail">
+                  <span class="evtid danger">4673</span> Sensitive privilege use (SeDebugPrivilege = LSASS dumping)<br>
+                  <span class="evtid danger">4674</span> Operation attempt on privileged object<br>
+                  <span class="evtid warn">4611</span> Trusted logon process registered
+                </div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">File share / SMB access events on servers</div>
+                <div class="check-detail">
+                  <span class="evtid warn">5140</span> Network share accessed<br>
+                  <span class="evtid warn">5145</span> File access check on share (noisy but detailed)<br>
+                  <span class="evtid danger">5142</span>/<span class="evtid danger">5143</span> Share created/modified
+                </div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Registry key modification (if SACL enabled)</div>
+                <div class="check-detail">
+                  <span class="evtid warn">4657</span> Registry value modified<br>
+                  Sysmon <span class="evtid green">EID 12/13/14</span> — more reliable registry monitoring
+                </div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Audit policy changes</div>
+                <div class="check-detail">
+                  <span class="evtid danger">4719</span> System audit policy changed — attacker covering tracks<br>
+                  <span class="evtid danger">1102</span> Audit log cleared<br>
+                  <span class="evtid danger">104</span> System log cleared (System log)
+                </div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">Network &amp; Firewall Events</div>
+          <div class="checklist">
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Sysmon network connection events</div>
+                <div class="check-detail">Sysmon <span class="evtid green">EID 3</span> — outbound connections with process name, destination IP/port. Essential for C2 mapping</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Windows Firewall operational log</div>
+                <div class="check-detail">
+                  <span class="evtid warn">5156</span>/<span class="evtid warn">5158</span> Connection allowed (WFP)<br>
+                  <span class="evtid danger">5157</span>/<span class="evtid danger">5159</span> Connection blocked<br>
+                  <span class="evtid danger">4946</span>/<span class="evtid danger">4947</span> Firewall rule added/modified
+                </div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">RDP / remote session events</div>
+                <div class="check-detail">
+                  <span class="evtid warn">21</span> RDP session logon (LocalSessionManager)<br>
+                  <span class="evtid warn">25</span> RDP session reconnect<br>
+                  <span class="evtid danger">1149</span> RDP user auth (RDPCoreTS — check for lateral movement source IP)
+                </div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">DNS query log (Sysmon EID 22)</div>
+                <div class="check-detail">Sysmon <span class="evtid green">EID 22</span> — DNS queries by process. Identify C2, DGA, and data exfil over DNS</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">Sysmon Quick Reference</div>
+          <div class="info-card blue">
+            <div class="info-card-title">Key Sysmon Event IDs</div>
+            <p>
+              <span class="evtid green">1</span> Process create &nbsp;
+              <span class="evtid green">2</span> File creation time change &nbsp;
+              <span class="evtid green">3</span> Network connection &nbsp;
+              <span class="evtid green">5</span> Process terminated &nbsp;
+              <span class="evtid green">6</span> Driver loaded &nbsp;
+              <span class="evtid green">7</span> Image (DLL) loaded &nbsp;
+              <span class="evtid green">8</span> CreateRemoteThread (injection) &nbsp;
+              <span class="evtid green">10</span> Process access (credential dump) &nbsp;
+              <span class="evtid green">11</span> File create &nbsp;
+              <span class="evtid green">12/13/14</span> Registry &nbsp;
+              <span class="evtid green">15</span> File stream create (ADS) &nbsp;
+              <span class="evtid green">17/18</span> Named pipe &nbsp;
+              <span class="evtid green">22</span> DNS query &nbsp;
+              <span class="evtid green">23</span> File delete &nbsp;
+              <span class="evtid green">25</span> Process tampering &nbsp;
+              <span class="evtid green">26</span> File delete detected
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PHASE 4: FILESYSTEM ARTEFACTS -->
+  <!-- ============================================================ -->
+  <div class="phase-section" id="phase4">
+    <div class="phase-header">
+      <div class="phase-number" style="background:rgba(255,107,53,0.12);color:var(--phase-4)">PHASE 04</div>
+      <div class="phase-title">Filesystem Artefacts</div>
+      <div class="phase-desc">MFT, USN Journal, Prefetch, LNK, Shellbags &amp; more</div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div class="subsection">
+          <div class="subsection-title">MFT ($MFT) Analysis</div>
+          <div class="info-card yellow">
+            <div class="info-card-title">About the MFT</div>
+            <p>The Master File Table is the definitive record of every file on an NTFS volume. Each MFT entry stores timestamps ($STANDARD_INFORMATION and $FILE_NAME), file size, attributes, and file existence even post-deletion (until overwritten). Tool: MFTECmd, Autopsy, KAPE.</p>
+          </div>
+          <div class="checklist">
+            <div class="check-item critical" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Acquire raw MFT from target volume</div>
+                <div class="check-detail"><code>MFTECmd.exe -f $MFT --csv output_dir</code><br>Use KAPE or raw copy — cannot be done from running OS normally</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+              <span class="check-label-badge">CRITICAL</span>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Look for timestomping: $SI vs $FN timestamp discrepancy</div>
+                <div class="check-detail">$STANDARD_INFORMATION can be modified by tools like Meterpreter/timestomp. $FILE_NAME is kernel-maintained and harder to fake. Discrepancy &gt;1s is suspicious</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Identify files created in suspicious directories during incident window</div>
+                <div class="check-detail">Focus: <code>%TEMP%</code>, <code>%AppData%\Roaming</code>, <code>C:\ProgramData</code>, <code>C:\Windows\Temp</code>, <code>C:\Users\Public</code>, Recycle Bin</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Check for Alternate Data Streams (ADS) hiding payloads</div>
+                <div class="check-detail"><code>streams.exe -s C:\</code> or <code>Get-Item * -Stream *</code> in PS. Sysmon EID 15. Zone.Identifier stream indicates downloaded files</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Review deleted file records (MFT entries with $FILE_NAME but no $DATA)</div>
+                <div class="check-detail">MFT entry persists after deletion. Files recoverable until clusters overwritten. Check Recycle Bin <code>$I / $R</code> records</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">USN Change Journal ($J)</div>
+          <div class="info-card blue">
+            <div class="info-card-title">About the USN Journal</div>
+            <p>The Update Sequence Number journal records every file system operation (create, rename, delete, write, extend, security change) with a timestamp. It acts as a near-complete filesystem activity log. Persists independently of file deletion. Essential for proving file lifecycle. Tool: MFTECmd, fsutil usn.</p>
+          </div>
+          <div class="checklist">
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Acquire and parse USN Journal</div>
+                <div class="check-detail"><code>MFTECmd.exe -f $J --csv output_dir</code><br>Provides rename chains, temp file patterns, and deletion timestamps</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item critical" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Identify renamed executables and double-extension tricks</div>
+                <div class="check-detail">USN records rename operations with before/after names. Find: <code>invoice.pdf → invoice.pdf.exe</code>, LOLBINs renamed to benign names</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+              <span class="check-label-badge">CRITICAL</span>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Correlate USN timestamps with event log activity during T0 window</div>
+                <div class="check-detail">File activity during known compromise window corroborates timeline. Tool: Timeline Explorer (EricZimmerman)</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="subsection">
+          <div class="subsection-title">Prefetch &amp; Execution Evidence</div>
+          <div class="checklist">
+            <div class="check-item critical" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Parse Prefetch files for execution history</div>
+                <div class="check-detail"><code>C:\Windows\Prefetch\*.pf</code> — Tool: PECmd.exe<br>Provides: executable name, run count, last 8 run times, files loaded. Evidence even if executable deleted</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+              <span class="check-label-badge">CRITICAL</span>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Check AmCache.hve for program execution and file hash</div>
+                <div class="check-detail"><code>C:\Windows\AppCompat\Programs\Amcache.hve</code> — stores SHA-1 hash of executables. Tool: AmcacheParser.exe</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">ShimCache / AppCompatCache — application compatibility registry</div>
+                <div class="check-detail"><code>HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\AppCompatCache</code> — evidence of execution (server 2012+). Tool: AppCompatCacheParser.exe</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">SRUM database (System Resource Usage Monitor)</div>
+                <div class="check-detail"><code>C:\Windows\System32\sru\SRUDB.dat</code> — records per-app CPU, memory, network usage for 30-60 days. Proves execution even if no prefetch. Tool: SrumECmd</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">User Activity Artefacts</div>
+          <div class="checklist">
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">LNK files (shortcut files) — evidence of file access</div>
+                <div class="check-detail"><code>%AppData%\Microsoft\Windows\Recent\</code> — stores MAC timestamps of target file at time of access. Tool: LECmd.exe</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Jump Lists — recent files per application</div>
+                <div class="check-detail"><code>%AppData%\Microsoft\Windows\Recent\AutomaticDestinations\</code> — per-app recent file access. Tool: JLECmd.exe</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Shellbags — directory traversal evidence</div>
+                <div class="check-detail"><code>USRCLASS.DAT\Local Settings\Software\Microsoft\Windows\Shell\BagMRU</code> — records folders opened even from deleted/external media. Tool: SBECmd</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Browser history / download records</div>
+                <div class="check-detail">Chrome: <code>%LocalAppData%\Google\Chrome\User Data\Default\History</code><br>Edge: <code>%LocalAppData%\Microsoft\Edge\User Data\Default\History</code> — SQLite DBs</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Recycle Bin ($I / $R records)</div>
+                <div class="check-detail"><code>C:\$Recycle.Bin\[SID]\</code> — $I file stores original path, deletion timestamp, file size. $R contains actual file content</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PHASE 5: REGISTRY -->
+  <!-- ============================================================ -->
+  <div class="phase-section" id="phase5">
+    <div class="phase-header">
+      <div class="phase-number" style="background:rgba(198,120,221,0.12);color:var(--phase-5)">PHASE 05</div>
+      <div class="phase-title">Registry Forensics</div>
+      <div class="phase-desc">Persistence, credential access, lateral movement indicators</div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div class="subsection">
+          <div class="subsection-title">Persistence Mechanisms</div>
+          <div class="checklist">
+            <div class="check-item critical" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Run / RunOnce keys reviewed</div>
+                <div class="check-detail">
+                  <code>HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run</code><br>
+                  <code>HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run</code><br>
+                  <code>HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce</code><br>
+                  Check both 64-bit and 32-bit hives (Wow6432Node)
+                </div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+              <span class="check-label-badge">CRITICAL</span>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Services registry hive</div>
+                <div class="check-detail"><code>HKLM\SYSTEM\CurrentControlSet\Services</code> — malicious services with ImagePath pointing to payloads. Check for recently modified entries</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Winlogon hijacking keys</div>
+                <div class="check-detail">
+                  <code>HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon</code><br>
+                  Check: <code>Userinit</code>, <code>Shell</code>, <code>Notify</code> values for appended executables
+                </div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Image File Execution Options (IFEO) — debugger hijacking</div>
+                <div class="check-detail"><code>HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options</code> — Debugger value redirects binary execution (accessibility feature abuse: sethc.exe, utilman.exe)</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">AppInit_DLLs — DLL injection on any user-mode process</div>
+                <div class="check-detail"><code>HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Windows\AppInit_DLLs</code> — Should be empty in legitimate environments</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">COM object hijacking</div>
+                <div class="check-detail"><code>HKCU\Software\Classes\CLSID\</code> — user-writable COM registrations that override system defaults. Used for UAC bypass and persistence</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="subsection">
+          <div class="subsection-title">User Activity &amp; Lateral Movement</div>
+          <div class="checklist">
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">MRU lists — most recently used files/commands</div>
+                <div class="check-detail">
+                  <code>HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs</code><br>
+                  <code>HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\RunMRU</code> — commands run via Win+R
+                </div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Network shares and mapped drives (MountPoints2)</div>
+                <div class="check-detail"><code>HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2</code> — records connected network shares including UNC paths to attacker infrastructure</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">TypedURLs — manually typed browser URLs</div>
+                <div class="check-detail"><code>HKCU\SOFTWARE\Microsoft\Internet Explorer\TypedURLs</code> — useful if malware infrastructure accessed via browser</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">USB / removable media history</div>
+                <div class="check-detail">
+                  <code>HKLM\SYSTEM\CurrentControlSet\Enum\USBSTOR</code> — device VID/PID, serial, first/last connection<br>
+                  <code>HKLM\SOFTWARE\Microsoft\Windows Portable Devices\Devices</code>
+                </div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">SAM &amp; SECURITY hive — local account and credential policy</div>
+                <div class="check-detail"><code>HKLM\SAM</code> — local user accounts (access requires SYSTEM). <code>HKLM\SECURITY\Cache</code> — cached domain credentials (DCCACHE). Requires offline parsing: secretsdump, impacket</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Last write time on registry keys as timeline evidence</div>
+                <div class="check-detail">Registry hive key last-write timestamps survive reboots. Tool: RegRipper, RegistryExplorer. Cross-correlate with T0 window</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PHASE 6: MEMORY FORENSICS -->
+  <!-- ============================================================ -->
+  <div class="phase-section" id="phase6">
+    <div class="phase-header">
+      <div class="phase-number" style="background:rgba(255,71,87,0.12);color:var(--phase-6)">PHASE 06</div>
+      <div class="phase-title">Memory Forensics</div>
+      <div class="phase-desc">Volatile, lost on reboot — prioritise if system still live</div>
+    </div>
+
+    <div class="info-card red">
+      <div class="info-card-title">⚠ Acquisition Priority — Live System</div>
+      <p>Memory must be captured before any reboot or shutdown. Use: WinPmem, DumpIt, Magnet RAM Capture, or EDR built-in. Hash immediately. Memory analysis tools: Volatility 3, Rekall.</p>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div class="subsection">
+          <div class="subsection-title">Process &amp; Injection Analysis</div>
+          <div class="checklist">
+            <div class="check-item critical" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Run pslist / pstree — identify rogue/orphaned processes</div>
+                <div class="check-detail"><code>vol3 -f dump.raw windows.pslist</code> / <code>windows.pstree</code><br>Look for: cmd.exe under svchost, powershell spawned by Word/Excel, unusual parent PIDs</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+              <span class="check-label-badge">CRITICAL</span>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">psscan — detect DKOM-hidden processes</div>
+                <div class="check-detail"><code>vol3 windows.psscan</code> — scans pool tags rather than walking EPROCESS list. Processes in psscan but not pslist = rootkit hiding</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item critical" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">malfind — detect injected shellcode and PE headers</div>
+                <div class="check-detail"><code>vol3 windows.malfind</code> — identifies VAD regions that are executable, not mapped to disk, and contain PE headers or shellcode. High-confidence injection indicator</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+              <span class="check-label-badge">CRITICAL</span>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">dlllist / ldrmodules — detect hidden/unlinked DLLs</div>
+                <div class="check-detail"><code>vol3 windows.dlllist</code> — compare against ldrmodules to find DLLs present in VAD but not in PEB loader lists (reflective DLL injection)</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">handles — open file handles and registry keys per process</div>
+                <div class="check-detail"><code>vol3 windows.handles --pid [PID]</code> — reveals C2 socket handles, staging file handles, mutex names (malware fingerprints)</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="subsection">
+          <div class="subsection-title">Network &amp; Credential Recovery</div>
+          <div class="checklist">
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">netstat — active and listening connections in memory</div>
+                <div class="check-detail"><code>vol3 windows.netstat</code> — shows established connections with associated process. Identify C2 IPs and ports active at acquisition time</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item critical" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">LSASS process memory — credential extraction evidence</div>
+                <div class="check-detail"><code>vol3 windows.lsadump</code> / check for LSASS minidumps on disk (<code>C:\Windows\Temp\lsass.dmp</code>)<br>Evidence of Mimikatz, ProcDump, comsvcs.dll MiniDump technique</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+              <span class="check-label-badge">CRITICAL</span>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">cmdline / cmdscan — command history from memory</div>
+                <div class="check-detail"><code>vol3 windows.cmdline</code> / <code>windows.cmdscan</code> — recover commands from console hosts, including those not written to disk</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Strings / YARA scan for IOCs in full memory dump</div>
+                <div class="check-detail"><code>vol3 windows.strings</code> — extract readable strings. Run YARA rules against raw dump for known malware signatures, C2 domains, API key strings</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Dump suspicious processes / injected regions for static analysis</div>
+                <div class="check-detail"><code>vol3 windows.dumpfiles --pid [PID]</code> — extract process executables and DLLs for AV scanning, hashing, OSINT lookup on VirusTotal</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PHASE 7: NETWORK FORENSICS -->
+  <!-- ============================================================ -->
+  <div class="phase-section" id="phase7">
+    <div class="phase-header">
+      <div class="phase-number" style="background:rgba(86,182,194,0.12);color:var(--phase-7)">PHASE 07</div>
+      <div class="phase-title">Network Forensics</div>
+      <div class="phase-desc">C2, lateral movement, exfil — across the wire</div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div class="subsection">
+          <div class="subsection-title">C2 &amp; Beaconing Detection</div>
+          <div class="checklist">
+            <div class="check-item critical" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Identify periodic/regular outbound connections (beaconing)</div>
+                <div class="check-detail">Run beacon analysis over proxy/firewall logs. Tools: RITA, Zeek + Bro scripts. Look for: consistent jitter, small payload size, long connection duration</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+              <span class="check-label-badge">CRITICAL</span>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Analyse user-agent strings for non-browser processes making HTTP/S requests</div>
+                <div class="check-detail">Cobalt Strike default: <code>Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0)</code>. PowerShell WinHTTP, curl-style strings from svchost are suspicious</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">DNS tunnelling / DGA domain analysis</div>
+                <div class="check-detail">High entropy subdomains, large TXT record responses, unusually high query rate. Tools: DNSTwist, frequency analysis. Check: iodine, dnscat2 patterns</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">SSL/TLS certificate analysis on C2 connections</div>
+                <div class="check-detail">Self-signed certs, short validity, unusual SNI, mismatched CN. JA3/JA3S fingerprinting for TLS client/server fingerprints</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">PCAP analysis of suspicious sessions</div>
+                <div class="check-detail">Wireshark / Zeek. Extract files, credentials, commands. Look for: SMB lateral movement, LDAP recon queries, impacket tool signatures</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="subsection">
+          <div class="subsection-title">Lateral Movement &amp; Exfiltration</div>
+          <div class="checklist">
+            <div class="check-item critical" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">SMB lateral movement — admin share connections (ADMIN$, C$, IPC$)</div>
+                <div class="check-detail">Net flow data: SMB (445/tcp) connections between internal hosts. Correlate: 4624 logon type 3 + 5140 (share access) on target + source event 4648</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+              <span class="check-label-badge">CRITICAL</span>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">WMI remote execution — DCOM/RPC lateral movement</div>
+                <div class="check-detail">Port 135/tcp (DCOM), dynamic high ports. Source: wmic.exe <code>/node:[TARGET]</code>, impacket wmiexec. Look for: wmiprvse.exe spawning cmd.exe on target</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">RDP lateral movement from compromised hosts</div>
+                <div class="check-detail">Internal RDP (3389/tcp) between hosts — unusual if not expected. Correlate with 4624 type 10 (RemoteInteractive) on destination</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Data staging and exfil volume analysis</div>
+                <div class="check-detail">Large sustained outbound data transfers to single destination. Cloud storage (Mega, Dropbox, rclone). Port 443 to IP without SNI. Estimate data volume in GB</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">ICMP/non-standard protocol covert channels</div>
+                <div class="check-detail">Unusual ICMP payload sizes, abnormal packet rates. Non-standard port usage by known processes (e.g. svchost on port 53 without DNS process)</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PHASE 8: THREAT ACTOR TTPs -->
+  <!-- ============================================================ -->
+  <div class="phase-section" id="phase8">
+    <div class="phase-header">
+      <div class="phase-number" style="background:rgba(224,108,117,0.12);color:var(--phase-8)">PHASE 08</div>
+      <div class="phase-title">Threat Actor TTPs &amp; Tooling</div>
+      <div class="phase-desc">Common attacker toolkits, living-off-the-land, and ATT&amp;CK mapping</div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div class="subsection">
+          <div class="subsection-title">Common Attacker Tooling — Check for Artefacts</div>
+          <div class="checklist">
+            <div class="check-item critical" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Cobalt Strike beacon evidence</div>
+                <div class="check-detail">Indicators: named pipes (<code>MSSE-*-server</code>, <code>postex_*</code>), shellcode in injected processes, sleep masking (stomped memory), characteristic HTTP/S malleable C2 profiles, default ports (50050 team server)</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+              <span class="check-label-badge">CRITICAL</span>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Mimikatz credential dumping evidence</div>
+                <div class="check-detail">
+                  EID <span class="evtid danger">4673</span> (SeDebugPrivilege), Sysmon EID 10 (LSASS access)<br>
+                  Artefacts: <code>sekurlsa::logonpasswords</code> strings in memory, LSASS dump files, <code>mimilib.dll</code> in SYSTEM32
+                </div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">BloodHound / SharpHound AD enumeration</div>
+                <div class="check-detail">Massive LDAP query burst from single host, queries for AdminTo/CanRDPTo/HasSession. LDAP port 389/636 spike. Event: <span class="evtid warn">4662</span> (AD object access)</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Impacket toolkit (secretsdump, psexec, wmiexec, smbexec)</div>
+                <div class="check-detail">
+                  Artefacts: service name <code>BTOBTO</code> (psexec), randomised service names, <code>RemCom</code> strings, SMB file writes of <code>*.exe</code> to ADMIN$<br>
+                  Python-based — may leave <code>impacket</code> strings in network traffic
+                </div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Rclone / MEGAcmd / cloud exfil tool evidence</div>
+                <div class="check-detail">Prefetch for <code>rclone.exe</code>, <code>mega.exe</code>. Config files: <code>%AppData%\rclone\rclone.conf</code>. Large sustained HTTPS transfers to cloud storage CDN IPs</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Netscan / Advanced Port Scanner / SoftPerfect</div>
+                <div class="check-detail">Discovery tools with prefetch artefacts, large numbers of failed connection events across internal IP ranges in a short window</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">AnyDesk / TeamViewer / ScreenConnect — RMM abuse</div>
+                <div class="check-detail">Prefetch, install logs, process create events. Used for persistent remote access, often installed post-initial-access before C2 established</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="subsection">
+          <div class="subsection-title">Living-off-the-Land (LOLBin) Abuse</div>
+          <div class="checklist">
+            <div class="check-item critical" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">PowerShell — encoded commands, download cradles, bypass flags</div>
+                <div class="check-detail">
+                  Flags to hunt: <code>-EncodedCommand</code>, <code>-ExecutionPolicy Bypass</code>, <code>-WindowStyle Hidden</code>, <code>-NonInteractive</code><br>
+                  Download cradles: <code>IEX (New-Object Net.WebClient).DownloadString()</code>, <code>Invoke-Expression</code>
+                </div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+              <span class="check-label-badge">CRITICAL</span>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">certutil.exe — file download and base64 decode</div>
+                <div class="check-detail"><code>certutil -decode</code>, <code>certutil -urlcache -split -f [URL]</code> — used to fetch and decode payloads. Check prefetch and 4688 command line</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">mshta.exe / wscript.exe / cscript.exe — script execution</div>
+                <div class="check-detail">Execute HTA, VBS, JS payloads. Look for: <code>mshta http://</code>, <code>wscript C:\Temp\</code>. Common initial access post-phishing payload delivery</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">rundll32.exe / regsvr32.exe — DLL execution</div>
+                <div class="check-detail">
+                  <code>rundll32 shell32.dll,ShellExec_RunDLL</code>, <code>regsvr32 /s /n /u /i:http://</code> (Squiblydoo)<br>
+                  Parent process and command line critical for triage
+                </div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">wmic.exe — WMI remote execution and reconnaissance</div>
+                <div class="check-detail"><code>wmic /node:[TARGET] process call create "[cmd]"</code> for lateral movement. <code>wmic shadowcopy delete</code> for ransomware VSS deletion</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">bitsadmin.exe / curl.exe — file downloads</div>
+                <div class="check-detail"><code>bitsadmin /transfer</code> for persistent background downloads. <code>curl -o</code> payload delivery. Leaves BITS job entries and BITS operational log events</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">VSS deletion — ransomware pre-encryption step</div>
+                <div class="check-detail">
+                  Commands: <code>vssadmin delete shadows /all /quiet</code>, <code>wmic shadowcopy delete</code>, <code>bcdedit /set {default} recoveryenabled no</code><br>
+                  EID 4688 with these command lines = imminent encryption event
+                </div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">ATT&amp;CK Coverage Confirmation</div>
+          <div class="checklist">
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Map all identified TTPs to MITRE ATT&amp;CK techniques</div>
+                <div class="check-detail">Produces structured timeline for report, identifies gaps in coverage, supports threat actor attribution and TI output</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Assess detection gaps — what was missed by existing controls?</div>
+                <div class="check-detail">Document: dwell time, why initial access wasn't detected, SIEM rule gaps, EDR coverage holes. Feeds containment review and lessons learned</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+            <div class="check-item" onclick="toggle(this)">
+              <div class="check-box"><span class="check-tick">✓</span></div>
+              <div class="check-content">
+                <div class="check-text">Produce confirmed IOC list: IPs, hashes, domains, mutexes, paths</div>
+                <div class="check-detail">Format for STIX/TAXII or direct SIEM/EDR block list ingestion. Notify threat intel team for wider distribution if appropriate</div>
+                <button class="note-toggle" onclick="toggleNote(event, this)">+ Add note</button>
+                <textarea class="notes-area" placeholder="Notes..." onclick="event.stopPropagation()"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dfir-footer">
+    <span>Windows DFIR Walkthrough &bull; Networked Environment // v1.0</span>
+    <span id="footerCount">0 / 0 checks complete</span>
+  </div>
+
+</div>
+
+<script>
+  function toggle(item) {
+    if (event.target.tagName === 'BUTTON' || event.target.tagName === 'TEXTAREA') return;
+    item.classList.toggle('done');
+    updateProgress();
+  }
+
+  function toggleNote(e, btn) {
+    e.stopPropagation();
+    const item = btn.closest('.check-item');
+    item.classList.toggle('has-notes');
+    if (item.classList.contains('has-notes')) {
+      btn.textContent = '− Hide note';
+      item.querySelector('.notes-area').focus();
+    } else {
+      btn.textContent = '+ Add note';
+    }
+  }
+
+  function updateProgress() {
+    const all = document.querySelectorAll('.check-item');
+    const done = document.querySelectorAll('.check-item.done');
+    const pct = all.length ? (done.length / all.length * 100) : 0;
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressCount').innerHTML = `${done.length} <span>/ ${all.length} complete</span>`;
+    document.getElementById('footerCount').textContent = `${done.length} / ${all.length} checks complete`;
+  }
+
+  function scrollToPhase(id) {
+    document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function resetAll() {
+    if (!confirm('Reset all checklist items?')) return;
+    document.querySelectorAll('.check-item').forEach(i => i.classList.remove('done'));
+    document.querySelectorAll('.notes-area').forEach(t => t.value = '');
+    document.querySelectorAll('.check-item.has-notes').forEach(i => i.classList.remove('has-notes'));
+    document.querySelectorAll('.note-toggle').forEach(b => b.textContent = '+ Add note');
+    updateProgress();
+  }
+
+  function exportChecklist() {
+    const lines = ['Windows DFIR Investigation Walkthrough - Export\n', '=' .repeat(60) + '\n'];
+    const phases = document.querySelectorAll('.phase-section');
+    phases.forEach(phase => {
+      const title = phase.querySelector('.phase-title')?.textContent || '';
+      lines.push('\n' + title.toUpperCase() + '\n' + '-'.repeat(40));
+      phase.querySelectorAll('.check-item').forEach(item => {
+        const done = item.classList.contains('done');
+        const text = item.querySelector('.check-text')?.textContent?.trim() || '';
+        const note = item.querySelector('.notes-area')?.value?.trim() || '';
+        lines.push(`\n[${done ? 'X' : ' '}] ${text}`);
+        if (note) lines.push(`    NOTE: ${note}`);
+      });
+    });
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'DFIR_Walkthrough_Export.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Init
+  updateProgress();
+</script>
+</body>
+</html>
