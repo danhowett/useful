@@ -1,0 +1,2435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CREST CISR Maturity Assessment</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --surface: #ffffff;
+    --surface2: #f9fafb;
+    --surface3: #f0f2f5;
+    --border: #e3e7ed;
+    --border2: #d0d6e0;
+    --accent: #0069cc;
+    --accent2: #0057aa;
+    --accent-dim: rgba(0,105,204,0.08);
+    --accent-dim2: rgba(0,105,204,0.04);
+    --warn: #c75a00;
+    --warn-dim: rgba(199,90,0,0.08);
+    --danger: #c0203a;
+    --danger-dim: rgba(192,32,58,0.08);
+    --success: #1a7f4b;
+    --success-dim: rgba(26,127,75,0.08);
+    --muted: #a0296a;
+    --text: #1a1f2e;
+    --text2: #4a5568;
+    --text3: #8a96a8;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+    --serif: 'IBM Plex Serif', serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand-mark {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    opacity: 0.9;
+  }
+  .brand-text {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+  .brand-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.1em;
+  }
+  .header-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .progress-pill {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text2);
+  }
+  .progress-pill span { color: var(--accent); }
+
+  /* ── LAYOUT ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: calc(100vh - 60px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    position: sticky;
+    top: 60px;
+    height: calc(100vh - 60px);
+    overflow-y: auto;
+  }
+  .sidebar-section-title {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 0 20px 8px;
+    margin-top: 8px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+    margin: 1px 0;
+  }
+  .nav-item:hover { background: var(--surface2); }
+  .nav-item.active {
+    background: var(--accent-dim);
+    border-left-color: var(--accent);
+  }
+  .nav-item.complete { border-left-color: var(--success); }
+  .nav-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border2);
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .nav-item.active .nav-dot { background: var(--accent); }
+  .nav-item.complete .nav-dot { background: var(--success); }
+  .nav-label {
+    font-size: 12px;
+    color: var(--text2);
+    font-weight: 400;
+  }
+  .nav-item.active .nav-label { color: var(--text); font-weight: 500; }
+  .nav-item.complete .nav-label { color: var(--text2); }
+  .nav-score {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+  }
+  .nav-item.active .nav-score { color: var(--accent); }
+  .nav-item.complete .nav-score { color: var(--success); }
+
+  /* ── MAIN ── */
+  .main {
+    padding: 40px 48px;
+    max-width: 900px;
+  }
+
+  /* ── SPLASH ── */
+  .splash {
+    padding: 40px 0;
+  }
+  .splash-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .splash-title {
+    font-family: var(--serif);
+    font-size: 38px;
+    font-weight: 600;
+    line-height: 1.15;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+  .splash-desc {
+    font-size: 15px;
+    color: var(--text2);
+    max-width: 600px;
+    line-height: 1.7;
+    margin-bottom: 32px;
+  }
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  .info-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .info-card-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 8px;
+  }
+  .info-card-value {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--accent);
+    font-family: var(--mono);
+  }
+  .info-card-sub {
+    font-size: 11px;
+    color: var(--text2);
+    margin-top: 4px;
+  }
+
+  .org-form {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px;
+    margin-bottom: 32px;
+  }
+  .form-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 20px;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .form-field label {
+    font-size: 11px;
+    color: var(--text2);
+    font-weight: 500;
+  }
+  .form-field input, .form-field select, .form-field textarea {
+    background: var(--surface3);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-field input:focus, .form-field select:focus, .form-field textarea:focus {
+    border-color: var(--accent);
+  }
+  .form-field select option { background: var(--surface3); }
+  .form-field.full { grid-column: 1/-1; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 22px;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+  }
+  .btn-primary:hover { background: #00eeff; }
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text2);
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text2);
+    padding: 8px 0;
+  }
+  .btn-ghost:hover { color: var(--accent); }
+
+  /* ── SECTION PAGE ── */
+  .section-page { display: none; }
+  .section-page.active { display: block; }
+
+  .section-header {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .section-title {
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .section-desc {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.6;
+    max-width: 640px;
+  }
+
+  /* ── QUESTION CARD ── */
+  .question-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .question-card.answered { border-color: var(--border2); }
+  .question-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .q-number {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 8px;
+  }
+  .q-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .q-tag.process { background: var(--accent-dim); color: var(--accent); }
+  .q-tag.people { background: var(--warn-dim); color: var(--warn); }
+  .q-tag.technology { background: var(--success-dim); color: var(--success); }
+  .q-tag.governance { background: var(--danger-dim); color: var(--danger); }
+
+  .q-text {
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 400;
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .q-evidence {
+    font-size: 11px;
+    color: var(--text3);
+    margin-bottom: 16px;
+    font-style: italic;
+    line-height: 1.5;
+    padding-left: 12px;
+    border-left: 2px solid var(--border2);
+  }
+
+  /* ── MATURITY SELECTOR ── */
+  .maturity-options {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+  }
+  .maturity-btn {
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 6px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .maturity-btn:hover { border-color: var(--border2); background: var(--surface); }
+  .maturity-btn.selected-0 { background: rgba(192,32,58,0.06); border-color: var(--danger); }
+  .maturity-btn.selected-1 { background: rgba(199,90,0,0.06); border-color: var(--warn); }
+  .maturity-btn.selected-2 { background: rgba(161,128,0,0.07); border-color: #a18000; }
+  .maturity-btn.selected-3 { background: rgba(26,127,75,0.07); border-color: #1a7f4b; }
+  .maturity-btn.selected-4 { background: rgba(26,127,75,0.1); border-color: var(--success); }
+  .maturity-score {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .selected-0 .maturity-score { color: var(--danger); }
+  .selected-1 .maturity-score { color: var(--warn); }
+  .selected-2 .maturity-score { color: #a18000; }
+  .selected-3 .maturity-score { color: #1a7f4b; }
+  .selected-4 .maturity-score { color: var(--success); }
+  .maturity-label {
+    font-size: 9px;
+    color: var(--text3);
+    line-height: 1.3;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .maturity-btn.selected-0 .maturity-label,
+  .maturity-btn.selected-1 .maturity-label,
+  .maturity-btn.selected-2 .maturity-label,
+  .maturity-btn.selected-3 .maturity-label,
+  .maturity-btn.selected-4 .maturity-label { color: var(--text2); }
+
+  .notes-field {
+    margin-top: 14px;
+  }
+  .notes-field textarea {
+    width: 100%;
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: var(--text2);
+    font-family: var(--sans);
+    font-size: 12px;
+    outline: none;
+    resize: vertical;
+    min-height: 60px;
+    transition: border-color 0.15s;
+  }
+  .notes-field textarea:focus { border-color: var(--accent); }
+  .notes-field textarea::placeholder { color: var(--text3); }
+
+  /* ── SECTION FOOTER ── */
+  .section-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+  .completion-bar {
+    flex: 1;
+    max-width: 200px;
+    height: 4px;
+    background: var(--surface3);
+    border-radius: 2px;
+    margin: 0 16px;
+    overflow: hidden;
+  }
+  .completion-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.3s;
+  }
+  .completion-text {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+  }
+
+  /* ── RESULTS PAGE ── */
+  .results-page { display: none; }
+  .results-page.active { display: block; }
+
+  .results-header {
+    margin-bottom: 36px;
+  }
+  .results-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--success);
+    margin-bottom: 8px;
+  }
+  .results-title {
+    font-family: var(--serif);
+    font-size: 30px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .results-org {
+    font-size: 14px;
+    color: var(--text2);
+  }
+
+  /* ── SCORE SUMMARY ── */
+  .score-summary {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 24px;
+    align-items: center;
+  }
+  .overall-score-ring {
+    width: 120px; height: 120px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .overall-score-ring svg { transform: rotate(-90deg); }
+  .ring-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .ring-value {
+    font-family: var(--mono);
+    font-size: 26px;
+    font-weight: 600;
+  }
+  .ring-label {
+    font-size: 9px;
+    color: var(--text3);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .score-right {}
+  .score-level {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .score-desc {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+  .score-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .score-badge {
+    background: var(--surface3);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .score-badge .dot { width: 6px; height: 6px; border-radius: 50%; }
+
+  /* ── DOMAIN BREAKDOWN ── */
+  .domains-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .domain-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+  }
+  .domain-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .domain-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .domain-score {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .domain-bar {
+    height: 4px;
+    background: var(--surface3);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .domain-fill {
+    height: 100%;
+    border-radius: 2px;
+  }
+  .domain-level {
+    font-size: 10px;
+    color: var(--text3);
+    font-family: var(--mono);
+  }
+
+  /* ── RECOMMENDATIONS ── */
+  .rec-section {
+    margin-bottom: 24px;
+  }
+  .rec-section-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .rec-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .rec-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .rec-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px;
+  }
+  .rec-card-icon {
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+  .rec-card-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 4px;
+  }
+  .rec-card-value {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .rec-card-sub {
+    font-size: 11px;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+
+  /* ── PHASED TIMELINE ── */
+  .timeline {
+    margin-bottom: 24px;
+  }
+  .timeline-phase {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 0;
+    margin-bottom: 0;
+  }
+  .phase-left {
+    position: relative;
+    padding: 0 24px 0 0;
+  }
+  .phase-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    position: absolute;
+    right: -6px;
+    top: 18px;
+    z-index: 2;
+  }
+  .phase-line {
+    position: absolute;
+    right: -1px;
+    top: 30px;
+    bottom: -18px;
+    width: 2px;
+    background: var(--border);
+  }
+  .timeline-phase:last-child .phase-line { display: none; }
+  .phase-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    text-align: right;
+    padding-top: 14px;
+    letter-spacing: 0.05em;
+  }
+  .phase-duration {
+    font-size: 11px;
+    color: var(--text2);
+    text-align: right;
+    font-weight: 500;
+  }
+  .phase-right {
+    padding: 0 0 28px 24px;
+    border-left: 2px solid var(--border);
+    margin-left: 0;
+  }
+  .phase-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    padding-top: 12px;
+    margin-bottom: 6px;
+  }
+  .phase-desc {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.6;
+    margin-bottom: 10px;
+  }
+  .phase-tasks {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .phase-task {
+    font-size: 11px;
+    color: var(--text2);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .phase-task::before {
+    content: '→';
+    color: var(--text3);
+    flex-shrink: 0;
+    margin-top: 0px;
+  }
+
+  /* ── PRIORITY ACTIONS ── */
+  .priority-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .priority-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 14px;
+  }
+  .priority-rank {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--border2);
+    width: 28px;
+    text-align: center;
+  }
+  .priority-content {}
+  .priority-action {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+  .priority-rationale {
+    font-size: 11px;
+    color: var(--text2);
+  }
+  .priority-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .badge-critical { background: var(--danger-dim); color: var(--danger); border: 1px solid var(--danger); }
+  .badge-high { background: var(--warn-dim); color: var(--warn); border: 1px solid var(--warn); }
+  .badge-medium { background: rgba(255,214,0,0.1); color: #ffd600; border: 1px solid #ffd600; }
+  .badge-low { background: var(--success-dim); color: var(--success); border: 1px solid var(--success); }
+
+  /* ── RADAR CHART ── */
+  .radar-container {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+  .radar-svg { flex-shrink: 0; }
+  .radar-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    color: var(--text2);
+  }
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── EXPORT BAR ── */
+  .export-bar {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .export-bar-left {
+    font-size: 13px;
+    color: var(--text2);
+  }
+  .export-bar-left strong {
+    color: var(--text);
+    display: block;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+  .export-btns {
+    display: flex;
+    gap: 10px;
+  }
+
+  /* ── GAPS TABLE ── */
+  .gaps-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 24px;
+  }
+  .gaps-table th {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .gaps-table td {
+    padding: 12px 14px;
+    font-size: 12px;
+    color: var(--text2);
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .gaps-table tr:hover td { background: var(--surface2); }
+  .gaps-table .domain-cell { color: var(--text); font-weight: 500; }
+
+  /* ── UTILS ── */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 28px 0;
+  }
+  .flex-row {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .text-accent { color: var(--accent); }
+  .text-mono { font-family: var(--mono); }
+
+  /* ── EFFORT ESTIMATOR ── */
+  .effort-summary-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .effort-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .effort-card-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 6px;
+  }
+  .effort-card-value {
+    font-family: var(--mono);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 2px;
+  }
+  .effort-card-sub {
+    font-size: 11px;
+    color: var(--text2);
+  }
+
+  .effort-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 12px;
+  }
+  .effort-table th {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 9px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .effort-table th.right { text-align: right; }
+  .effort-table td {
+    padding: 10px 12px;
+    color: var(--text2);
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .effort-table td.right { text-align: right; font-family: var(--mono); }
+  .effort-table tr:last-child td { border-bottom: none; }
+  .effort-table .phase-cell { color: var(--text); font-weight: 500; }
+  .effort-table .total-row td {
+    background: var(--surface3);
+    font-weight: 600;
+    color: var(--text);
+    border-top: 2px solid var(--border2);
+    border-bottom: none;
+  }
+  .effort-table .total-row td.right { color: var(--accent); }
+
+  .grade-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .grade-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .grade-pill .pill-days {
+    font-size: 9px;
+    opacity: 0.75;
+    font-weight: 400;
+  }
+  .gp1 { background: rgba(120,80,200,0.08); color: #6040c0; border-color: #9070d0; }
+  .gp2 { background: rgba(0,105,204,0.08); color: #0055aa; border-color: #0069cc; }
+  .gp3 { background: rgba(0,120,140,0.08); color: #006878; border-color: #0088a0; }
+  .gp4 { background: rgba(20,120,60,0.08); color: #1a6840; border-color: #1a7f4b; }
+  .gp5 { background: rgba(150,90,0,0.08); color: #885000; border-color: #c07000; }
+  .gp6 { background: rgba(180,40,40,0.08); color: #a02020; border-color: #c03030; }
+
+  .effort-note {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  .grade-legend {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .grade-legend-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .grade-legend-code {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    width: 28px;
+    flex-shrink: 0;
+  }
+  .grade-legend-detail {}
+  .grade-legend-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .grade-legend-role {
+    font-size: 10px;
+    color: var(--text3);
+  }
+
+  /* ── GRADE CONFIG ── */
+  .grade-config-row {
+    display: grid;
+    grid-template-columns: 48px 1fr 1fr 160px;
+    gap: 8px;
+    align-items: center;
+  }
+  .grade-config-row .grade-code {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    padding: 8px 4px;
+    border-radius: 6px;
+    border: 1px solid;
+  }
+  .grade-config-row input {
+    background: var(--surface3);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+  }
+  .grade-config-row input:focus { border-color: var(--accent); }
+  .grade-config-row .rate-wrap {
+    position: relative;
+  }
+  .grade-config-row .rate-wrap::before {
+    content: '£';
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text3);
+    font-size: 13px;
+    pointer-events: none;
+  }
+  .grade-config-row .rate-wrap input {
+    padding-left: 22px;
+  }
+  .grade-config-row .rate-label {
+    font-size: 11px;
+    color: var(--text3);
+    padding-left: 2px;
+  }
+
+  @media print {
+    .sidebar, .header, .btn, .export-bar { display: none !important; }
+    .layout { display: block; }
+    .main { max-width: 100%; padding: 20px; }
+    body { background: white; color: #000; }
+  }
+
+  /* Scroll reveal */
+  .fade-in { animation: fadeIn 0.4s ease both; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-brand">
+    <div class="brand-mark"></div>
+    <div>
+      <div class="brand-text">CREST CISR</div>
+      <div class="brand-sub">Maturity Assessment</div>
+    </div>
+  </div>
+  <div class="header-meta">
+    <div class="progress-pill" id="headerProgress">Section <span id="progressCurrent">0</span> of <span id="progressTotal">0</span></div>
+  </div>
+</header>
+
+<!-- LAYOUT -->
+<div class="layout">
+  <nav class="sidebar">
+    <div class="sidebar-section-title">Assessment</div>
+    <div class="nav-item" id="nav-splash" onclick="showPage('splash')">
+      <div class="nav-dot"></div>
+      <span class="nav-label">Overview</span>
+    </div>
+    <div id="sidebarDomains"></div>
+    <div class="sidebar-section-title" style="margin-top:16px">Output</div>
+    <div class="nav-item" id="nav-results" onclick="showPage('results')">
+      <div class="nav-dot"></div>
+      <span class="nav-label">Results & Recommendations</span>
+    </div>
+  </nav>
+
+  <main class="main" id="mainContent">
+
+    <!-- SPLASH -->
+    <div class="section-page active fade-in" id="page-splash">
+      <div class="splash">
+        <div class="splash-eyebrow">▸ DFIR Onboarding Readiness</div>
+        <div class="splash-title">CREST CISR<br>Maturity Assessment</div>
+        <div class="splash-desc">A structured evaluation tool based on the CREST Cyber Incident Simulation Review (CISR) maturity model. Complete this assessment to generate a tailored onboarding timeline, budget band, and resourcing plan for your incident response engagement.</div>
+
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="info-card-label">Domains Assessed</div>
+            <div class="info-card-value" id="splashDomainCount">8</div>
+            <div class="info-card-sub">CISR capability areas</div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-label">Total Questions</div>
+            <div class="info-card-value" id="splashQCount">—</div>
+            <div class="info-card-sub">Evidence-based indicators</div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-label">Maturity Scale</div>
+            <div class="info-card-value">0–4</div>
+            <div class="info-card-sub">Initial → Optimised</div>
+          </div>
+        </div>
+
+        <div class="org-form">
+          <div class="form-title">▸ Organisation Context</div>
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Organisation Name</label>
+              <input type="text" id="orgName" placeholder="e.g. Acme Financial Ltd">
+            </div>
+            <div class="form-field">
+              <label>Sector</label>
+              <select id="orgSector">
+                <option value="">Select sector…</option>
+                <option>Financial Services</option>
+                <option>Healthcare / NHS</option>
+                <option>Critical National Infrastructure</option>
+                <option>Legal Services</option>
+                <option>Retail / E-commerce</option>
+                <option>Manufacturing</option>
+                <option>Technology / SaaS</option>
+                <option>Central Government</option>
+                <option>Local Government</option>
+                <option>Education</option>
+                <option>Charity / Third Sector</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Organisation Size</label>
+              <select id="orgSize">
+                <option value="">Select size…</option>
+                <option>Small (&lt;50 employees)</option>
+                <option>Medium (50–250 employees)</option>
+                <option>Large (250–1,000 employees)</option>
+                <option>Enterprise (1,000–5,000)</option>
+                <option>Large Enterprise (5,000+)</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Regulatory Exposure</label>
+              <select id="orgReg">
+                <option value="">Select…</option>
+                <option>UK GDPR / DPA 2018 only</option>
+                <option>FCA / PRA regulated</option>
+                <option>NIS Regulations (OES / DSP)</option>
+                <option>NCSC CAF framework</option>
+                <option>Multiple / complex overlay</option>
+                <option>Minimal regulatory exposure</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Assessor Name</label>
+              <input type="text" id="assessorName" placeholder="Your name">
+            </div>
+            <div class="form-field">
+              <label>Assessment Date</label>
+              <input type="date" id="assessDate">
+            </div>
+            <div class="form-field full">
+              <label>Assessment Context / Scope Notes</label>
+              <textarea id="orgNotes" rows="2" placeholder="Brief context: e.g. post-incident onboarding, retainer renewal, new client scoping…"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="org-form" style="margin-top:0">
+          <div class="form-title" style="display:flex;align-items:center;justify-content:space-between">
+            <span>▸ Grade &amp; Day Rate Configuration</span>
+            <button class="btn btn-ghost" style="font-size:11px;padding:4px 0" onclick="resetGrades()">↺ Reset to defaults</button>
+          </div>
+          <p style="font-size:12px;color:var(--text3);margin-bottom:16px;line-height:1.5">Define your practice's grade titles and day rates. These are used to calculate the effort estimate and indicative fee in the assessment output.</p>
+          <div id="gradeConfigGrid" style="display:flex;flex-direction:column;gap:8px;">
+            <!-- injected by JS -->
+          </div>
+        </div>
+
+        <div class="flex-row">
+          <button class="btn btn-primary" onclick="startAssessment()">▶ Begin Assessment</button>
+          <span style="font-size:12px;color:var(--text3)">Complete all sections to generate recommendations</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- DOMAIN SECTIONS — generated by JS -->
+    <div id="domainPages"></div>
+
+    <!-- RESULTS -->
+    <div class="section-page" id="page-results">
+      <div id="resultsContent"></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DATA MODEL — CISR Domains & Questions
+// ═══════════════════════════════════════════════════════════════
+const MATURITY_LEVELS = [
+  { score: 0, label: 'Initial',     color: '#c0203a', short: 'None' },
+  { score: 1, label: 'Developing',  color: '#c75a00', short: 'Ad-hoc' },
+  { score: 2, label: 'Defined',     color: '#a18000', short: 'Partial' },
+  { score: 3, label: 'Managed',     color: '#1a7f4b', short: 'Repeatable' },
+  { score: 4, label: 'Optimised',   color: '#0a6640', short: 'Leading' },
+];
+
+const domains = [
+  {
+    id: 'governance',
+    name: 'Incident Response Governance',
+    desc: 'Assessment of IR policy framework, executive mandate, roles, responsibilities and regulatory alignment.',
+    questions: [
+      { id: 'g1', text: 'Does the organisation have a documented and approved Incident Response Policy?', tag: 'governance', evidence: 'Evidence: Written IR policy, board/exec approval, version history, review schedule' },
+      { id: 'g2', text: 'Is there a defined RACI or equivalent for incident management roles and responsibilities?', tag: 'governance', evidence: 'Evidence: RACI matrix, org chart, job descriptions referencing IR' },
+      { id: 'g3', text: 'Are incident classification definitions and severity tiers formally documented?', tag: 'process', evidence: 'Evidence: Severity matrix (P0–P4 or equivalent), examples, decision criteria' },
+      { id: 'g4', text: 'Does the policy reference applicable regulatory requirements (GDPR, NIS, FCA, CAF)?', tag: 'governance', evidence: 'Evidence: Policy cross-references, legal/compliance sign-off, regulatory register' },
+      { id: 'g5', text: 'Is the IR policy reviewed at least annually and following major incidents?', tag: 'governance', evidence: 'Evidence: Review logs, version history, post-incident review triggers' },
+      { id: 'g6', text: 'Is there documented executive/board-level engagement with cyber incident response?', tag: 'governance', evidence: 'Evidence: Board minutes, exec sponsor named, escalation paths to C-suite' },
+    ]
+  },
+  {
+    id: 'detection',
+    name: 'Detection & Alerting',
+    desc: 'Ability to identify, triage and escalate security events into incidents reliably and at speed.',
+    questions: [
+      { id: 'd1', text: 'Is there a Security Operations capability (internal SOC, MDR, or equivalent) providing 24/7 monitoring?', tag: 'technology', evidence: 'Evidence: SOC charter, MDR contract, monitoring coverage documentation' },
+      { id: 'd2', text: 'Are SIEM-based detection rules tuned to the organisation\'s threat profile and environment?', tag: 'technology', evidence: 'Evidence: Rule inventory, threat-profile documentation, tuning cadence records' },
+      { id: 'd3', text: 'Is there an EDR/XDR solution deployed with meaningful coverage across endpoints?', tag: 'technology', evidence: 'Evidence: EDR platform, deployment coverage report (% of estate), alerting config' },
+      { id: 'd4', text: 'Are alert triage procedures documented with defined SLAs for analyst response?', tag: 'process', evidence: 'Evidence: Triage playbooks, SLA documentation, escalation thresholds' },
+      { id: 'd5', text: 'Are detections tuned to reduce false positive rates to a manageable level?', tag: 'process', evidence: 'Evidence: False positive metrics, tuning records, analyst feedback mechanisms' },
+      { id: 'd6', text: 'Are threat intelligence feeds integrated into detection tooling?', tag: 'technology', evidence: 'Evidence: TI feed subscriptions, SIEM/EDR integration config, IOC ingestion' },
+    ]
+  },
+  {
+    id: 'response',
+    name: 'Incident Response Capability',
+    desc: 'Operational readiness to contain, investigate and recover from a range of incident types.',
+    questions: [
+      { id: 'r1', text: 'Are documented playbooks available for the organisation\'s highest-risk incident types?', tag: 'process', evidence: 'Evidence: Playbook library, scenario coverage (ransomware, BEC, data exfil, etc.)' },
+      { id: 'r2', text: 'Is there a defined Incident Management Team (IMT) structure with trained individuals in each role?', tag: 'people', evidence: 'Evidence: IMT roster, role definitions, training records, exercise participation' },
+      { id: 'r3', text: 'Can the organisation initiate containment actions (network isolation, account disablement) within defined timeframes?', tag: 'process', evidence: 'Evidence: Containment procedures, capability test results, technical tooling' },
+      { id: 'r4', text: 'Are forensic evidence collection and chain of custody procedures documented?', tag: 'process', evidence: 'Evidence: CoC forms, acquisition procedures, evidence handling policy' },
+      { id: 'r5', text: 'Is there access to specialist forensics tooling (memory acquisition, disk imaging, artefact analysis)?', tag: 'technology', evidence: 'Evidence: Toolset inventory, licensing, trained operators' },
+      { id: 'r6', text: 'Are communication templates and crisis comms procedures available for major incidents?', tag: 'process', evidence: 'Evidence: Comms templates, stakeholder contact lists, media/legal protocols' },
+    ]
+  },
+  {
+    id: 'reporting',
+    name: 'Regulatory Reporting & Notification',
+    desc: 'Capability to meet legal and regulatory notification obligations within required timeframes.',
+    questions: [
+      { id: 'rep1', text: 'Does the organisation understand its breach notification obligations under UK GDPR / NIS / FCA rules?', tag: 'governance', evidence: 'Evidence: Legal register, DPO advisory, mapped notification requirements per regulation' },
+      { id: 'rep2', text: 'Are regulatory notification timelines (e.g. 72-hour GDPR, FCA notification) captured in IR procedures?', tag: 'process', evidence: 'Evidence: IR procedures referencing notification SLAs, regulatory trigger criteria' },
+      { id: 'rep3', text: 'Is there a process to assess whether a security incident constitutes a notifiable personal data breach?', tag: 'process', evidence: 'Evidence: DPIA/breach assessment framework, decision flowchart, DPO involvement' },
+      { id: 'rep4', text: 'Are templates available for ICO, FCA, NCSC and other regulator notifications?', tag: 'process', evidence: 'Evidence: Template library, pre-approved comms, legal sign-off records' },
+      { id: 'rep5', text: 'Is there a log or register maintained of all incidents, near-misses and regulatory notifications?', tag: 'process', evidence: 'Evidence: Incident register, fields meeting regulatory requirements, audit trail' },
+    ]
+  },
+  {
+    id: 'people',
+    name: 'People, Skills & Training',
+    desc: 'Staff awareness, specialist skills, training currency and external resource availability.',
+    questions: [
+      { id: 'p1', text: 'Have staff in IR roles received formal incident response training in the last 12 months?', tag: 'people', evidence: 'Evidence: Training records, certifications (CREST, SANS, etc.), completion rates' },
+      { id: 'p2', text: 'Is there a cyber security awareness training programme covering all staff?', tag: 'people', evidence: 'Evidence: Awareness platform, completion metrics, phishing simulation results' },
+      { id: 'p3', text: 'Are there named, trained individuals who can fulfil the Incident Manager role during a major incident?', tag: 'people', evidence: 'Evidence: Incident Manager roster, training records, succession list' },
+      { id: 'p4', text: 'Does the organisation have access to specialist external IR support (retainer or on-call)?', tag: 'people', evidence: 'Evidence: IR retainer contract, SLA, contact details, mobilisation procedure' },
+      { id: 'p5', text: 'Is there a defined process for managing staff welfare during and after a major incident?', tag: 'people', evidence: 'Evidence: Welfare procedures, rotation policies, debriefs, counselling access' },
+    ]
+  },
+  {
+    id: 'technical',
+    name: 'Technical Environment & Tooling',
+    desc: 'Infrastructure visibility, logging coverage, asset management and technical response tooling.',
+    questions: [
+      { id: 't1', text: 'Is there an up-to-date asset inventory covering hardware, software and cloud resources?', tag: 'technology', evidence: 'Evidence: CMDB, asset discovery tool, cloud asset register, accuracy metrics' },
+      { id: 't2', text: 'Is centralised logging in place covering critical systems (AD, network, endpoints, cloud)?', tag: 'technology', evidence: 'Evidence: Log source inventory, coverage report, retention periods' },
+      { id: 't3', text: 'Are log retention periods sufficient for investigation purposes (minimum 12 months recommended)?', tag: 'technology', evidence: 'Evidence: Retention policy, SIEM/archive configuration, regulatory requirements' },
+      { id: 't4', text: 'Is network segmentation implemented to limit lateral movement during an incident?', tag: 'technology', evidence: 'Evidence: Network diagrams, segmentation policy, firewall rules, VLAN config' },
+      { id: 't5', text: 'Are privileged accounts and identities managed through a PAM or equivalent solution?', tag: 'technology', evidence: 'Evidence: PAM tool deployment, privileged account inventory, access review records' },
+      { id: 't6', text: 'Is MFA enforced for remote access, admin accounts and critical applications?', tag: 'technology', evidence: 'Evidence: MFA coverage report, conditional access policies, exceptions register' },
+    ]
+  },
+  {
+    id: 'recovery',
+    name: 'Recovery & Business Continuity',
+    desc: 'Backup integrity, RTO/RPO definition, BCP/DR capability and tested recovery procedures.',
+    questions: [
+      { id: 'rec1', text: 'Are backup procedures documented with defined RTO and RPO for critical systems?', tag: 'process', evidence: 'Evidence: BCP/DR documentation, RTO/RPO register, system criticality classification' },
+      { id: 'rec2', text: 'Are backups stored offline or in an immutable/isolated environment (ransomware-resilient)?', tag: 'technology', evidence: 'Evidence: Backup architecture docs, offline/immutable config, 3-2-1 rule compliance' },
+      { id: 'rec3', text: 'Are backup restoration procedures tested at least annually?', tag: 'process', evidence: 'Evidence: Restoration test records, test results, issues log' },
+      { id: 'rec4', text: 'Is there a Business Continuity Plan that accommodates major cyber incidents?', tag: 'process', evidence: 'Evidence: BCP document, cyber incident scenarios included, activation procedures' },
+      { id: 'rec5', text: 'Have recovery procedures been exercised in a tabletop or simulation in the last 18 months?', tag: 'process', evidence: 'Evidence: Exercise records, outputs/findings, remediation tracking' },
+    ]
+  },
+  {
+    id: 'improvement',
+    name: 'Learning & Continuous Improvement',
+    desc: 'Post-incident review processes, lessons-learned integration and security improvement programmes.',
+    questions: [
+      { id: 'i1', text: 'Is there a formal Post-Incident Review (PIR) process that produces action items?', tag: 'process', evidence: 'Evidence: PIR template, completed PIRs, action log with owners and due dates' },
+      { id: 'i2', text: 'Are findings from exercises and incidents tracked to closure through a formal remediation process?', tag: 'process', evidence: 'Evidence: Remediation register, status tracking, sign-off on closure' },
+      { id: 'i3', text: 'Are lessons learned from incidents shared with relevant teams and incorporated into playbooks?', tag: 'process', evidence: 'Evidence: Lessons-learned log, playbook version history, briefing records' },
+      { id: 'i4', text: 'Is there a cyber exercise programme (tabletop, red team, or simulation) running at least annually?', tag: 'process', evidence: 'Evidence: Exercise schedule, exercise reports, participation records' },
+      { id: 'i5', text: 'Are threat intelligence findings used to proactively update detection rules and response procedures?', tag: 'technology', evidence: 'Evidence: TI-to-detection workflow, rule update records, procedure version history' },
+    ]
+  },
+];
+
+// ═══════════════════════════════════════════════════════════════
+// GRADE DEFINITIONS — defaults, overridable by user
+// ═══════════════════════════════════════════════════════════════
+const GRADE_DEFAULTS = [
+  { label: 'P1', title: 'Associate Consultant',      role: 'Associate',          cssClass: 'gp1', dayRate: 450  },
+  { label: 'P2', title: 'Consultant',                role: 'Consultant',          cssClass: 'gp2', dayRate: 650  },
+  { label: 'P3', title: 'Senior Consultant',         role: 'Senior Consultant',   cssClass: 'gp3', dayRate: 850  },
+  { label: 'P4', title: 'Principal Consultant',      role: 'Principal',           cssClass: 'gp4', dayRate: 1050 },
+  { label: 'P5', title: 'Associate Director',        role: 'Associate Director',  cssClass: 'gp5', dayRate: 1300 },
+  { label: 'P6', title: 'Senior Manager / Director', role: 'Senior Manager',      cssClass: 'gp6', dayRate: 1600 },
+];
+
+// Live user-editable grades — start as copy of defaults
+let userGrades = GRADE_DEFAULTS.map(g => ({ ...g }));
+
+// Returns the current grades as a keyed object (P1, P2…) for the effort model
+function getGrades() {
+  const out = {};
+  userGrades.forEach(g => { out[g.label] = g; });
+  return out;
+}
+
+function buildGradeConfigUI() {
+  const container = document.getElementById('gradeConfigGrid');
+  if (!container) return;
+  container.innerHTML = `
+    <div class="grade-config-row" style="margin-bottom:4px">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:0.1em;text-align:center">GRADE</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:0.1em">ROLE / JOB TITLE</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:0.1em">SHORT LABEL</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:0.1em">DAY RATE</div>
+    </div>
+    ${userGrades.map((g, i) => `
+      <div class="grade-config-row">
+        <div class="grade-code ${g.cssClass}">${g.label}</div>
+        <input type="text" id="gtitle_${i}" value="${g.title}" placeholder="e.g. Senior Consultant"
+          oninput="updateGrade(${i},'title',this.value)">
+        <input type="text" id="grole_${i}" value="${g.role}" placeholder="Short label"
+          oninput="updateGrade(${i},'role',this.value)">
+        <div class="rate-wrap">
+          <input type="number" id="grate_${i}" value="${g.dayRate}" min="0" step="50" placeholder="950"
+            oninput="updateGrade(${i},'dayRate',parseFloat(this.value)||0)">
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function updateGrade(idx, field, value) {
+  userGrades[idx][field] = value;
+}
+
+function resetGrades() {
+  userGrades = GRADE_DEFAULTS.map(g => ({ ...g }));
+  buildGradeConfigUI();
+}
+
+
+
+// ═══════════════════════════════════════════════════════════════
+// EFFORT MODEL — phases × tasks × grades
+// overall: 0=<1.0, 1=1.0–1.8, 2=1.8–2.6, 3=2.6–3.5, 4=3.5+
+// Each task: { activity, grades: { P1:days, P2:days, ... }, notes }
+// ═══════════════════════════════════════════════════════════════
+function getEffortModel(overall) {
+  // Tier: 0=foundational, 1=developing, 2=partial, 3=managed, 4=optimised
+  const tier = overall < 1.0 ? 0 : overall < 1.8 ? 1 : overall < 2.6 ? 2 : overall < 3.5 ? 3 : 4;
+
+  const phases = [
+    {
+      phase: 'Pre-Engagement',
+      desc: 'Scoping, document request, logistics and kick-off preparation',
+      tasks: [
+        {
+          activity: 'Engagement scoping & contract finalisation',
+          grades: { P5: [0.5,0.5,0.5,0.5,0.5], P6: [0.5,0.5,0.5,0.5,0.5] },
+          notes: 'Fixed overhead regardless of maturity'
+        },
+        {
+          activity: 'Document request list & pre-engagement comms',
+          grades: { P3: [0.5,0.5,0.5,0.5,0.5] },
+          notes: 'Standardised checklist, minor tailoring'
+        },
+        {
+          activity: 'Kick-off meeting preparation & agenda',
+          grades: { P3: [0.5,0.5,0.5,0.5,0.5], P4: [0.5,0.5,0.5,0.5,0.5] },
+          notes: ''
+        },
+      ]
+    },
+    {
+      phase: 'Documentation Review',
+      desc: 'Review of IR policies, playbooks, training records, regulatory registers and exercise outputs',
+      tasks: [
+        {
+          activity: 'IR policy, playbook & governance document review',
+          grades: { P2: [1.5,1,1,0.5,0.5], P3: [0.5,0.5,0.5,0.5,0.5] },
+          notes: 'Volume increases with maturity gap'
+        },
+        {
+          activity: 'Regulatory register & compliance documentation review',
+          grades: { P3: [1,1,0.5,0.5,0.5], P4: [0.5,0.5,0.5,0,0] },
+          notes: 'P4 involvement for complex regulatory overlays'
+        },
+        {
+          activity: 'Training records, certifications & exercise report review',
+          grades: { P2: [0.5,0.5,0.5,0.5,0.5] },
+          notes: ''
+        },
+        {
+          activity: 'Previous PIR, audit & assessment report review',
+          grades: { P2: [1,1,0.5,0.5,0.5], P3: [0.5,0.5,0.5,0.5,0] },
+          notes: 'More material at higher maturity tiers'
+        },
+      ]
+    },
+    {
+      phase: 'Stakeholder Interviews',
+      desc: 'Structured interviews with key personnel across security, IT, legal, compliance and business',
+      tasks: [
+        {
+          activity: 'CISO / Head of Security interview (90 min)',
+          grades: { P4: [1,1,1,1,1], P5: [1,1,1,1,1] },
+          notes: 'Senior presence required'
+        },
+        {
+          activity: 'IR team / SOC lead interviews (×2, 60 min each)',
+          grades: { P2: [1,1,1,1,0.5], P3: [1,1,1,1,0.5] },
+          notes: 'Reduced at higher maturity as scope narrows'
+        },
+        {
+          activity: 'IT / infrastructure lead interview (60 min)',
+          grades: { P2: [1,1,0.5,0.5,0.5], P3: [0.5,0.5,0.5,0.5,0.5] },
+          notes: ''
+        },
+        {
+          activity: 'DPO / Legal / Compliance interview (60 min)',
+          grades: { P3: [1,1,1,1,0.5], P4: [0.5,0.5,0.5,0.5,0] },
+          notes: ''
+        },
+        {
+          activity: 'Business / operations stakeholder interview (60 min)',
+          grades: { P3: [1,1,0.5,0.5,0], P4: [0.5,0.5,0.5,0,0] },
+          notes: 'Less relevant at higher maturity if IR is embedded'
+        },
+        {
+          activity: 'Interview note consolidation & synthesis',
+          grades: { P2: [1,1,0.5,0.5,0.5], P3: [1,1,1,0.5,0.5] },
+          notes: ''
+        },
+      ]
+    },
+    {
+      phase: 'Technical Access & Tooling Review',
+      desc: 'Hands-on review of SIEM, EDR, logging coverage, asset inventory, backup architecture and PAM/MFA configuration',
+      tasks: [
+        {
+          activity: 'SIEM log source inventory & coverage review',
+          grades: { P2: [1.5,1,1,0.5,0.5], P3: [1,0.5,0.5,0.5,0.5] },
+          notes: 'Deeper review where logging gaps are likely'
+        },
+        {
+          activity: 'EDR/XDR deployment coverage & alert config review',
+          grades: { P2: [1,1,0.5,0.5,0.5], P3: [0.5,0.5,0.5,0.5,0] },
+          notes: ''
+        },
+        {
+          activity: 'Asset inventory & CMDB validation',
+          grades: { P1: [1,0.5,0.5,0.5,0], P2: [0.5,0.5,0.5,0.5,0] },
+          notes: 'P1 led — data collection task'
+        },
+        {
+          activity: 'Backup architecture & recovery config review',
+          grades: { P2: [1,1,0.5,0.5,0.5], P3: [0.5,0.5,0.5,0.5,0] },
+          notes: ''
+        },
+        {
+          activity: 'Network segmentation & PAM/MFA configuration review',
+          grades: { P2: [1.5,1,0.5,0.5,0.5], P3: [1,0.5,0.5,0.5,0.5] },
+          notes: 'More complex at lower maturity'
+        },
+        {
+          activity: 'IR tooling inventory & forensic capability check',
+          grades: { P3: [1,1,0.5,0.5,0.5] },
+          notes: 'Specialist skill required'
+        },
+      ]
+    },
+    {
+      phase: 'Assessment Scoring & Evidence Mapping',
+      desc: 'Translation of findings into scored responses with per-question evidence commentary across all domains',
+      tasks: [
+        {
+          activity: 'Domain scoring across all 8 CISR domains',
+          grades: { P3: [2,2,1.5,1,1], P4: [1,1,1,0.5,0.5] },
+          notes: 'P4 sense-checks scoring judgements'
+        },
+        {
+          activity: 'Evidence commentary & per-question notes completion',
+          grades: { P2: [1,1,1,0.5,0.5], P3: [1,1,0.5,0.5,0.5] },
+          notes: ''
+        },
+        {
+          activity: 'Gap analysis & priority action identification',
+          grades: { P3: [1.5,1,1,0.5,0.5], P4: [1,1,0.5,0.5,0.5] },
+          notes: ''
+        },
+        {
+          activity: 'Internal scoring QA & peer review',
+          grades: { P4: [0.5,0.5,0.5,0.5,0.5], P5: [0.5,0.5,0.5,0.5,0.5] },
+          notes: 'Fixed QA overhead'
+        },
+      ]
+    },
+    {
+      phase: 'Report Writing',
+      desc: 'Production of formal IR maturity assessment report covering methodology, findings, domain narratives and recommendations',
+      tasks: [
+        {
+          activity: 'Executive summary & methodology section',
+          grades: { P4: [1,1,1,1,0.5], P5: [0.5,0.5,0.5,0.5,0.5] },
+          notes: 'P5 reviews and signs off executive narrative'
+        },
+        {
+          activity: 'Domain findings narratives (×8 domains)',
+          grades: { P2: [1,0.5,0.5,0.5,0.5], P3: [2,2,1.5,1,1] },
+          notes: 'Effort scales with volume of findings'
+        },
+        {
+          activity: 'Prioritised recommendations & roadmap',
+          grades: { P3: [1,1,1,0.5,0.5], P4: [1,1,0.5,0.5,0.5] },
+          notes: ''
+        },
+        {
+          activity: 'Effort estimate & resourcing model section',
+          grades: { P4: [0.5,0.5,0.5,0.5,0.5] },
+          notes: 'Draws from this tool output'
+        },
+        {
+          activity: 'Appendices (assessment evidence, tool output, question detail)',
+          grades: { P1: [1,0.5,0.5,0.5,0.5], P2: [0.5,0.5,0.5,0.5,0] },
+          notes: 'P1 compiles; P2 checks'
+        },
+      ]
+    },
+    {
+      phase: 'QA, Review & Delivery',
+      desc: 'Internal quality assurance, client delivery, report readout and findings walkthrough',
+      tasks: [
+        {
+          activity: 'Internal report QA & senior review',
+          grades: { P4: [0.5,0.5,0.5,0.5,0.5], P5: [0.5,0.5,0.5,0.5,0.5] },
+          notes: 'Fixed QA step'
+        },
+        {
+          activity: 'Revisions following QA',
+          grades: { P3: [0.5,0.5,0.5,0.5,0.5] },
+          notes: ''
+        },
+        {
+          activity: 'Client report readout & findings walkthrough (half-day)',
+          grades: { P3: [0.5,0.5,0.5,0.5,0.5], P4: [0.5,0.5,0.5,0.5,0.5], P5: [0.5,0.5,0.5,0.5,0.5] },
+          notes: 'All tiers: client-facing delivery'
+        },
+        {
+          activity: 'Post-delivery Q&A and follow-up actions',
+          grades: { P3: [0.5,0.5,0.5,0.5,0.5], P4: [0.5,0.5,0.5,0.5,0.5] },
+          notes: ''
+        },
+      ]
+    },
+  ];
+
+  // Extract days for this tier
+  const resolved = phases.map(p => ({
+    ...p,
+    tasks: p.tasks.map(t => {
+      const gradeBreakdown = {};
+      let total = 0;
+      Object.entries(t.grades).forEach(([grade, tierDays]) => {
+        const days = tierDays[tier] || 0;
+        if (days > 0) {
+          gradeBreakdown[grade] = days;
+          total += days;
+        }
+      });
+      return { ...t, gradeBreakdown, totalDays: total };
+    })
+  }));
+
+  // Compute phase totals and grand total
+  resolved.forEach(p => {
+    p.phaseTotalDays = p.tasks.reduce((a, t) => a + t.totalDays, 0);
+    // Grade breakdown per phase
+    p.phaseGrades = {};
+    p.tasks.forEach(t => {
+      Object.entries(t.gradeBreakdown).forEach(([g, d]) => {
+        p.phaseGrades[g] = (p.phaseGrades[g] || 0) + d;
+      });
+    });
+  });
+
+  const grandTotal = resolved.reduce((a, p) => a + p.phaseTotalDays, 0);
+
+  // Grand total by grade
+  const grandGrades = {};
+  resolved.forEach(p => {
+    Object.entries(p.phaseGrades).forEach(([g, d]) => {
+      grandGrades[g] = (grandGrades[g] || 0) + d;
+    });
+  });
+
+  // Indicative fee (day rate × days)
+  const indicativeFee = Object.entries(grandGrades)
+    .reduce((a, [g, d]) => a + (getGrades()[g]?.dayRate || 0) * d, 0);
+
+  return { phases: resolved, grandTotal, grandGrades, indicativeFee, tier };
+}
+
+function renderGradePills(gradeBreakdown) {
+  const grades = getGrades();
+  return Object.entries(gradeBreakdown)
+    .filter(([, d]) => d > 0)
+    .map(([g, d]) => {
+      const gr = grades[g];
+      if (!gr) return '';
+      return `<span class="grade-pill ${gr.cssClass}">${g} <span class="pill-days">${d}d</span></span>`;
+    }).join('');
+}
+
+
+let scores = {}; // questionId -> 0-4
+let notes = {};  // questionId -> string
+let currentPage = 'splash';
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('assessDate').value = new Date().toISOString().split('T')[0];
+  const totalQ = domains.reduce((a, d) => a + d.questions.length, 0);
+  document.getElementById('splashQCount').textContent = totalQ;
+  document.getElementById('splashDomainCount').textContent = domains.length;
+  document.getElementById('progressTotal').textContent = domains.length;
+  buildGradeConfigUI();
+  buildSidebar();
+  buildDomainPages();
+});
+
+function buildSidebar() {
+  const container = document.getElementById('sidebarDomains');
+  container.innerHTML = domains.map((d, i) => `
+    <div class="nav-item" id="nav-${d.id}" onclick="showPage('domain-${d.id}')">
+      <div class="nav-dot"></div>
+      <span class="nav-label">${d.name}</span>
+      <span class="nav-score" id="navscore-${d.id}"></span>
+    </div>
+  `).join('');
+}
+
+function buildDomainPages() {
+  const container = document.getElementById('domainPages');
+  container.innerHTML = domains.map((domain, di) => `
+    <div class="section-page" id="page-domain-${domain.id}">
+      <div class="section-header">
+        <div class="section-eyebrow">▸ Domain ${di+1} of ${domains.length}</div>
+        <div class="section-title">${domain.name}</div>
+        <div class="section-desc">${domain.desc}</div>
+      </div>
+
+      ${domain.questions.map((q, qi) => `
+        <div class="question-card" id="qcard-${q.id}">
+          <div class="question-meta">
+            <span class="q-number">Q${qi+1}</span>
+            <span class="q-tag ${q.tag}">${q.tag}</span>
+          </div>
+          <div class="q-text">${q.text}</div>
+          <div class="q-evidence">${q.evidence}</div>
+          <div class="maturity-options">
+            ${MATURITY_LEVELS.map(m => `
+              <div class="maturity-btn" id="mbtn-${q.id}-${m.score}" onclick="setScore('${q.id}', ${m.score})">
+                <div class="maturity-score">${m.score}</div>
+                <div class="maturity-label">${m.label}</div>
+              </div>
+            `).join('')}
+          </div>
+          <div class="notes-field">
+            <textarea placeholder="Evidence notes, observations, caveats…" id="note-${q.id}" onchange="setNote('${q.id}', this.value)"></textarea>
+          </div>
+        </div>
+      `).join('')}
+
+      <div class="section-footer">
+        <button class="btn btn-ghost" onclick="prevSection('${domain.id}')">← Back</button>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="completion-bar"><div class="completion-fill" id="cbar-${domain.id}" style="width:0%"></div></div>
+          <span class="completion-text" id="ctext-${domain.id}">0 / ${domain.questions.length}</span>
+        </div>
+        <button class="btn btn-primary" onclick="nextSection('${domain.id}')">Next →</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════════
+function showPage(pageId) {
+  document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  currentPage = pageId;
+
+  const target = document.getElementById(`page-${pageId}`);
+  if (target) { target.classList.add('active'); target.classList.add('fade-in'); }
+
+  const navTarget = document.getElementById(`nav-${pageId}`);
+  if (navTarget) navTarget.classList.add('active');
+
+  if (pageId === 'results') {
+    document.getElementById('nav-results').classList.add('active');
+    renderResults();
+  }
+  if (pageId === 'splash') document.getElementById('nav-splash').classList.add('active');
+
+  window.scrollTo(0, 0);
+  updateProgress();
+}
+
+function startAssessment() {
+  showPage(`domain-${domains[0].id}`);
+}
+
+function nextSection(domainId) {
+  const idx = domains.findIndex(d => d.id === domainId);
+  if (idx < domains.length - 1) {
+    showPage(`domain-${domains[idx+1].id}`);
+  } else {
+    showPage('results');
+  }
+}
+
+function prevSection(domainId) {
+  const idx = domains.findIndex(d => d.id === domainId);
+  if (idx === 0) showPage('splash');
+  else showPage(`domain-${domains[idx-1].id}`);
+}
+
+function updateProgress() {
+  const domainIdx = domains.findIndex(d => currentPage === `domain-${d.id}`);
+  document.getElementById('progressCurrent').textContent = domainIdx >= 0 ? domainIdx + 1 : (currentPage === 'results' ? domains.length : 0);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SCORING
+// ═══════════════════════════════════════════════════════════════
+function setScore(qId, score) {
+  scores[qId] = score;
+  // Update button styles
+  MATURITY_LEVELS.forEach(m => {
+    const btn = document.getElementById(`mbtn-${qId}-${m.score}`);
+    if (btn) {
+      btn.className = 'maturity-btn' + (score === m.score ? ` selected-${m.score}` : '');
+    }
+  });
+  // Mark card answered
+  const card = document.getElementById(`qcard-${qId}`);
+  if (card) card.classList.add('answered');
+  // Update sidebar
+  updateDomainProgress();
+}
+
+function setNote(qId, value) {
+  notes[qId] = value;
+}
+
+function updateDomainProgress() {
+  domains.forEach(domain => {
+    const answered = domain.questions.filter(q => scores[q.id] !== undefined).length;
+    const total = domain.questions.length;
+    const pct = (answered / total) * 100;
+
+    const cbar = document.getElementById(`cbar-${domain.id}`);
+    const ctext = document.getElementById(`ctext-${domain.id}`);
+    if (cbar) cbar.style.width = pct + '%';
+    if (ctext) ctext.textContent = `${answered} / ${total}`;
+
+    // Sidebar nav score
+    if (answered > 0) {
+      const avg = domain.questions.filter(q => scores[q.id] !== undefined)
+                    .reduce((a, q) => a + scores[q.id], 0) / answered;
+      const navScore = document.getElementById(`navscore-${domain.id}`);
+      if (navScore) navScore.textContent = avg.toFixed(1);
+      const navItem = document.getElementById(`nav-${domain.id}`);
+      if (navItem && answered === total) navItem.classList.add('complete');
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RESULTS ENGINE
+// ═══════════════════════════════════════════════════════════════
+function getDomainScore(domain) {
+  const qs = domain.questions.filter(q => scores[q.id] !== undefined);
+  if (qs.length === 0) return null;
+  return qs.reduce((a, q) => a + scores[q.id], 0) / qs.length;
+}
+
+function getOverallScore() {
+  const domainScores = domains.map(d => getDomainScore(d)).filter(s => s !== null);
+  if (domainScores.length === 0) return 0;
+  return domainScores.reduce((a, s) => a + s, 0) / domainScores.length;
+}
+
+function scoreToLevel(score) {
+  if (score < 0.8) return MATURITY_LEVELS[0];
+  if (score < 1.8) return MATURITY_LEVELS[1];
+  if (score < 2.6) return MATURITY_LEVELS[2];
+  if (score < 3.5) return MATURITY_LEVELS[3];
+  return MATURITY_LEVELS[4];
+}
+
+function getScoreColor(score) {
+  const l = scoreToLevel(score);
+  return l.color;
+}
+
+function getRecommendations(overall, domainScores) {
+  // Timeline
+  let timeline, timelineDetail;
+  if (overall < 1.0) {
+    timeline = '16–24 weeks';
+    timelineDetail = 'Foundational build required. Significant groundwork needed before incident response capability reaches operational baseline.';
+  } else if (overall < 1.8) {
+    timeline = '10–16 weeks';
+    timelineDetail = 'Significant gaps identified. Structured programme required to establish core processes, tooling and governance.';
+  } else if (overall < 2.6) {
+    timeline = '6–10 weeks';
+    timelineDetail = 'Moderate gaps across several domains. Focused effort to formalise and test existing capabilities.';
+  } else if (overall < 3.5) {
+    timeline = '4–6 weeks';
+    timelineDetail = 'Mature baseline present. Onboarding focused on integration, optimisation and threat-profile alignment.';
+  } else {
+    timeline = '2–4 weeks';
+    timelineDetail = 'Strong existing capability. Rapid integration and light-touch enhancement anticipated.';
+  }
+
+  // Budget band
+  let budget, budgetDetail;
+  if (overall < 1.0) {
+    budget = '£150k–£350k';
+    budgetDetail = 'Includes foundational tooling, policy development, training programme and full IR retainer.';
+  } else if (overall < 1.8) {
+    budget = '£80k–£180k';
+    budgetDetail = 'Covers gap remediation, playbook development, exercise programme and IR retainer.';
+  } else if (overall < 2.6) {
+    budget = '£40k–£90k';
+    budgetDetail = 'Targeted investment in capability gaps, exercise delivery and retainer support.';
+  } else if (overall < 3.5) {
+    budget = '£20k–£50k';
+    budgetDetail = 'Optimisation and integration effort. Retainer and ongoing advisory.';
+  } else {
+    budget = '£10k–£25k';
+    budgetDetail = 'Minimal remediation. Ongoing retainer and periodic assurance exercises.';
+  }
+
+  // Resourcing
+  let resources;
+  if (overall < 1.5) {
+    resources = 'Senior IR Consultant (lead) + DFIR Analyst + Governance Consultant + Part-time TI Analyst';
+  } else if (overall < 2.5) {
+    resources = 'Senior IR Consultant (lead) + DFIR Analyst + Part-time Governance Analyst';
+  } else if (overall < 3.5) {
+    resources = 'IR Consultant (lead) + Part-time DFIR Analyst';
+  } else {
+    resources = 'IR Consultant (advisory) + Periodic exercise delivery';
+  }
+
+  return { timeline, timelineDetail, budget, budgetDetail, resources };
+}
+
+function getPriorityActions(domainScores) {
+  const actions = [];
+  domainScores.forEach(({ domain, score }) => {
+    if (score === null) return;
+    // Identify low-scoring questions
+    domain.questions.forEach(q => {
+      const s = scores[q.id];
+      if (s === undefined || s === null) return;
+      if (s <= 1) {
+        const urgency = s === 0 ? 'critical' : 'high';
+        actions.push({
+          action: `[${domain.name}] ${q.text}`,
+          rationale: `Scored ${s}/4 — ${MATURITY_LEVELS[s].label}. Immediate attention required.`,
+          urgency,
+          domain: domain.name
+        });
+      } else if (s === 2) {
+        actions.push({
+          action: `[${domain.name}] ${q.text}`,
+          rationale: `Scored 2/4 — Defined but not embedded. Formalisation and testing needed.`,
+          urgency: 'medium',
+          domain: domain.name
+        });
+      }
+    });
+  });
+
+  // Sort: critical first, then high, then medium
+  const order = { critical: 0, high: 1, medium: 2, low: 3 };
+  return actions.sort((a, b) => order[a.urgency] - order[b.urgency]).slice(0, 8);
+}
+
+function getTimelinePhases(overall) {
+  if (overall < 1.5) {
+    return [
+      { label: 'Weeks 1–2', duration: '', title: 'Discovery & Baseline', desc: 'Deep-dive technical discovery, stakeholder interviews and detailed gap analysis.', tasks: ['Asset and infrastructure discovery', 'IR policy and playbook review', 'Tooling and logging coverage assessment', 'Regulatory obligation mapping'] },
+      { label: 'Weeks 3–6', duration: '', title: 'Foundation Build', desc: 'Establish core governance, baseline tooling and priority processes.', tasks: ['IR policy and classification framework', 'Incident severity tiers and RACI', 'SIEM logging source expansion', 'IMT training and role assignment'] },
+      { label: 'Weeks 7–12', duration: '', title: 'Capability Development', desc: 'Develop playbooks, notification procedures and detection capability.', tasks: ['Priority playbook development (ransomware, BEC, data exfil)', 'Regulatory notification procedures and templates', 'EDR deployment and tuning', 'Tabletop exercise (scenario 1)'] },
+      { label: 'Weeks 13–16', duration: '', title: 'Testing & Validation', desc: 'Exercise the full IR capability and validate remediation.', tasks: ['Full-scenario tabletop exercise', 'Recovery procedure testing', 'PIR process establishment', 'Retainer onboarding and handover'] },
+      { label: 'Ongoing', duration: '', title: 'Managed Improvement', desc: 'Continuous assurance, periodic exercises and threat-informed improvement.', tasks: ['Quarterly threat intelligence briefings', 'Annual exercise programme', 'Playbook review cadence', 'Regulatory compliance monitoring'] },
+    ];
+  } else if (overall < 2.5) {
+    return [
+      { label: 'Weeks 1–2', duration: '', title: 'Assessment & Gap Mapping', desc: 'Validate assessment findings, prioritise gaps and agree remediation roadmap.', tasks: ['Technical validation workshops', 'Gap prioritisation by risk', 'Roadmap sign-off with stakeholders'] },
+      { label: 'Weeks 3–6', duration: '', title: 'Gap Remediation', desc: 'Address priority gaps across governance, detection and response.', tasks: ['Playbook enhancement and formalisation', 'Detection rule review and tuning', 'Notification procedure development', 'IMT training top-up'] },
+      { label: 'Weeks 7–10', duration: '', title: 'Testing & Validation', desc: 'Exercise enhanced capabilities and validate improvements.', tasks: ['Tabletop exercise against high-priority scenario', 'Recovery procedure test', 'Lessons-learned and PIR process validation'] },
+      { label: 'Ongoing', duration: '', title: 'Retained Assurance', desc: 'Ongoing IR retainer, exercises and improvement programme.', tasks: ['Bi-annual exercise delivery', 'Quarterly governance reviews', 'Threat intelligence integration'] },
+    ];
+  } else {
+    return [
+      { label: 'Weeks 1–2', duration: '', title: 'Integration & Onboarding', desc: 'Integrate with existing IR processes and align to engagement model.', tasks: ['Technical environment walkthrough', 'Retainer scope and SLA agreement', 'Contact lists and escalation paths'] },
+      { label: 'Weeks 3–4', duration: '', title: 'Optimisation', desc: 'Targeted enhancement of identified gaps.', tasks: ['Priority playbook updates', 'Detection coverage review', 'Regulatory alignment check'] },
+      { label: 'Weeks 5–6', duration: '', title: 'Validation', desc: 'Exercise and confirm readiness.', tasks: ['Tabletop exercise', 'Retainer activation test', 'Final readiness sign-off'] },
+      { label: 'Ongoing', duration: '', title: 'Retained Advisory', desc: 'Ongoing assurance and improvement.', tasks: ['Annual exercise programme', 'Threat intelligence alignment', 'Policy review support'] },
+    ];
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RADAR CHART
+// ═══════════════════════════════════════════════════════════════
+function renderRadar(domainScores) {
+  const cx = 180, cy = 180, r = 130;
+  const n = domainScores.length;
+
+  function polarToXY(angle, radius) {
+    return {
+      x: cx + radius * Math.sin(angle),
+      y: cy - radius * Math.cos(angle)
+    };
+  }
+
+  // Grid circles
+  let gridLines = '';
+  [1,2,3,4].forEach(lvl => {
+    const gr = (lvl / 4) * r;
+    const pts = Array.from({length: n}, (_, i) => {
+      const a = (i / n) * Math.PI * 2;
+      const p = polarToXY(a, gr);
+      return `${p.x},${p.y}`;
+    }).join(' ');
+    gridLines += `<polygon points="${pts}" fill="none" stroke="#e3e7ed" stroke-width="1"/>`;
+    // Label
+    const lp = polarToXY(0, gr);
+    gridLines += `<text x="${lp.x+4}" y="${lp.y-2}" fill="#8a96a8" font-size="8" font-family="IBM Plex Mono">${lvl}</text>`;
+  });
+
+  // Axis lines
+  let axisLines = '';
+  domainScores.forEach((_, i) => {
+    const a = (i / n) * Math.PI * 2;
+    const ep = polarToXY(a, r);
+    axisLines += `<line x1="${cx}" y1="${cy}" x2="${ep.x}" y2="${ep.y}" stroke="#e3e7ed" stroke-width="1"/>`;
+  });
+
+  // Data polygon
+  const dataPts = domainScores.map(({ score }, i) => {
+    const s = score !== null ? score : 0;
+    const a = (i / n) * Math.PI * 2;
+    const rr = (s / 4) * r;
+    const p = polarToXY(a, rr);
+    return `${p.x},${p.y}`;
+  }).join(' ');
+
+  // Labels
+  let labels = '';
+  domainScores.forEach(({ domain }, i) => {
+    const a = (i / n) * Math.PI * 2;
+    const lp = polarToXY(a, r + 22);
+    const name = domain.name.length > 18 ? domain.name.substring(0, 18) + '…' : domain.name;
+    labels += `<text x="${lp.x}" y="${lp.y}" fill="#8b95a3" font-size="8.5" font-family="IBM Plex Sans" text-anchor="middle" dominant-baseline="middle">${name}</text>`;
+  });
+
+  return `
+    <svg width="360" height="360" class="radar-svg">
+      ${gridLines}
+      ${axisLines}
+      <polygon points="${dataPts}" fill="rgba(0,105,204,0.1)" stroke="#0069cc" stroke-width="2"/>
+      ${domainScores.map(({ score }, i) => {
+        const s = score !== null ? score : 0;
+        const a = (i / n) * Math.PI * 2;
+        const rr = (s / 4) * r;
+        const p = polarToXY(a, rr);
+        return `<circle cx="${p.x}" cy="${p.y}" r="4" fill="#0069cc"/>`;
+      }).join('')}
+      ${labels}
+    </svg>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER RESULTS
+// ═══════════════════════════════════════════════════════════════
+function renderResults() {
+  const overall = getOverallScore();
+  const level = scoreToLevel(overall);
+  const orgName = document.getElementById('orgName').value || 'Organisation';
+  const orgSector = document.getElementById('orgSector').value || '';
+  const orgSize = document.getElementById('orgSize').value || '';
+  const assessor = document.getElementById('assessorName').value || '';
+  const assessDate = document.getElementById('assessDate').value || '';
+
+  const domainScores = domains.map(d => ({ domain: d, score: getDomainScore(d) }));
+  const recs = getRecommendations(overall, domainScores);
+  const priorities = getPriorityActions(domainScores);
+  const phases = getTimelinePhases(overall);
+  const effort = getEffortModel(overall);
+
+  // Ring fill
+  const ringPct = (overall / 4);
+  const ringCircumference = 2 * Math.PI * 52;
+  const ringFill = ringPct * ringCircumference;
+
+  // Color descriptions
+  const levelDescs = {
+    0: 'Critical gaps across core IR domains. Organisation is unprepared for a significant cyber incident. Immediate and substantial investment required.',
+    1: 'Foundational gaps in key areas. Ad-hoc response capability exists but lacks consistency, documentation and repeatable process.',
+    2: 'Core processes defined but unevenly applied. Formalisation, testing and embedding of capability is the priority.',
+    3: 'Managed and repeatable capability. Processes are defined, followed and measured. Focus on optimisation and advanced capability.',
+    4: 'Industry-leading capability. Continuous improvement and threat-informed practice. Light-touch enhancement and ongoing assurance.'
+  };
+
+  const html = `
+    <div class="results-header fade-in">
+      <div class="results-eyebrow">▸ Assessment Complete</div>
+      <div class="results-title">${orgName}</div>
+      <div class="results-org">${[orgSector, orgSize, assessor, assessDate].filter(Boolean).join(' · ')}</div>
+    </div>
+
+    <div class="export-bar">
+      <div class="export-bar-left">
+        <strong>Assessment Report Ready</strong>
+        Use your browser's print function to export as PDF
+      </div>
+      <div class="export-btns">
+        <button class="btn btn-secondary" onclick="window.print()">⬇ Export PDF</button>
+        <button class="btn btn-secondary" onclick="exportCSV()">⬇ Export CSV</button>
+      </div>
+    </div>
+
+    <!-- OVERALL SCORE -->
+    <div class="rec-section-title">Overall Maturity Score</div>
+    <div class="score-summary">
+      <div class="overall-score-ring">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="#e3e7ed" stroke-width="10"/>
+          <circle cx="60" cy="60" r="52" fill="none" stroke="${level.color}" stroke-width="10"
+            stroke-dasharray="${ringFill} ${ringCircumference}"
+            stroke-linecap="round"/>
+        </svg>
+        <div class="ring-text">
+          <div class="ring-value" style="color:${level.color}">${overall.toFixed(1)}</div>
+          <div class="ring-label">/ 4.0</div>
+        </div>
+      </div>
+      <div class="score-right">
+        <div class="score-level" style="color:${level.color}">${level.label} Maturity</div>
+        <div class="score-desc">${levelDescs[level.score]}</div>
+        <div class="score-badges">
+          <div class="score-badge"><div class="dot" style="background:var(--accent)"></div>${recs.timeline} onboarding</div>
+          <div class="score-badge"><div class="dot" style="background:var(--warn)"></div>${recs.budget}</div>
+          <div class="score-badge"><div class="dot" style="background:var(--success)"></div>${domainScores.filter(d=>d.score!==null).length} domains assessed</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RADAR -->
+    <div class="rec-section-title">Capability Profile</div>
+    <div class="radar-container">
+      ${renderRadar(domainScores)}
+      <div class="radar-legend">
+        ${domainScores.map(({ domain, score }) => {
+          const lv = score !== null ? scoreToLevel(score) : MATURITY_LEVELS[0];
+          return `
+            <div class="legend-item">
+              <div class="legend-dot" style="background:${lv.color}"></div>
+              <div>
+              <div style="font-weight:500;color:var(--text);font-size:11px">${domain.name}</div>
+                <div style="color:var(--text3);font-family:var(--mono);font-size:10px">${score !== null ? score.toFixed(1) : 'n/a'} — ${score !== null ? lv.label : 'Not assessed'}</div>
+              </div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <!-- DOMAIN BREAKDOWN -->
+    <div class="rec-section-title">Domain Breakdown</div>
+    <div class="domains-grid">
+      ${domainScores.map(({ domain, score }) => {
+        if (score === null) return `
+          <div class="domain-card">
+            <div class="domain-top">
+              <div class="domain-name">${domain.name}</div>
+              <div class="domain-score" style="color:var(--text3)">—</div>
+            </div>
+            <div class="domain-bar"><div class="domain-fill" style="width:0%;background:var(--border2)"></div></div>
+            <div class="domain-level">Not assessed</div>
+          </div>`;
+        const lv = scoreToLevel(score);
+        return `
+          <div class="domain-card">
+            <div class="domain-top">
+              <div class="domain-name">${domain.name}</div>
+              <div class="domain-score" style="color:${lv.color}">${score.toFixed(1)}</div>
+            </div>
+            <div class="domain-bar"><div class="domain-fill" style="width:${(score/4)*100}%;background:${lv.color}"></div></div>
+            <div class="domain-level" style="color:${lv.color}">${lv.label}</div>
+          </div>`;
+      }).join('')}
+    </div>
+
+    <!-- RECOMMENDATIONS -->
+    <div class="rec-section-title">Onboarding Recommendations</div>
+    <div class="rec-cards">
+      <div class="rec-card">
+        <div class="rec-card-icon">⏱</div>
+        <div class="rec-card-label">Onboarding Timeline</div>
+        <div class="rec-card-value">${recs.timeline}</div>
+        <div class="rec-card-sub">${recs.timelineDetail}</div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-card-icon">£</div>
+        <div class="rec-card-label">Indicative Budget Band</div>
+        <div class="rec-card-value">${recs.budget}</div>
+        <div class="rec-card-sub">${recs.budgetDetail}</div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-card-icon">👥</div>
+        <div class="rec-card-label">Resourcing Model</div>
+        <div class="rec-card-value" style="font-size:13px;line-height:1.4">${recs.resources}</div>
+        <div class="rec-card-sub">Recommended engagement team composition</div>
+      </div>
+    </div>
+
+    <!-- PHASED TIMELINE -->
+    <div class="rec-section-title">Phased Delivery Timeline</div>
+    <div class="timeline">
+      ${phases.map((phase, i) => `
+        <div class="timeline-phase">
+          <div class="phase-left">
+            <div class="phase-label">${phase.label}</div>
+            <div class="phase-dot" style="background:var(--accent)"></div>
+            <div class="phase-line"></div>
+          </div>
+          <div class="phase-right">
+            <div class="phase-title">${phase.title}</div>
+            <div class="phase-desc">${phase.desc}</div>
+            <div class="phase-tasks">
+              ${phase.tasks.map(t => `<div class="phase-task">${t}</div>`).join('')}
+            </div>
+          </div>
+        </div>`).join('')}
+    </div>
+
+    <!-- EFFORT ESTIMATOR -->
+    <div class="rec-section-title">Assessment Effort Estimate</div>
+
+    <div class="grade-legend">
+      ${userGrades.map(g => `
+        <div class="grade-legend-item">
+          <div class="grade-legend-code ${g.cssClass}">${g.label}</div>
+          <div class="grade-legend-detail">
+            <div class="grade-legend-title">${g.title}</div>
+            <div class="grade-legend-role">£${g.dayRate.toLocaleString()}/day</div>
+          </div>
+        </div>`).join('')}
+    </div>
+
+    <div class="effort-summary-cards">
+      <div class="effort-card">
+        <div class="effort-card-label">Total Effort</div>
+        <div class="effort-card-value">${effort.grandTotal.toFixed(1)}d</div>
+        <div class="effort-card-sub">Consultant days (all grades)</div>
+      </div>
+      <div class="effort-card">
+        <div class="effort-card-label">Elapsed Calendar</div>
+        <div class="effort-card-value">${effort.grandTotal < 8 ? '2–3' : effort.grandTotal < 12 ? '3–4' : effort.grandTotal < 18 ? '4–5' : '5–6'} wks</div>
+        <div class="effort-card-sub">Typical elapsed time incl. client scheduling</div>
+      </div>
+      <div class="effort-card">
+        <div class="effort-card-label">Indicative Fee</div>
+        <div class="effort-card-value">£${Math.round(effort.indicativeFee/1000)}k</div>
+        <div class="effort-card-sub">Assessment only, excl. remediation work</div>
+      </div>
+      <div class="effort-card">
+        <div class="effort-card-label">Maturity Tier</div>
+        <div class="effort-card-value">${['0','1','2','3','4'][effort.tier]}</div>
+        <div class="effort-card-sub">${['Foundational','Developing','Partial','Managed','Optimised'][effort.tier]} — effort modelled accordingly</div>
+      </div>
+    </div>
+
+    <div class="effort-note">
+      Effort estimates are for the <strong>IR maturity assessment engagement only</strong> (scoping through to report delivery). They do not include remediation, playbook development, exercise delivery or retainer services. Day allocations are indicative and should be refined during detailed scoping. Elapsed calendar time is typically longer than effort days due to client scheduling, document turnaround and review cycles.
+    </div>
+
+    <table class="effort-table">
+      <thead>
+        <tr>
+          <th>Phase</th>
+          <th>Activity</th>
+          <th>Grade Allocation</th>
+          <th class="right">Days</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${effort.phases.map(phase => `
+          ${phase.tasks.map((task, ti) => `
+            <tr>
+              ${ti === 0 ? `<td class="phase-cell" rowspan="${phase.tasks.length}" style="vertical-align:top;padding-top:12px;border-right:1px solid var(--border);color:var(--text);font-weight:500;font-size:11px;white-space:nowrap">${phase.phase}</td>` : ''}
+              <td>${task.activity}${task.notes ? `<div style="font-size:10px;color:var(--text3);margin-top:2px">${task.notes}</div>` : ''}</td>
+              <td><div class="grade-pills">${renderGradePills(task.gradeBreakdown)}</div></td>
+              <td class="right">${task.totalDays > 0 ? task.totalDays.toFixed(1) : '—'}</td>
+            </tr>`).join('')}
+          <tr style="background:var(--surface3)">
+            <td colspan="2" style="font-size:11px;color:var(--text2);font-weight:600;text-align:right;padding-right:12px">Phase total</td>
+            <td><div class="grade-pills">${renderGradePills(phase.phaseGrades)}</div></td>
+            <td class="right" style="font-weight:600;color:var(--text)">${phase.phaseTotalDays.toFixed(1)}d</td>
+          </tr>`).join('')}
+        <tr class="total-row">
+          <td colspan="2" style="text-align:right;padding-right:12px">TOTAL</td>
+          <td><div class="grade-pills">${renderGradePills(effort.grandGrades)}</div></td>
+          <td class="right">${effort.grandTotal.toFixed(1)}d</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- PRIORITY ACTIONS -->
+    <div class="rec-section-title">Priority Remediation Actions</div>
+    ${priorities.length === 0 ? '<p style="color:var(--text2);font-size:13px;margin-bottom:24px">No critical or high-priority gaps identified. Continue with optimisation focus.</p>' : ''}
+    <div class="priority-list">
+      ${priorities.map((p, i) => `
+        <div class="priority-item">
+          <div class="priority-rank">${String(i+1).padStart(2,'0')}</div>
+          <div class="priority-content">
+            <div class="priority-action">${p.action}</div>
+            <div class="priority-rationale">${p.rationale}</div>
+          </div>
+          <div class="priority-badge badge-${p.urgency}">${p.urgency}</div>
+        </div>`).join('')}
+    </div>
+
+    <!-- GAPS TABLE -->
+    <div class="rec-section-title">Full Assessment Detail</div>
+    <table class="gaps-table">
+      <thead>
+        <tr>
+          <th>Domain</th>
+          <th>Question</th>
+          <th>Score</th>
+          <th>Level</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${domains.flatMap(domain =>
+          domain.questions.map(q => {
+            const s = scores[q.id];
+            const lv = s !== undefined ? MATURITY_LEVELS[s] : null;
+            return `
+              <tr>
+                <td class="domain-cell">${domain.name}</td>
+                <td>${q.text}</td>
+                <td style="font-family:var(--mono);color:${lv ? lv.color : 'var(--text3)'}">
+                  ${s !== undefined ? s : '—'}
+                </td>
+                <td style="color:${lv ? lv.color : 'var(--text3)'};font-size:11px">
+                  ${lv ? lv.label : 'Not assessed'}
+                </td>
+                <td style="color:var(--text3);font-size:11px">${notes[q.id] || ''}</td>
+              </tr>`;
+          })
+        ).join('')}
+      </tbody>
+    </table>
+
+    <div style="font-family:var(--mono);font-size:9px;color:var(--text3);padding-top:16px;border-top:1px solid var(--border);line-height:1.8">
+      Generated by CREST CISR Maturity Assessment Tool · ${new Date().toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'})} · For professional use only<br>
+      Budget and timeline figures are indicative guidance bands. Final scope subject to detailed discovery and commercial agreement.
+    </div>
+  `;
+
+  document.getElementById('resultsContent').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EXPORT CSV
+// ═══════════════════════════════════════════════════════════════
+function exportCSV() {
+  const orgName = document.getElementById('orgName').value || 'Organisation';
+  const rows = [['Organisation','Domain','Question','Score','Level','Notes']];
+  domains.forEach(domain => {
+    domain.questions.forEach(q => {
+      const s = scores[q.id];
+      const lv = s !== undefined ? MATURITY_LEVELS[s].label : 'Not assessed';
+      rows.push([
+        orgName,
+        domain.name,
+        `"${q.text.replace(/"/g,'""')}"`,
+        s !== undefined ? s : '',
+        lv,
+        `"${(notes[q.id] || '').replace(/"/g,'""')}"`
+      ]);
+    });
+  });
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `CISR_Assessment_${orgName.replace(/\s+/g,'_')}_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+}
+</script>
+</body>
+</html>
