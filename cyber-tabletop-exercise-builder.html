@@ -1,0 +1,3442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cyber Tabletop Exercise Builder</title>
+<style>
+:root {
+  --bg: #0a0e14;
+  --bg-2: #0f1419;
+  --bg-3: #151b23;
+  --panel: #1a212b;
+  --panel-2: #232b37;
+  --border: #2a3441;
+  --border-2: #3a4554;
+  --text: #d8dee9;
+  --text-dim: #8b96a8;
+  --text-muted: #5b6776;
+  --accent: #5ec4ff;
+  --accent-2: #7ee787;
+  --warn: #f0b400;
+  --danger: #ff6b6b;
+  --critical: #ff3860;
+  --purple: #b794f4;
+  --cyan: #5ec4ff;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "SF Pro Display", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+.mono { font-family: "SF Mono", Menlo, Consolas, monospace; }
+
+/* HEADER */
+header.app {
+  background: linear-gradient(180deg, #0d141c 0%, #0a0e14 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(8px);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand-mark {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--purple) 100%);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+  color: #0a0e14;
+  font-size: 16px;
+}
+.brand-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.brand-sub {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+}
+.header-actions { display: flex; gap: 8px; }
+.btn {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+.btn:hover {
+  background: var(--panel-2);
+  border-color: var(--border-2);
+}
+.btn.primary {
+  background: var(--accent);
+  color: #0a0e14;
+  border-color: var(--accent);
+  font-weight: 600;
+}
+.btn.primary:hover { background: #7dd3fc; border-color: #7dd3fc; }
+.btn.warn {
+  background: transparent;
+  color: var(--warn);
+  border-color: var(--warn);
+}
+.btn.warn:hover { background: rgba(240, 180, 0, 0.1); }
+.btn.danger {
+  background: transparent;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+.btn.danger:hover { background: rgba(255, 107, 107, 0.1); }
+.btn.ghost { background: transparent; }
+.btn.sm { padding: 5px 10px; font-size: 11px; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* NAV */
+nav.tabs {
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+}
+.tab {
+  padding: 14px 20px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 500;
+  color: var(--text-dim);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: all 0.15s;
+  display: flex; align-items: center; gap: 8px;
+}
+.tab:hover { color: var(--text); }
+.tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.tab-num {
+  background: var(--panel);
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+}
+.tab.active .tab-num {
+  background: var(--accent);
+  color: #0a0e14;
+}
+
+/* MAIN */
+main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+.view { display: none; }
+.view.active { display: block; }
+
+/* TYPOGRAPHY */
+h1 {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-dim);
+}
+.lead {
+  color: var(--text-dim);
+  font-size: 14px;
+  margin-bottom: 28px;
+  max-width: 800px;
+}
+
+/* PANELS */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.panel-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-dim);
+  margin-bottom: 14px;
+  font-weight: 600;
+  display: flex; align-items: center; gap: 10px;
+}
+.panel-title::before {
+  content: "";
+  width: 4px;
+  height: 14px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  gap: 14px;
+}
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 900px) {
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+}
+
+/* FORMS */
+.field { margin-bottom: 14px; }
+label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+input[type="text"], input[type="date"], input[type="number"], select, textarea {
+  width: 100%;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 9px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  transition: border 0.15s;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+textarea { resize: vertical; min-height: 80px; }
+
+/* HELPER */
+.muted { color: var(--text-muted); }
+.dim { color: var(--text-dim); }
+.tag {
+  display: inline-block;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+  margin-right: 4px;
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+}
+.tag.accent { color: var(--accent); border-color: var(--accent); }
+.tag.warn { color: var(--warn); border-color: var(--warn); }
+.tag.danger { color: var(--danger); border-color: var(--danger); }
+.tag.purple { color: var(--purple); border-color: var(--purple); }
+.tag.green { color: var(--accent-2); border-color: var(--accent-2); }
+
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+.empty .icon { font-size: 32px; margin-bottom: 12px; opacity: 0.4; }
+
+.divider {
+  height: 1px; background: var(--border); margin: 20px 0;
+}
+
+.kv {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.kv:last-child { border-bottom: none; }
+.kv .k { color: var(--text-dim); }
+.kv .v { color: var(--text); font-weight: 500; }
+
+/* ALERT */
+.alert {
+  background: rgba(94, 196, 255, 0.08);
+  border-left: 3px solid var(--accent);
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+.alert.warn { background: rgba(240, 180, 0, 0.08); border-left-color: var(--warn); }
+.alert.danger { background: rgba(255, 107, 107, 0.08); border-left-color: var(--danger); }
+.alert.success { background: rgba(126, 231, 135, 0.08); border-left-color: var(--accent-2); }
+
+/* SCENARIO CARDS */
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 14px;
+}
+.scenario-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 18px;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+}
+.scenario-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+.scenario-card.selected {
+  border-color: var(--accent);
+  background: linear-gradient(180deg, rgba(94,196,255,0.06), var(--panel));
+}
+.scenario-num {
+  position: absolute;
+  top: 14px; right: 14px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+}
+.scenario-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  padding-right: 40px;
+}
+.scenario-desc {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  line-height: 1.55;
+}
+.scenario-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+.scenario-stats {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-dim);
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+}
+.scenario-stats span strong { color: var(--text); }
+
+/* INJECT TIMELINE */
+.run-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr 320px;
+  gap: 14px;
+  align-items: start;
+}
+@media (max-width: 1200px) {
+  .run-layout { grid-template-columns: 1fr; }
+}
+.timeline {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px;
+  position: sticky;
+  top: 80px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+.tl-item {
+  padding: 10px 12px;
+  border-left: 2px solid var(--border);
+  margin-left: 6px;
+  cursor: pointer;
+  position: relative;
+  font-size: 12px;
+  transition: all 0.15s;
+}
+.tl-item:hover { background: var(--bg-3); }
+.tl-item.revealed { border-left-color: var(--accent); }
+.tl-item.current { border-left-color: var(--warn); background: rgba(240, 180, 0, 0.06); }
+.tl-item::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 14px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid var(--border);
+}
+.tl-item.revealed::before { background: var(--accent); border-color: var(--accent); }
+.tl-item.current::before { background: var(--warn); border-color: var(--warn); }
+.tl-time {
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+.tl-title { color: var(--text); font-weight: 500; }
+.tl-item.locked .tl-title { color: var(--text-muted); }
+
+.inject-stage {
+  min-height: 400px;
+}
+.inject-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 24px;
+  margin-bottom: 14px;
+}
+.inject-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.inject-header h3 {
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 17px;
+  margin: 0;
+}
+.inject-time {
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  color: var(--warn);
+  background: rgba(240, 180, 0, 0.1);
+  border: 1px solid var(--warn);
+  padding: 3px 9px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.inject-body {
+  font-size: 14px;
+  line-height: 1.65;
+  margin-bottom: 18px;
+  color: var(--text);
+}
+.inject-section { margin-bottom: 16px; }
+.inject-section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-dim);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.role-prompts {
+  background: var(--bg-3);
+  border-radius: 4px;
+  padding: 14px;
+}
+.role-prompt {
+  display: flex;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.role-prompt:last-child { border-bottom: none; }
+.role-tag {
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  font-size: 10px;
+  background: var(--panel);
+  color: var(--accent);
+  padding: 2px 8px;
+  border-radius: 3px;
+  height: fit-content;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+/* DECISION CARD */
+.decision-card {
+  background: linear-gradient(180deg, rgba(255,107,107,0.06), var(--panel));
+  border: 1px solid var(--danger);
+  border-radius: 6px;
+  padding: 16px;
+  margin-top: 12px;
+}
+.decision-card .label-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 10px;
+}
+.decision-card .label-row .pill {
+  background: var(--danger); color: #fff;
+  padding: 2px 8px; border-radius: 3px;
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.decision-question {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+.decision-options {
+  display: flex; flex-direction: column; gap: 6px;
+  margin-bottom: 10px;
+}
+.decision-option {
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.decision-option:hover { border-color: var(--accent); }
+.decision-option.chosen {
+  background: rgba(94, 196, 255, 0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* SIDE PANEL */
+.side-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px;
+  position: sticky;
+  top: 80px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+.adaptive-list {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.adaptive-item {
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--purple);
+  padding: 10px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.adaptive-item:hover { border-color: var(--purple); }
+.adaptive-item.fired {
+  opacity: 0.5;
+  border-left-color: var(--text-muted);
+}
+.adaptive-item-title { font-weight: 500; margin-bottom: 3px; }
+.adaptive-item-desc { color: var(--text-dim); font-size: 11px; }
+
+/* ROLES */
+.roles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+.role-card {
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px;
+}
+.role-name {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--accent);
+}
+.role-desc {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.role-resp {
+  font-size: 11px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  color: var(--text-dim);
+}
+.role-resp strong { color: var(--text); display: block; margin-bottom: 4px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* NOTES */
+.notes-list {
+  display: flex; flex-direction: column; gap: 8px;
+  margin-bottom: 10px;
+}
+.note-item {
+  background: var(--bg-3);
+  border-left: 2px solid var(--accent);
+  padding: 8px 10px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+.note-meta {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 3px;
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* AAR */
+.aar-section { margin-bottom: 28px; }
+.aar-table {
+  width: 100%;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.aar-table th, .aar-table td {
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.aar-table th {
+  background: var(--bg-3);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+.aar-table tbody tr:last-child td { border-bottom: none; }
+.aar-table input, .aar-table select, .aar-table textarea {
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 4px 6px;
+  font-size: 13px;
+}
+.aar-table input:hover, .aar-table select:hover, .aar-table textarea:hover {
+  border-color: var(--border);
+}
+.aar-table input:focus, .aar-table select:focus, .aar-table textarea:focus {
+  border-color: var(--accent);
+  background: var(--bg-3);
+}
+
+/* PRINT */
+@media print {
+  header.app, nav.tabs, .header-actions, .btn { display: none !important; }
+  body { background: white; color: black; }
+  .panel, .scenario-card, .inject-card { border: 1px solid #ccc; background: white; color: black; }
+  main { max-width: 100%; padding: 0; }
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-2); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-2); }
+</style>
+</head>
+<body>
+<header class="app">
+  <div class="brand">
+    <div class="brand-mark">⚡</div>
+    <div>
+      <div class="brand-title">CYBER TABLETOP EXERCISE BUILDER</div>
+      <div class="brand-sub">v1.0 · 12 scenarios · facilitator-driven · client-side only</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="btn ghost sm" onclick="exportState()">SAVE</button>
+    <button class="btn ghost sm" onclick="document.getElementById('importFile').click()">LOAD</button>
+    <input type="file" id="importFile" style="display:none" accept=".json" onchange="importState(event)">
+    <button class="btn warn sm" onclick="resetAll()">RESET</button>
+  </div>
+</header>
+
+<nav class="tabs" id="tabsNav">
+  <div class="tab active" data-view="setup"><span class="tab-num">01</span> SETUP</div>
+  <div class="tab" data-view="library"><span class="tab-num">02</span> SCENARIO LIBRARY</div>
+  <div class="tab" data-view="brief"><span class="tab-num">03</span> BRIEF</div>
+  <div class="tab" data-view="run"><span class="tab-num">04</span> RUN</div>
+  <div class="tab" data-view="aar"><span class="tab-num">05</span> AFTER-ACTION REPORT</div>
+</nav>
+
+<main>
+  <!-- SETUP VIEW -->
+  <div class="view active" id="view-setup">
+    <h1>Exercise Setup</h1>
+    <p class="lead">Configure the client profile and technology stack. The tool uses these inputs to personalise scenario injects so participants see their actual systems referenced — making the exercise feel real rather than generic.</p>
+
+    <div class="alert">
+      <strong>Tip:</strong> The more accurately you capture the tech stack, the more realistic the injects. Leave fields blank to use generic placeholders ("the EDR platform", "the identity provider").
+    </div>
+
+    <div class="grid grid-2">
+      <div class="panel">
+        <div class="panel-title">Client Profile</div>
+        <div class="field">
+          <label>Organisation Name</label>
+          <input type="text" id="org-name" placeholder="Acme Corporation">
+        </div>
+        <div class="grid grid-2">
+          <div class="field">
+            <label>Sector</label>
+            <select id="org-sector">
+              <option value="">Select sector...</option>
+              <option>Financial Services</option>
+              <option>Healthcare</option>
+              <option>Critical National Infrastructure</option>
+              <option>Manufacturing</option>
+              <option>Technology / SaaS</option>
+              <option>Retail & E-Commerce</option>
+              <option>Legal & Professional Services</option>
+              <option>Education</option>
+              <option>Central Government</option>
+              <option>Local Government</option>
+              <option>Energy & Utilities</option>
+              <option>Telecommunications</option>
+              <option>Transport & Logistics</option>
+              <option>Media</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Size</label>
+            <select id="org-size">
+              <option value="">Select size...</option>
+              <option>SME (&lt;250 employees)</option>
+              <option>Mid-market (250–2,000)</option>
+              <option>Enterprise (2,000–10,000)</option>
+              <option>Large Enterprise (10,000+)</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-2">
+          <div class="field">
+            <label>Geography</label>
+            <select id="org-geo">
+              <option value="">Select...</option>
+              <option>UK only</option>
+              <option>UK + EU</option>
+              <option>UK + US</option>
+              <option>Global</option>
+              <option>EU</option>
+              <option>US</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Exercise Date</label>
+            <input type="date" id="exercise-date">
+          </div>
+        </div>
+        <div class="field">
+          <label>Facilitator</label>
+          <input type="text" id="facilitator" placeholder="e.g. Jane Smith, Cyber Lead">
+        </div>
+        <div class="field">
+          <label>Regulatory Exposure (free text)</label>
+          <textarea id="org-regs" placeholder="e.g. UK GDPR, NIS2, DORA, FCA, PCI DSS, HIPAA, SEC..."></textarea>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Technology Stack</div>
+        <p style="font-size:12px; color:var(--text-dim); margin-bottom:14px;">These are referenced verbatim in scenario injects. Use either named products or "generic" placeholders.</p>
+        <div class="grid grid-2">
+          <div class="field">
+            <label>Identity Provider</label>
+            <select id="ts-identity">
+              <option value="">— Select —</option>
+              <option>Microsoft Entra ID (Azure AD)</option>
+              <option>Okta</option>
+              <option>Google Workspace</option>
+              <option>Active Directory (on-prem)</option>
+              <option>Ping Identity</option>
+              <option>OneLogin</option>
+              <option>JumpCloud</option>
+              <option>Hybrid AD + Entra</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>EDR / Endpoint Security</label>
+            <select id="ts-edr">
+              <option value="">— Select —</option>
+              <option>CrowdStrike Falcon</option>
+              <option>Microsoft Defender for Endpoint</option>
+              <option>SentinelOne Singularity</option>
+              <option>Sophos Intercept X</option>
+              <option>Palo Alto Cortex XDR</option>
+              <option>Trend Micro Vision One</option>
+              <option>Carbon Black</option>
+              <option>ESET</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Email Platform</label>
+            <select id="ts-email">
+              <option value="">— Select —</option>
+              <option>Microsoft 365 (Exchange Online)</option>
+              <option>Google Workspace (Gmail)</option>
+              <option>Mimecast</option>
+              <option>Proofpoint</option>
+              <option>Barracuda</option>
+              <option>On-premise Exchange</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Cloud Hosting</label>
+            <select id="ts-cloud">
+              <option value="">— Select —</option>
+              <option>AWS (primary)</option>
+              <option>Microsoft Azure (primary)</option>
+              <option>Google Cloud Platform</option>
+              <option>Hybrid (AWS + Azure)</option>
+              <option>Multi-cloud (AWS + Azure + GCP)</option>
+              <option>On-premise / private cloud</option>
+              <option>Hybrid (cloud + on-prem)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Backup Solution</label>
+            <select id="ts-backup">
+              <option value="">— Select —</option>
+              <option>Veeam</option>
+              <option>Rubrik</option>
+              <option>Cohesity</option>
+              <option>Commvault</option>
+              <option>Azure Backup / Recovery Vault</option>
+              <option>AWS Backup</option>
+              <option>Tape (offsite)</option>
+              <option>Mixed</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>SIEM / SOC</label>
+            <select id="ts-siem">
+              <option value="">— Select —</option>
+              <option>Microsoft Sentinel</option>
+              <option>Splunk</option>
+              <option>Elastic Security</option>
+              <option>IBM QRadar</option>
+              <option>Sumo Logic</option>
+              <option>Securonix</option>
+              <option>In-house / SOAR</option>
+              <option>MSSP-managed</option>
+              <option>None</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Network / Firewall</label>
+            <select id="ts-network">
+              <option value="">— Select —</option>
+              <option>Palo Alto Networks</option>
+              <option>Fortinet FortiGate</option>
+              <option>Cisco ASA / Firepower</option>
+              <option>Check Point</option>
+              <option>Zscaler (ZIA/ZPA)</option>
+              <option>Cloudflare</option>
+              <option>Mixed</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Collaboration</label>
+            <select id="ts-collab">
+              <option value="">— Select —</option>
+              <option>Microsoft Teams</option>
+              <option>Slack</option>
+              <option>Google Chat</option>
+              <option>Zoom</option>
+              <option>Mixed</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>ERP / Critical App</label>
+            <input type="text" id="ts-erp" placeholder="e.g. SAP S/4HANA, Oracle, Dynamics 365">
+          </div>
+          <div class="field">
+            <label>Customer / CRM</label>
+            <input type="text" id="ts-crm" placeholder="e.g. Salesforce, HubSpot, Dynamics CRM">
+          </div>
+          <div class="field">
+            <label>HR System</label>
+            <input type="text" id="ts-hr" placeholder="e.g. Workday, SAP SuccessFactors, BambooHR">
+          </div>
+          <div class="field">
+            <label>Other Critical Systems</label>
+            <input type="text" id="ts-other" placeholder="e.g. trading platform, EHR, OT/ICS systems">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:24px; display:flex; justify-content:flex-end; gap:8px;">
+      <button class="btn primary" onclick="goToView('library')">CONTINUE TO SCENARIO LIBRARY →</button>
+    </div>
+  </div>
+
+  <!-- LIBRARY VIEW -->
+  <div class="view" id="view-library">
+    <h1>Scenario Library</h1>
+    <p class="lead">12 scenarios covering the dominant cyber threat patterns. Each scenario is personalised at runtime using your tech stack inputs. Click a scenario to select it.</p>
+    <div id="scenario-cards" class="scenario-grid"></div>
+  </div>
+
+  <!-- BRIEF VIEW -->
+  <div class="view" id="view-brief">
+    <div id="brief-content"></div>
+  </div>
+
+  <!-- RUN VIEW -->
+  <div class="view" id="view-run">
+    <div id="run-content"></div>
+  </div>
+
+  <!-- AAR VIEW -->
+  <div class="view" id="view-aar">
+    <div id="aar-content"></div>
+  </div>
+</main>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  org: {
+    name: "", sector: "", size: "", geo: "",
+    date: "", facilitator: "", regs: ""
+  },
+  stack: {
+    identity: "", edr: "", email: "", cloud: "",
+    backup: "", siem: "", network: "", collab: "",
+    erp: "", crm: "", hr: "", other: ""
+  },
+  selectedScenario: null,
+  injectsRevealed: {},     // { scenarioId: [injectIndex,...] }
+  decisionsMade: {},       // { scenarioId: { injectIndex: chosenOptionIndex } }
+  adaptiveFired: {},       // { scenarioId: [adaptiveId,...] }
+  notes: {},               // { scenarioId: [{time, text, injectIdx}] }
+  actionItems: [],
+  gapsIdentified: [],
+  startedAt: null
+};
+
+// Default to today
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("exercise-date").value = new Date().toISOString().split("T")[0];
+  bindFormFields();
+  renderScenarioCards();
+  setupTabs();
+  loadFromLocalStorage();
+});
+
+function bindFormFields() {
+  const map = {
+    "org-name":"org.name","org-sector":"org.sector","org-size":"org.size",
+    "org-geo":"org.geo","exercise-date":"org.date","facilitator":"org.facilitator","org-regs":"org.regs",
+    "ts-identity":"stack.identity","ts-edr":"stack.edr","ts-email":"stack.email",
+    "ts-cloud":"stack.cloud","ts-backup":"stack.backup","ts-siem":"stack.siem",
+    "ts-network":"stack.network","ts-collab":"stack.collab","ts-erp":"stack.erp",
+    "ts-crm":"stack.crm","ts-hr":"stack.hr","ts-other":"stack.other"
+  };
+  Object.entries(map).forEach(([id, path]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("input", () => {
+      const [a,b] = path.split(".");
+      state[a][b] = el.value;
+      saveToLocalStorage();
+    });
+  });
+}
+
+function setupTabs() {
+  document.querySelectorAll(".tab").forEach(t => {
+    t.addEventListener("click", () => goToView(t.dataset.view));
+  });
+}
+
+function goToView(name) {
+  document.querySelectorAll(".tab").forEach(t => {
+    t.classList.toggle("active", t.dataset.view === name);
+  });
+  document.querySelectorAll(".view").forEach(v => {
+    v.classList.toggle("active", v.id === "view-" + name);
+  });
+  if (name === "brief") renderBrief();
+  if (name === "run") renderRun();
+  if (name === "aar") renderAAR();
+  window.scrollTo(0,0);
+}
+
+// LOCAL STORAGE — note: uses window vars, not localStorage (artifact constraint)
+// We'll just maintain state in memory and rely on save/load JSON for persistence.
+function saveToLocalStorage() { /* in-memory only */ }
+function loadFromLocalStorage() { /* in-memory only */ }
+
+// EXPORT / IMPORT
+function exportState() {
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `tabletop-${state.org.name||"exercise"}-${new Date().toISOString().split("T")[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importState(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      state = JSON.parse(ev.target.result);
+      // Re-populate form
+      const map = {
+        "org-name":"org.name","org-sector":"org.sector","org-size":"org.size",
+        "org-geo":"org.geo","exercise-date":"org.date","facilitator":"org.facilitator","org-regs":"org.regs",
+        "ts-identity":"stack.identity","ts-edr":"stack.edr","ts-email":"stack.email",
+        "ts-cloud":"stack.cloud","ts-backup":"stack.backup","ts-siem":"stack.siem",
+        "ts-network":"stack.network","ts-collab":"stack.collab","ts-erp":"stack.erp",
+        "ts-crm":"stack.crm","ts-hr":"stack.hr","ts-other":"stack.other"
+      };
+      Object.entries(map).forEach(([id, path]) => {
+        const [a,b] = path.split(".");
+        const el = document.getElementById(id);
+        if (el && state[a] && state[a][b] !== undefined) el.value = state[a][b];
+      });
+      renderScenarioCards();
+      alert("Exercise loaded.");
+    } catch (err) {
+      alert("Invalid file: " + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function resetAll() {
+  if (!confirm("Reset everything? This will clear all inputs, scenario state, decisions and notes.")) return;
+  state = {
+    org:{name:"",sector:"",size:"",geo:"",date:"",facilitator:"",regs:""},
+    stack:{identity:"",edr:"",email:"",cloud:"",backup:"",siem:"",network:"",collab:"",erp:"",crm:"",hr:"",other:""},
+    selectedScenario:null,injectsRevealed:{},decisionsMade:{},
+    adaptiveFired:{},notes:{},actionItems:[],gapsIdentified:[],startedAt:null
+  };
+  document.querySelectorAll("input, select, textarea").forEach(el => { if(el.type !== "file") el.value = ""; });
+  document.getElementById("exercise-date").value = new Date().toISOString().split("T")[0];
+  renderScenarioCards();
+  goToView("setup");
+}
+
+// ============================================================
+// STACK SUBSTITUTION HELPERS
+// ============================================================
+function S(token) {
+  // Stack token resolver — returns the named product or a generic fallback
+  const s = state.stack;
+  const fallbacks = {
+    identity: "the identity provider",
+    edr: "the EDR platform",
+    email: "the email platform",
+    cloud: "the cloud environment",
+    backup: "the backup platform",
+    siem: "the SIEM",
+    network: "the network firewall",
+    collab: "the collaboration platform",
+    erp: "the ERP platform",
+    crm: "the CRM platform",
+    hr: "the HR system",
+    other: "critical business systems"
+  };
+  return s[token] || fallbacks[token];
+}
+
+function orgName() { return state.org.name || "the organisation"; }
+function sector() { return state.org.sector || ""; }
+
+// Substitute placeholders in inject text. Tokens: {identity}, {edr}, {email}, etc., {orgName}
+function sub(text) {
+  if (!text) return "";
+  return text
+    .replace(/\{orgName\}/g, orgName())
+    .replace(/\{identity\}/g, S("identity"))
+    .replace(/\{edr\}/g, S("edr"))
+    .replace(/\{email\}/g, S("email"))
+    .replace(/\{cloud\}/g, S("cloud"))
+    .replace(/\{backup\}/g, S("backup"))
+    .replace(/\{siem\}/g, S("siem"))
+    .replace(/\{network\}/g, S("network"))
+    .replace(/\{collab\}/g, S("collab"))
+    .replace(/\{erp\}/g, S("erp"))
+    .replace(/\{crm\}/g, S("crm"))
+    .replace(/\{hr\}/g, S("hr"))
+    .replace(/\{other\}/g, S("other"));
+}
+
+// ============================================================
+// SCENARIOS — defined in separate file/section
+// ============================================================
+// ============================================================
+// ROLES — used across all scenarios
+// ============================================================
+const ROLES = {
+  IRL: { name: "IR Lead / Cyber Lead", desc: "Owns technical response coordination, decision authority for technical containment.",
+    resp: "Lead investigation · Coordinate technical workstreams · Brief Exec · Maintain incident log" },
+  EXEC: { name: "Executive Sponsor", desc: "CEO / COO / CIO. Final authority on business decisions, public statements, ransom payments.",
+    resp: "Strategic decisions · Authorise spend · External stakeholder engagement · Board comms" },
+  COMMS: { name: "Communications Lead", desc: "Internal comms, external comms, media handling, customer notifications.",
+    resp: "Holding statements · Customer comms · Media response · Internal staff messaging" },
+  LEGAL: { name: "Legal / DPO", desc: "Regulatory notification, evidence preservation, legal privilege, contractual obligations.",
+    resp: "Regulator notification · Privilege over investigation · Customer contract review · Insurance liaison" },
+  ITOPS: { name: "IT Operations", desc: "Infrastructure, recovery, business systems, vendor coordination.",
+    resp: "Containment actions · System recovery · Vendor/MSP liaison · BAU triage" },
+  SOC: { name: "SOC / Detection", desc: "Detection, triage, log analysis, threat hunting, EDR/SIEM operation.",
+    resp: "Triage alerts · Hunt for IOCs · Pivot on indicators · Maintain timeline of events" },
+  HR: { name: "HR Lead", desc: "Engaged for insider threat, staff comms, mental health support, terminations.",
+    resp: "Employee investigation · Staff support · Disciplinary process · Workforce comms" },
+  FIN: { name: "Finance / Procurement", desc: "Engaged for fraud incidents, ransom payment scenarios, emergency procurement.",
+    resp: "Payment trace/recall · Ransom funding decisions · DFIR retainer activation · Cyber insurance claim" },
+  PHYS: { name: "Physical Security / Facilities", desc: "Where physical access, badge revocation, or facility lockdown is required.",
+    resp: "Badge revocation · Asset retrieval · Site security · CCTV review" },
+  BIZ: { name: "Business Unit Lead", desc: "Represents impacted business function — operations, sales, customer service.",
+    resp: "Operational impact assessment · Workaround coordination · Customer-facing decisions" }
+};
+
+// ============================================================
+// SCENARIOS
+// ============================================================
+const SCENARIOS = [
+  // -----------------------------------------------------------
+  // 1. RANSOMWARE
+  // -----------------------------------------------------------
+  {
+    id: "ransomware",
+    title: "Enterprise-Wide Ransomware",
+    threatActor: "Cyber-criminal (RaaS affiliate)",
+    complexity: "High",
+    duration: "3–4 hours",
+    tags: ["Ransomware", "Double extortion", "Recovery", "Crisis comms"],
+    description: "A sophisticated ransomware affiliate gains initial access via a phishing email, escalates privileges, exfiltrates data, and detonates encryption across the enterprise. Tests detection, containment, recovery, ransom decision-making and crisis comms.",
+    objectives: [
+      "Test detection and triage of post-exploitation activity",
+      "Validate containment decision authority and execution speed",
+      "Pressure-test backup recovery assumptions",
+      "Exercise the ransom-payment decision framework",
+      "Test regulatory notification timelines and crisis comms"
+    ],
+    rolesRequired: ["IRL","EXEC","COMMS","LEGAL","ITOPS","SOC","FIN"],
+    cafMapping: ["B4 (Detection)", "C2 (Proactive Security Event Discovery)", "D1 (Response and Recovery Planning)", "D2 (Lessons Learned)"],
+    csfMapping: ["DE.AE", "RS.MA", "RS.CO", "RC.RP", "GV.OC"],
+    injects: [
+      {
+        time: "T-7 days",
+        title: "Initial Access (Background)",
+        body: "Seven days ago, a finance team member opened a Microsoft Word attachment from what appeared to be a supplier. The document contained a malicious macro which dropped a Cobalt Strike beacon on their workstation. The {edr} agent flagged a low-severity behavioural alert at the time, which was triaged as benign by the SOC. The attacker has been quietly enumerating {identity} and pivoting laterally for a week.",
+        prompts: [
+          { role: "SOC", q: "Walk us through how a low-severity {edr} alert would be triaged today. What would escalate it?" },
+          { role: "IRL", q: "How do we currently retain and review historical alerts that were closed as false positives?" },
+          { role: "ITOPS", q: "What's our patch state on the workstation fleet, and could we identify all hosts that opened that attachment?" }
+        ]
+      },
+      {
+        time: "T+0",
+        title: "Encryption Detonates — 06:14 GMT Saturday",
+        body: "Out-of-hours. The on-call engineer is paged: {edr} dashboards show 400+ endpoints reporting tampering and process termination. {siem} is flooding with file-modification alerts. Several VMware ESXi hypervisors have stopped responding. Users beginning to log in for Saturday operations cannot access shared drives. Ransom notes have appeared on encrypted machines: 'BLACKCAT was here. Your data is encrypted and exfiltrated. Contact us within 72 hours.'",
+        prompts: [
+          { role: "IRL", q: "Who has authority to declare a major incident at 06:14 on a Saturday? Walk through the call." },
+          { role: "ITOPS", q: "What is your isolation play right now — network-level, identity-level, or both? Who authorises it?" },
+          { role: "SOC", q: "What evidence are you preserving in the next 30 minutes before it's lost?" },
+          { role: "EXEC", q: "When do you call the CEO? What do you say in the first sentence?" }
+        ]
+      },
+      {
+        time: "T+45min",
+        title: "Scope Becomes Clearer",
+        body: "Investigation shows the encryption is active across {cloud} virtual machines, on-premise file servers, and three of four VMware clusters. {backup} immutable snapshots appear intact, but the last successful backup of the {erp} database completed 14 hours ago. Domain controllers are encrypted. The attacker used a privileged service account to push the ransomware via {identity}-joined Group Policy.",
+        prompts: [
+          { role: "IRL", q: "Your domain is gone. How do you authenticate any of your responders to recover anything?" },
+          { role: "ITOPS", q: "What's your DC recovery plan? Do you have offline DC backups? Have you ever tested a forest recovery?" },
+          { role: "LEGAL", q: "What's the regulatory clock? When does your UK GDPR 72-hour timer start?" }
+        ],
+        decision: {
+          question: "Do you isolate the entire network from the internet now, accepting full business outage, or attempt surgical isolation?",
+          options: [
+            "Full network isolation — total business outage but stops further damage",
+            "Surgical isolation of identified compromised segments only",
+            "No network action yet — gather more intel first"
+          ]
+        }
+      },
+      {
+        time: "T+2hr",
+        title: "Ransom Note Decoded",
+        body: "The threat actor's onion site lists {orgName} on their leak blog with proof samples — including HR records, customer PII, and what appears to be {erp} financial data. Ransom demand: $4.5M in Bitcoin. Deadline: 72 hours. After that, full data publication. They claim to have exfiltrated 2.1 TB.",
+        prompts: [
+          { role: "EXEC", q: "Who in this room is authorised to even discuss paying a ransom? Has this been pre-decided at board level?" },
+          { role: "LEGAL", q: "What's the legal exposure of paying — OFAC sanctions, UK Terrorism Act, NCA reporting obligations?" },
+          { role: "FIN", q: "Is there a cyber insurance policy? Have they been notified yet? What does it cover for ransom payments?" },
+          { role: "COMMS", q: "Assume the leak site goes public in 72 hours. What's your customer comms plan today, not in 72 hours?" }
+        ]
+      },
+      {
+        time: "T+4hr",
+        title: "Backup Validation",
+        body: "Recovery team reports: {backup} immutable backups for tier-1 systems are intact, but restore testing shows the {erp} database backup is corrupt — last good backup is 6 days old. {crm} backups are clean. File server recovery will take 18-24 hours. The DFIR retainer firm has been engaged and arrives on-site at T+6hr.",
+        prompts: [
+          { role: "ITOPS", q: "What does losing 6 days of {erp} transactions actually mean for the business? Who's quantifying this?" },
+          { role: "BIZ", q: "What manual workarounds do you have to keep critical operations running for 24-48 hours?" },
+          { role: "IRL", q: "How are you and the DFIR firm splitting the work? Who runs what?" }
+        ]
+      },
+      {
+        time: "T+8hr",
+        title: "Internal Comms Pressure",
+        body: "Approximately 3,200 staff cannot work. {collab} is up but several have heard rumours and are posting in unofficial channels. A staff WhatsApp group has screenshots of ransom notes circulating. Two journalists have called the main switchboard asking about an outage. One staff member's social media post has been picked up by a regional newspaper.",
+        prompts: [
+          { role: "COMMS", q: "What goes out to all staff in the next 30 minutes? Who approves it?" },
+          { role: "COMMS", q: "What's your media line right now? 'No comment' is an answer — is it the right one?" },
+          { role: "HR", q: "Are you paying staff who can't work? Are you asking them to come to the office or stay home?" }
+        ]
+      },
+      {
+        time: "T+24hr",
+        title: "Day 2 — Regulator Calls",
+        body: "The ICO has acknowledged your initial breach notification. They've requested a follow-up within 48 hours with detail on affected data subjects. The NCSC has offered support. Three of your largest enterprise customers have invoked breach-notification clauses in their MSA — they want detail by end of day. A class-action law firm has tweeted about the leak site.",
+        prompts: [
+          { role: "LEGAL", q: "Who's responding to which regulator? How are you keeping responses consistent?" },
+          { role: "LEGAL", q: "What contractual notification clauses are you triggering, and do you have a list of in-scope contracts?" },
+          { role: "EXEC", q: "Have you spoken to the board chair? When does the full board get convened?" }
+        ]
+      },
+      {
+        time: "T+48hr",
+        title: "Decision Point — Pay or Don't Pay",
+        body: "DFIR confirms: data was exfiltrated 36 hours before encryption. Recovery from backups will succeed but restore the {erp} 6-day-stale backup. The threat actor has provided proof-of-decryption on a sample. Insurance will cover up to $3M of the $4.5M demand. The 72-hour countdown is at 24 hours remaining.",
+        prompts: [
+          { role: "EXEC", q: "What's the actual question on the table — pay to prevent leak, or pay to accelerate recovery?" },
+          { role: "LEGAL", q: "If you pay and they leak anyway (which happens ~50% of the time), what's your position?" }
+        ],
+        decision: {
+          question: "Pay or don't pay?",
+          options: [
+            "Pay the full $4.5M — fastest path to resolution",
+            "Negotiate down — buy time, reduce cost",
+            "Refuse to pay — accept leak, focus on recovery and customer comms",
+            "Defer decision pending board discussion"
+          ]
+        }
+      },
+      {
+        time: "T+5 days",
+        title: "Containment Confirmed, Recovery Underway",
+        body: "DFIR confirms the threat actor has been evicted. Recovery is 60% complete. {erp} is restored from the 6-day-old backup; reconciliation team is working through the gap. Two customer contracts have been escalated to legal action threats. A regional newspaper has run the story. The leak site has not yet published, but countdown has expired.",
+        prompts: [
+          { role: "COMMS", q: "What's your sustained external narrative? Are you doing a press conference or staying written-only?" },
+          { role: "BIZ", q: "Who's accountable for the {erp} data reconciliation, and how long will it take?" }
+        ]
+      },
+      {
+        time: "T+14 days",
+        title: "Lessons Learned",
+        body: "Initial recovery is complete. The leak site has published 800GB of {orgName} data. Two customers have terminated. Insurance claim is in progress. The board has commissioned an independent review. The CISO has been asked whether to resign.",
+        prompts: [
+          { role: "IRL", q: "What are the top 3 things you'd change in your detection/response capability based on this?" },
+          { role: "EXEC", q: "What's the board narrative — accountability, investment, both?" },
+          { role: "LEGAL", q: "What's the litigation outlook — both inbound (class action, customers) and outbound (insurer)?" }
+        ]
+      }
+    ],
+    adaptive: [
+      { id: "journalist", title: "Journalist Tweet", desc: "Tech reporter tweets: 'Hearing major ransomware incident at {orgName}. Anyone got details?'" },
+      { id: "customer-call", title: "Major Customer CEO Calls", desc: "Your largest customer's CEO calls the EXEC directly demanding to know if their data is in the leak set." },
+      { id: "regulator-deadline", title: "ICO Pushes Deadline", desc: "ICO emails: they want a written report within 24 hours, not 72. Your response so far has been 'high-level.'" },
+      { id: "ceo-deepfake", title: "Deepfake of CEO", desc: "A deepfake video of your CEO 'admitting' the breach surfaces on TikTok and gets 200k views." },
+      { id: "staff-leak", title: "Staff WhatsApp Leak", desc: "Internal staff WhatsApp screenshots leak to a tabloid showing internal disorganisation." },
+      { id: "second-actor", title: "Second Threat Actor", desc: "A different threat actor contacts you claiming they also have your data and want a separate ransom." },
+      { id: "ot-impact", title: "OT/Manufacturing Impact", desc: "Manufacturing line has stopped because the MES system depends on {erp}. £400k/hr of lost production." },
+      { id: "lawsuit", title: "Class Action Filed", desc: "Class-action filing announced in US federal court within 96 hours of the leak going public." }
+    ]
+  },
+
+  // -----------------------------------------------------------
+  // 2. BUSINESS EMAIL COMPROMISE
+  // -----------------------------------------------------------
+  {
+    id: "bec",
+    title: "Business Email Compromise / Invoice Fraud",
+    threatActor: "Cyber-criminal (financially motivated)",
+    complexity: "Medium",
+    duration: "2–3 hours",
+    tags: ["BEC", "Fraud", "Identity", "Finance"],
+    description: "An attacker compromises a finance executive's mailbox via MFA fatigue, monitors invoice traffic, then injects a fraudulent payment instruction. Tests fraud detection, payment recall, and identity response.",
+    objectives: [
+      "Test detection of anomalous mailbox activity",
+      "Validate the payment authorisation and recall process",
+      "Exercise communication with banks and law enforcement",
+      "Test identity response — token revocation, session kill, password reset"
+    ],
+    rolesRequired: ["IRL","EXEC","FIN","LEGAL","SOC","ITOPS"],
+    cafMapping: ["B2 (Identity and Access Control)", "B4 (Detection)", "C1 (Security Monitoring)"],
+    csfMapping: ["PR.AA", "DE.CM", "RS.MA"],
+    injects: [
+      {
+        time: "T-21 days",
+        title: "Initial Compromise (Background)",
+        body: "Three weeks ago, the Group Finance Director (GFD) responded to repeated MFA push notifications late at night and approved one — assuming it was a sync issue. The attacker established session persistence in {identity} and added their own phone as an MFA device. No alerts triggered in {siem}.",
+        prompts: [
+          { role: "SOC", q: "Would your current monitoring catch a new MFA device being added to a privileged user? What's the alert path?" },
+          { role: "ITOPS", q: "Do you have number-matching MFA enforced, or are push-only approvals still in use?" }
+        ]
+      },
+      {
+        time: "T-14 days",
+        title: "Reconnaissance",
+        body: "The attacker spends two weeks reading the GFD's mailbox via an OAuth-authorised mobile mail app. They identify a major capital-equipment supplier mid-procurement, study the GFD's writing style, and learn that a £1.2M payment is due in 14 days. They also identify the standard internal approval flow.",
+        prompts: [
+          { role: "SOC", q: "Are OAuth grants on executive accounts reviewed? Could you identify a malicious app added 14 days ago?" }
+        ]
+      },
+      {
+        time: "T+0 — Day of Payment",
+        title: "Fraudulent Payment Instruction Sent",
+        body: "At 09:14, the genuine supplier emails an invoice for £1.187M with their normal banking details. At 09:42, the attacker — using the GFD's compromised mailbox — emails the AP team forwarding the invoice with a note: 'Please process today, but use these updated bank details — supplier has changed bank. Discussed with [supplier contact] yesterday.' The bank details point to a UK mule account.",
+        prompts: [
+          { role: "FIN", q: "Walk through your payment process. At what point does someone verify a change of bank details? Does anyone call the supplier?" },
+          { role: "FIN", q: "What's your threshold for verbal verification of payment changes? Is this £1.2M payment over it?" }
+        ]
+      },
+      {
+        time: "T+4hr",
+        title: "Payment Sent",
+        body: "AP processes the payment. £1.187M leaves the account at 14:00. The bank confirms successful transfer. The fraudulent instruction was 'authorised' via {email} reply chain that appeared to come from the GFD.",
+        prompts: [
+          { role: "FIN", q: "How would you discover this — would the genuine supplier chase the GFD, would AP notice anything?" }
+        ]
+      },
+      {
+        time: "T+72hr",
+        title: "Discovery",
+        body: "Three days later, the genuine supplier emails the GFD chasing the unpaid invoice. The GFD replies confused — 'we paid you on Tuesday.' Within 30 minutes, comparing invoices, the fraud is discovered. The GFD's mailbox shows hundreds of read items, sent items, and rules they didn't create.",
+        prompts: [
+          { role: "IRL", q: "First 60 minutes — what's the play? Identity, mailbox, payment recall, evidence — in what order?" },
+          { role: "FIN", q: "Who calls the bank? What do you ask them to do? Do you know the recall process?" },
+          { role: "ITOPS", q: "How do you kill all of the GFD's active sessions across {identity}, {email}, {collab}, mobile devices, OAuth apps?" }
+        ],
+        decision: {
+          question: "What's the priority order in the next hour?",
+          options: [
+            "Payment recall first — money is leaving fastest",
+            "Identity containment first — stop further fraud",
+            "Forensic preservation first — we need evidence",
+            "Parallel — split the team"
+          ]
+        }
+      },
+      {
+        time: "T+1 day",
+        title: "Bank Recall",
+        body: "Your bank has frozen what they can — £620k of the £1.187M is recoverable. The remaining £567k has been moved through three onward accounts and likely converted to crypto. Action Fraud has been notified. The bank has flagged the receiving account but cannot reverse fully.",
+        prompts: [
+          { role: "FIN", q: "Who has authority to write off the £567k loss? P&L impact?" },
+          { role: "LEGAL", q: "Insurance claim — is this covered under your cyber policy or your crime policy?" }
+        ]
+      },
+      {
+        time: "T+2 days",
+        title: "Forensic Findings",
+        body: "{siem} log review reveals: the GFD's mailbox was accessed from 14 IP addresses over 21 days, including from Russia, Nigeria and a UK VPN provider. Three other executive mailboxes show similar OAuth grants. There are inbox rules forwarding all emails containing 'invoice' or 'payment' to an external Gmail address.",
+        prompts: [
+          { role: "SOC", q: "Threat hunt scope — how do you find every compromised executive mailbox in the next 24 hours?" },
+          { role: "IRL", q: "Three other execs are likely affected. What's the comms — do you tell them now, en masse?" }
+        ]
+      },
+      {
+        time: "T+3 days",
+        title: "Lookalike Domain Discovered",
+        body: "While investigating, you discover the attacker registered a lookalike domain (your-company-Itd.com — capital I instead of L) and has used it to email three of your customers asking them to redirect payments. One customer paid £80k yesterday.",
+        prompts: [
+          { role: "COMMS", q: "How do you warn all customers — and not panic them — without giving the attacker more reach?" },
+          { role: "LEGAL", q: "What's your liability for the customer's £80k loss?" }
+        ]
+      },
+      {
+        time: "T+5 days",
+        title: "Regulatory & Disclosure",
+        body: "Internal review concludes: no personal data of customers/staff was exfiltrated, but executive mailboxes contained negotiating positions, board papers, and personal info of staff. Decision required on UK GDPR notification to the ICO.",
+        prompts: [
+          { role: "LEGAL", q: "Is this a notifiable breach? Which data subjects, and what's the risk-of-harm assessment?" },
+          { role: "EXEC", q: "Voluntary disclosure to customers about the lookalike domain — yes or no?" }
+        ],
+        decision: {
+          question: "Notify the ICO?",
+          options: [
+            "Yes — full notification within 72 hours of GFD discovery",
+            "Yes — but delay pending more forensic work",
+            "No — assess as no notifiable risk",
+            "Document the decision and proceed without notification"
+          ]
+        }
+      },
+      {
+        time: "T+14 days",
+        title: "Hardening & Lessons",
+        body: "Forensics complete. Six executive mailboxes had been compromised across the period. £567k loss confirmed. Number-matching MFA, conditional access policies and OAuth governance project launched. Insurance claim partially accepted (£400k of loss covered).",
+        prompts: [
+          { role: "IRL", q: "What's the top control change you'd push for next quarter?" },
+          { role: "FIN", q: "What's the new payment-change verification standard, and how is it enforced?" }
+        ]
+      }
+    ],
+    adaptive: [
+      { id: "second-fraud", title: "Second Fraud Attempt", desc: "While investigating, a second fraudulent payment instruction comes through from a different exec mailbox." },
+      { id: "supplier-angry", title: "Supplier Threatens", desc: "The genuine supplier threatens to halt deliveries until paid — operational impact." },
+      { id: "exec-resistance", title: "Exec Refuses Cooperation", desc: "GFD pushes back on having their device/mailbox forensically imaged, citing personal info." },
+      { id: "press-leak", title: "Press Catches Wind", desc: "A trade publication has heard rumours about the loss and is preparing to publish." },
+      { id: "second-domain", title: "More Lookalike Domains", desc: "Threat hunt finds three more lookalike domains registered against {orgName}." }
+    ]
+  },
+
+  // -----------------------------------------------------------
+  // 3. DATA EXFIL / EXTORTION-ONLY
+  // -----------------------------------------------------------
+  {
+    id: "exfil",
+    title: "Data Exfiltration (Extortion-Only, No Encryption)",
+    threatActor: "Cyber-criminal (extortion group, e.g. CL0P-style)",
+    complexity: "High",
+    duration: "2.5–3 hours",
+    tags: ["Extortion", "Data theft", "PII", "Disclosure"],
+    description: "An extortion group exploits a vulnerability in a managed file-transfer or web-facing application, exfiltrates large volumes of sensitive data, and demands payment under threat of leak. No encryption — the leverage is purely the data. Tests detection of slow-and-low exfil, scope assessment, regulatory and customer comms.",
+    objectives: [
+      "Test detection of bulk data egress",
+      "Validate process for scoping data loss against personal data inventories",
+      "Exercise breach notification decision-making",
+      "Pressure-test extortion negotiation framework"
+    ],
+    rolesRequired: ["IRL","EXEC","COMMS","LEGAL","SOC","ITOPS"],
+    cafMapping: ["B3 (Data Security)", "B4 (Detection)", "C1 (Security Monitoring)", "D1 (Response Planning)"],
+    csfMapping: ["PR.DS", "DE.CM", "RS.AN", "RS.CO"],
+    injects: [
+      {
+        time: "T-30 days",
+        title: "Vulnerability Disclosed",
+        body: "A critical zero-day is disclosed in a widely-used web application. Your team identifies that you operate a public-facing instance. Patching is queued in the next change window — 3 weeks out. The risk is logged but not escalated.",
+        prompts: [
+          { role: "IRL", q: "What's your emergency patch process? When does a zero-day override change windows?" },
+          { role: "ITOPS", q: "Who decides 'this needs patching tomorrow' versus 'wait for the change window'?" }
+        ]
+      },
+      {
+        time: "T-21 days",
+        title: "Exploitation",
+        body: "The application is exploited. The attacker uploads a webshell, conducts reconnaissance, and begins staging data. {edr} is not installed on the application server (it's a Linux appliance). {siem} ingests web logs but no behavioural detection fires.",
+        prompts: [
+          { role: "SOC", q: "What's your detection coverage on Linux appliances and SaaS-style web apps?" }
+        ]
+      },
+      {
+        time: "T-7 days",
+        title: "Bulk Exfiltration",
+        body: "Over a week, the attacker exfiltrates 1.4 TB to a cloud-hosted IP via HTTPS — chunked to avoid detection. {network} egress logs show the volume but it's within normal patterns for a backup-style flow from that segment.",
+        prompts: [
+          { role: "SOC", q: "Do you have data-egress baselining? Would 1.4TB over a week from a specific server be detected?" }
+        ]
+      },
+      {
+        time: "T+0",
+        title: "Extortion Email",
+        body: "An email arrives at the CEO, CFO, General Counsel and three board directors simultaneously: 'We have 1.4TB of {orgName} data, including [specific filenames listed], customer PII, and payroll. Do not engage law enforcement. You have 96 hours. Initial demand: $8M.' Three sample files are attached and confirm the claim is real.",
+        prompts: [
+          { role: "EXEC", q: "First 30 minutes — who's in the room? Where do you meet? Are you using {collab} or going off-channel?" },
+          { role: "IRL", q: "How do you verify the claim without escalating? What's the scope-assessment plan?" },
+          { role: "LEGAL", q: "When does the GDPR 72-hour clock start — is it now, or when scope is confirmed?" }
+        ]
+      },
+      {
+        time: "T+3hr",
+        title: "Initial Forensics",
+        body: "DFIR retainer activated. Initial review confirms: the breach was via the public web application. The attacker's access has now been cut. The webshell has been preserved. But the data is out — and the sample files include genuine board minutes from 8 months ago, employee NI numbers, and a customer list with annual revenues.",
+        prompts: [
+          { role: "LEGAL", q: "What categories of personal data are likely involved, based on what was reachable from that server?" },
+          { role: "EXEC", q: "When do you tell the board? Do you tell the full board, or just the chair and audit-committee chair?" }
+        ]
+      },
+      {
+        time: "T+8hr",
+        title: "Negotiation Question",
+        body: "The threat actor has provided a Tor chat link. Multiple specialist negotiation firms have been recommended by your insurer. Engaging would buy time and may reveal exactly what was taken — but each contact starts a paper trail.",
+        prompts: [
+          { role: "EXEC", q: "Do you authorise engagement on the negotiation channel — yes, no, conditions?" },
+          { role: "LEGAL", q: "Sanctions check — has anyone confirmed this group isn't on OFAC/UK sanctions lists?" },
+          { role: "COMMS", q: "If engagement leaks, how does that look externally?" }
+        ],
+        decision: {
+          question: "Engage with the threat actor via specialist negotiator?",
+          options: [
+            "Yes — buy time and gather intel",
+            "Yes — and signal openness to pay",
+            "No — refuse contact, focus on containment and disclosure",
+            "Defer to board decision"
+          ]
+        }
+      },
+      {
+        time: "T+24hr",
+        title: "Scope Assessment",
+        body: "Data inventory confirms: ~480,000 customer records (name, email, address, partial financial), ~12,000 employee records (full PII, NI, bank), 4 years of board papers, M&A workstream documents, and the {hr} export from last year. Data subjects span UK, EU and US.",
+        prompts: [
+          { role: "LEGAL", q: "Multi-jurisdiction notification — UK ICO, Irish DPC for EU, state AGs in US. Who's drafting which?" },
+          { role: "COMMS", q: "When do you tell affected data subjects? Wait for confirmation of leak, or proactive?" }
+        ]
+      },
+      {
+        time: "T+48hr",
+        title: "Public Pressure",
+        body: "The threat actor has posted a teaser on their leak blog — listing {orgName} with three sample documents. A cybersecurity researcher has tweeted the listing. A journalist has emailed the press office. Your share price has dipped 4% on speculation.",
+        prompts: [
+          { role: "COMMS", q: "Holding statement — confirm, deny, neither? What's the line?" },
+          { role: "EXEC", q: "Listed company disclosure obligations — is this material? When does the RNS go out?" }
+        ]
+      },
+      {
+        time: "T+72hr",
+        title: "Notification Window",
+        body: "GDPR 72-hour clock has expired (taken from breach awareness). ICO needs notification today. Customer notification is being drafted. Negotiator reports: the threat actor has dropped to $4.5M and is offering 'proof of deletion' if paid.",
+        prompts: [
+          { role: "LEGAL", q: "How do you notify the ICO when scope is still being confirmed — placeholder notification?" },
+          { role: "EXEC", q: "Pay-for-deletion has roughly 0% reliability. What's your decision framework here?" }
+        ],
+        decision: {
+          question: "Pay for 'proof of deletion'?",
+          options: [
+            "Pay — accept the gamble, hope to suppress publication",
+            "Don't pay — accept publication, control the narrative",
+            "Negotiate further to assess intent",
+            "Pay only if independent verification of deletion is achievable (it isn't)"
+          ]
+        }
+      },
+      {
+        time: "T+7 days",
+        title: "Leak / Aftermath",
+        body: "The threat actor publishes 200GB sample data. Your customer-notification email goes to 480k recipients. Inbound contact volume to your support team spikes 40x. Two class actions filed within 48 hours of leak. Insurance broker engaging.",
+        prompts: [
+          { role: "COMMS", q: "Customer support is overwhelmed. What's the surge plan — outsource, IVR, FAQ, all of the above?" },
+          { role: "LEGAL", q: "Class action defence strategy — settle early, fight, joint with insurer?" }
+        ]
+      },
+      {
+        time: "T+30 days",
+        title: "Post-Incident Review",
+        body: "Forensics report finalised. Patch-management gap identified as root cause. Insurance partial settlement reached. Two senior departures announced. ICO investigation ongoing with potential fine in the £8-15M range.",
+        prompts: [
+          { role: "IRL", q: "What process change would have prevented this — patch SLA, asset inventory, EDR on Linux, egress monitoring?" }
+        ]
+      }
+    ],
+    adaptive: [
+      { id: "competitor-tip", title: "Competitor Receives Sample", desc: "A competitor's CEO calls saying they've received sample documents — likely commercially sensitive material." },
+      { id: "regulator-fine", title: "Regulator Pre-Signal", desc: "ICO contact suggests the fine could be 'significant' — informal pre-warning." },
+      { id: "share-price", title: "Share Price Crash", desc: "Share price drops 12% intraday — exchange asks for clarification." },
+      { id: "employee-leak", title: "Employee Personal Impact", desc: "Two staff report that their compromised bank details have been used — personal financial harm." },
+      { id: "second-extortion", title: "Second Extortion Attempt", desc: "An unrelated threat actor demands a smaller ransom claiming they also have data — possibly bluff, possibly real." }
+    ]
+  },
+
+  // -----------------------------------------------------------
+  // 4. SaaS / IDP COMPROMISE
+  // -----------------------------------------------------------
+  {
+    id: "saas-idp",
+    title: "SaaS / Identity Provider Compromise (Supply Chain)",
+    threatActor: "Cyber-criminal (financially motivated, opportunistic)",
+    complexity: "High",
+    duration: "2.5–3 hours",
+    tags: ["Supply chain", "Identity", "SaaS", "Federation"],
+    description: "Your identity provider or a critical SaaS platform is breached upstream. Federation tokens, support-tool access, or backup credentials are compromised. You learn from the vendor's disclosure — possibly days late. Tests reliance on third-party security and your ability to respond to a breach you didn't directly suffer.",
+    objectives: [
+      "Test response to a vendor-disclosed third-party breach",
+      "Validate ability to revoke and re-issue federation/SSO trust",
+      "Exercise customer notification when blast radius is uncertain",
+      "Test vendor-management and contractual response processes"
+    ],
+    rolesRequired: ["IRL","EXEC","LEGAL","ITOPS","SOC","COMMS"],
+    cafMapping: ["A3 (Asset Management)", "A4 (Supply Chain)", "B2 (Identity and Access Control)", "D1 (Response Planning)"],
+    csfMapping: ["GV.SC", "ID.SC", "PR.AA", "RS.MA"],
+    injects: [
+      {
+        time: "T+0",
+        title: "Vendor Public Disclosure",
+        body: "Your identity provider {identity} (or major SaaS vendor) publishes a security advisory: 'A subset of customer support cases were accessed by an unauthorised party. Affected customers will be contacted directly. We are working with law enforcement.' Tech press picks it up immediately. You have not yet received direct contact.",
+        prompts: [
+          { role: "SOC", q: "First action — what do you check in {identity} logs in the next 30 minutes?" },
+          { role: "IRL", q: "How do you confirm whether {orgName} is affected without waiting for vendor contact?" },
+          { role: "LEGAL", q: "What does your contract with {identity} say about breach notification timelines?" }
+        ]
+      },
+      {
+        time: "T+2hr",
+        title: "Direct Vendor Notification",
+        body: "{identity} emails your account manager: 'We have determined your tenant may have been accessed via a support engineer's compromised session. We are continuing investigation. Indicators of access: unauthorised view of session tokens for an estimated 18 of your users. We recommend rotating all credentials and tokens.' No further detail provided.",
+        prompts: [
+          { role: "IRL", q: "'May have been accessed' is ambiguous. What's your worst-case planning assumption?" },
+          { role: "ITOPS", q: "Mass credential rotation — what's your blast radius? How long? How disruptive?" },
+          { role: "LEGAL", q: "Is this a breach for you? Are you a controller, processor, both, depending on data?" }
+        ]
+      },
+      {
+        time: "T+4hr",
+        title: "Internal Investigation",
+        body: "{siem} review of {identity} logs shows session-token reuse from anomalous geolocations during the suspected window for at least 11 of your users. Most are read-only access to {email}, but two are admins who have access to {erp} and {crm} via SSO.",
+        prompts: [
+          { role: "SOC", q: "Walk through the threat-hunt — what artefacts in downstream apps would show abuse?" },
+          { role: "IRL", q: "Two admins were potentially compromised. Assume both were — what's the remediation scope?" }
+        ],
+        decision: {
+          question: "Force a tenant-wide credential and token rotation?",
+          options: [
+            "Yes — all users, all tokens, immediate, accept business disruption",
+            "Yes — but staged: admins now, others over 24-48 hours",
+            "Targeted only — the 18 users named by {identity}",
+            "Wait for further detail from {identity}"
+          ]
+        }
+      },
+      {
+        time: "T+8hr",
+        title: "Downstream Detection",
+        body: "{edr} and {siem} review across SSO-integrated apps reveals: in {erp}, an admin account exported a customer pricing list via a normal report export. In {crm}, an admin account ran a contact-data export overnight. Both look benign in isolation — but neither user reports having done so.",
+        prompts: [
+          { role: "IRL", q: "How confident are you that this is the threat actor and not legitimate activity? How do you confirm?" },
+          { role: "LEGAL", q: "Customer pricing and contact data — what data category is this and what's the notification threshold?" }
+        ]
+      },
+      {
+        time: "T+24hr",
+        title: "Day 2 — Vendor Update",
+        body: "{identity} updates: scope larger than initially stated. Confirms session-token theft for 24 of your users (up from 18). Confirms the actor 'attempted lateral movement' but cannot confirm success. They've offered 90 days of premium support and credit monitoring.",
+        prompts: [
+          { role: "LEGAL", q: "Vendor liability — what's recoverable under contract? Are you preserving rights?" },
+          { role: "EXEC", q: "Public statement — does {orgName} disclose? Wait for the vendor to name customers?" }
+        ]
+      },
+      {
+        time: "T+48hr",
+        title: "Customer Pressure",
+        body: "Three of your enterprise customers contact you asking whether the {identity} breach affects their data with you. They want a written response within 24 hours. Two of them are quoting your DPA and breach-notification clauses.",
+        prompts: [
+          { role: "COMMS", q: "Drafting customer comms — assume affected, assume not, neutral? What's the position?" },
+          { role: "LEGAL", q: "Joint review of customer DPAs — what notification timelines apply, and to which customers?" }
+        ]
+      },
+      {
+        time: "T+3 days",
+        title: "Press / Public",
+        body: "A journalist names {orgName} as one of the {identity} customers being investigated, citing 'sources familiar with the matter.' Your phones ring. The vendor's stock has dropped 8%; yours has dropped 3%.",
+        prompts: [
+          { role: "COMMS", q: "Press response — confirm relationship with {identity}, decline to comment on specifics?" },
+          { role: "EXEC", q: "Listed disclosure — does this trigger anything?" }
+        ]
+      },
+      {
+        time: "T+5 days",
+        title: "Forensics Concluded",
+        body: "DFIR retainer concludes: high confidence two admin accounts were used by the threat actor to export ~62,000 customer contact records and a current pricing list. No further movement detected. Containment achieved. Notification to ICO submitted on day 4 as a controller breach.",
+        prompts: [
+          { role: "LEGAL", q: "Customer notification — direct email to all 62k? Press release? Both?" },
+          { role: "FIN", q: "Recovery from {identity} — what's the legal route, and what's the timeline?" }
+        ]
+      },
+      {
+        time: "T+14 days",
+        title: "Vendor Decision",
+        body: "{identity} has issued formal post-incident report. They've made remediations but transparency has been limited. Two of your peer organisations are publicly leaving the vendor. Your contract has a 90-day exit clause triggered by material breach.",
+        prompts: [
+          { role: "EXEC", q: "Stay or migrate? What's the cost-benefit, and over what timeframe?" },
+          { role: "ITOPS", q: "If you migrate, where to, and how long does it take? Have you done identity migration before?" }
+        ],
+        decision: {
+          question: "Stay with {identity} or migrate?",
+          options: [
+            "Stay — accept residual risk, demand additional assurance",
+            "Migrate over 12 months — controlled exit",
+            "Emergency migrate within 90 days",
+            "Decision deferred to board"
+          ]
+        }
+      },
+      {
+        time: "T+30 days",
+        title: "Lessons Learned",
+        body: "Customer churn estimated at 4 enterprise accounts (~£3.2M ARR). ICO investigation pending. Cyber insurance claim being processed. Board commissioning third-party-risk programme review.",
+        prompts: [
+          { role: "IRL", q: "What's the top three structural changes — third-party-risk maturity, identity controls, contractual leverage?" }
+        ]
+      }
+    ],
+    adaptive: [
+      { id: "vendor-silence", title: "Vendor Goes Silent", desc: "{identity} stops responding to direct inquiries — their account team can't get answers either." },
+      { id: "second-vendor", title: "Second Vendor Affected", desc: "A different SaaS vendor in your stack discloses a related/similar incident — possible same threat actor." },
+      { id: "competitor-poach", title: "Competitor Poaches", desc: "A competitor of {identity} contacts your CIO offering accelerated migration with discount." },
+      { id: "regulator-mass", title: "Mass Regulator Action", desc: "ICO opens a wide investigation across all UK customers of {identity} — you're swept in." },
+      { id: "supply-chain-recursion", title: "Supply-Chain Recursion", desc: "Your customers are now asking whether to terminate you because {identity} is in your supply chain." }
+    ]
+  },
+
+  // -----------------------------------------------------------
+  // 5. SOFTWARE SUPPLY CHAIN
+  // -----------------------------------------------------------
+  {
+    id: "swsupply",
+    title: "Software Supply Chain Compromise (SolarWinds-Style)",
+    threatActor: "Nation-state (suspected) / sophisticated APT",
+    complexity: "Very High",
+    duration: "3–4 hours",
+    tags: ["APT", "Supply chain", "Nation-state", "Persistence"],
+    description: "A trusted software vendor pushes a signed update that contains a backdoor. The compromise is disclosed publicly months after initial deployment. You may have had an APT in your environment for an extended period. Tests scope assessment, sustained investigation, and nation-state-grade response.",
+    objectives: [
+      "Test ability to scope a long-dwell intrusion",
+      "Validate threat-hunt processes for known-trusted software",
+      "Exercise national-security stakeholder engagement (NCSC, sector ISAC)",
+      "Test sustained crisis posture over weeks/months"
+    ],
+    rolesRequired: ["IRL","EXEC","LEGAL","ITOPS","SOC","COMMS"],
+    cafMapping: ["A4 (Supply Chain)", "B4 (Detection)", "C2 (Proactive Discovery)", "D1 (Response Planning)"],
+    csfMapping: ["ID.SC", "DE.CM", "RS.AN", "RS.MI"],
+    injects: [
+      {
+        time: "T+0",
+        title: "Public Disclosure",
+        body: "A widely-deployed network management or security product publishes an emergency advisory: a backdoor has been found in versions distributed between 6 and 9 months ago. Hundreds of organisations globally are affected. {orgName} runs this product across {network} infrastructure and uses it for monitoring.",
+        prompts: [
+          { role: "ITOPS", q: "Within 2 hours — what versions are deployed where? Asset inventory accuracy test." },
+          { role: "IRL", q: "Trigger major incident process — what severity? Who's the IC?" },
+          { role: "SOC", q: "What logs do you still have from 6–9 months ago? What's your retention?" }
+        ]
+      },
+      {
+        time: "T+4hr",
+        title: "Initial Triage",
+        body: "Your installation matches the affected versions and timeline. The vendor IOCs are published — domains, hashes, behavioural signatures. Initial {edr}/{siem} sweep reveals: 14 hosts have made DNS queries to known C2 domains over the past 7 months. The activity is sparse and looks deliberately low-volume.",
+        prompts: [
+          { role: "SOC", q: "How do you triage 14 potentially compromised hosts simultaneously? Containment vs investigation order?" },
+          { role: "IRL", q: "Do you tell the affected business units, or hold while you scope?" }
+        ]
+      },
+      {
+        time: "T+12hr",
+        title: "NCSC Contact",
+        body: "NCSC reaches out via your usual contact. They confirm sector-wide outreach and offer support. They're particularly interested in any artefacts you find. They strongly encourage information sharing under the Cyber Information Sharing Partnership.",
+        prompts: [
+          { role: "LEGAL", q: "Information sharing — what can you share, what's covered by privilege, what's commercially sensitive?" },
+          { role: "EXEC", q: "Strategic relationship with NCSC — full transparency or measured?" }
+        ]
+      },
+      {
+        time: "T+24hr",
+        title: "Lateral Movement Found",
+        body: "Threat-hunt expands. Evidence found that the actor pivoted from one of the 14 hosts into {identity}, created a service principal with broad read access to {email} and {cloud}, and has been quietly enumerating mailboxes and document libraries for months. No bulk exfiltration detected — looks like targeted intelligence collection.",
+        prompts: [
+          { role: "SOC", q: "Targeted intelligence collection — whose mailboxes, what topics? How do you tell?" },
+          { role: "IRL", q: "Eviction strategy — fast and noisy, or slow and thorough? Trade-offs?" }
+        ],
+        decision: {
+          question: "How do you handle eviction?",
+          options: [
+            "Immediate eviction — kick them out today, accept loss of intel",
+            "Controlled eviction over 7 days — coordinate with NCSC, gather attribution",
+            "Hold and monitor for 30 days under NCSC guidance",
+            "Hybrid — contain critical data, monitor secondary"
+          ]
+        }
+      },
+      {
+        time: "T+48hr",
+        title: "Targeted Data Identified",
+        body: "Mailbox access pattern shows interest in: M&A workstreams, government-contract negotiations, and three named senior executives' calendars. The pattern is consistent with intelligence collection rather than financial cybercrime. Suggests nation-state.",
+        prompts: [
+          { role: "EXEC", q: "Tell the named executives — yes? When? Who tells them?" },
+          { role: "LEGAL", q: "Government-contract data — does this trigger separate notification to government counterpart?" }
+        ]
+      },
+      {
+        time: "T+5 days",
+        title: "Eviction & Hardening",
+        body: "Eviction underway. Service principal removed. All 14 hosts rebuilt. Conditional access tightened. {network} segmentation reviewed. Vendor product remains in use because no immediate alternative exists; deployed with mitigations and additional monitoring.",
+        prompts: [
+          { role: "ITOPS", q: "Continued use of the compromised vendor — defensible? What additional controls?" }
+        ]
+      },
+      {
+        time: "T+10 days",
+        title: "Customer / Partner Notifications",
+        body: "Some of the data accessed includes information about partner organisations. Contractual and regulatory notification analysis ongoing. Trade press has named affected sectors but not specific organisations.",
+        prompts: [
+          { role: "LEGAL", q: "Partners — notify all, notify only those whose data was specifically touched, or both?" },
+          { role: "COMMS", q: "Public statement — name yourselves as affected proactively, or remain unnamed?" }
+        ]
+      },
+      {
+        time: "T+30 days",
+        title: "Sustained Investigation",
+        body: "Forensic work continues. New IOCs released by NCSC weekly — each requires fresh sweeping. Media coverage continues. Internal teams are fatigued. Two engineers have left citing burnout.",
+        prompts: [
+          { role: "IRL", q: "How do you sustain a months-long incident response? Shift rotations? External augmentation?" },
+          { role: "EXEC", q: "Communicating to staff — this isn't 'over' — how do you maintain morale?" }
+        ]
+      },
+      {
+        time: "T+90 days",
+        title: "Vendor Litigation",
+        body: "A class action against the vendor is forming; you're approached to join. Joining means depositions and disclosure of internal forensics. Not joining forfeits potential recovery.",
+        prompts: [
+          { role: "LEGAL", q: "Litigation participation — pros and cons? Settlement-only or full claim?" },
+          { role: "EXEC", q: "Strategic — does suing your vendor damage future relationships across the supplier ecosystem?" }
+        ],
+        decision: {
+          question: "Join the class action against the vendor?",
+          options: [
+            "Yes — full participation",
+            "Yes — opt in but minimal active role",
+            "Pursue separate bilateral settlement instead",
+            "No legal action — preserve relationship"
+          ]
+        }
+      },
+      {
+        time: "T+180 days",
+        title: "Post-Incident Review",
+        body: "External review completed. Root cause: implicit trust in signed updates from approved vendors with no behavioural monitoring on the product itself. Recommendations: supply-chain control framework, behavioural detection on management-tier infrastructure, regular threat-hunt cadence regardless of signal.",
+        prompts: [
+          { role: "IRL", q: "Highest-priority structural change — what does the new supply-chain risk programme look like?" }
+        ]
+      }
+    ],
+    adaptive: [
+      { id: "second-vendor", title: "Second Compromised Tool", desc: "A second tool in your stack is disclosed as compromised by the same actor — overlap suspected." },
+      { id: "national-security", title: "National Security Briefing", desc: "You're invited to a confidential NCSC/sector briefing — restrictions on what you can share internally." },
+      { id: "leak-cover", title: "Leak of Internal Memo", desc: "An internal memo about the incident leaks — likely from a contractor — to a journalist." },
+      { id: "exec-target", title: "Exec Personally Targeted", desc: "One of the named executives reports a sophisticated phishing attempt to their personal email — likely follow-on." },
+      { id: "regulator-multi", title: "Multi-Regulator Engagement", desc: "ICO + sector regulator + government counterpart all want simultaneous briefings." }
+    ]
+  },
+
+  // -----------------------------------------------------------
+  // 6. MSP COMPROMISE
+  // -----------------------------------------------------------
+  {
+    id: "msp",
+    title: "MSP / IT Provider Compromise",
+    threatActor: "Cyber-criminal (RaaS, opportunistic)",
+    complexity: "High",
+    duration: "2.5–3 hours",
+    tags: ["MSP", "Supply chain", "Privileged access", "Multi-tenant"],
+    description: "Your managed service provider is breached. The attacker uses the MSP's privileged remote access tooling (RMM) to push ransomware or exfiltrate data across multiple of the MSP's customers, including you. Tests response when you're a victim of someone else's incident, with limited visibility into a third-party environment.",
+    objectives: [
+      "Test response when the MSP is the source of compromise",
+      "Validate ability to forcibly cut MSP access without losing IT capability",
+      "Exercise multi-victim public communication and joint incident response",
+      "Pressure-test contractual leverage with the MSP"
+    ],
+    rolesRequired: ["IRL","EXEC","LEGAL","ITOPS","SOC","COMMS","FIN"],
+    cafMapping: ["A4 (Supply Chain)", "B2 (Identity and Access Control)", "B4 (Detection)", "D1 (Response Planning)"],
+    csfMapping: ["GV.SC", "PR.AA", "DE.CM", "RS.MA"],
+    injects: [
+      {
+        time: "T+0",
+        title: "MSP Calls",
+        body: "07:30. Your account manager at your MSP calls the CIO directly: 'We have an active security incident in our environment. We've isolated our RMM platform. We've told all customers immediately. We're investigating whether customer environments were accessed.' No further detail.",
+        prompts: [
+          { role: "EXEC", q: "First decision — do you cut all MSP access right now, or coordinate with them?" },
+          { role: "ITOPS", q: "If you cut MSP access, what business operations stop? What's your continuity plan?" },
+          { role: "IRL", q: "Activate your IR — even though the incident isn't 'yours' yet — yes or no?" }
+        ]
+      },
+      {
+        time: "T+1hr",
+        title: "Local Detection",
+        body: "{edr} alerts trigger on three servers — process injection from the MSP's remote agent. {siem} confirms the activity is recent (within last 6 hours). Initial telemetry suggests reconnaissance, possible staging.",
+        prompts: [
+          { role: "SOC", q: "You now have your own confirmed compromise. What changes? Who declares?" },
+          { role: "IRL", q: "MSP-vs-{orgName} dual-track investigation — how do you coordinate?" }
+        ],
+        decision: {
+          question: "Cut MSP RMM access entirely?",
+          options: [
+            "Yes — immediate, accept operational impact",
+            "Yes — but selective: only privileged tooling, retain monitoring",
+            "No — coordinate with MSP, controlled disconnect",
+            "No — let the MSP lead containment"
+          ]
+        }
+      },
+      {
+        time: "T+3hr",
+        title: "MSP Update",
+        body: "MSP confirms: their RMM platform was used by a threat actor for approximately 8 hours overnight. They have customer count in the hundreds. They cannot yet confirm which customers were touched. They're publishing a public statement at midday.",
+        prompts: [
+          { role: "LEGAL", q: "Joint defence agreement with the MSP — yes? Concerns?" },
+          { role: "COMMS", q: "MSP going public at midday — how does {orgName} prepare for cascading press attention?" }
+        ]
+      },
+      {
+        time: "T+6hr",
+        title: "Scope Confirmed",
+        body: "DFIR confirms three of your servers were touched. The actor staged a ransomware payload on one server but did not detonate before being cut off (assumed because the MSP isolated). 40GB of file data was copied to an external IP. Domain controllers do not appear compromised.",
+        prompts: [
+          { role: "ITOPS", q: "What was on those three servers? What's the data inventory?" },
+          { role: "LEGAL", q: "Data exfil of 40GB — categorisation, notification thresholds?" }
+        ]
+      },
+      {
+        time: "T+12hr",
+        title: "Operational Strain",
+        body: "Without MSP access, several routine functions are impaired: patching, monitoring (the MSP runs your {siem}), 24/7 service desk, backup verification. Your in-house team can cover daytime but cannot sustain 24/7. Some users are noticing service degradation.",
+        prompts: [
+          { role: "ITOPS", q: "What's the staffing plan for 72 hours of degraded MSP support?" },
+          { role: "FIN", q: "Emergency procurement of an alternative provider or contractor — authority and timeline?" }
+        ]
+      },
+      {
+        time: "T+24hr",
+        title: "Public Disclosure",
+        body: "MSP's public statement is out: it names the affected RMM product, gives high-level scope, and says affected customers will be 'notified directly.' Tech press lists the MSP's known customers — including {orgName}. Inbound press calls begin.",
+        prompts: [
+          { role: "COMMS", q: "Statement — confirm or deny relationship with the MSP? Confirm or deny incident at {orgName}?" },
+          { role: "EXEC", q: "Customer outreach — proactive contact to your largest customers, or hold?" }
+        ]
+      },
+      {
+        time: "T+48hr",
+        title: "Other Victims Surface",
+        body: "Two of your peer organisations (both MSP customers) have publicly disclosed they were affected. One has activated DFIR. There's discussion in industry circles about a coordinated response or joint legal action.",
+        prompts: [
+          { role: "LEGAL", q: "Joint response with peers — share IOCs but not legal strategy? Joint legal action?" },
+          { role: "EXEC", q: "Industry reputational positioning — leader, follower, silent?" }
+        ]
+      },
+      {
+        time: "T+5 days",
+        title: "MSP Future Decision",
+        body: "Containment and eviction complete in your environment. Forensics confirm 40GB exfil only — appears commercial document data, no PII confirmed. MSP has offered remediation credits and a security uplift roadmap.",
+        prompts: [
+          { role: "EXEC", q: "Continue with the MSP, change MSPs, or insource?" },
+          { role: "FIN", q: "Costs of each option — direct, transition, opportunity?" }
+        ],
+        decision: {
+          question: "MSP relationship decision?",
+          options: [
+            "Stay — demand security uplift, accept residual risk",
+            "Migrate to alternative MSP over 6 months",
+            "Bring critical functions in-house, retain MSP for tier-2",
+            "Full insource, terminate MSP"
+          ]
+        }
+      },
+      {
+        time: "T+14 days",
+        title: "Customer & Regulator Posture",
+        body: "ICO has been notified. Three customers have asked for breach details under their DPAs. No regulatory action announced yet. Cyber insurance has accepted the claim subject to forensics.",
+        prompts: [
+          { role: "LEGAL", q: "Customer-specific responses — shared template or bespoke per contract?" }
+        ]
+      },
+      {
+        time: "T+30 days",
+        title: "Lessons & Programme Change",
+        body: "Post-incident review: MSP privileged access was excessive. RMM tooling had no behavioural monitoring on {orgName}'s side. No detection of MSP-tools-being-misused use case existed. Several recommendations: privileged-access reduction, MSP-specific monitoring, contractual breach-response standards.",
+        prompts: [
+          { role: "IRL", q: "Top three recommendations to the board — what's the spend ask, what's the risk reduction?" }
+        ]
+      }
+    ],
+    adaptive: [
+      { id: "msp-bankruptcy", title: "MSP Faces Existential Threat", desc: "MSP announces they may not survive financially — service continuity question becomes urgent." },
+      { id: "msp-finger-pointing", title: "MSP Blames You", desc: "MSP's public statement implies 'customer-side configuration weaknesses' contributed — not just their breach." },
+      { id: "ransomware-detonate", title: "Late Detonation at Peer", desc: "A peer customer has the ransomware payload detonate days after MSP claimed containment — re-opens scope." },
+      { id: "regulator-mass", title: "Regulator Calls Joint Meeting", desc: "Regulator convenes affected customers for a joint information-gathering session." },
+      { id: "talent-poach", title: "MSP Talent Leaves", desc: "Three of the MSP engineers who know your environment have resigned — service quality drops further." }
+    ]
+  }
+];
+
+
+// Scenarios 7-12 - to be appended to SCENARIOS array
+
+const SCENARIOS_PART2 = [
+  // -----------------------------------------------------------
+  // 7. MALICIOUS INSIDER
+  // -----------------------------------------------------------
+  {
+    id: "insider-malicious",
+    title: "Malicious Privileged Insider",
+    threatActor: "Insider (resigning senior engineer)",
+    complexity: "Medium",
+    duration: "2 hours",
+    tags: ["Insider", "IP theft", "HR", "Privileged access"],
+    description: "A senior engineer with broad system access has accepted a competitor's offer. In their final weeks, they exfiltrate proprietary code, customer lists and internal documentation. Tests detection of authorised-but-anomalous behaviour and the joint cyber/HR/legal response.",
+    objectives: [
+      "Test detection of insider data exfiltration",
+      "Validate joint cyber/HR/legal response process",
+      "Exercise evidence preservation for civil litigation",
+      "Test access-revocation and asset-recovery workflows"
+    ],
+    rolesRequired: ["IRL","EXEC","LEGAL","ITOPS","SOC","HR","PHYS"],
+    cafMapping: ["B2 (Identity and Access Control)", "B3 (Data Security)", "B5 (Resilient Networks)", "C1 (Security Monitoring)"],
+    csfMapping: ["PR.AA", "PR.DS", "DE.CM", "RS.AN"],
+    injects: [
+      {
+        time: "T-30 days",
+        title: "Resignation",
+        body: "A Principal Engineer with 9 years tenure resigns. They have admin access to {erp}, source-code repositories, {cloud} production, and the {hr} reporting tool. Notice period: 90 days. They tell their manager they're 'taking a career break' — competitor name is not disclosed.",
+        prompts: [
+          { role: "HR", q: "Standard process — does anything change for high-access roles? When do you tighten access?" },
+          { role: "ITOPS", q: "Do you reduce their access on resignation, or do you wait until exit interview?" }
+        ]
+      },
+      {
+        time: "T-14 days",
+        title: "Anomalous Activity Begins",
+        body: "{siem} flags from the user: 3am downloads of source-code repositories, large {cloud} object storage list operations, multiple data exports from {erp}. Each individual action is within their permissions. No alert fires because the activity matches their normal admin patterns — just at unusual hours.",
+        prompts: [
+          { role: "SOC", q: "Detection scenario — would you catch 'authorised but anomalous'? What's the rule?" },
+          { role: "IRL", q: "Privileged-user behaviour analytics — are they in scope? What's the baseline?" }
+        ]
+      },
+      {
+        time: "T+0",
+        title: "Tip-Off",
+        body: "Anonymous email to the General Counsel: '[Engineer name] is going to [Competitor]. They've been copying customer lists and code. Check their last month of activity.' Email was sent from a personal address, suggesting an internal source.",
+        prompts: [
+          { role: "LEGAL", q: "Anonymous tip — how do you act on it without violating the engineer's rights?" },
+          { role: "IRL", q: "Investigation kick-off — covert or overt? What's the trigger to interview the engineer?" },
+          { role: "HR", q: "Employment law — what evidence threshold do you need before acting on suspicion?" }
+        ]
+      },
+      {
+        time: "T+2hr",
+        title: "Initial Forensic Sweep",
+        body: "{siem} review across last 30 days reveals: 14GB of source code downloaded to a personal {cloud} bucket they had access to; 8,000 customer records exported from {erp}; multiple {hr} reports run on a list of named senior staff (potentially being recruited).",
+        prompts: [
+          { role: "IRL", q: "Confidence level — could this be legitimate work? How do you confirm?" },
+          { role: "ITOPS", q: "What's the technical play — preserve evidence or interrupt? What's reversible?" }
+        ],
+        decision: {
+          question: "Take immediate action against the engineer?",
+          options: [
+            "Suspend access immediately — accept they'll know they're caught",
+            "Preserve evidence covertly for 48 hours, then act with full case",
+            "Do both — covert evidence collection while limiting access",
+            "Refer to law enforcement before HR action"
+          ]
+        }
+      },
+      {
+        time: "T+6hr",
+        title: "Evidence Hold",
+        body: "Decision taken: covert evidence collection. The engineer's workstation, mailbox, {cloud} accounts and {collab} are placed under legal hold. Imaging begins. {siem} retention extended for the user's accounts. Source-code git history audited. The engineer is unaware.",
+        prompts: [
+          { role: "LEGAL", q: "Privilege over the investigation — is this 'in contemplation of litigation' to attract privilege?" },
+          { role: "ITOPS", q: "How do you image a remote worker's equipment without alerting them?" }
+        ]
+      },
+      {
+        time: "T+24hr",
+        title: "Forensic Detail",
+        body: "Imaging shows: copies of source code on a USB drive plugged in 11 days ago; OneDrive sync to a personal Microsoft account; over 4GB of {erp} CSV exports. Browser history shows competitor portal access and offer letter. Recruitment correspondence shows the move is to a direct competitor.",
+        prompts: [
+          { role: "LEGAL", q: "Now you have evidence — civil action, criminal referral, or both?" },
+          { role: "EXEC", q: "Strategic — pursue aggressively, settle for asset return, or write off and tighten controls?" }
+        ]
+      },
+      {
+        time: "T+48hr",
+        title: "Confrontation Meeting",
+        body: "The engineer is invited to an 'HR meeting' alongside their line manager, an HR business partner, and a legal observer. They're presented with the evidence. Initial response: denial. Second pass: claims it was 'personal copies for backup.' Asked to surrender personal devices and cloud accounts.",
+        prompts: [
+          { role: "HR", q: "Walk through the meeting — what's the ask, the order, the boundaries?" },
+          { role: "PHYS", q: "Asset retrieval — laptop, phone, building pass — when and how?" },
+          { role: "LEGAL", q: "Personal device search — what consent do you need? What if they refuse?" }
+        ]
+      },
+      {
+        time: "T+5 days",
+        title: "Civil Action",
+        body: "Civil claim filed for breach of confidence, return of property, injunction against use of stolen IP. The competitor receives notice. The engineer's solicitor responds. Court date set. Customer-list exfiltration potentially triggers GDPR notification.",
+        prompts: [
+          { role: "LEGAL", q: "Customer list — was it personal data? Notifiable? When does the clock start?" },
+          { role: "COMMS", q: "Internal narrative — staff are aware something is happening. What do they get told?" }
+        ]
+      },
+      {
+        time: "T+30 days",
+        title: "Settlement",
+        body: "Settlement reached: written undertakings, return/destruction of materials, agreed press position. Some uncertainty remains over what was already shared with competitor. Recruitment of named senior staff has not progressed (visibly).",
+        prompts: [
+          { role: "EXEC", q: "Customer comms — disclose to the 8,000 customers whose data was exposed (briefly), or no?" },
+          { role: "IRL", q: "Insider-risk programme — what does 'better' look like?" }
+        ]
+      },
+      {
+        time: "T+90 days",
+        title: "Programme Lessons",
+        body: "Joint review with HR, Legal, IT, Cyber. Findings: privileged-user monitoring was inadequate; access reduction on resignation was reactive not proactive; no DLP on {cloud} personal accounts; tip-off process was undocumented.",
+        prompts: [
+          { role: "IRL", q: "Insider-risk programme proposal — top 3 controls?" }
+        ]
+      }
+    ],
+    adaptive: [
+      { id: "press-leak", title: "Story Leaks", desc: "Tech press story: 'Engineer at {orgName} caught stealing IP for competitor.' Names you and the competitor." },
+      { id: "competitor-denies", title: "Competitor Disclaims", desc: "The competitor publicly states they 'have no knowledge of any improperly obtained materials.'" },
+      { id: "second-insider", title: "Second Insider Found", desc: "Investigation reveals a second engineer's account also showed similar patterns — coordination?" },
+      { id: "personal-device", title: "Personal Device Refused", desc: "Engineer refuses to surrender personal devices, claiming nothing on them — what now?" },
+      { id: "regulator-question", title: "ICO Question", desc: "ICO opens a query about the customer data exposure once it's reported." }
+    ]
+  },
+
+  // -----------------------------------------------------------
+  // 8. NEGLIGENT INSIDER / MISCONFIG
+  // -----------------------------------------------------------
+  {
+    id: "insider-negligent",
+    title: "Cloud Misconfiguration / Negligent Insider Exposure",
+    threatActor: "Negligent insider (no malicious intent) + opportunistic external researcher",
+    complexity: "Low–Medium",
+    duration: "1.5–2 hours",
+    tags: ["Cloud", "Misconfig", "Data exposure", "DevOps"],
+    description: "An engineer makes a {cloud} storage bucket public for what they think is a temporary need. A security researcher finds it weeks later. The bucket contains customer PII, internal documents and credentials. Tests rapid response to a 'no-attacker' breach and disclosure decisions.",
+    objectives: [
+      "Test response to a non-malicious data exposure",
+      "Validate quick scope assessment of cloud data",
+      "Exercise responsible-disclosure handling",
+      "Test customer/regulator notification when scope is uncertain"
+    ],
+    rolesRequired: ["IRL","EXEC","LEGAL","ITOPS","SOC","COMMS"],
+    cafMapping: ["A3 (Asset Management)", "B3 (Data Security)", "C1 (Security Monitoring)"],
+    csfMapping: ["PR.DS", "PR.IP", "DE.CM"],
+    injects: [
+      {
+        time: "T-90 days",
+        title: "The Misconfiguration",
+        body: "An engineer working on a customer migration creates a {cloud} storage bucket with 'allow public read' to share data with a partner, intending to revert later. A change-control entry exists but is closed without verification. The setting persists.",
+        prompts: [
+          { role: "ITOPS", q: "What detective controls would catch a publicly-readable bucket within 24 hours?" },
+          { role: "SOC", q: "Cloud Security Posture Management — do you have it, and what does it cover?" }
+        ]
+      },
+      {
+        time: "T+0",
+        title: "Researcher Email",
+        body: "An email arrives at security@{orgName}: 'I'm an independent researcher. I have discovered a publicly-accessible {cloud} bucket containing what appears to be customer data and internal credentials belonging to {orgName}. I'd like to coordinate disclosure. Bucket name attached. Please respond within 48 hours.'",
+        prompts: [
+          { role: "IRL", q: "First 30 minutes — verify, contain, then engage. Walk it through." },
+          { role: "LEGAL", q: "Engaging with researchers — what's your bug-bounty / vulnerability disclosure policy?" },
+          { role: "SOC", q: "How do you scope what was in that bucket — both content and access logs?" }
+        ]
+      },
+      {
+        time: "T+1hr",
+        title: "Verification & Containment",
+        body: "Bucket confirmed: contained ~12GB of files, including: customer onboarding documents (PII), an internal credentials file (exposed for 90 days), three years of contract PDFs, employee training materials. {cloud} access logs show: 47 IP addresses accessed the bucket over 90 days. Most are likely automated scanners; 3 IPs appear to have downloaded substantial content.",
+        prompts: [
+          { role: "ITOPS", q: "Containment — bucket made private. What about the credentials? Rotate everything?" },
+          { role: "LEGAL", q: "47 IPs accessed it — does each constitute a separate 'recipient' for breach assessment?" }
+        ],
+        decision: {
+          question: "How do you scope 'who saw it'?",
+          options: [
+            "Assume worst-case — full content was exfiltrated by hostile actors",
+            "Assume best-case — only the researcher saw it",
+            "Differentiate by IP — researchers vs scanners vs unknown",
+            "Engage threat-intel to identify the IPs"
+          ]
+        }
+      },
+      {
+        time: "T+4hr",
+        title: "Credentials Question",
+        body: "The credentials file contained: an API key for a payment-processing partner, AWS IAM access keys, and SMTP credentials. All have been rotated. Audit log on the API key shows no unauthorised use. AWS keys were used during the exposure period — but only from your own IPs.",
+        prompts: [
+          { role: "ITOPS", q: "How confident are you there was no abuse? What further checks?" }
+        ]
+      },
+      {
+        time: "T+8hr",
+        title: "Researcher Engagement",
+        body: "You respond to the researcher confirming receipt and remediation, asking about disclosure timeline. They respond: they intend to publish a redacted blog in 30 days, mentioning {orgName} by name unless requested otherwise. They've already notified some peer researchers.",
+        prompts: [
+          { role: "COMMS", q: "Researcher disclosure handling — agree to public disclosure, negotiate, or refuse?" },
+          { role: "LEGAL", q: "Threats or pressure — never appropriate. How do you negotiate firmly without aggression?" }
+        ]
+      },
+      {
+        time: "T+24hr",
+        title: "Notification Decision",
+        body: "Customer data exposed: ~3,400 customer records with PII. Risk-of-harm assessment: moderate (names, addresses, partial financial). GDPR 72-hour clock is running.",
+        prompts: [
+          { role: "LEGAL", q: "ICO notification — yes or no? On what basis?" },
+          { role: "EXEC", q: "Customer notification — direct, public, both?" }
+        ],
+        decision: {
+          question: "Notify the ICO?",
+          options: [
+            "Yes — formal notification within 72 hours",
+            "No — assess that risk-of-harm doesn't meet threshold, document",
+            "Voluntary disclosure with full transparency",
+            "Defer 24 hours pending more scope"
+          ]
+        }
+      },
+      {
+        time: "T+3 days",
+        title: "Internal Investigation",
+        body: "The engineer who created the bucket is identified. Interviewed. Confirms it was a mistake — not malicious. They followed change-control but no verification. They're upset and concerned about job security.",
+        prompts: [
+          { role: "HR", q: "Disciplinary or just-culture? What's the response, and who decides?" },
+          { role: "IRL", q: "Engineer's psychological safety vs accountability — how do you frame this?" }
+        ]
+      },
+      {
+        time: "T+10 days",
+        title: "Customer Notification",
+        body: "3,400 customers notified by email. Response volume manageable. 12 customers ask for full deletion of their data. 3 ask for compensation. 1 trade publication picks up the story but is sympathetic ('responsible disclosure').",
+        prompts: [
+          { role: "COMMS", q: "Compensation requests — policy? Do you say yes, no, case-by-case?" }
+        ]
+      },
+      {
+        time: "T+30 days",
+        title: "Researcher Blog",
+        body: "Researcher publishes responsible-disclosure blog. Names {orgName}. Praises the response. The story doesn't blow up. Internal review finds: change-control was followed but verification was inadequate; CSPM was not deployed in this {cloud} account.",
+        prompts: [
+          { role: "IRL", q: "CSPM deployment — what's the business case, what's the cost, what's the priority?" }
+        ]
+      },
+      {
+        time: "T+60 days",
+        title: "Programme Outcomes",
+        body: "CSPM deployed. Public-bucket detection rule active. Vulnerability disclosure programme formalised. Engineer received coaching, retained role. Total cost (notification, customer support, remediation): ~£180k.",
+        prompts: [
+          { role: "EXEC", q: "Lessons for the board — what's the structural takeaway?" }
+        ]
+      }
+    ],
+    adaptive: [
+      { id: "second-bucket", title: "More Buckets Found", desc: "CSPM scan reveals 7 more publicly-readable buckets across {cloud} — sweep ongoing." },
+      { id: "data-resold", title: "Data Found For Sale", desc: "Threat intel finds your customer data being offered for sale on a dark-web forum." },
+      { id: "researcher-aggressive", title: "Researcher Goes Public", desc: "Researcher posts publicly before agreed disclosure date due to a misunderstanding." },
+      { id: "regulator-investigation", title: "Regulator Opens Investigation", desc: "ICO opens formal investigation citing similar incidents in your sector." },
+      { id: "engineer-resigns", title: "Engineer Resigns", desc: "The engineer who made the misconfiguration resigns out of stress — succession risk." }
+    ]
+  },
+
+  // -----------------------------------------------------------
+  // 9. NATION-STATE / ESPIONAGE
+  // -----------------------------------------------------------
+  {
+    id: "apt",
+    title: "Nation-State Persistent Intrusion",
+    threatActor: "Nation-state APT",
+    complexity: "Very High",
+    duration: "3–4 hours",
+    tags: ["APT", "Espionage", "Long dwell", "Living-off-the-land"],
+    description: "A sophisticated state actor establishes long-term presence to conduct intelligence collection. Discovery is via threat-intel sharing rather than internal detection. Tests sustained response, attribution-aware decision-making, and covert eviction.",
+    objectives: [
+      "Test ability to sustain a months-long covert investigation",
+      "Validate threat-hunt against living-off-the-land techniques",
+      "Exercise government and sector engagement",
+      "Test eviction without alerting the actor"
+    ],
+    rolesRequired: ["IRL","EXEC","LEGAL","ITOPS","SOC","COMMS"],
+    cafMapping: ["B4 (Detection)", "C1 (Security Monitoring)", "C2 (Proactive Discovery)", "D1 (Response Planning)"],
+    csfMapping: ["DE.CM", "DE.AE", "RS.AN", "RS.MI"],
+    injects: [
+      {
+        time: "T+0",
+        title: "NCSC Intelligence Briefing",
+        body: "NCSC contacts the CISO under restricted handling: there's specific intelligence indicating {orgName} has been targeted by a state-sponsored APT for at least 6 months. Specific IOCs are shared. The briefing is restricted — the CISO can share with a small named team only.",
+        prompts: [
+          { role: "EXEC", q: "Restricted handling — who in {orgName} can be told? What about the CEO and Chair?" },
+          { role: "IRL", q: "Initial team — keep it small. Who's in?" },
+          { role: "LEGAL", q: "Government information handling — what's the legal basis, what are the obligations?" }
+        ]
+      },
+      {
+        time: "T+4hr",
+        title: "Initial Hunt",
+        body: "Threat-hunt against IOCs. {edr} shows 4 hosts have communicated with C2 infrastructure. {siem} reveals more — credential abuse via legitimate {identity} accounts, scheduled tasks running PowerShell, suspicious DNS queries. The activity is patient — minutes-per-day, not hours-per-day. Pure living-off-the-land.",
+        prompts: [
+          { role: "SOC", q: "Living-off-the-land — what's your detection coverage on legitimate-tools-misused?" },
+          { role: "IRL", q: "What's been the dwell time? When did the actor first arrive?" }
+        ]
+      },
+      {
+        time: "T+12hr",
+        title: "Scope Expanding",
+        body: "Hunt expands. Estimated dwell time: 8 months. Confirmed accessed: 2 senior executive mailboxes, M&A folder, 3 R&D project drives, and read-access to {erp} via service principal. No bulk exfil — selective document access, often for hours then long pauses.",
+        prompts: [
+          { role: "EXEC", q: "Senior exec mailboxes accessed for 8 months — implications? Who needs to know?" },
+          { role: "IRL", q: "Eviction strategy — fast, slow, NCSC-led?" }
+        ],
+        decision: {
+          question: "Eviction approach?",
+          options: [
+            "Fast eviction in 48 hours — accept loss of intel and possible re-entry",
+            "Slow controlled eviction over 30 days — coordinate with NCSC",
+            "Hold and monitor under NCSC guidance to gather attribution",
+            "Hybrid — protect critical, monitor secondary"
+          ]
+        }
+      },
+      {
+        time: "T+24hr",
+        title: "Strategic Implications",
+        body: "Material accessed includes: confidential negotiating positions on a major government contract; M&A workstream targeting an overseas acquisition; R&D on next-generation product roadmap; HR data on a small group of staff who hold security clearance.",
+        prompts: [
+          { role: "EXEC", q: "Material consequences — government contract, M&A, R&D advantage. Who needs informing? When?" },
+          { role: "LEGAL", q: "Cleared staff — separate notification path to government? What's the obligation?" }
+        ]
+      },
+      {
+        time: "T+3 days",
+        title: "Containment Without Alerting",
+        body: "Strategy chosen: 30-day controlled eviction. Approach: revoke the service principal in a way that looks like normal credential rotation, deploy hidden honey-tokens to detect re-entry, prepare for hard eviction at day 30.",
+        prompts: [
+          { role: "ITOPS", q: "How do you revoke without it looking like a security action? Operational disguise?" },
+          { role: "SOC", q: "Honey-tokens — what's the design? What's the alert path?" }
+        ]
+      },
+      {
+        time: "T+2 weeks",
+        title: "Re-Entry Attempt",
+        body: "The actor attempts re-entry via a different vector — phishing of a finance executive with a tailored lure referencing internal terminology only seen in mailbox content. The attempt is detected via heightened email controls.",
+        prompts: [
+          { role: "SOC", q: "Detection — what made this catchable? How do you operationalise that?" },
+          { role: "IRL", q: "Acceleration — does this trigger fast eviction?" }
+        ]
+      },
+      {
+        time: "T+30 days",
+        title: "Hard Eviction",
+        body: "Coordinated eviction executed. All known persistence removed. Credentials and tokens rotated tenant-wide. {edr} re-baselined. {network} segmentation reviewed. NCSC observes throughout.",
+        prompts: [
+          { role: "ITOPS", q: "Tenant-wide rotation — what's the user impact? Comms strategy?" }
+        ]
+      },
+      {
+        time: "T+45 days",
+        title: "Customer / Stakeholder Disclosure",
+        body: "Decision required on disclosure: customers whose data was potentially accessed; the government counterpart on the targeted contract; the M&A target. NCSC has provided guidance but decision is yours.",
+        prompts: [
+          { role: "EXEC", q: "Disclosure scope — minimum legal, professional minimum, or full transparency?" },
+          { role: "COMMS", q: "Public statement — confirm incident at all? National-security framing?" }
+        ],
+        decision: {
+          question: "Public statement strategy?",
+          options: [
+            "Full public disclosure — name actor, name impact",
+            "Minimal disclosure — confirm 'a sophisticated incident' was contained",
+            "Private notifications only — no public statement",
+            "Coordinated with NCSC government statement"
+          ]
+        }
+      },
+      {
+        time: "T+90 days",
+        title: "Sustained Response",
+        body: "Investigation continues. Partial attribution achieved with NCSC. M&A workstream paused while reviewed. Cleared-staff briefings completed. Two press inquiries handled. No public confirmation of the incident.",
+        prompts: [
+          { role: "IRL", q: "What's the steady-state defensive posture from here? Permanently elevated?" }
+        ]
+      },
+      {
+        time: "T+180 days",
+        title: "Programme Review",
+        body: "Strategic review concluded. Investments planned: enhanced threat-hunt, tier-1 SOC analytics for living-off-the-land, identity-threat detection, segmentation. Estimated programme cost: £4-6M over 24 months.",
+        prompts: [
+          { role: "EXEC", q: "Board investment case — return on this is hard to quantify. How do you justify it?" }
+        ]
+      }
+    ],
+    adaptive: [
+      { id: "leak-actor", title: "Actor Leaks Strategically", desc: "Selected materials appear in a foreign press outlet — strategic leak to damage your contract bid." },
+      { id: "second-victim", title: "Peer Briefing", desc: "NCSC informs you a peer in your sector is being similarly targeted — joint learning opportunity." },
+      { id: "exec-personal", title: "Exec Personally Targeted", desc: "An affected executive's personal email and home network show signs of follow-on targeting." },
+      { id: "media-tip", title: "Journalist Tip", desc: "A journalist contacts the press office: 'I'm hearing about state-actor activity at {orgName}. Comment?'" },
+      { id: "ma-collapse", title: "M&A Target Withdraws", desc: "M&A target gets wind of the incident through back-channels and pulls out of the deal." }
+    ]
+  },
+
+  // -----------------------------------------------------------
+  // 10. DESTRUCTIVE WIPER
+  // -----------------------------------------------------------
+  {
+    id: "wiper",
+    title: "Destructive Attack (Wiper Malware)",
+    threatActor: "Nation-state / hacktivist (motive: disruption)",
+    complexity: "Very High",
+    duration: "3 hours",
+    tags: ["Wiper", "Destructive", "Recovery", "Geopolitical"],
+    description: "A destructive attack — no ransom, no negotiation, no data exfil. Systems are wiped. Aim is operational disruption. Often geopolitically motivated. Tests recovery-only response, business continuity, and crisis comms in a no-leverage scenario.",
+    objectives: [
+      "Test recovery capability when negotiation is not an option",
+      "Validate business continuity for extended outage",
+      "Exercise crisis comms with national-security framing",
+      "Test operational continuity beyond technical recovery"
+    ],
+    rolesRequired: ["IRL","EXEC","LEGAL","ITOPS","SOC","COMMS","BIZ"],
+    cafMapping: ["B5 (Resilient Networks)", "C1 (Security Monitoring)", "D1 (Response Planning)", "D1.b (Recovery)"],
+    csfMapping: ["RS.MI", "RC.RP", "RC.IM", "RC.CO"],
+    injects: [
+      {
+        time: "T-1 day",
+        title: "Geopolitical Context",
+        body: "Geopolitical tensions involving {orgName}'s sector have intensified over recent weeks. Industry advisories warn of elevated risk to critical infrastructure and named industries. {orgName} fits the targeting profile.",
+        prompts: [
+          { role: "IRL", q: "What's your elevated-threat protocol? Anything specific you do?" },
+          { role: "EXEC", q: "Threat intelligence — does it actually change behaviour, or stay in a report?" }
+        ]
+      },
+      {
+        time: "T+0",
+        title: "Mass Outage",
+        body: "08:00 Tuesday. Within 90 seconds, hundreds of Windows endpoints display 'Operating system not found.' VMware ESXi clusters report mass datastore corruption. {erp} is unreachable. {email} (cloud-hosted) is up. {network} is up. The wiper has destroyed boot sectors and overwrote critical data.",
+        prompts: [
+          { role: "IRL", q: "Initial assessment — wiper or ransomware? How do you tell? Why does it matter?" },
+          { role: "ITOPS", q: "What's the trigger to declare disaster recovery? Authorities?" },
+          { role: "EXEC", q: "60-second elevator brief to the CEO. Go." }
+        ]
+      },
+      {
+        time: "T+30min",
+        title: "No Ransom Note",
+        body: "No ransom note. No negotiation channel. No demand. The attack appears purely destructive. Public sources start reporting similar attacks at peer organisations. Initial attribution speculation points to nation-state activity.",
+        prompts: [
+          { role: "IRL", q: "No leverage means recovery is the only path. What changes operationally?" },
+          { role: "COMMS", q: "Press already speculating — when do you confirm? What do you confirm?" }
+        ]
+      },
+      {
+        time: "T+2hr",
+        title: "Recovery Triage",
+        body: "Recovery scoping: 1,800 endpoints need rebuild; 80% of on-prem servers wiped; {backup} immutable backups appear intact (this wiper didn't target backups directly); {cloud} infrastructure unaffected; {erp} database restorable from last night's backup. RTO estimate: 5-7 days for full restoration.",
+        prompts: [
+          { role: "ITOPS", q: "5-7 days. Walk through the order — what comes back first, what last? Why?" },
+          { role: "BIZ", q: "What's the business cost of 5-7 days of partial outage? Has anyone modelled it?" }
+        ],
+        decision: {
+          question: "Public statement timing?",
+          options: [
+            "Within 1 hour — confirm incident, set expectations",
+            "Within 4 hours — once scope is clearer",
+            "Wait 24 hours — fuller picture, less retraction",
+            "Decline to comment publicly until customers contact us"
+          ]
+        }
+      },
+      {
+        time: "T+4hr",
+        title: "Customer Impact",
+        body: "Customer-facing services degraded. The website is up but order processing is offline. Phone support is up but cannot access {crm}. Manual workarounds being assembled. Customer call volume up 400%.",
+        prompts: [
+          { role: "BIZ", q: "Customer service — what's the workaround? Manual order pads, escalation only, contact-form-only?" },
+          { role: "COMMS", q: "Customer messaging — IVR, website banner, email all customers, social media?" }
+        ]
+      },
+      {
+        time: "T+8hr",
+        title: "Sector Coordination",
+        body: "NCSC convenes a sector call with peers also affected. Joint IOCs being shared. Government reassurance posture being coordinated. Insurance broker on call. DFIR retainer is on-site.",
+        prompts: [
+          { role: "EXEC", q: "Joint sector posture — coordinate or stand alone? Trade-offs?" },
+          { role: "LEGAL", q: "Cyber insurance — what's the claim look like for destructive damage rather than data loss?" }
+        ]
+      },
+      {
+        time: "T+24hr",
+        title: "Day 2 — Recovery Pace",
+        body: "350 of 1,800 endpoints restored. Domain controllers rebuilt. {erp} database restored, finance team validating. {crm} restoration begun. Staff working from personal devices in some cases — security risk being managed.",
+        prompts: [
+          { role: "ITOPS", q: "Personal devices for work — risk vs continuity. What's the policy under emergency conditions?" },
+          { role: "IRL", q: "Recovery is going to plan. What's the failure mode you're worried about?" }
+        ]
+      },
+      {
+        time: "T+3 days",
+        title: "Press / Reputation",
+        body: "Story has gone national. Customers are mostly understanding. Two trade-press articles framing it as 'cyber-attack on critical sector.' Government has issued sector-wide statement. Two of your largest customers ask for incident-recovery briefings.",
+        prompts: [
+          { role: "COMMS", q: "Sustained press posture — daily updates, weekly, ad-hoc?" },
+          { role: "EXEC", q: "Customer briefings — bring your CISO, your CIO, your CEO. Tone — apologetic, transparent, confident?" }
+        ]
+      },
+      {
+        time: "T+7 days",
+        title: "Substantially Recovered",
+        body: "95% of systems restored. Some legacy applications still being rebuilt. Customer service back to BAU. Investigation ongoing; no further actor activity. Estimated direct cost of recovery: £6M. Indirect (lost revenue, customer compensation): £12-15M.",
+        prompts: [
+          { role: "EXEC", q: "Customer compensation — proactive offer? What level?" },
+          { role: "IRL", q: "What's the lesson — was this preventable, or is recovery the only realistic posture for state-level wipers?" }
+        ]
+      },
+      {
+        time: "T+60 days",
+        title: "Strategic Review",
+        body: "Investments proposed: segmentation, immutable backup expansion, identity-threat detection, threat-led red-teaming, BCP exercises. Total ask: £8-10M over 18 months. Board reception: serious, supportive — but pressure on returns.",
+        prompts: [
+          { role: "EXEC", q: "ROI on resilience — how do you quantify? Avoided loss?" }
+        ]
+      }
+    ],
+    adaptive: [
+      { id: "second-wave", title: "Second Wave", desc: "A second wiper variant detonates 36 hours after the first — targeted at recently rebuilt systems." },
+      { id: "supply-chain", title: "Customer Supply-Chain Pressure", desc: "Customers pressuring you on supply-chain assurance — they're worried they could be next, via you." },
+      { id: "staff-fatigue", title: "Staff Burnout", desc: "Recovery teams have been running 18-hour shifts for 5 days. Two errors made; one person in tears." },
+      { id: "geopolitical", title: "Geopolitical Escalation", desc: "Government attribution announcement names the actor — your situation becomes high-profile." },
+      { id: "insurance-dispute", title: "Insurance War-Exclusion", desc: "Insurer signals they may invoke war/state-actor exclusion — claim at risk." }
+    ]
+  },
+
+  // -----------------------------------------------------------
+  // 11. AI / DEEPFAKE FRAUD
+  // -----------------------------------------------------------
+  {
+    id: "deepfake",
+    title: "AI-Enabled Deepfake CEO Fraud",
+    threatActor: "Cyber-criminal (sophisticated, well-resourced)",
+    complexity: "Medium-High",
+    duration: "2 hours",
+    tags: ["Deepfake", "AI", "Fraud", "Social engineering"],
+    description: "An attacker uses publicly available video, audio and corporate intelligence to construct a convincing AI-generated video call impersonating the CEO, instructing a finance executive to make an urgent payment. Tests verification protocols against AI-enabled social engineering.",
+    objectives: [
+      "Test resilience of verification protocols against AI deepfakes",
+      "Validate out-of-band confirmation processes",
+      "Exercise rapid detection and recovery from social-engineering loss",
+      "Test board awareness of AI-enabled threat evolution"
+    ],
+    rolesRequired: ["IRL","EXEC","FIN","LEGAL","COMMS","SOC"],
+    cafMapping: ["B6 (Staff Awareness and Training)", "B2 (Identity)", "C1 (Security Monitoring)"],
+    csfMapping: ["PR.AT", "PR.AA", "DE.CM"],
+    injects: [
+      {
+        time: "T-7 days",
+        title: "Reconnaissance",
+        body: "Over a week, an attacker harvests CEO video from earnings calls, conference talks, podcast interviews, and {orgName} internal videos that leaked through a third-party event. Trains a voice clone and prepares a video deepfake. Studies organisational structure via LinkedIn to identify the right finance target.",
+        prompts: [
+          { role: "COMMS", q: "Public CEO content — is there an audit of what's out there? Should there be?" },
+          { role: "SOC", q: "Detection of clone-training — is that a feasible threat-intel signal?" }
+        ]
+      },
+      {
+        time: "T+0",
+        title: "The Call",
+        body: "16:45 on a Friday. The Group Treasurer receives a Microsoft Teams call from 'CEO.' Video shows the CEO in their office. Audio matches perfectly. They explain: 'We're in a closed acquisition negotiation, deal closes Monday, we need to wire £4.8M today as deposit. Highly confidential. I've sent the details. Please process now and confirm. I'll send the email papers Monday.' Email arrives moments later from CEO@{orgName}.com (genuine domain).",
+        prompts: [
+          { role: "FIN", q: "What's the verification protocol for £4.8M? Walk it through. Does it survive a Teams call from the CEO?" },
+          { role: "EXEC", q: "Authority limits — what should the CEO be empowered to authorise unilaterally vs board?" }
+        ]
+      },
+      {
+        time: "T+30min",
+        title: "The Pressure",
+        body: "The Treasurer wants to verify but the CEO 'is going into another meeting.' On video: 'Look, you can call my EA in 30 minutes if you must, but the deal team is waiting. This is exactly why we have you — empowered to act.' Email follow-up reinforces urgency, includes 'banking instructions' on what looks like {orgName} letterhead.",
+        prompts: [
+          { role: "FIN", q: "Pressure tactics + apparent authority. What does the Treasurer do?" },
+          { role: "FIN", q: "Out-of-band verification — what's 'good enough'?" }
+        ],
+        decision: {
+          question: "What's the Treasurer's correct action?",
+          options: [
+            "Process the payment — CEO authorised, urgency acknowledged",
+            "Refuse without out-of-band verification — risk angering CEO",
+            "Process partial — £500k now, balance after verification",
+            "Escalate to CFO immediately, hold payment"
+          ]
+        }
+      },
+      {
+        time: "T+90min",
+        title: "Discovery",
+        body: "Treasurer processes £4.8M. Bank confirms. At 17:30, Treasurer sends 'Done — confirmation 24987' to the CEO's email. CEO is at home, sees the email, and replies 'What payment? I haven't been on a call with you today.' Realisation lands.",
+        prompts: [
+          { role: "IRL", q: "First 60 minutes — payment recall, identity check, evidence preservation. Order?" },
+          { role: "FIN", q: "Bank recall on a Friday at 17:30 — what's the process? Out-of-hours?" }
+        ]
+      },
+      {
+        time: "T+3hr",
+        title: "Initial Recovery",
+        body: "Bank emergency line activated. £2.4M frozen at first hop. £2.4M moved through second hop and is gone. Action Fraud notified. Investigation begins. Email source forensics show the email came from inside {orgName} — sent through a compromised mailbox, not spoofed.",
+        prompts: [
+          { role: "SOC", q: "A compromised mailbox sent the email — whose? What's the scope?" },
+          { role: "IRL", q: "We thought this was just a deepfake call — now we have an internal compromise too. Re-scope?" }
+        ]
+      },
+      {
+        time: "T+24hr",
+        title: "Compromised Mailbox Detail",
+        body: "Investigation finds: an Executive Assistant's mailbox was compromised 3 weeks ago via a phishing attack with OAuth grant. Attacker had read access including CEO calendar, internal protocols, and naming conventions. The Teams call was joined via a guest link sent from a third-party-domain that mimicked a partner.",
+        prompts: [
+          { role: "IRL", q: "Multi-vector attack — phishing + OAuth + deepfake call + spoof email + compromised mailbox. Sophistication." },
+          { role: "EXEC", q: "How do you communicate to staff that this happened, without making everyone paranoid?" }
+        ]
+      },
+      {
+        time: "T+3 days",
+        title: "Comms & Discipline",
+        body: "Internal communication required — staff have heard rumours. Treasurer is distraught and considering resigning. Board has been informed. Cyber insurance broker engaged. Press has not yet picked up.",
+        prompts: [
+          { role: "HR", q: "Treasurer — is this a discipline matter or a 'caught by sophisticated attack' matter? Where's the line?" },
+          { role: "COMMS", q: "Internal staff comms — be specific to deter copycat attacks, or general to avoid panic?" }
+        ]
+      },
+      {
+        time: "T+7 days",
+        title: "Process & Programme",
+        body: "Verification protocol revised: any payment instruction by video/voice must have a callback to a known number plus a separate written approval via {erp} workflow. Deepfake-awareness training rolled out. Authority limits reviewed.",
+        prompts: [
+          { role: "FIN", q: "How disruptive is the new protocol? Will it be followed under pressure?" },
+          { role: "IRL", q: "Threat-intel signal for executive deepfakes — is there one? Should there be?" }
+        ]
+      },
+      {
+        time: "T+30 days",
+        title: "Recovery & Loss",
+        body: "Final recovery: £3.1M of £4.8M recovered (additional traces succeeded). Cyber insurance covers £1.2M of remaining loss. Net loss: £500k. Treasurer remains in role with additional support. Board has commissioned AI-threat readiness review.",
+        prompts: [
+          { role: "EXEC", q: "Board AI-threat readiness — what's the scope? What does 'ready' look like?" }
+        ]
+      },
+      {
+        time: "T+90 days",
+        title: "Sector Sharing",
+        body: "Decision on whether to share the case (anonymised) with sector peers and regulators. Could help others; could expose details. NCSC has expressed interest.",
+        prompts: [
+          { role: "LEGAL", q: "Anonymised sharing — do you trust anonymisation, or hold? Reputation vs sector benefit?" }
+        ],
+        decision: {
+          question: "Share the case with peers / NCSC?",
+          options: [
+            "Yes — full anonymised case study via NCSC",
+            "Yes — limited, technical IOCs only",
+            "Internal only — no external sharing",
+            "Public case study to drive sector awareness"
+          ]
+        }
+      }
+    ],
+    adaptive: [
+      { id: "second-attempt", title: "Second Attempt", desc: "A different finance team member receives a similar deepfake call days later — testing if the attack has been understood." },
+      { id: "ceo-impact", title: "CEO Personal Distress", desc: "The CEO is shaken at being impersonated and considers reducing public appearances." },
+      { id: "media-leak", title: "Story Leaks", desc: "Tech press picks up the story: 'Deepfake fraud at {orgName} — the new normal?'" },
+      { id: "treasurer-resigns", title: "Treasurer Resigns", desc: "The Treasurer resigns despite reassurance — succession risk and morale implications." },
+      { id: "regulator-interest", title: "Regulator Interest", desc: "FCA / sector regulator opens dialogue on AI-fraud preparedness across the sector." }
+    ]
+  },
+
+  // -----------------------------------------------------------
+  // 12. CLOUD ACCOUNT TAKEOVER
+  // -----------------------------------------------------------
+  {
+    id: "cloud-takeover",
+    title: "Cloud Account Takeover (Tenant-Level)",
+    threatActor: "Cyber-criminal (cloud-specialist crew)",
+    complexity: "High",
+    duration: "2.5 hours",
+    tags: ["Cloud", "Identity", "Tenant compromise", "Crypto-mining"],
+    description: "An attacker compromises a global administrator credential for {cloud} or {identity}. They establish persistence at tenant level, deploy crypto-miners, and exfiltrate sensitive data — all looking like legitimate admin activity. Tests cloud-tier identity protection and tenant-level eviction.",
+    objectives: [
+      "Test detection of malicious activity from privileged cloud accounts",
+      "Validate tenant-wide credential rotation processes",
+      "Exercise cloud forensics and audit-log analysis",
+      "Test recovery from compromised root/global-admin credentials"
+    ],
+    rolesRequired: ["IRL","EXEC","LEGAL","ITOPS","SOC","FIN"],
+    cafMapping: ["A3 (Asset Management)", "B2 (Identity and Access Control)", "B4 (Detection)", "C1 (Security Monitoring)"],
+    csfMapping: ["PR.AA", "DE.CM", "RS.MA", "RS.AN"],
+    injects: [
+      {
+        time: "T-30 days",
+        title: "Initial Access",
+        body: "A {cloud} global admin's personal email is compromised via credential stuffing (re-used password from a breach years ago). The attacker recovers the {cloud} admin's password reset email, takes over the account. MFA was enabled but the attacker exploits a recovery flow weakness.",
+        prompts: [
+          { role: "ITOPS", q: "Recovery flows on privileged accounts — are they hardened against credential stuffing?" },
+          { role: "SOC", q: "Detection of MFA-recovery flows being abused — coverage?" }
+        ]
+      },
+      {
+        time: "T-21 days",
+        title: "Persistence Established",
+        body: "Attacker creates a second global-admin account with an innocuous name ('CloudOps-Backup'). Adds an alternate authentication method. Creates an OAuth app with broad permissions. Begins quiet enumeration of {cloud} resources, {erp} integrations, and {identity} structure.",
+        prompts: [
+          { role: "SOC", q: "New global-admin account created — should that be a high-priority alert? Is it?" }
+        ]
+      },
+      {
+        time: "T-7 days",
+        title: "Resource Abuse",
+        body: "Attacker spins up 200+ high-spec compute instances in {cloud} for crypto-mining. Uses regions you don't normally operate in. {cloud} cost dashboard shows a £40k/day spike but no one is monitoring weekend-to-Monday cost.",
+        prompts: [
+          { role: "FIN", q: "Cloud cost monitoring — who watches it? What's the alert threshold?" },
+          { role: "ITOPS", q: "Resources in unusual regions — is that a detection? Why or why not?" }
+        ]
+      },
+      {
+        time: "T+0",
+        title: "Cost Alert",
+        body: "Monday 09:00. Finance receives an automated cost alert: this month's {cloud} spend is on track for £1.2M vs. £180k budget. They escalate to CIO. Initial assumption: a runaway dev environment. Investigation begins.",
+        prompts: [
+          { role: "ITOPS", q: "First investigative move — who looks at what?" }
+        ]
+      },
+      {
+        time: "T+1hr",
+        title: "Mining Discovered",
+        body: "Investigation reveals 240 high-CPU instances running in unusual regions with crypto-mining processes. Created by 'CloudOps-Backup' admin account. {siem} confirms the account was created 21 days ago by the original compromised admin. Things are now clearly malicious.",
+        prompts: [
+          { role: "IRL", q: "Major incident declaration. Who? When? Authority?" },
+          { role: "SOC", q: "Scope hunt — what else has 'CloudOps-Backup' touched?" }
+        ]
+      },
+      {
+        time: "T+2hr",
+        title: "Scope Expansion",
+        body: "Audit logs reveal 'CloudOps-Backup' has: enumerated all {cloud} storage; exported a list of all users and groups from {identity}; created OAuth app with mailbox.read permissions; downloaded backup archives of two storage accounts. The original compromised admin account also shows anomalous activity for a week before 'CloudOps-Backup' was created.",
+        prompts: [
+          { role: "ITOPS", q: "Tenant-wide global admin compromise — what's the eviction protocol? Practised before?" },
+          { role: "LEGAL", q: "Mailbox access — separately notifiable? Even read-access without confirmed exfil?" }
+        ],
+        decision: {
+          question: "Eviction approach?",
+          options: [
+            "Disable both admin accounts now, accept potential admin gap",
+            "Coordinate with {cloud} support, controlled eviction over hours",
+            "Hard-reset all global admins tenant-wide, force MFA re-enrollment",
+            "Engage incident response retainer before any action"
+          ]
+        }
+      },
+      {
+        time: "T+4hr",
+        title: "Eviction Execution",
+        body: "Tenant-wide global admin reset executed with {cloud} support. New emergency admin established with hardware MFA. Both compromised accounts disabled. OAuth app removed. All conditional access policies tightened. 240 mining instances terminated. Forensic copies preserved.",
+        prompts: [
+          { role: "ITOPS", q: "Privileged-access management programme — does this exist? What changes?" }
+        ]
+      },
+      {
+        time: "T+12hr",
+        title: "Data Question",
+        body: "Two storage accounts had backup archives downloaded. Contents: nightly snapshots of {erp}, {hr} data exports, customer financial reports. Total: ~340GB. Categorisation: significant volume of personal and commercial data.",
+        prompts: [
+          { role: "LEGAL", q: "GDPR notification — clock starts when? Voluntary disclosure to customers?" },
+          { role: "EXEC", q: "Public statement — financial impact of the cloud spend, but also the data exposure. Frame how?" }
+        ]
+      },
+      {
+        time: "T+24hr",
+        title: "Cost Recovery",
+        body: "Total {cloud} spend during attack: £980k (mining costs). {cloud} provider has agreed to credit £700k as a fraud-related anomaly. Net loss £280k from the mining alone, plus investigation, plus regulatory exposure.",
+        prompts: [
+          { role: "FIN", q: "Cyber insurance — does this attach to the cloud cost loss, the data exposure, both?" }
+        ]
+      },
+      {
+        time: "T+7 days",
+        title: "Programme & Lessons",
+        body: "Investigation complete. Root cause: re-used password on a privileged account, plus weak account recovery flow, plus weak detective control on global-admin creation, plus no cloud-cost-alert tied to security context. Programme work: PAM, JIT admin, hardware tokens for global admins, behaviour analytics on privileged accounts, cost-anomaly to security pipeline.",
+        prompts: [
+          { role: "IRL", q: "Five priorities — what makes the top of the list?" }
+        ]
+      },
+      {
+        time: "T+30 days",
+        title: "Customer & Regulatory Outcome",
+        body: "ICO notification submitted. Customer notification sent for the affected data subjects. No public customer churn. Insurance partial settlement. £1.2M total cost (loss + remediation + investigation) on a budget that was unprepared.",
+        prompts: [
+          { role: "EXEC", q: "Board communication — what's the structural change story?" }
+        ]
+      }
+    ],
+    adaptive: [
+      { id: "ransom", title: "Late Ransom Demand", desc: "After eviction, an email arrives: 'We have your data — £500k or we publish.' Tests assumption that it's just mining." },
+      { id: "second-tenant", title: "Second Tenant Found", desc: "Investigation reveals you had a second {cloud} tenant (forgotten, dormant) — also compromised." },
+      { id: "support-question", title: "Cloud Support Limits", desc: "{cloud} support pushes back on the £700k credit — wants more proof of fraud-not-misuse." },
+      { id: "admin-resigns", title: "Original Admin Resigns", desc: "The compromised admin (whose personal email was breached) resigns from stress." },
+      { id: "press-cost", title: "Press Picks Up Cost Story", desc: "A trade publication picks up the cloud-cost spike: '{orgName} loses £1M in cloud-mining attack.'" }
+    ]
+  }
+];
+
+
+SCENARIOS.push(...SCENARIOS_PART2);
+
+
+
+// ============================================================
+// RENDER: Scenario Library Cards
+// ============================================================
+function renderScenarioCards() {
+  const container = document.getElementById("scenario-cards");
+  if (!container) return;
+  container.innerHTML = SCENARIOS.map((s, idx) => {
+    const isSelected = state.selectedScenario === s.id;
+    const tags = s.tags.slice(0, 3).map(t => `<span class="tag">${t}</span>`).join("");
+    const complexityClass = s.complexity === "Very High" ? "danger" : s.complexity === "High" ? "warn" : "accent";
+    return `
+      <div class="scenario-card ${isSelected ? "selected" : ""}" onclick="selectScenario('${s.id}')">
+        <div class="scenario-num">${String(idx+1).padStart(2,"0")} / 12</div>
+        <div class="scenario-title">${s.title}</div>
+        <div class="scenario-desc">${sub(s.description)}</div>
+        <div class="scenario-meta">${tags}</div>
+        <div class="scenario-stats">
+          <span><strong>Threat:</strong> ${s.threatActor.split("(")[0].trim()}</span>
+        </div>
+        <div class="scenario-stats">
+          <span class="tag ${complexityClass}">${s.complexity}</span>
+          <span><strong>${s.injects.length}</strong> injects</span>
+          <span><strong>${s.duration}</strong></span>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function selectScenario(id) {
+  state.selectedScenario = id;
+  if (!state.injectsRevealed[id]) state.injectsRevealed[id] = [];
+  if (!state.decisionsMade[id]) state.decisionsMade[id] = {};
+  if (!state.adaptiveFired[id]) state.adaptiveFired[id] = [];
+  if (!state.notes[id]) state.notes[id] = [];
+  renderScenarioCards();
+  // Auto-advance to brief
+  setTimeout(() => goToView("brief"), 300);
+}
+
+function getScenario(id) {
+  return SCENARIOS.find(s => s.id === id);
+}
+
+// ============================================================
+// RENDER: Brief View
+// ============================================================
+function renderBrief() {
+  const container = document.getElementById("brief-content");
+  if (!state.selectedScenario) {
+    container.innerHTML = `
+      <div class="empty">
+        <div class="icon">◇</div>
+        <h2 style="justify-content:center;">No scenario selected</h2>
+        <p>Choose a scenario from the library to view the brief.</p>
+        <button class="btn primary" style="margin-top:16px;" onclick="goToView('library')">GO TO LIBRARY</button>
+      </div>
+    `;
+    return;
+  }
+  const s = getScenario(state.selectedScenario);
+  if (!s) { container.innerHTML = "<p>Scenario not found.</p>"; return; }
+
+  // Build personalised description with substitution
+  const personalisedDesc = sub(s.description);
+  const objectives = s.objectives.map(o => `<li>${sub(o)}</li>`).join("");
+  const cafTags = s.cafMapping.map(c => `<span class="tag accent">${c}</span>`).join("");
+  const csfTags = s.csfMapping.map(c => `<span class="tag purple">${c}</span>`).join("");
+  const tagList = s.tags.map(t => `<span class="tag">${t}</span>`).join("");
+
+  // Roles required — full role cards
+  const roleCards = s.rolesRequired.map(rId => {
+    const r = ROLES[rId];
+    if (!r) return "";
+    return `
+      <div class="role-card">
+        <div class="role-name">${rId} · ${r.name}</div>
+        <div class="role-desc">${r.desc}</div>
+        <div class="role-resp"><strong>Key Responsibilities</strong>${r.resp}</div>
+      </div>
+    `;
+  }).join("");
+
+  // Tech stack used (only show if any are populated)
+  const stackTokens = ["identity","edr","email","cloud","backup","siem","network","collab","erp","crm","hr","other"];
+  const stackLabels = {identity:"Identity",edr:"EDR",email:"Email",cloud:"Cloud",backup:"Backup",siem:"SIEM",network:"Network",collab:"Collab",erp:"ERP",crm:"CRM",hr:"HR",other:"Other"};
+  const stackRows = stackTokens.filter(t => state.stack[t]).map(t =>
+    `<div class="kv"><span class="k">${stackLabels[t]}</span><span class="v mono">${state.stack[t]}</span></div>`
+  ).join("");
+
+  const orgRows = `
+    <div class="kv"><span class="k">Organisation</span><span class="v">${state.org.name || "—"}</span></div>
+    <div class="kv"><span class="k">Sector</span><span class="v">${state.org.sector || "—"}</span></div>
+    <div class="kv"><span class="k">Size</span><span class="v">${state.org.size || "—"}</span></div>
+    <div class="kv"><span class="k">Geography</span><span class="v">${state.org.geo || "—"}</span></div>
+    <div class="kv"><span class="k">Date</span><span class="v mono">${state.org.date || "—"}</span></div>
+    <div class="kv"><span class="k">Facilitator</span><span class="v">${state.org.facilitator || "—"}</span></div>
+  `;
+
+  container.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+      <div>
+        <div class="mono dim" style="font-size:11px; letter-spacing:1px; text-transform:uppercase;">Scenario Brief</div>
+        <h1>${s.title}</h1>
+      </div>
+      <button class="btn primary" onclick="goToView('run')">BEGIN EXERCISE →</button>
+    </div>
+    <div style="margin-bottom:20px;">
+      ${tagList}
+      <span class="tag ${s.complexity==='Very High'?'danger':s.complexity==='High'?'warn':'accent'}">${s.complexity} complexity</span>
+      <span class="tag">${s.duration}</span>
+    </div>
+
+    <div class="grid grid-2">
+      <div>
+        <div class="panel">
+          <div class="panel-title">Scenario Description</div>
+          <p style="line-height:1.65;">${personalisedDesc}</p>
+          <div class="divider"></div>
+          <div class="panel-title">Threat Actor</div>
+          <p>${s.threatActor}</p>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Exercise Objectives</div>
+          <ul style="padding-left:20px; line-height:1.7;">${objectives}</ul>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Framework Mapping</div>
+          <div style="margin-bottom:10px;"><strong style="font-size:11px; text-transform:uppercase; color:var(--text-dim); letter-spacing:0.5px;">NCSC CAF</strong><br>${cafTags}</div>
+          <div><strong style="font-size:11px; text-transform:uppercase; color:var(--text-dim); letter-spacing:0.5px;">NIST CSF 2.0</strong><br>${csfTags}</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <div class="panel-title">Exercise Profile</div>
+          ${orgRows}
+        </div>
+
+        ${stackRows ? `
+        <div class="panel">
+          <div class="panel-title">Personalisation: Tech Stack</div>
+          <p style="font-size:12px; color:var(--text-dim); margin-bottom:10px;">These products will be referenced in injects.</p>
+          ${stackRows}
+        </div>` : `
+        <div class="panel">
+          <div class="alert warn"><strong>No tech stack configured.</strong> Injects will use generic placeholders. Go back to Setup to add your client's stack for stronger realism.</div>
+        </div>`}
+
+        <div class="panel">
+          <div class="panel-title">Required Roles (${s.rolesRequired.length})</div>
+          <div class="roles-grid">${roleCards}</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; margin-top:24px;">
+      <button class="btn ghost" onclick="goToView('library')">← BACK TO LIBRARY</button>
+      <button class="btn primary" onclick="goToView('run')">BEGIN EXERCISE →</button>
+    </div>
+  `;
+}
+
+// ============================================================
+// RENDER: Run View
+// ============================================================
+function renderRun() {
+  const container = document.getElementById("run-content");
+  if (!state.selectedScenario) {
+    container.innerHTML = `
+      <div class="empty">
+        <div class="icon">◇</div>
+        <h2 style="justify-content:center;">No scenario selected</h2>
+        <p>Choose a scenario from the library to begin.</p>
+        <button class="btn primary" style="margin-top:16px;" onclick="goToView('library')">GO TO LIBRARY</button>
+      </div>
+    `;
+    return;
+  }
+  const s = getScenario(state.selectedScenario);
+  if (!state.startedAt) state.startedAt = new Date().toISOString();
+  const revealed = state.injectsRevealed[s.id] || [];
+
+  // Timeline (left)
+  const timeline = s.injects.map((inj, idx) => {
+    const isRevealed = revealed.includes(idx);
+    const isCurrent = isRevealed && idx === Math.max(...revealed);
+    const cls = isCurrent ? "current" : isRevealed ? "revealed" : "locked";
+    return `
+      <div class="tl-item ${cls}" onclick="revealInject(${idx})">
+        <div class="tl-time">${inj.time}</div>
+        <div class="tl-title">${inj.title}</div>
+      </div>
+    `;
+  }).join("");
+
+  // Centre — revealed injects
+  const injectCards = revealed.length === 0 ? `
+    <div class="empty">
+      <div class="icon">▷</div>
+      <h2 style="justify-content:center;">Exercise ready</h2>
+      <p>Click the first inject in the timeline to begin.</p>
+      <button class="btn primary" style="margin-top:16px;" onclick="revealInject(0)">REVEAL FIRST INJECT</button>
+    </div>
+  ` : revealed.sort((a,b)=>a-b).map(idx => renderInjectCard(s, idx)).join("");
+
+  // Right — adaptive cards + role reference + notes
+  const adaptiveFired = state.adaptiveFired[s.id] || [];
+  const adaptiveCards = (s.adaptive || []).map(a => `
+    <div class="adaptive-item ${adaptiveFired.includes(a.id) ? "fired" : ""}" onclick="fireAdaptive('${a.id}')">
+      <div class="adaptive-item-title">${sub(a.title)}</div>
+      <div class="adaptive-item-desc">${sub(a.desc)}</div>
+    </div>
+  `).join("");
+
+  const roleRef = s.rolesRequired.map(rId => `
+    <div style="font-size:11px; padding:6px 0; border-bottom:1px solid var(--border);">
+      <span class="role-tag">${rId}</span> <span class="dim">${ROLES[rId]?.name || ""}</span>
+    </div>
+  `).join("");
+
+  const notes = (state.notes[s.id] || []).slice().reverse().map(n => `
+    <div class="note-item">
+      <div class="note-meta">${n.time} ${n.injectIdx !== undefined ? "· Inject " + (n.injectIdx+1) : ""}</div>
+      <div>${n.text}</div>
+    </div>
+  `).join("");
+
+  container.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px;">
+      <div>
+        <div class="mono dim" style="font-size:11px; letter-spacing:1px; text-transform:uppercase;">Running Exercise · ${revealed.length} of ${s.injects.length} injects revealed</div>
+        <h1 style="font-size:22px;">${s.title}</h1>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn ghost sm" onclick="goToView('brief')">← BRIEF</button>
+        <button class="btn primary sm" onclick="goToView('aar')">AFTER-ACTION →</button>
+      </div>
+    </div>
+
+    <div class="run-layout">
+      <div class="timeline">
+        <div class="panel-title" style="margin-bottom:10px;">Inject Timeline</div>
+        ${timeline}
+      </div>
+
+      <div class="inject-stage">
+        ${injectCards}
+      </div>
+
+      <div class="side-panel">
+        <div class="panel-title" style="margin-bottom:10px;">Adaptive Cards</div>
+        <p style="font-size:11px; color:var(--text-dim); margin-bottom:10px;">Fire ad-hoc to add pressure or test specific responses.</p>
+        <div class="adaptive-list">${adaptiveCards}</div>
+
+        <div style="margin-top:18px;">
+          <div class="panel-title" style="margin-bottom:8px;">Role Reference</div>
+          ${roleRef}
+        </div>
+
+        <div style="margin-top:18px;">
+          <div class="panel-title" style="margin-bottom:8px;">Live Notes</div>
+          <textarea id="quick-note" placeholder="Capture an observation, decision or quote..." style="font-size:12px; min-height:60px;"></textarea>
+          <button class="btn primary sm" style="margin-top:6px; width:100%;" onclick="addNote()">+ ADD NOTE</button>
+          <div class="notes-list" style="margin-top:10px;">${notes || '<p class="muted" style="font-size:11px;">No notes yet.</p>'}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderInjectCard(s, idx) {
+  const inj = s.injects[idx];
+  const prompts = (inj.prompts || []).map(p => `
+    <div class="role-prompt">
+      <span class="role-tag">${p.role}</span>
+      <div>${sub(p.q)}</div>
+    </div>
+  `).join("");
+
+  const decisionMade = state.decisionsMade[s.id] && state.decisionsMade[s.id][idx] !== undefined
+    ? state.decisionsMade[s.id][idx] : null;
+
+  const decision = inj.decision ? `
+    <div class="decision-card">
+      <div class="label-row"><span class="pill">Decision Required</span></div>
+      <div class="decision-question">${sub(inj.decision.question)}</div>
+      <div class="decision-options">
+        ${inj.decision.options.map((opt, oi) => `
+          <div class="decision-option ${decisionMade === oi ? "chosen" : ""}" onclick="recordDecision('${s.id}', ${idx}, ${oi})">
+            ${decisionMade === oi ? "✓ " : ""}${sub(opt)}
+          </div>
+        `).join("")}
+      </div>
+      ${decisionMade !== null ? `<div style="font-size:11px; color:var(--accent-2); margin-top:6px;">Decision recorded — captured in After-Action Report.</div>` : ""}
+    </div>
+  ` : "";
+
+  return `
+    <div class="inject-card">
+      <div class="inject-header">
+        <h3>${sub(inj.title)}</h3>
+        <span class="inject-time">${inj.time}</span>
+      </div>
+      <div class="inject-body">${sub(inj.body)}</div>
+      ${prompts ? `
+      <div class="inject-section">
+        <div class="inject-section-title">Role Prompts (Facilitator Discussion)</div>
+        <div class="role-prompts">${prompts}</div>
+      </div>` : ""}
+      ${decision}
+    </div>
+  `;
+}
+
+function revealInject(idx) {
+  const s = getScenario(state.selectedScenario);
+  if (!s) return;
+  if (!state.injectsRevealed[s.id]) state.injectsRevealed[s.id] = [];
+  if (!state.injectsRevealed[s.id].includes(idx)) {
+    state.injectsRevealed[s.id].push(idx);
+  }
+  renderRun();
+}
+
+function recordDecision(scenarioId, injectIdx, optionIdx) {
+  if (!state.decisionsMade[scenarioId]) state.decisionsMade[scenarioId] = {};
+  state.decisionsMade[scenarioId][injectIdx] = optionIdx;
+  renderRun();
+}
+
+function fireAdaptive(aid) {
+  const s = getScenario(state.selectedScenario);
+  if (!s) return;
+  if (!state.adaptiveFired[s.id]) state.adaptiveFired[s.id] = [];
+  const card = (s.adaptive || []).find(a => a.id === aid);
+  if (!card) return;
+  if (state.adaptiveFired[s.id].includes(aid)) return; // already fired
+  state.adaptiveFired[s.id].push(aid);
+  // Add as a note
+  if (!state.notes[s.id]) state.notes[s.id] = [];
+  state.notes[s.id].push({
+    time: new Date().toLocaleTimeString(),
+    text: `[ADAPTIVE FIRED] ${sub(card.title)}: ${sub(card.desc)}`,
+    injectIdx: undefined
+  });
+  renderRun();
+  // Show as alert
+  setTimeout(() => alert(`Adaptive Inject Fired:\n\n${sub(card.title)}\n\n${sub(card.desc)}`), 50);
+}
+
+function addNote() {
+  const ta = document.getElementById("quick-note");
+  if (!ta) return;
+  const text = ta.value.trim();
+  if (!text) return;
+  const s = getScenario(state.selectedScenario);
+  if (!state.notes[s.id]) state.notes[s.id] = [];
+  // Find current inject (last revealed)
+  const revealed = state.injectsRevealed[s.id] || [];
+  const currentIdx = revealed.length ? Math.max(...revealed) : undefined;
+  state.notes[s.id].push({
+    time: new Date().toLocaleTimeString(),
+    text: text,
+    injectIdx: currentIdx
+  });
+  ta.value = "";
+  renderRun();
+}
+
+// ============================================================
+// RENDER: After-Action Report
+// ============================================================
+function renderAAR() {
+  const container = document.getElementById("aar-content");
+  if (!state.selectedScenario) {
+    container.innerHTML = `
+      <div class="empty">
+        <div class="icon">◇</div>
+        <h2 style="justify-content:center;">No exercise to report on</h2>
+        <p>Run a scenario first, then return here for the After-Action Report.</p>
+      </div>
+    `;
+    return;
+  }
+  const s = getScenario(state.selectedScenario);
+  const revealed = state.injectsRevealed[s.id] || [];
+  const decisionsObj = state.decisionsMade[s.id] || {};
+  const adaptiveFired = state.adaptiveFired[s.id] || [];
+  const notes = state.notes[s.id] || [];
+
+  // Decisions log
+  const decisionRows = Object.keys(decisionsObj).sort((a,b) => +a - +b).map(idxStr => {
+    const idx = +idxStr;
+    const inj = s.injects[idx];
+    if (!inj || !inj.decision) return "";
+    const choice = inj.decision.options[decisionsObj[idx]];
+    return `
+      <tr>
+        <td class="mono dim" style="white-space:nowrap;">${inj.time}</td>
+        <td><strong>${sub(inj.title)}</strong><br><span class="dim" style="font-size:12px;">${sub(inj.decision.question)}</span></td>
+        <td>${sub(choice)}</td>
+      </tr>
+    `;
+  }).join("");
+
+  // Adaptive fired
+  const adaptiveRows = adaptiveFired.map(aid => {
+    const a = (s.adaptive || []).find(x => x.id === aid);
+    if (!a) return "";
+    return `
+      <tr>
+        <td><strong>${sub(a.title)}</strong></td>
+        <td>${sub(a.desc)}</td>
+      </tr>
+    `;
+  }).join("");
+
+  // Notes
+  const notesRows = notes.map((n, ni) => `
+    <tr>
+      <td class="mono dim" style="white-space:nowrap;">${n.time}</td>
+      <td>${n.injectIdx !== undefined ? `<span class="tag">Inject ${n.injectIdx+1}</span>` : ""}</td>
+      <td>${n.text}</td>
+    </tr>
+  `).join("");
+
+  // Action items — editable
+  const actionRows = (state.actionItems || []).map((ai, idx) => `
+    <tr>
+      <td><input type="text" value="${escapeHtml(ai.action)}" onchange="updateActionItem(${idx},'action',this.value)" placeholder="Action..."></td>
+      <td><input type="text" value="${escapeHtml(ai.owner)}" onchange="updateActionItem(${idx},'owner',this.value)" placeholder="Owner..."></td>
+      <td><input type="date" value="${ai.due || ''}" onchange="updateActionItem(${idx},'due',this.value)"></td>
+      <td><select onchange="updateActionItem(${idx},'priority',this.value)">
+        <option ${ai.priority==='High'?'selected':''}>High</option>
+        <option ${ai.priority==='Medium'?'selected':''}>Medium</option>
+        <option ${ai.priority==='Low'?'selected':''}>Low</option>
+      </select></td>
+      <td><button class="btn danger sm" onclick="removeActionItem(${idx})">×</button></td>
+    </tr>
+  `).join("");
+
+  // Gaps
+  const gapRows = (state.gapsIdentified || []).map((g, idx) => `
+    <tr>
+      <td><input type="text" value="${escapeHtml(g.area)}" onchange="updateGap(${idx},'area',this.value)" placeholder="Capability area..."></td>
+      <td><textarea onchange="updateGap(${idx},'gap',this.value)" placeholder="Gap description...">${escapeHtml(g.gap)}</textarea></td>
+      <td><select onchange="updateGap(${idx},'severity',this.value)">
+        <option ${g.severity==='Critical'?'selected':''}>Critical</option>
+        <option ${g.severity==='High'?'selected':''}>High</option>
+        <option ${g.severity==='Medium'?'selected':''}>Medium</option>
+        <option ${g.severity==='Low'?'selected':''}>Low</option>
+      </select></td>
+      <td><button class="btn danger sm" onclick="removeGap(${idx})">×</button></td>
+    </tr>
+  `).join("");
+
+  container.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+      <div>
+        <div class="mono dim" style="font-size:11px; letter-spacing:1px; text-transform:uppercase;">After-Action Report</div>
+        <h1>${s.title}</h1>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn ghost sm" onclick="goToView('run')">← RUN</button>
+        <button class="btn primary sm" onclick="exportPDF()">EXPORT PDF</button>
+      </div>
+    </div>
+
+    <div class="alert">
+      <strong>${state.org.name || "Exercise"}</strong> · ${state.org.sector || ""} · ${state.org.date || ""} · Facilitator: ${state.org.facilitator || "—"}<br>
+      ${revealed.length} of ${s.injects.length} injects run · ${Object.keys(decisionsObj).length} decisions captured · ${adaptiveFired.length} adaptive cards fired · ${notes.length} notes captured
+    </div>
+
+    <div class="aar-section">
+      <h2>Executive Summary</h2>
+      <div class="panel">
+        <textarea id="exec-summary" rows="5" placeholder="Summary of the exercise — scope, scenario, key findings..." onchange="state.execSummary = this.value;">${escapeHtml(state.execSummary || "")}</textarea>
+      </div>
+    </div>
+
+    <div class="aar-section">
+      <h2>Decisions Log</h2>
+      ${decisionRows ? `
+        <table class="aar-table">
+          <thead><tr><th style="width:120px;">Inject Time</th><th>Decision Required</th><th>Decision Made</th></tr></thead>
+          <tbody>${decisionRows}</tbody>
+        </table>` : `<div class="panel"><p class="muted">No decisions were captured during the exercise.</p></div>`}
+    </div>
+
+    <div class="aar-section">
+      <h2>Gaps Identified</h2>
+      <div class="panel">
+        <table class="aar-table" style="margin-bottom:10px;">
+          <thead><tr><th>Capability Area</th><th>Gap Description</th><th style="width:140px;">Severity</th><th style="width:50px;"></th></tr></thead>
+          <tbody>${gapRows || `<tr><td colspan="4" class="muted" style="text-align:center;">No gaps recorded yet — add your first below.</td></tr>`}</tbody>
+        </table>
+        <button class="btn ghost sm" onclick="addGap()">+ ADD GAP</button>
+      </div>
+    </div>
+
+    <div class="aar-section">
+      <h2>Action Items</h2>
+      <div class="panel">
+        <table class="aar-table" style="margin-bottom:10px;">
+          <thead><tr><th>Action</th><th style="width:160px;">Owner</th><th style="width:140px;">Due</th><th style="width:120px;">Priority</th><th style="width:50px;"></th></tr></thead>
+          <tbody>${actionRows || `<tr><td colspan="5" class="muted" style="text-align:center;">No actions recorded yet — add your first below.</td></tr>`}</tbody>
+        </table>
+        <button class="btn ghost sm" onclick="addActionItem()">+ ADD ACTION</button>
+      </div>
+    </div>
+
+    <div class="aar-section">
+      <h2>Lessons Learned</h2>
+      <div class="panel">
+        <textarea id="lessons" rows="6" placeholder="What went well? What surprised you? What needs to change?" onchange="state.lessonsLearned = this.value;">${escapeHtml(state.lessonsLearned || "")}</textarea>
+      </div>
+    </div>
+
+    ${adaptiveRows ? `
+    <div class="aar-section">
+      <h2>Adaptive Cards Fired</h2>
+      <table class="aar-table">
+        <thead><tr><th style="width:30%;">Card</th><th>Description</th></tr></thead>
+        <tbody>${adaptiveRows}</tbody>
+      </table>
+    </div>` : ""}
+
+    ${notesRows ? `
+    <div class="aar-section">
+      <h2>Exercise Notes Log</h2>
+      <table class="aar-table">
+        <thead><tr><th style="width:100px;">Time</th><th style="width:120px;">Inject</th><th>Note</th></tr></thead>
+        <tbody>${notesRows}</tbody>
+      </table>
+    </div>` : ""}
+
+    <div class="aar-section">
+      <h2>Framework Mapping</h2>
+      <div class="panel">
+        <p style="font-size:13px; line-height:1.7;">This exercise tested controls and outcomes mapped to the following framework areas:</p>
+        <div style="margin-top:12px;"><strong style="font-size:11px; text-transform:uppercase; color:var(--text-dim); letter-spacing:0.5px;">NCSC CAF</strong><br>${s.cafMapping.map(c => `<span class="tag accent">${c}</span>`).join("")}</div>
+        <div style="margin-top:10px;"><strong style="font-size:11px; text-transform:uppercase; color:var(--text-dim); letter-spacing:0.5px;">NIST CSF 2.0</strong><br>${s.csfMapping.map(c => `<span class="tag purple">${c}</span>`).join("")}</div>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:24px;">
+      <button class="btn ghost" onclick="exportState()">SAVE EXERCISE (.json)</button>
+      <button class="btn primary" onclick="exportPDF()">EXPORT REPORT (PDF)</button>
+    </div>
+  `;
+}
+
+function escapeHtml(str) {
+  if (str == null) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function addActionItem() {
+  if (!state.actionItems) state.actionItems = [];
+  state.actionItems.push({ action:"", owner:"", due:"", priority:"Medium" });
+  renderAAR();
+}
+function updateActionItem(idx, field, val) {
+  if (!state.actionItems[idx]) return;
+  state.actionItems[idx][field] = val;
+}
+function removeActionItem(idx) {
+  state.actionItems.splice(idx, 1);
+  renderAAR();
+}
+
+function addGap() {
+  if (!state.gapsIdentified) state.gapsIdentified = [];
+  state.gapsIdentified.push({ area:"", gap:"", severity:"Medium" });
+  renderAAR();
+}
+function updateGap(idx, field, val) {
+  if (!state.gapsIdentified[idx]) return;
+  state.gapsIdentified[idx][field] = val;
+}
+function removeGap(idx) {
+  state.gapsIdentified.splice(idx, 1);
+  renderAAR();
+}
+
+function exportPDF() {
+  // Use the browser's native print → save-as-PDF
+  // We hide nav/header via @media print, then trigger print
+  // Build a clean print-friendly DOM
+  buildPrintReport();
+  setTimeout(() => {
+    window.print();
+    // Restore after a delay
+    setTimeout(restoreFromPrint, 500);
+  }, 100);
+}
+
+function buildPrintReport() {
+  // Save current view
+  document.body.dataset.savedView = document.querySelector(".view.active")?.id || "view-aar";
+  // Ensure AAR is rendered fresh
+  renderAAR();
+}
+
+function restoreFromPrint() {
+  // No-op for now — printing closes the dialog naturally
+}
+
+</script>
+</body>
+</html>
