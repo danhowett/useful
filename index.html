@@ -153,16 +153,30 @@ header.site {
 [data-theme="dark"] .sun-icon { display: block; }
 [data-theme="dark"] .moon-icon { display: none; }
 
-/* MAIN */
-main {
+/* The categories track wraps full-bleed sections; constrains inner content */
+.track {
+  width: 100%;
+  padding: 64px 0;
+}
+.track-inner {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 80px 28px 80px;
+  padding: 0 28px;
 }
 
-/* HERO */
+/* HERO SECTION — separate band */
+.hero-section {
+  width: 100%;
+  background: var(--bg);
+  padding: 80px 0 60px;
+}
+.hero-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 28px;
+}
 .hero {
-  margin-bottom: 64px;
+  margin-bottom: 0;
   max-width: 760px;
 }
 .hero-eyebrow {
@@ -219,13 +233,23 @@ h1.hero-title .accent {
 .hero-meta a:hover { border-bottom-color: var(--accent); }
 .hero-meta .sep { color: var(--text-muted); }
 
-/* DISCLAIMER */
+/* DISCLAIMER BAND — own section */
+.disclaimer-section {
+  background: var(--bg);
+  padding: 0 0 64px;
+  border-bottom: 1px solid var(--border);
+}
+.disclaimer-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 28px;
+}
 .disclaimer {
   background: var(--orange-soft);
   border: 1px solid var(--orange);
   border-radius: 12px;
   padding: 16px 20px;
-  margin-bottom: 56px;
+  margin-bottom: 0;
   display: flex; gap: 14px; align-items: flex-start;
   font-size: 14px; line-height: 1.55;
   color: var(--text-2);
@@ -245,25 +269,178 @@ h1.hero-title .accent {
 
 /* CATEGORY */
 .category {
-  margin-bottom: 56px;
+  margin-bottom: 0; /* spacing handled by .track padding */
+  scroll-margin-top: 80px; /* clear the sticky header on scroll-into-view */
 }
 .category-header {
   display: flex; align-items: baseline; justify-content: space-between;
-  margin-bottom: 28px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
+  margin-bottom: 32px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--section-border, var(--border));
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.category-eyebrow {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--section-accent, var(--text-dim));
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.category-eyebrow::before {
+  content: ""; width: 24px; height: 2px;
+  background: var(--section-accent, var(--text-dim));
+  display: inline-block;
 }
 .category-title {
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--text);
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  color: var(--section-text, var(--text));
+}
+.category-title .accent {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--section-accent, var(--accent));
+  letter-spacing: -0.01em;
+  font-size: 1.05em;
 }
 .category-count {
   font-size: 12px;
   font-family: 'JetBrains Mono', monospace;
-  color: var(--text-muted);
-  letter-spacing: 0.02em;
+  color: var(--section-meta, var(--text-muted));
+  letter-spacing: 0.04em;
+  font-weight: 500;
+  white-space: nowrap;
+  align-self: flex-end;
+  padding-bottom: 4px;
+}
+
+/* SECTION COLOUR VARIANTS — restrained greys/steels with single blue accent */
+/* Section 1 — clean white */
+.s-incident {
+  background: #ffffff;
+  --section-accent: #1d4ed8;
+  --section-border: #e5e7eb;
+  --section-text: #0f172a;
+  --section-meta: #64748b;
+}
+/* Section 2 — light cool grey */
+.s-frameworks {
+  background: #f3f5f8;
+  --section-accent: #1e3a8a;
+  --section-border: #dde2ea;
+  --section-text: #0f172a;
+  --section-meta: #64748b;
+}
+/* Section 3 — mid steel-blue tint */
+.s-risk {
+  background: #e6ebf2;
+  --section-accent: #1e40af;
+  --section-border: #d2d9e3;
+  --section-text: #0f172a;
+  --section-meta: #475569;
+}
+/* Section 4 — warm-ish neutral grey */
+.s-compliance {
+  background: #ededec;
+  --section-accent: #1d4ed8;
+  --section-border: #d8d8d6;
+  --section-text: #0f172a;
+  --section-meta: #64748b;
+}
+/* Section 5 — steel grey, slightly cooler */
+.s-ops {
+  background: #d8dee5;
+  --section-accent: #1e3a8a;
+  --section-border: #c4ccd5;
+  --section-text: #0f172a;
+  --section-meta: #475569;
+}
+/* Section 6 — charcoal: deliberate visual punch for the docs */
+.s-reference {
+  background: #1a1f2a;
+  --section-accent: #60a5fa;
+  --section-border: #2d3340;
+  --section-text: #f1f5f9;
+  --section-meta: #94a3b8;
+}
+.s-reference .card,
+.s-reference .card.doc {
+  background: #232936;
+  border-color: #2d3340;
+  color: #e2e8f0;
+}
+.s-reference .card h3,
+.s-reference .card.doc h3 { color: #f1f5f9; }
+.s-reference .card-desc,
+.s-reference .card.doc .card-desc { color: #cbd5e1; }
+.s-reference .card-cat { color: #94a3b8; }
+.s-reference .card-cta,
+.s-reference .card.doc .card-cta { color: #60a5fa; }
+.s-reference .tag {
+  background: #2d3340;
+  color: #cbd5e1;
+  border-color: #404858;
+}
+.s-reference .badge.format,
+.s-reference .badge.version {
+  background: #2d3340;
+  color: #cbd5e1;
+  border-color: #404858;
+}
+
+/* Dark theme overrides for sections */
+[data-theme="dark"] .s-incident {
+  background: #131416;
+  --section-border: #2a2c2f;
+  --section-text: #f0f0ee;
+  --section-meta: #9a9a92;
+  --section-accent: #60a5fa;
+}
+[data-theme="dark"] .s-frameworks {
+  background: #18191b;
+  --section-border: #2a2c2f;
+  --section-text: #f0f0ee;
+  --section-meta: #9a9a92;
+  --section-accent: #93c5fd;
+}
+[data-theme="dark"] .s-risk {
+  background: #1c1f24;
+  --section-border: #2d3138;
+  --section-text: #f0f0ee;
+  --section-meta: #9a9a92;
+  --section-accent: #60a5fa;
+}
+[data-theme="dark"] .s-compliance {
+  background: #1a1c1f;
+  --section-border: #2d3138;
+  --section-text: #f0f0ee;
+  --section-meta: #9a9a92;
+  --section-accent: #93c5fd;
+}
+[data-theme="dark"] .s-ops {
+  background: #1f242b;
+  --section-border: #313640;
+  --section-text: #f0f0ee;
+  --section-meta: #9a9a92;
+  --section-accent: #60a5fa;
+}
+[data-theme="dark"] .s-reference {
+  background: #0a0c10;
+  --section-border: #1f232b;
+  --section-text: #f0f0ee;
+  --section-meta: #9a9a92;
+  --section-accent: #93c5fd;
+}
+[data-theme="dark"] .s-reference .card {
+  background: #14171c;
+  border-color: #1f232b;
 }
 
 /* CARD GRID */
@@ -421,15 +598,17 @@ h1.hero-title .accent {
 
 /* FEATURED CARD (the new one) */
 .card.featured {
-  border: 1.5px solid var(--accent);
-  background: linear-gradient(180deg, var(--accent-soft) 0%, var(--bg-elev) 60%);
+  border: 1.5px solid var(--section-accent, var(--accent));
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--section-accent, var(--accent)) 8%, var(--bg-elev)) 0%,
+    var(--bg-elev) 60%);
   position: relative;
 }
 .card.featured::before {
   content: "✦ NEW";
   position: absolute;
   top: 14px; right: 14px;
-  background: var(--accent);
+  background: var(--section-accent, var(--accent));
   color: #fff;
   font-size: 9px;
   font-weight: 700;
@@ -441,20 +620,26 @@ h1.hero-title .accent {
 
 /* FOOTER */
 footer.site {
-  border-top: 1px solid var(--border);
-  margin-top: 80px;
+  background: #1a1f2a;
+  color: #94a3b8;
+  border-top: 1px solid #2d3340;
+  margin-top: 0;
   padding: 32px 28px;
   text-align: center;
 }
 footer.site .footer-inner {
   max-width: 1180px; margin: 0 auto;
-  font-size: 13px; color: var(--text-dim);
+  font-size: 13px; color: #94a3b8;
   display: flex; align-items: center; justify-content: center;
   gap: 12px; flex-wrap: wrap;
 }
-footer.site a { color: var(--accent); }
+footer.site a { color: #60a5fa; }
 footer.site a:hover { text-decoration: underline; }
-.footer-inner .sep { color: var(--text-muted); }
+.footer-inner .sep { color: #475569; }
+[data-theme="dark"] footer.site {
+  background: #0a0c10;
+  border-top-color: #1f232b;
+}
 .snake-trigger {
   cursor: pointer;
   font-size: 14px;
@@ -515,21 +700,32 @@ footer.site a:hover { text-decoration: underline; }
 
 /* RESPONSIVE */
 @media (max-width: 720px) {
-  main { padding: 48px 20px 48px; }
+  .hero-section { padding: 48px 0 32px; }
+  .hero-inner { padding: 0 20px; }
+  .disclaimer-section { padding: 0 0 40px; }
+  .disclaimer-inner { padding: 0 20px; }
+  .track { padding: 40px 0; }
+  .track-inner { padding: 0 20px; }
   .site-inner { padding: 12px 20px; }
   .hero-meta { font-size: 12px; }
   .card-grid { grid-template-columns: 1fr; }
   .card { padding: 20px; }
+  .category-title { font-size: 24px; }
+  .category-header { margin-bottom: 24px; }
   .brand-name .second, .brand-name .slash { display: none; }
   .gh-link { font-size: 12px; }
   .gh-link span, .tool-count { display: none; }
   .gh-link::after { content: ""; }
   .site-meta { gap: 10px; }
   .footer-inner { font-size: 12px; gap: 8px; }
+  footer.site { padding: 28px 20px; }
 }
 @media (max-width: 480px) {
   .gh-link { display: none; }
   .hero-eyebrow { font-size: 11px; }
+  .category-title { font-size: 22px; }
+  .category-header { flex-direction: column; align-items: flex-start; }
+  .category-count { align-self: flex-start; padding-bottom: 0; }
 }
 </style>
 </head>
@@ -546,7 +742,7 @@ footer.site a:hover { text-decoration: underline; }
         <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
         <span>github.com/danhowett</span>
       </a>
-      <span class="tool-count">17 tools</span>
+      <span class="tool-count">18 tools</span>
       <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
         <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
@@ -555,45 +751,60 @@ footer.site a:hover { text-decoration: underline; }
   </div>
 </header>
 
-<main>
-  <section class="hero">
-    <div class="hero-eyebrow">Updated April 2026 · 17 tools live</div>
-    <h1 class="hero-title">Security <span class="accent">tools</span> for practitioners.</h1>
-    <p class="hero-lead">
-      A growing collection of interactive security and risk-management tools — assessments,
-      frameworks, visualisations and references. Everything runs in your browser. No data is
-      sent or stored externally.
-    </p>
-    <div class="hero-meta">
-      <span>Created with Claude.ai</span>
-      <span class="sep">·</span>
-      <a href="https://github.com/danhowett/General">github.com/danhowett/General</a>
-      <span class="sep">·</span>
-      <span>Free to use</span>
-    </div>
-  </section>
-
-  <div class="disclaimer">
-    <div class="disclaimer-icon">!</div>
-    <div>
-      <strong>Proof of concept only.</strong> These tools are provided for exploratory and
-      educational purposes. They are not professional security assessments and results should
-      not be relied upon for compliance, audit, or risk management decisions. Use at your own risk.
+<section class="hero-section">
+  <div class="hero-inner">
+    <div class="hero">
+      <div class="hero-eyebrow">Updated April 2026 · 18 tools live</div>
+      <h1 class="hero-title">Security <span class="accent">tools</span> for practitioners.</h1>
+      <p class="hero-lead">
+        A growing collection of interactive security and risk-management tools — assessments,
+        frameworks, visualisations and references. Everything runs in your browser. No data is
+        sent or stored externally.
+      </p>
+      <div class="hero-meta">
+        <span>Created with Claude.ai</span>
+        <span class="sep">·</span>
+        <a href="https://github.com/danhowett/General">github.com/danhowett/General</a>
+        <span class="sep">·</span>
+        <span>Free to use</span>
+      </div>
     </div>
   </div>
+</section>
 
-  <!-- INCIDENT READINESS -->
-  <section class="category">
-    <div class="category-header">
-      <h2 class="category-title">Incident Readiness</h2>
-      <span class="category-count">04 tools</span>
+<section class="disclaimer-section">
+  <div class="disclaimer-inner">
+    <div class="disclaimer">
+      <div class="disclaimer-icon">!</div>
+      <div>
+        <strong>Proof of concept only.</strong> These tools are provided for exploratory and
+        educational purposes. They are not professional security assessments and results should
+        not be relied upon for compliance, audit, or risk management decisions. Use at your own risk.
+      </div>
     </div>
-    <div class="card-grid">
+  </div>
+</section>
 
-      <a href="cyber-tabletop-exercise-builder.html" class="card featured">
-        <div class="card-eyebrow">
-          <span class="card-cat">Tabletop Exercise · Builder</span>
+<!-- INCIDENT READINESS -->
+<section class="track s-incident">
+  <div class="track-inner">
+    <section class="category">
+      <div class="category-header">
+        <div>
+          <div class="category-eyebrow">01 — Respond</div>
+          <h2 class="category-title">Incident <span class="accent">Readiness</span></h2>
         </div>
+        <span class="category-count">04 TOOLS</span>
+      </div>
+      <div class="card-grid">
+
+        <a href="cyber-tabletop-exercise-builder.html" class="card">
+          <div class="card-eyebrow">
+            <span class="card-cat">Tabletop Exercise · Builder</span>
+            <div class="card-badges">
+              <span class="badge fresh">Fresh</span>
+            </div>
+          </div>
         <h3>Cyber Tabletop Exercise Builder</h3>
         <p class="card-desc">
           Browser-based tabletop exercise tool with 12 realistic cyber incident scenarios.
@@ -707,21 +918,28 @@ footer.site a:hover { text-decoration: underline; }
         </div>
       </a>
 
-    </div>
-  </section>
+      </div>
+    </section>
+  </div>
+</section>
 
-  <!-- FRAMEWORKS & ASSESSMENT -->
-  <section class="category">
-    <div class="category-header">
-      <h2 class="category-title">Frameworks & Assessment</h2>
-      <span class="category-count">05 tools</span>
-    </div>
-    <div class="card-grid">
+<!-- FRAMEWORKS & ASSESSMENT -->
+<section class="track s-frameworks">
+  <div class="track-inner">
+    <section class="category">
+      <div class="category-header">
+        <div>
+          <div class="category-eyebrow">02 — Measure</div>
+          <h2 class="category-title">Frameworks & <span class="accent">Assessment</span></h2>
+        </div>
+        <span class="category-count">05 TOOLS</span>
+      </div>
+      <div class="card-grid">
 
-      <a href="v2_NCSC-CAF-v4-Assessment-Tool.html" class="card">
-        <div class="card-eyebrow">
-          <span class="card-cat">Framework Assessment</span>
-          <div class="card-badges">
+        <a href="v2_NCSC-CAF-v4-Assessment-Tool.html" class="card">
+          <div class="card-eyebrow">
+            <span class="card-cat">Framework Assessment</span>
+            <div class="card-badges">
             <span class="badge version">v2.0</span>
           </div>
         </div>
@@ -832,16 +1050,61 @@ footer.site a:hover { text-decoration: underline; }
         </div>
       </a>
 
-    </div>
-  </section>
+      </div>
+    </section>
+  </div>
+</section>
 
-  <!-- RISK & THREAT INTELLIGENCE -->
-  <section class="category">
-    <div class="category-header">
-      <h2 class="category-title">Risk & Threat Intelligence</h2>
-      <span class="category-count">04 tools</span>
-    </div>
-    <div class="card-grid">
+<!-- RISK & THREAT INTELLIGENCE -->
+<section class="track s-risk">
+  <div class="track-inner">
+    <section class="category">
+      <div class="category-header">
+        <div>
+          <div class="category-eyebrow">03 — Investigate</div>
+          <h2 class="category-title">Risk & <span class="accent">Threat Intel</span></h2>
+        </div>
+        <span class="category-count">05 TOOLS</span>
+      </div>
+      <div class="card-grid">
+
+        <a href="attack-technique-mapper.html" class="card featured">
+          <div class="card-eyebrow">
+            <span class="card-cat">MITRE ATT&CK · Mapper</span>
+          </div>
+        <h3>ATT&CK Technique Mapper</h3>
+        <p class="card-desc">
+          Type observations from an active investigation — <span class="mono">powershell</span>,
+          <span class="mono">lsass</span>, <span class="mono">mimikatz</span>, <span class="mono">4624</span>,
+          <span class="mono">cobalt strike</span> — and relevant ATT&CK techniques highlight in the
+          enterprise matrix. Click to promote into scope, overlay against 15 named threat actors
+          (LockBit, Scattered Spider, APT29, Volt Typhoon, etc.), capture per-technique notes,
+          and export to Markdown, CSV, MITRE Navigator JSON, or PDF.
+        </p>
+        <div class="card-stats">
+          <div class="stat"><span class="stat-num">200+</span><span class="stat-label">Techniques</span></div>
+          <div class="stat"><span class="stat-num">14</span><span class="stat-label">Tactics</span></div>
+          <div class="stat"><span class="stat-num">200+</span><span class="stat-label">Keywords</span></div>
+          <div class="stat"><span class="stat-num">15</span><span class="stat-label">Actors</span></div>
+          <div class="stat"><span class="stat-num">4</span><span class="stat-label">Exports</span></div>
+        </div>
+        <div class="card-tags">
+          <span class="tag">ATT&CK</span>
+          <span class="tag">Enterprise</span>
+          <span class="tag">Threat Hunting</span>
+          <span class="tag">IR</span>
+          <span class="tag">Detection</span>
+          <span class="tag">Navigator JSON</span>
+          <span class="tag">LockBit</span>
+          <span class="tag">Scattered Spider</span>
+          <span class="tag">APT29</span>
+          <span class="tag">Volt Typhoon</span>
+        </div>
+        <div class="card-cta">
+          <span>Open tool</span>
+          <span class="arrow">→</span>
+        </div>
+      </a>
 
       <a href="cyber-risk-matrix.html" class="card">
         <div class="card-eyebrow">
@@ -926,25 +1189,32 @@ footer.site a:hover { text-decoration: underline; }
         </div>
       </a>
 
-    </div>
-  </section>
+      </div>
+    </section>
+  </div>
+</section>
 
-  <!-- COMPLIANCE & REGULATION -->
-  <section class="category">
-    <div class="category-header">
-      <h2 class="category-title">Compliance & Regulation</h2>
-      <span class="category-count">01 tool</span>
-    </div>
-    <div class="card-grid">
-
-      <a href="sector-cyber-compliance.html" class="card">
-        <div class="card-eyebrow">
-          <span class="card-cat">Sector Compliance Reference</span>
-          <div class="card-badges">
-            <span class="badge version">v1.0</span>
-          </div>
+<!-- COMPLIANCE & REGULATION -->
+<section class="track s-compliance">
+  <div class="track-inner">
+    <section class="category">
+      <div class="category-header">
+        <div>
+          <div class="category-eyebrow">04 — Comply</div>
+          <h2 class="category-title">Compliance & <span class="accent">Regulation</span></h2>
         </div>
-        <h3>Sector Cyber Compliance Reference</h3>
+        <span class="category-count">01 TOOL</span>
+      </div>
+      <div class="card-grid">
+
+        <a href="sector-cyber-compliance.html" class="card">
+          <div class="card-eyebrow">
+            <span class="card-cat">Sector Compliance Reference</span>
+            <div class="card-badges">
+              <span class="badge version">v1.0</span>
+            </div>
+          </div>
+          <h3>Sector Cyber Compliance Reference</h3>
         <p class="card-desc">
           Interactive reference covering the primary cyber regulations, frameworks, and
           incident notification obligations across 10 UK industry sectors. UK-primary with
@@ -970,21 +1240,28 @@ footer.site a:hover { text-decoration: underline; }
         </div>
       </a>
 
-    </div>
-  </section>
+      </div>
+    </section>
+  </div>
+</section>
 
-  <!-- OPERATIONS & TOOLING -->
-  <section class="category">
-    <div class="category-header">
-      <h2 class="category-title">Operations & Tooling</h2>
-      <span class="category-count">03 tools</span>
-    </div>
-    <div class="card-grid">
-
-      <a href="v2dfir-dashboard.html" class="card">
-        <div class="card-eyebrow">
-          <span class="card-cat">DFIR · Forensics</span>
+<!-- OPERATIONS & TOOLING -->
+<section class="track s-ops">
+  <div class="track-inner">
+    <section class="category">
+      <div class="category-header">
+        <div>
+          <div class="category-eyebrow">05 — Operate</div>
+          <h2 class="category-title">Operations & <span class="accent">Tooling</span></h2>
         </div>
+        <span class="category-count">03 TOOLS</span>
+      </div>
+      <div class="card-grid">
+
+        <a href="v2dfir-dashboard.html" class="card">
+          <div class="card-eyebrow">
+            <span class="card-cat">DFIR · Forensics</span>
+          </div>
         <h3>DFIR Dashboard</h3>
         <p class="card-desc">
           Browser-based Digital Forensics and Incident Response analysis dashboard. Upload
@@ -1055,25 +1332,32 @@ footer.site a:hover { text-decoration: underline; }
         </div>
       </a>
 
-    </div>
-  </section>
+      </div>
+    </section>
+  </div>
+</section>
 
-  <!-- REFERENCE DOCUMENTS -->
-  <section class="category">
-    <div class="category-header">
-      <h2 class="category-title">Reference Documents</h2>
-      <span class="category-count">02 docs</span>
-    </div>
-    <div class="card-grid">
-
-      <a href="https://github.com/danhowett/General/raw/main/DFIR_Workflow.docx" class="card doc">
-        <div class="card-eyebrow">
-          <span class="card-cat">DFIR · Forensics</span>
-          <div class="card-badges">
-            <span class="badge version">.docx</span>
-          </div>
+<!-- REFERENCE DOCUMENTS -->
+<section class="track s-reference">
+  <div class="track-inner">
+    <section class="category">
+      <div class="category-header">
+        <div>
+          <div class="category-eyebrow">06 — Reference</div>
+          <h2 class="category-title">Reference <span class="accent">Documents</span></h2>
         </div>
-        <h3>DFIR Workflow — End-to-End Investigation Framework</h3>
+        <span class="category-count">02 DOCS</span>
+      </div>
+      <div class="card-grid">
+
+        <a href="https://github.com/danhowett/General/raw/main/DFIR_Workflow.docx" class="card doc">
+          <div class="card-eyebrow">
+            <span class="card-cat">DFIR · Forensics</span>
+            <div class="card-badges">
+              <span class="badge version">.docx</span>
+            </div>
+          </div>
+          <h3>DFIR Workflow — End-to-End Investigation Framework</h3>
         <p class="card-desc">
           Comprehensive Word document covering the full DFIR investigation lifecycle across
           10 sections: governance & audit framework, preservation order of volatility,
@@ -1118,10 +1402,10 @@ footer.site a:hover { text-decoration: underline; }
         </div>
       </a>
 
-    </div>
-  </section>
-
-</main>
+      </div>
+    </section>
+  </div>
+</section>
 
 <footer class="site">
   <div class="footer-inner">
@@ -1131,7 +1415,7 @@ footer.site a:hover { text-decoration: underline; }
     <span class="sep">·</span>
     <span>Client-side only</span>
     <span class="sep">·</span>
-    <span>17 tools</span>
+    <span>18 tools</span>
     <span class="sep">·</span>
     <span class="snake-trigger" onclick="openSnake()" title="What's this?">🐍</span>
   </div>
