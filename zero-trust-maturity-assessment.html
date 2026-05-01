@@ -1,0 +1,2287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zero Trust Maturity Assessment · Dan Howett</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fafaf7;
+  --bg-elev: #ffffff;
+  --bg-muted: #f4f4ef;
+  --bg-subtle: #efefe8;
+  --bg-band: #e6ebf2;       /* matches the s-risk band on landing */
+  --border: #e8e6df;
+  --border-strong: #d6d3c9;
+  --text: #1a1a1a;
+  --text-2: #3a3a36;
+  --text-dim: #6b6b66;
+  --text-muted: #9a9a92;
+  --accent: #1d4ed8;
+  --accent-hover: #1e40af;
+  --accent-soft: #eff4ff;
+  --accent-text: #1e40af;
+
+  /* stage colours — Traditional → Optimal */
+  --st-traditional: #dc2626;
+  --st-traditional-soft: #fee2e2;
+  --st-initial: #f59e0b;
+  --st-initial-soft: #fef3c7;
+  --st-advanced: #3b82f6;
+  --st-advanced-soft: #dbeafe;
+  --st-optimal: #16a34a;
+  --st-optimal-soft: #dcfce7;
+
+  --orange: #ea580c;
+  --orange-soft: #ffedd5;
+  --purple: #7c3aed;
+  --purple-soft: #ede9fe;
+  --shadow-sm: 0 1px 2px rgba(15, 15, 15, 0.04);
+  --shadow: 0 1px 3px rgba(15, 15, 15, 0.06), 0 1px 2px rgba(15, 15, 15, 0.04);
+  --shadow-lg: 0 8px 24px rgba(15, 15, 15, 0.06), 0 2px 4px rgba(15, 15, 15, 0.04);
+}
+[data-theme="dark"] {
+  --bg: #0e0f10;
+  --bg-elev: #18191b;
+  --bg-muted: #1d1e20;
+  --bg-subtle: #232528;
+  --bg-band: #14161a;
+  --border: #2a2c2f;
+  --border-strong: #3a3d40;
+  --text: #f0f0ee;
+  --text-2: #d6d6d2;
+  --text-dim: #9a9a92;
+  --text-muted: #5e5e58;
+  --accent: #60a5fa;
+  --accent-hover: #93c5fd;
+  --accent-soft: rgba(96, 165, 250, 0.12);
+  --accent-text: #93c5fd;
+
+  --st-traditional: #f87171;
+  --st-traditional-soft: rgba(248, 113, 113, 0.16);
+  --st-initial: #fbbf24;
+  --st-initial-soft: rgba(251, 191, 36, 0.16);
+  --st-advanced: #60a5fa;
+  --st-advanced-soft: rgba(96, 165, 250, 0.16);
+  --st-optimal: #4ade80;
+  --st-optimal-soft: rgba(74, 222, 128, 0.16);
+
+  --orange: #fb923c;
+  --orange-soft: rgba(251, 146, 60, 0.16);
+  --purple: #a78bfa;
+  --purple-soft: rgba(167, 139, 250, 0.16);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg-band); color: var(--text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01", "cv11";
+  letter-spacing: -0.005em;
+  transition: background 0.2s, color 0.2s;
+}
+.mono { font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace; }
+.serif { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-weight: 400; }
+a { color: inherit; text-decoration: none; }
+
+/* HEADER */
+header.site {
+  border-bottom: 1px solid var(--border);
+  background: rgba(250, 250, 247, 0.92);
+  backdrop-filter: saturate(180%) blur(10px);
+  -webkit-backdrop-filter: saturate(180%) blur(10px);
+  position: sticky; top: 0; z-index: 60;
+}
+[data-theme="dark"] header.site { background: rgba(14, 15, 16, 0.92); }
+.site-inner {
+  max-width: 1400px; margin: 0 auto; padding: 14px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.brand-link {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; font-weight: 600; color: var(--text);
+}
+.brand-mark {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 12px;
+}
+.brand-name .slash { color: var(--text-muted); margin: 0 5px; font-weight: 400; }
+.brand-name .second { color: var(--text-dim); font-weight: 500; }
+.site-meta { display: flex; align-items: center; gap: 10px; }
+.btn {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  padding: 7px 12px; border-radius: 7px;
+  font-size: 12px; font-family: inherit; font-weight: 500;
+  cursor: pointer; transition: all 0.15s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn:hover { background: var(--bg-muted); border-color: var(--border-strong); }
+.btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn.danger { color: var(--st-traditional); border-color: var(--border); }
+.btn.danger:hover { background: var(--st-traditional-soft); border-color: var(--st-traditional); }
+.btn.sm { padding: 5px 10px; font-size: 11px; }
+.theme-toggle {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-dim); width: 32px; height: 32px;
+  border-radius: 8px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.theme-toggle:hover { background: var(--bg-muted); color: var(--text); }
+.theme-toggle svg { width: 15px; height: 15px; }
+.sun-icon { display: none; }
+.moon-icon { display: block; }
+[data-theme="dark"] .sun-icon { display: block; }
+[data-theme="dark"] .moon-icon { display: none; }
+
+/* HERO */
+.hero-section {
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 56px 0 40px;
+}
+.hero-inner {
+  max-width: 1400px; margin: 0 auto; padding: 0 28px;
+}
+.hero-grid {
+  display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px;
+  align-items: end;
+}
+.hero-eyebrow {
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: var(--accent); letter-spacing: 0.08em;
+  text-transform: uppercase; font-weight: 600;
+  margin-bottom: 14px;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.hero-eyebrow::before {
+  content: ""; width: 24px; height: 2px;
+  background: var(--accent);
+  display: inline-block;
+}
+h1.hero-title {
+  font-size: 40px; line-height: 1.05; letter-spacing: -0.025em;
+  font-weight: 700; margin-bottom: 14px;
+}
+h1.hero-title .accent {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic; font-weight: 400; color: var(--accent);
+  letter-spacing: -0.01em;
+  font-size: 1.05em;
+}
+.hero-lead {
+  font-size: 15px; color: var(--text-dim);
+  max-width: 620px; line-height: 1.6;
+  margin-bottom: 20px;
+}
+.hero-meta {
+  display: flex; gap: 14px; flex-wrap: wrap;
+  font-size: 12px; color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+.hero-meta .sep { color: var(--text-muted); }
+.hero-meta .pill {
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  padding: 3px 9px; border-radius: 999px;
+}
+
+/* SETUP CARD (right side of hero) */
+.setup-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: var(--shadow);
+}
+.setup-card h2 {
+  font-size: 13px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 0.06em; margin-bottom: 14px; font-weight: 600;
+}
+.setup-row { margin-bottom: 12px; }
+.setup-row:last-child { margin-bottom: 0; }
+.setup-row label {
+  display: block; font-size: 11px; color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em;
+  margin-bottom: 4px; text-transform: uppercase;
+}
+.setup-row input,
+.setup-row select {
+  width: 100%; background: var(--bg-muted);
+  border: 1px solid var(--border); color: var(--text);
+  padding: 9px 11px; border-radius: 7px;
+  font-family: inherit; font-size: 13px;
+  transition: border-color 0.15s;
+}
+.setup-row input:focus,
+.setup-row select:focus { outline: none; border-color: var(--accent); background: var(--bg-elev); }
+
+/* DISCLAIMER */
+.disclaimer-section {
+  background: var(--bg);
+  padding: 0 0 40px;
+}
+.disclaimer-inner {
+  max-width: 1400px; margin: 0 auto; padding: 0 28px;
+}
+.disclaimer {
+  background: var(--orange-soft);
+  border: 1px solid var(--orange);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex; gap: 12px; align-items: flex-start;
+  font-size: 13px; line-height: 1.55;
+  color: var(--text-2);
+}
+.disclaimer-icon {
+  width: 18px; height: 18px; background: var(--orange);
+  color: #fff; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 11px; margin-top: 1px;
+}
+
+/* MAIN — assessment area */
+main.assessment {
+  background: var(--bg-band);
+  padding: 32px 0 80px;
+}
+.assessment-inner {
+  max-width: 1400px; margin: 0 auto; padding: 0 28px;
+  display: grid;
+  grid-template-columns: 220px 1fr 280px;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 1100px) {
+  .assessment-inner { grid-template-columns: 200px 1fr; }
+  .progress-sidebar { display: none; }
+}
+@media (max-width: 800px) {
+  .assessment-inner { grid-template-columns: 1fr; }
+  .pillar-nav { position: static; }
+}
+
+/* PILLAR NAV (left) */
+.pillar-nav {
+  position: sticky; top: 76px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: var(--shadow-sm);
+}
+.nav-title {
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 0.06em; font-weight: 600;
+  padding: 4px 8px 8px;
+  border-bottom: 1px solid var(--border); margin-bottom: 8px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: 7px;
+  cursor: pointer; transition: all 0.15s;
+  font-size: 13px; font-weight: 500;
+  background: transparent; border: none; color: var(--text-2);
+  width: 100%; text-align: left; font-family: inherit;
+  margin-bottom: 2px;
+}
+.nav-item:hover { background: var(--bg-muted); }
+.nav-item.active {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+.nav-icon { font-size: 16px; }
+.nav-name { flex: 1; }
+.nav-progress {
+  font-size: 10.5px; color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+.nav-item.active .nav-progress { color: var(--accent); }
+.nav-divider {
+  height: 1px; background: var(--border);
+  margin: 8px 4px;
+}
+
+/* MAIN CONTENT */
+.assessment-main { min-width: 0; }
+.pillar-header {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px 24px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.pillar-eyebrow {
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--accent); letter-spacing: 0.08em;
+  text-transform: uppercase; font-weight: 600; margin-bottom: 8px;
+}
+.pillar-name {
+  font-size: 26px; font-weight: 700;
+  letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 8px;
+}
+.pillar-name .icon { margin-right: 8px; }
+.pillar-desc {
+  color: var(--text-dim); font-size: 14px;
+  max-width: 720px; margin-bottom: 14px;
+}
+.pillar-progress-bar {
+  height: 6px; background: var(--bg-muted);
+  border-radius: 999px; overflow: hidden;
+  margin-bottom: 6px;
+}
+.pillar-progress-fill {
+  height: 100%; background: linear-gradient(90deg, var(--accent), var(--purple));
+  transition: width 0.4s ease;
+}
+.pillar-progress-meta {
+  display: flex; justify-content: space-between;
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim);
+}
+
+/* CAPABILITY CARD */
+.capability {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 22px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.2s;
+}
+.capability:hover { border-color: var(--border-strong); }
+.capability.scored { border-left: 3px solid var(--current-stage-colour, var(--accent)); }
+.capability.scored.s-traditional { --current-stage-colour: var(--st-traditional); }
+.capability.scored.s-initial { --current-stage-colour: var(--st-initial); }
+.capability.scored.s-advanced { --current-stage-colour: var(--st-advanced); }
+.capability.scored.s-optimal { --current-stage-colour: var(--st-optimal); }
+
+.cap-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 14px; margin-bottom: 4px;
+}
+.cap-title {
+  font-size: 16px; font-weight: 600;
+  letter-spacing: -0.01em; line-height: 1.3;
+}
+.cap-fn-tag {
+  font-size: 10px; font-family: 'JetBrains Mono', monospace;
+  background: var(--bg-muted); color: var(--text-dim);
+  padding: 3px 8px; border-radius: 999px;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  white-space: nowrap;
+  border: 1px solid var(--border);
+}
+.cap-fn-tag.fn-visibility { background: rgba(124, 58, 237, 0.08); color: var(--purple); border-color: var(--purple); }
+.cap-fn-tag.fn-automation { background: var(--accent-soft); color: var(--accent-text); border-color: var(--accent); }
+.cap-fn-tag.fn-governance { background: rgba(22, 163, 74, 0.08); color: var(--st-optimal); border-color: var(--st-optimal); }
+
+.cap-prompt {
+  color: var(--text-dim); font-size: 13.5px;
+  margin-bottom: 14px;
+}
+.cap-ncsc {
+  display: flex; flex-wrap: wrap; gap: 4px;
+  margin-bottom: 14px;
+}
+.cap-ncsc-pill {
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  background: var(--bg-muted); color: var(--text-dim);
+  padding: 2px 7px; border-radius: 4px;
+  cursor: help;
+  border: 1px solid var(--border);
+}
+.cap-ncsc-pill:hover {
+  background: var(--accent-soft); color: var(--accent-text);
+  border-color: var(--accent);
+}
+
+/* STAGE SELECTOR — radio-style buttons with descriptions visible */
+.stages-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  margin-bottom: 14px;
+}
+@media (max-width: 700px) {
+  .stages-grid { grid-template-columns: 1fr 1fr; }
+}
+.stage-btn {
+  background: var(--bg-muted);
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  padding: 10px 12px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: var(--text-2);
+  transition: all 0.15s;
+  display: flex; flex-direction: column; gap: 6px;
+  position: relative;
+}
+.stage-btn:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-subtle);
+}
+.stage-head {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 0.04em; font-weight: 600;
+}
+.stage-marker {
+  width: 14px; height: 14px;
+  border-radius: 50%; border: 2px solid var(--border-strong);
+  background: var(--bg-elev);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; flex-shrink: 0;
+}
+.stage-name {
+  font-size: 12.5px; font-weight: 600;
+  color: var(--text-2);
+}
+.stage-desc {
+  font-size: 11.5px; color: var(--text-dim);
+  line-height: 1.4;
+  flex: 1;
+}
+.stage-btn.selected.s-traditional { border-color: var(--st-traditional); background: var(--st-traditional-soft); }
+.stage-btn.selected.s-initial { border-color: var(--st-initial); background: var(--st-initial-soft); }
+.stage-btn.selected.s-advanced { border-color: var(--st-advanced); background: var(--st-advanced-soft); }
+.stage-btn.selected.s-optimal { border-color: var(--st-optimal); background: var(--st-optimal-soft); }
+.stage-btn.selected.s-traditional .stage-marker { border-color: var(--st-traditional); background: var(--st-traditional); }
+.stage-btn.selected.s-initial .stage-marker { border-color: var(--st-initial); background: var(--st-initial); }
+.stage-btn.selected.s-advanced .stage-marker { border-color: var(--st-advanced); background: var(--st-advanced); }
+.stage-btn.selected.s-optimal .stage-marker { border-color: var(--st-optimal); background: var(--st-optimal); }
+.stage-btn.selected .stage-marker::after { content: "✓"; color: #fff; font-weight: 700; font-size: 8px; }
+
+/* EVIDENCE TEXTAREA */
+.cap-evidence-label {
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); letter-spacing: 0.04em;
+  text-transform: uppercase; margin-bottom: 6px;
+  font-weight: 600;
+}
+.cap-evidence {
+  width: 100%;
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 7px; padding: 10px 12px;
+  font-family: inherit; font-size: 13px; color: var(--text);
+  resize: vertical; min-height: 50px;
+  transition: border-color 0.15s;
+}
+.cap-evidence:focus { outline: none; border-color: var(--accent); background: var(--bg-elev); }
+
+/* PROGRESS SIDEBAR (right) */
+.progress-sidebar {
+  position: sticky; top: 76px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+}
+.ps-section { margin-bottom: 18px; }
+.ps-section:last-child { margin-bottom: 0; }
+.ps-title {
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 0.06em; font-weight: 600; margin-bottom: 10px;
+}
+.ps-overall-num {
+  font-size: 32px; font-weight: 800; line-height: 1;
+  letter-spacing: -0.025em;
+}
+.ps-overall-label {
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); margin-top: 4px;
+}
+.ps-stages { display: flex; gap: 4px; margin-top: 10px; }
+.ps-stage-bar {
+  flex: 1; height: 6px; border-radius: 3px;
+  background: var(--bg-muted);
+}
+.ps-stage-bar.filled.s-traditional { background: var(--st-traditional); }
+.ps-stage-bar.filled.s-initial { background: var(--st-initial); }
+.ps-stage-bar.filled.s-advanced { background: var(--st-advanced); }
+.ps-stage-bar.filled.s-optimal { background: var(--st-optimal); }
+
+.ps-pillar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 0;
+  font-size: 12.5px;
+  border-bottom: 1px solid var(--border);
+}
+.ps-pillar:last-child { border-bottom: none; }
+.ps-pillar-name { font-weight: 500; }
+.ps-pillar-stat {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--text-dim);
+}
+
+/* RESULTS BUTTON */
+.results-btn {
+  width: 100%;
+  background: var(--accent);
+  color: #fff;
+  border: 1px solid var(--accent);
+  padding: 11px 14px; border-radius: 8px;
+  font-size: 13px; font-weight: 600; font-family: inherit;
+  cursor: pointer; transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.results-btn:hover { background: var(--accent-hover); }
+.results-btn .arrow { transition: transform 0.15s; }
+.results-btn:hover .arrow { transform: translateX(3px); }
+
+/* RESULTS VIEW */
+.results-view {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 16px;
+}
+.results-view h2 {
+  font-size: 24px; font-weight: 700; letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+.results-view h2 .accent {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic; font-weight: 400; color: var(--accent);
+}
+.results-view h3 {
+  font-size: 16px; font-weight: 600; letter-spacing: -0.01em;
+  margin-bottom: 12px; margin-top: 24px;
+}
+.results-view h3:first-child { margin-top: 0; }
+.results-view p { color: var(--text-dim); margin-bottom: 14px; }
+.results-meta {
+  font-size: 12px; color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 22px;
+  display: flex; gap: 14px; flex-wrap: wrap;
+}
+
+/* HEATMAP */
+.heatmap-wrap { overflow-x: auto; margin-bottom: 8px; }
+.heatmap {
+  display: grid; gap: 2px;
+  background: var(--border); padding: 2px;
+  border-radius: 8px; min-width: 600px;
+  grid-template-columns: 200px repeat(3, 1fr);
+}
+.heatmap-cell {
+  background: var(--bg-elev); padding: 12px;
+  font-size: 12px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.heatmap-cell.header {
+  background: var(--bg-muted); font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--text-dim);
+}
+.heatmap-cell.row-label {
+  background: var(--bg-muted); font-weight: 600;
+}
+.heatmap-cell.scored {
+  cursor: default;
+}
+.heatmap-cell.scored.s-traditional { background: var(--st-traditional-soft); }
+.heatmap-cell.scored.s-initial { background: var(--st-initial-soft); }
+.heatmap-cell.scored.s-advanced { background: var(--st-advanced-soft); }
+.heatmap-cell.scored.s-optimal { background: var(--st-optimal-soft); }
+.heatmap-cell.empty { color: var(--text-muted); font-style: italic; }
+.heatmap-stage {
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.heatmap-stage.s-traditional { color: var(--st-traditional); }
+.heatmap-stage.s-initial { color: #b45309; }
+[data-theme="dark"] .heatmap-stage.s-initial { color: var(--st-initial); }
+.heatmap-stage.s-advanced { color: var(--st-advanced); }
+.heatmap-stage.s-optimal { color: var(--st-optimal); }
+.heatmap-cap-name {
+  font-size: 11px; color: var(--text-2); line-height: 1.3;
+}
+
+/* LEGEND */
+.legend {
+  display: flex; gap: 14px; flex-wrap: wrap;
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); margin-bottom: 18px;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-swatch {
+  width: 14px; height: 14px; border-radius: 3px;
+  border: 1px solid var(--border-strong);
+}
+
+/* RADAR */
+.radar-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+  margin-bottom: 8px;
+}
+@media (max-width: 800px) { .radar-grid { grid-template-columns: 1fr; } }
+.radar-card {
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+.radar-card h4 {
+  font-size: 12px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 0.04em; font-weight: 600; margin-bottom: 12px;
+}
+.radar-card svg { width: 100%; height: auto; max-width: 360px; display: block; margin: 0 auto; }
+
+/* GAP REGISTER */
+.gap-list { display: flex; flex-direction: column; gap: 8px; }
+.gap-item {
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-left: 3px solid;
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.gap-item.s-traditional { border-left-color: var(--st-traditional); }
+.gap-item.s-initial { border-left-color: var(--st-initial); }
+.gap-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 12px; margin-bottom: 6px;
+}
+.gap-title {
+  font-weight: 600; font-size: 13.5px; line-height: 1.3;
+}
+.gap-pillar {
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.gap-stage {
+  font-size: 10px; font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  padding: 2px 7px; border-radius: 999px;
+  text-transform: uppercase; letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.gap-stage.s-traditional { background: var(--st-traditional-soft); color: var(--st-traditional); }
+.gap-stage.s-initial { background: var(--st-initial-soft); color: var(--st-initial); }
+.gap-target {
+  font-size: 12.5px; color: var(--text-dim);
+  margin-top: 4px; line-height: 1.45;
+}
+.gap-target strong { color: var(--text-2); font-weight: 600; }
+.gap-quickwin {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  color: var(--accent-text);
+  padding: 8px 10px; border-radius: 6px;
+  font-size: 12px; line-height: 1.4;
+  margin-top: 8px;
+}
+.gap-quickwin::before {
+  content: "→ Quick win: ";
+  font-weight: 600; font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+}
+
+/* ROADMAP */
+.roadmap-grid {
+  display: grid; gap: 12px;
+}
+.roadmap-pillar {
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.roadmap-pillar h4 {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 14px; font-weight: 600; margin-bottom: 8px;
+}
+.roadmap-pillar-stage {
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.roadmap-step {
+  font-size: 12.5px; color: var(--text-dim);
+  line-height: 1.5; padding-left: 14px; position: relative;
+  margin-bottom: 4px;
+}
+.roadmap-step::before {
+  content: "→"; position: absolute; left: 0;
+  color: var(--accent); font-weight: 700;
+}
+
+/* NCSC COVERAGE */
+.ncsc-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+.ncsc-card {
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.ncsc-card h5 {
+  font-size: 12px; font-weight: 600; margin-bottom: 4px;
+  display: flex; align-items: center; gap: 6px;
+}
+.ncsc-card h5 .num {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--accent-soft); color: var(--accent-text);
+  padding: 1px 6px; border-radius: 4px;
+  font-size: 10.5px; font-weight: 600;
+}
+.ncsc-card .coverage-meter {
+  height: 4px; background: var(--bg-elev);
+  border-radius: 2px; overflow: hidden;
+  margin-top: 6px;
+}
+.ncsc-card .coverage-fill {
+  height: 100%; background: var(--accent);
+  transition: width 0.4s;
+}
+.ncsc-card .coverage-stat {
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); margin-top: 4px;
+}
+
+/* SECTOR CONTEXT */
+.sector-context {
+  background: linear-gradient(180deg, var(--accent-soft) 0%, var(--bg-elev) 100%);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 18px;
+}
+.sector-context h4 {
+  font-size: 13px; font-weight: 600; margin-bottom: 6px;
+  color: var(--accent-text);
+}
+.sector-context p {
+  font-size: 13px; color: var(--text-2);
+  margin: 0 0 8px;
+}
+.sector-priorities {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  margin-top: 8px;
+}
+.sector-priority-tag {
+  background: var(--bg-elev);
+  border: 1px solid var(--accent);
+  color: var(--accent-text);
+  font-size: 11px; font-weight: 600;
+  padding: 3px 9px; border-radius: 999px;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.sector-priority-tag.secondary {
+  background: var(--bg-muted);
+  border-color: var(--border-strong);
+  color: var(--text-dim);
+}
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--text); color: var(--bg);
+  padding: 10px 16px; border-radius: 8px;
+  font-size: 12.5px; font-weight: 500;
+  z-index: 300; opacity: 0; transform: translateY(8px);
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+  box-shadow: var(--shadow-lg);
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* TOOLTIP for NCSC pills (CSS-only) */
+[data-tooltip] { position: relative; }
+[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute; bottom: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%);
+  background: var(--text); color: var(--bg);
+  padding: 6px 10px; border-radius: 6px;
+  white-space: nowrap; font-size: 11px;
+  font-family: 'Inter', sans-serif;
+  pointer-events: none;
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+}
+[data-tooltip]:hover::before {
+  content: ""; position: absolute;
+  bottom: calc(100% + 1px); left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--text);
+  z-index: 100;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-muted); }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* PRINT */
+@media print {
+  header.site, .site-meta, .progress-sidebar, .pillar-nav,
+  .results-btn, .theme-toggle, .btn { display: none !important; }
+  body, main.assessment, .hero-section { background: white !important; color: black !important; }
+  .assessment-inner { grid-template-columns: 1fr !important; }
+  .capability, .results-view, .pillar-header, .setup-card, .gap-item, .roadmap-pillar, .ncsc-card {
+    background: white !important; color: black !important; border: 1px solid #ccc !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+  .stage-btn:not(.selected) { display: none; }
+  .stage-btn.selected { background: white !important; border: 1px solid #888 !important; }
+  .heatmap-cell.scored.s-traditional { background: #fee !important; }
+  .heatmap-cell.scored.s-initial { background: #fef3c7 !important; }
+  .heatmap-cell.scored.s-advanced { background: #dbeafe !important; }
+  .heatmap-cell.scored.s-optimal { background: #dcfce7 !important; }
+}
+
+/* MOBILE */
+@media (max-width: 720px) {
+  .hero-grid { grid-template-columns: 1fr; gap: 24px; }
+  h1.hero-title { font-size: 30px; }
+  .hero-section { padding: 36px 0 28px; }
+  .hero-inner, .disclaimer-inner, .assessment-inner, .site-inner { padding-left: 18px; padding-right: 18px; }
+  .pillar-header { padding: 18px; }
+  .pillar-name { font-size: 22px; }
+  .capability { padding: 16px; }
+  .brand-name .second, .brand-name .slash { display: none; }
+  .site-meta .btn { display: none; }
+  .results-view { padding: 18px; }
+}
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="site-inner">
+    <a href="/useful/" class="brand-link">
+      <div class="brand-mark">DH</div>
+      <div class="brand-name">Dan Howett <span class="slash">/</span><span class="second">Zero Trust Maturity</span></div>
+    </a>
+    <div class="site-meta">
+      <button class="btn ghost sm" onclick="exportJSON()" title="Save assessment as JSON">SAVE JSON</button>
+      <button class="btn ghost sm" onclick="document.getElementById('loadFile').click()" title="Load saved assessment">LOAD</button>
+      <input type="file" id="loadFile" accept=".json" style="display:none" onchange="loadJSON(event)">
+      <button class="btn ghost sm" onclick="window.print()" title="Print or save PDF">PDF</button>
+      <button class="btn danger sm" onclick="resetAssessment()">RESET</button>
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+        <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<section class="hero-section">
+  <div class="hero-inner">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-eyebrow">Zero Trust · CISA ZTMM v2.0 · NCSC overlay</div>
+        <h1 class="hero-title">Where does your organisation sit on the <span class="accent">zero trust</span> curve?</h1>
+        <p class="hero-lead">
+          A 30-capability self-assessment across the five Zero Trust pillars
+          — Identity, Devices, Networks, Applications & Workloads, and Data —
+          mapped to <strong>CISA Zero Trust Maturity Model v2.0</strong> and the
+          <strong>NCSC Zero Trust principles</strong>. Score, identify gaps, see your maturity heatmap and roadmap, export.
+        </p>
+        <div class="hero-meta">
+          <span class="pill">5 pillars</span>
+          <span class="pill">30 capabilities</span>
+          <span class="pill">4 stages</span>
+          <span class="pill">8 NCSC principles</span>
+          <span class="pill">~25 minutes</span>
+        </div>
+      </div>
+      <div class="setup-card">
+        <h2>Assessment Context</h2>
+        <div class="setup-row">
+          <label for="orgName">Organisation</label>
+          <input type="text" id="orgName" placeholder="Acme Corp">
+        </div>
+        <div class="setup-row">
+          <label for="assessor">Assessor</label>
+          <input type="text" id="assessor" placeholder="Your name">
+        </div>
+        <div class="setup-row">
+          <label for="sector">Sector</label>
+          <select id="sector">
+            <option value="">— Choose to enable sector context —</option>
+          </select>
+        </div>
+        <div class="setup-row">
+          <label for="assessDate">Date</label>
+          <input type="date" id="assessDate">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="disclaimer-section">
+  <div class="disclaimer-inner">
+    <div class="disclaimer">
+      <div class="disclaimer-icon">!</div>
+      <div>
+        <strong>Proof of concept only.</strong> This assessment is a self-evaluation
+        aid that maps to public framework descriptions of the CISA Zero Trust Maturity Model
+        v2.0 and NCSC Zero Trust Architecture Design Principles. It does not constitute a
+        formal audit or certification. Use at your own risk.
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="assessment">
+  <div class="assessment-inner">
+
+    <!-- LEFT: Pillar nav -->
+    <aside class="pillar-nav" id="pillarNav">
+      <div class="nav-title">Pillars</div>
+      <div id="navPillars"></div>
+      <div class="nav-divider"></div>
+      <button class="nav-item" onclick="showResults()" id="navResults" style="font-weight:600;color:var(--accent);">
+        <span class="nav-icon">📊</span>
+        <span class="nav-name">Results & Report</span>
+      </button>
+    </aside>
+
+    <!-- CENTRE: Assessment area -->
+    <div class="assessment-main" id="assessmentMain">
+      <!-- populated dynamically -->
+    </div>
+
+    <!-- RIGHT: Progress sidebar -->
+    <aside class="progress-sidebar" id="progressSidebar">
+      <div class="ps-section">
+        <div class="ps-title">Overall maturity</div>
+        <div class="ps-overall-num" id="psOverall">—</div>
+        <div class="ps-overall-label" id="psOverallLabel">No capabilities scored yet</div>
+        <div class="ps-stages" id="psStages">
+          <div class="ps-stage-bar"></div>
+          <div class="ps-stage-bar"></div>
+          <div class="ps-stage-bar"></div>
+          <div class="ps-stage-bar"></div>
+        </div>
+      </div>
+      <div class="ps-section">
+        <div class="ps-title">By pillar</div>
+        <div id="psPillars"></div>
+      </div>
+      <div class="ps-section">
+        <button class="results-btn" onclick="showResults()">
+          View Results <span class="arrow">→</span>
+        </button>
+      </div>
+    </aside>
+
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// ZERO TRUST MATURITY ASSESSMENT — DATA MODEL
+// Last reviewed: April 2026
+//
+// Primary framework: CISA Zero Trust Maturity Model v2.0 (Apr 2023)
+// Cross-reference:   NCSC Zero Trust Architecture Design Principles (8)
+// Reference:         NIST SP 800-207
+//
+// Structure:
+//   - 5 pillars (Identity, Devices, Networks, Apps & Workloads, Data)
+//   - 3 cross-cutting functions (Visibility, Automation, Governance)
+//   - Per pillar: ~6-8 detailed capability questions (~35 total)
+//   - 4 maturity stages: Traditional, Initial, Advanced, Optimal
+// ============================================================
+
+const STAGES = [
+  { id: "traditional", label: "Traditional", short: "T", desc: "Manually configured, static, perimeter-trusting baseline.", colour: "#dc2626" },
+  { id: "initial",     label: "Initial",     short: "I", desc: "Some automation introduced; partial integration.",          colour: "#f59e0b" },
+  { id: "advanced",    label: "Advanced",    short: "A", desc: "Fully automated, integrated across pillars where applicable.", colour: "#3b82f6" },
+  { id: "optimal",     label: "Optimal",     short: "O", desc: "Continuous, dynamic, fully automated with integrated analytics.", colour: "#16a34a" }
+];
+
+const FUNCTIONS = [
+  { id: "visibility", label: "Visibility & Analytics", short: "Visibility" },
+  { id: "automation", label: "Automation & Orchestration", short: "Automation" },
+  { id: "governance", label: "Governance", short: "Governance" }
+];
+
+// NCSC Zero Trust Principles (Aug 2021 publication, eight principles)
+const NCSC_PRINCIPLES = [
+  { id: "p1", n: 1, title: "Know your architecture",                        desc: "Know your architecture, including users, devices, services and data." },
+  { id: "p2", n: 2, title: "Know your identities",                          desc: "Know your user, service and device identities." },
+  { id: "p3", n: 3, title: "Assess behaviour and health",                   desc: "Assess user behaviour, device and service health." },
+  { id: "p4", n: 4, title: "Use policies to authorise",                     desc: "Use policies to authorise requests." },
+  { id: "p5", n: 5, title: "Authenticate and authorise everywhere",         desc: "Authenticate and authorise everywhere." },
+  { id: "p6", n: 6, title: "Focus monitoring on users, devices, services",  desc: "Focus your monitoring on users, devices and services." },
+  { id: "p7", n: 7, title: "Don't trust any network",                       desc: "Don't trust any network, including your own." },
+  { id: "p8", n: 8, title: "Choose ZT-designed services",                   desc: "Choose services designed for zero trust." }
+];
+
+// ============================================================
+// PILLARS — capabilities with stage descriptors
+// Each capability:
+//   - id, title: identifying it
+//   - function: which cross-cutting function (visibility/automation/governance)
+//                — null means it's a "core" pillar capability not function-specific
+//   - prompt: the question/concept being assessed
+//   - stages: { traditional, initial, advanced, optimal } — what each looks like
+//   - ncsc: array of NCSC principle ids this capability maps to
+// ============================================================
+
+const PILLARS = [
+  // ============== IDENTITY ==============
+  {
+    id: "identity",
+    name: "Identity",
+    icon: "👤",
+    desc: "Authentication, authorisation, identity governance and privileged access. The 'who' across users, services and machines.",
+    capabilities: [
+      {
+        id: "id-auth",
+        title: "Authentication",
+        function: null,
+        prompt: "How are users authenticated to access organisational resources?",
+        stages: {
+          traditional: "Password-only or password + simple second factor (SMS, voice). Static credentials. Local authentication stores.",
+          initial:     "MFA enforced for most users; common second factors (push, OTP). Centralised identity provider for most apps.",
+          advanced:    "Phishing-resistant MFA (FIDO2, smart cards, certificate-based) widely deployed. Adaptive risk-based authentication for sensitive resources.",
+          optimal:     "Continuous, phishing-resistant authentication. Real-time risk signals dynamically adjust authentication requirements per request."
+        },
+        ncsc: ["p2", "p5"]
+      },
+      {
+        id: "id-authz",
+        title: "Authorisation & Access Decisions",
+        function: null,
+        prompt: "How are access decisions made and enforced for users requesting resources?",
+        stages: {
+          traditional: "Role-based access (RBAC) only, static permissions. Group membership rarely reviewed.",
+          initial:     "RBAC plus some attribute-based decisions. Periodic access reviews (annually).",
+          advanced:    "Attribute-based access control (ABAC) using identity, device and contextual signals. Frequent access reviews (quarterly).",
+          optimal:     "Policy decisions made dynamically per request using rich context (identity, device posture, behaviour, threat intel, data sensitivity). Continuous validation."
+        },
+        ncsc: ["p4", "p5"]
+      },
+      {
+        id: "id-pam",
+        title: "Privileged Access",
+        function: null,
+        prompt: "How is privileged access (admins, service accounts, emergency access) managed?",
+        stages: {
+          traditional: "Standing admin accounts; shared credentials common. Service accounts with broad, unscoped permissions.",
+          initial:     "PAM solution deployed for human admins; vaulted credentials. Some Just-In-Time (JIT) elevation.",
+          advanced:    "JIT elevation by default for human admins. Service accounts use scoped identities (managed identities, workload identity) where possible.",
+          optimal:     "All privileged access is JIT, time-bound, justified, recorded and risk-scored. No standing privilege. Service accounts fully replaced by workload identities."
+        },
+        ncsc: ["p2", "p4", "p5"]
+      },
+      {
+        id: "id-lifecycle",
+        title: "Identity Lifecycle",
+        function: "governance",
+        prompt: "How are identities provisioned, updated and deprovisioned across the joiner-mover-leaver lifecycle?",
+        stages: {
+          traditional: "Manual joiner/mover/leaver processes. Significant lag between HR change and access change. Orphaned accounts common.",
+          initial:     "HR-system-triggered provisioning for joiners; manual mover/leaver. Periodic orphaned-account clean-up.",
+          advanced:    "Automated joiner-mover-leaver across major systems. Same-day deprovisioning. Recertification cycles.",
+          optimal:     "Fully automated lifecycle across all systems including SaaS via SCIM. Real-time deprovisioning. Continuous recertification with risk-based reviews."
+        },
+        ncsc: ["p2"]
+      },
+      {
+        id: "id-behaviour",
+        title: "Identity Behaviour Analytics",
+        function: "visibility",
+        prompt: "How is anomalous identity behaviour detected (impossible travel, mass downloads, atypical access)?",
+        stages: {
+          traditional: "Limited or no behavioural monitoring. Reliance on manual investigation after incidents.",
+          initial:     "Basic alerts for impossible travel, brute force. Reactive review.",
+          advanced:    "User and Entity Behavior Analytics (UEBA) deployed; baselines established. Risk scores feed into authentication decisions.",
+          optimal:     "Real-time UEBA with ML-driven anomaly detection. Automated containment actions (force re-auth, session revocation, account disable) triggered on high-risk signals."
+        },
+        ncsc: ["p3", "p6"]
+      },
+      {
+        id: "id-federation",
+        title: "Federation & SSO",
+        function: "automation",
+        prompt: "How are external identities, federated trusts and SSO managed?",
+        stages: {
+          traditional: "Limited SSO; many apps use local credentials. Federation set up ad-hoc.",
+          initial:     "SSO for major SaaS via central IdP. Federation with documented partners.",
+          advanced:    "SSO mandatory for all corporate apps; OIDC/SAML standardised. B2B/guest access governed with conditional access.",
+          optimal:     "All access (corporate, B2B, contractor) federated through central IdP with continuous re-evaluation. Cross-tenant access policies enforced."
+        },
+        ncsc: ["p2", "p5", "p8"]
+      }
+    ]
+  },
+
+  // ============== DEVICES ==============
+  {
+    id: "devices",
+    name: "Devices",
+    icon: "💻",
+    desc: "Device identity, posture, compliance and protection across endpoints, mobile and IoT/OT.",
+    capabilities: [
+      {
+        id: "dev-inventory",
+        title: "Device Inventory",
+        function: "visibility",
+        prompt: "How comprehensive and current is your device inventory?",
+        stages: {
+          traditional: "Manual asset register, often outdated. Significant gaps in IoT/BYOD/contractor devices.",
+          initial:     "Automated discovery for managed corporate devices via MDM/EDR. Manual tracking for other classes.",
+          advanced:    "Unified inventory across corporate, mobile, IoT and OT via integrated discovery tools. Inventory feeds into access decisions.",
+          optimal:     "Real-time, complete inventory of all devices accessing resources. Unmanaged-device detection drives automatic policy enforcement."
+        },
+        ncsc: ["p1", "p2"]
+      },
+      {
+        id: "dev-identity",
+        title: "Device Identity",
+        function: null,
+        prompt: "How are devices uniquely and cryptographically identified?",
+        stages: {
+          traditional: "Devices identified by hostname, IP or MAC. No cryptographic device identity.",
+          initial:     "Some devices have certificates (managed laptops); not enforced everywhere.",
+          advanced:    "Hardware-bound device identity (TPM-backed certificates) for all corporate devices. Device identity required for resource access.",
+          optimal:     "Continuous device-identity validation per request. All devices (including IoT/OT where feasible) attested via hardware roots of trust."
+        },
+        ncsc: ["p2", "p5"]
+      },
+      {
+        id: "dev-posture",
+        title: "Device Posture & Health",
+        function: null,
+        prompt: "How is device posture (patch level, encryption, EDR status, compliance) verified before access?",
+        stages: {
+          traditional: "Posture not checked at access time. Periodic scans only. Non-compliant devices retain access until manually remediated.",
+          initial:     "Basic compliance check at sign-in (encryption on, EDR running). Limited integration with access decisions.",
+          advanced:    "Rich posture checks at access time (patch level, EDR healthy, no malware, configuration compliance). Non-compliant devices blocked or sandboxed.",
+          optimal:     "Continuous posture evaluation throughout session. Real-time compliance signals fed into policy decisions per resource request. Auto-remediation."
+        },
+        ncsc: ["p3", "p5"]
+      },
+      {
+        id: "dev-protection",
+        title: "Endpoint Protection",
+        function: null,
+        prompt: "What endpoint detection, response and protection is deployed?",
+        stages: {
+          traditional: "Signature-based AV only. Limited central management or visibility into endpoint events.",
+          initial:     "Modern EDR deployed on most managed endpoints. Centralised alerts.",
+          advanced:    "EDR/XDR across all corporate endpoints; behavioural detection; threat hunting capability. Mobile threat defence (MTD) deployed.",
+          optimal:     "Unified XDR correlating endpoint, identity, network and cloud signals. ML-driven detection, automated response playbooks. Coverage extended to IoT/OT where supported."
+        },
+        ncsc: ["p3", "p6"]
+      },
+      {
+        id: "dev-config",
+        title: "Configuration Management",
+        function: "automation",
+        prompt: "How are device configurations managed, hardened and enforced?",
+        stages: {
+          traditional: "Manual configuration; inconsistent baselines across estates.",
+          initial:     "Standard images and GPO/MDM baselines; drift not actively managed.",
+          advanced:    "Hardened baselines (CIS, NCSC) enforced via MDM/configuration management. Drift detection and auto-remediation.",
+          optimal:     "Continuous configuration enforcement with auto-remediation. Configuration-as-code, version-controlled baselines, full audit trail."
+        },
+        ncsc: ["p3"]
+      },
+      {
+        id: "dev-iot-ot",
+        title: "IoT / OT Coverage",
+        function: "governance",
+        prompt: "How are IoT and OT devices brought into the zero trust scope?",
+        stages: {
+          traditional: "IoT/OT devices on flat networks with little visibility, no segmentation.",
+          initial:     "IoT/OT inventoried; basic network segmentation (VLANs).",
+          advanced:    "Purpose-built OT visibility tools (e.g. passive monitoring); strict micro-segmentation; identity-based access for OT operators.",
+          optimal:     "OT/IoT integrated into ZT policy plane. Device-specific policies, continuous monitoring, identity-bound access at protocol level."
+        },
+        ncsc: ["p1", "p3", "p7"]
+      }
+    ]
+  },
+
+  // ============== NETWORKS ==============
+  {
+    id: "networks",
+    name: "Networks",
+    icon: "🌐",
+    desc: "Network segmentation, traffic encryption, resilience and the move away from implicit-trust perimeters.",
+    capabilities: [
+      {
+        id: "net-segmentation",
+        title: "Network Segmentation",
+        function: null,
+        prompt: "How is network traffic segmented and lateral movement constrained?",
+        stages: {
+          traditional: "Flat or coarsely segmented networks. Broad east-west connectivity inside perimeter.",
+          initial:     "VLAN-based segmentation by site or function. Some firewall rules between zones.",
+          advanced:    "Micro-segmentation deployed for critical workloads (datacentre, sensitive systems). Software-defined perimeters in use.",
+          optimal:     "Fine-grained micro-segmentation everywhere; identity- and context-aware policies enforced per session. Default-deny east-west."
+        },
+        ncsc: ["p4", "p7"]
+      },
+      {
+        id: "net-encryption",
+        title: "Traffic Encryption",
+        function: null,
+        prompt: "How comprehensively is network traffic encrypted?",
+        stages: {
+          traditional: "External traffic encrypted (HTTPS); internal traffic largely cleartext (SMB, LDAP, plain RDP).",
+          initial:     "TLS enforced for most internal applications; some legacy protocols still cleartext.",
+          advanced:    "Encryption-everywhere: all internal application traffic uses TLS/mTLS. Legacy protocols decommissioned or wrapped.",
+          optimal:     "Pervasive encryption with mTLS, strong cipher policy enforced, automated certificate lifecycle, post-quantum readiness underway."
+        },
+        ncsc: ["p7", "p8"]
+      },
+      {
+        id: "net-perimeter",
+        title: "Perimeter & Remote Access",
+        function: null,
+        prompt: "How do users access internal resources from remote locations?",
+        stages: {
+          traditional: "Traditional VPN providing broad LAN access on connect. Single perimeter trust boundary.",
+          initial:     "VPN with some access controls (group-based); split tunnelling for SaaS.",
+          advanced:    "ZTNA / SASE for application-level access. VPN deprecated for most use cases.",
+          optimal:     "All access (remote and on-prem) brokered via ZTNA. Per-application, identity-and-context-bound, no implicit network trust regardless of location."
+        },
+        ncsc: ["p4", "p5", "p7"]
+      },
+      {
+        id: "net-monitoring",
+        title: "Network Visibility & Monitoring",
+        function: "visibility",
+        prompt: "How comprehensive is network traffic visibility and monitoring?",
+        stages: {
+          traditional: "Perimeter logs only (firewall, proxy). Limited east-west visibility.",
+          initial:     "NetFlow / sFlow collected from key locations. NDR pilot or partial deployment.",
+          advanced:    "Full NDR coverage including encrypted traffic analysis. East-west traffic monitored.",
+          optimal:     "Real-time NDR across all environments (on-prem, cloud, OT). Behavioural baselines feed into automated response and policy adjustments."
+        },
+        ncsc: ["p3", "p6"]
+      },
+      {
+        id: "net-dns",
+        title: "DNS & Web Filtering",
+        function: "automation",
+        prompt: "How is DNS resolution secured and outbound traffic filtered?",
+        stages: {
+          traditional: "Standard recursive DNS without filtering. Web proxy with simple URL categorisation.",
+          initial:     "Protective DNS (e.g. PDNS, Quad9) deployed. Web filtering by category.",
+          advanced:    "Secure DNS plus DoH/DoT enforcement. SWG with TLS inspection; threat-intel-driven blocking.",
+          optimal:     "DNS and web filtering integrated into SASE/SSE; per-identity, per-device policy. Automated enrichment and response."
+        },
+        ncsc: ["p7", "p8"]
+      },
+      {
+        id: "net-cloud",
+        title: "Cloud Network Architecture",
+        function: "governance",
+        prompt: "How is cloud network security architected and governed?",
+        stages: {
+          traditional: "Lift-and-shift networks in cloud; perimeter mindset replicated. Default VNETs, broad NSGs.",
+          initial:     "Hub-and-spoke with central inspection. Cloud-native firewall in use.",
+          advanced:    "Cloud-native segmentation (NSGs, security groups, private endpoints). Tag-driven policy enforcement.",
+          optimal:     "Identity- and workload-aware policies enforced at cloud control plane. Service mesh / mTLS within cloud workloads. Multi-cloud consistency via policy-as-code."
+        },
+        ncsc: ["p4", "p7", "p8"]
+      }
+    ]
+  },
+
+  // ============== APPS & WORKLOADS ==============
+  {
+    id: "apps",
+    name: "Applications & Workloads",
+    icon: "📦",
+    desc: "Application access control, secure development, workload identity, supply chain integrity.",
+    capabilities: [
+      {
+        id: "app-access",
+        title: "Application Access",
+        function: null,
+        prompt: "How is access to applications enforced?",
+        stages: {
+          traditional: "Apps reachable on internal network with simple authentication. Some on public internet with VPN-based access.",
+          initial:     "Apps front-ended by IdP-integrated SSO; some conditional access policies.",
+          advanced:    "All applications behind identity-aware proxy / ZTNA broker. Context-aware access policies per app.",
+          optimal:     "Per-request authorisation evaluated dynamically using identity, device, behaviour, threat signals. Session-level continuous validation."
+        },
+        ncsc: ["p4", "p5"]
+      },
+      {
+        id: "app-workload-id",
+        title: "Workload Identity",
+        function: null,
+        prompt: "How are workloads (services, containers, functions, batch jobs) authenticated?",
+        stages: {
+          traditional: "Static API keys, secrets in config files, shared service accounts.",
+          initial:     "Centralised secrets store (e.g. vault) for most secrets; long-lived service accounts.",
+          advanced:    "Managed identities / workload identity federation (e.g. SPIFFE, cloud IAM roles). Short-lived credentials.",
+          optimal:     "All workloads use cryptographic, attested workload identities with mTLS. Zero static secrets. Continuous workload-to-workload authorisation."
+        },
+        ncsc: ["p2", "p5"]
+      },
+      {
+        id: "app-secdev",
+        title: "Secure Development & SBOM",
+        function: "governance",
+        prompt: "How is application development secured and software supply chain integrity assured?",
+        stages: {
+          traditional: "Manual code review; security tested only pre-go-live, if at all. No SBOM.",
+          initial:     "SAST / SCA in CI/CD; periodic penetration tests. Dependency scanning.",
+          advanced:    "Shift-left security: SAST, SCA, secrets scanning, IaC scanning all in pipeline. SBOM generated for releases.",
+          optimal:     "Continuous secure-by-design lifecycle. Cryptographically-signed builds, SBOM with signed attestations (SLSA, in-toto), automated provenance verification at deploy time."
+        },
+        ncsc: ["p1", "p8"]
+      },
+      {
+        id: "app-runtime",
+        title: "Runtime Workload Protection",
+        function: null,
+        prompt: "How are running workloads (containers, VMs, serverless) protected at runtime?",
+        stages: {
+          traditional: "Limited runtime visibility; reliance on host-level AV in VMs.",
+          initial:     "Container scanning at build; basic runtime monitoring.",
+          advanced:    "CWPP / CNAPP platform deployed; runtime threat detection across container, host, serverless.",
+          optimal:     "Unified CNAPP integrated with identity, network and policy planes. Auto-quarantine of compromised workloads. Drift detection vs declared state."
+        },
+        ncsc: ["p3", "p6"]
+      },
+      {
+        id: "app-api",
+        title: "API Security",
+        function: "visibility",
+        prompt: "How are APIs catalogued, authenticated, monitored and protected?",
+        stages: {
+          traditional: "No API inventory. APIs authenticate with static keys; little monitoring.",
+          initial:     "API gateway in front of major APIs; some inventory. OAuth for new APIs.",
+          advanced:    "Comprehensive API inventory (including shadow APIs). API gateway enforces authn/authz. WAF + API protection at edge.",
+          optimal:     "Continuous API discovery and behavioural monitoring. Per-call authorisation with rich context. Automated abuse detection and rate-limit/policy adjustment."
+        },
+        ncsc: ["p1", "p4", "p5"]
+      },
+      {
+        id: "app-deploy",
+        title: "Deployment & Change Control",
+        function: "automation",
+        prompt: "How are application deployments controlled, audited and rolled back?",
+        stages: {
+          traditional: "Manual deployments; inconsistent change records; release windows.",
+          initial:     "CI/CD pipelines for some apps; change ticket per release.",
+          advanced:    "Most apps deployed via signed CI/CD. Infrastructure-as-Code for environments. Automated rollback.",
+          optimal:     "GitOps-style declarative deployment with policy-as-code gates. Provenance verified at deploy time. Auto-rollback on policy or health failure."
+        },
+        ncsc: ["p1", "p4"]
+      }
+    ]
+  },
+
+  // ============== DATA ==============
+  {
+    id: "data",
+    name: "Data",
+    icon: "🔒",
+    desc: "Data discovery, classification, protection, and access control across structured, unstructured and SaaS data.",
+    capabilities: [
+      {
+        id: "data-discovery",
+        title: "Data Discovery & Inventory",
+        function: "visibility",
+        prompt: "How is data discovered, catalogued and tracked across environments?",
+        stages: {
+          traditional: "Major data stores known but no comprehensive inventory. Shadow data widespread.",
+          initial:     "Data catalogue for sanctioned databases and key SaaS. Manual SaaS-data audits.",
+          advanced:    "Automated data discovery across cloud, SaaS, file shares, endpoints. DSPM platform deployed.",
+          optimal:     "Continuous DSPM with full lineage. Discovery of dark data, derived data, and copies. Real-time risk scoring per data asset."
+        },
+        ncsc: ["p1"]
+      },
+      {
+        id: "data-class",
+        title: "Data Classification",
+        function: "governance",
+        prompt: "How is data classified and how are classifications used to drive policy?",
+        stages: {
+          traditional: "Classification scheme exists in policy but rarely applied in practice.",
+          initial:     "Manual classification by users (labels) for new content; some auto-labelling for emails/documents.",
+          advanced:    "Auto-classification via content inspection across major data stores. Labels drive access, encryption, DLP.",
+          optimal:     "Real-time, continuous classification including derived data. Labels embedded in policy decisions across identity, network, app and data planes."
+        },
+        ncsc: ["p1", "p4"]
+      },
+      {
+        id: "data-protection",
+        title: "Data Protection (Encryption / Tokenisation)",
+        function: null,
+        prompt: "How is data protected at rest, in transit and in use?",
+        stages: {
+          traditional: "Encryption at rest on critical databases only. Inconsistent in-transit encryption inside perimeter.",
+          initial:     "Encryption at rest across most stores; TLS for most transit. Centralised KMS for some keys.",
+          advanced:    "Encryption everywhere with central KMS / HSM. Customer-managed keys for sensitive workloads. Tokenisation/masking where appropriate.",
+          optimal:     "Comprehensive encryption with confidential computing for sensitive in-use data. Crypto-agility (key rotation, algorithm updates, post-quantum readiness)."
+        },
+        ncsc: ["p7", "p8"]
+      },
+      {
+        id: "data-access",
+        title: "Data Access Control",
+        function: null,
+        prompt: "How is access to data controlled and enforced at the data layer?",
+        stages: {
+          traditional: "Access enforced primarily at app/share layer. Broad permissions; over-privileged accounts common.",
+          initial:     "Role-based access at data layer for major systems. Periodic access reviews.",
+          advanced:    "Attribute-based access at data layer (rows, columns, fields). Just-in-time data access for sensitive sets.",
+          optimal:     "Policy-based, context-aware data access enforced at storage layer. Per-query authorisation with identity, classification, behaviour signals."
+        },
+        ncsc: ["p4", "p5"]
+      },
+      {
+        id: "data-dlp",
+        title: "Data Loss Prevention",
+        function: "automation",
+        prompt: "How is exfiltration of sensitive data detected and prevented?",
+        stages: {
+          traditional: "Email DLP only; little control over endpoint or cloud-to-cloud movement.",
+          initial:     "DLP across email, endpoint and major SaaS. Mostly alerting; some blocking on egregious cases.",
+          advanced:    "Unified DLP across endpoints, email, web, SaaS, cloud-storage. Classification-driven blocking and quarantine.",
+          optimal:     "Adaptive DLP integrated with UEBA, classification, threat intel. Automated response (revoke, quarantine, force re-auth) with low false-positive rate."
+        },
+        ncsc: ["p3", "p6"]
+      },
+      {
+        id: "data-saas",
+        title: "SaaS Data Governance",
+        function: null,
+        prompt: "How is data in SaaS applications governed and protected?",
+        stages: {
+          traditional: "Limited visibility into SaaS data sharing. Sanctioned-app focus only; shadow SaaS prevalent.",
+          initial:     "CASB / SSPM for major sanctioned SaaS. Manual review of external sharing.",
+          advanced:    "SSPM across major SaaS estate. Continuous external-sharing audit. Anomalous-access detection.",
+          optimal:     "Continuous SaaS posture management with auto-remediation. Cross-SaaS identity-data graph; risk-driven enforcement at the edge."
+        },
+        ncsc: ["p1", "p4", "p8"]
+      }
+    ]
+  }
+];
+
+// ============================================================
+// SECTOR PRIORITIES
+// Based on common practitioner emphasis per sector — not authoritative, just
+// reflects where practitioners typically focus first.
+// ============================================================
+
+const SECTOR_PRIORITIES = {
+  "Financial Services":            { primary: ["identity", "data"], secondary: ["apps"], rationale: "PRA/DORA/FCA expectations on identity assurance and data residency drive identity and data work first." },
+  "Healthcare":                    { primary: ["data", "identity"], secondary: ["devices"], rationale: "DSPT/HIPAA pressure on patient-data protection and clinician-identity assurance; medical-device population complicates devices." },
+  "Critical National Infrastructure": { primary: ["devices", "networks"], secondary: ["identity"], rationale: "OT/ICS estates and CAF expectations make device visibility and segmentation the dominant focus." },
+  "Manufacturing":                 { primary: ["devices", "networks"], secondary: ["data"], rationale: "OT segmentation and device identity dominate; data IP protection follows." },
+  "Technology / SaaS":             { primary: ["identity", "apps"], secondary: ["data"], rationale: "Cloud-native estates make workload identity and application access central." },
+  "Retail & E-Commerce":           { primary: ["identity", "data"], secondary: ["apps"], rationale: "PCI DSS and customer-data exposure mean identity and data dominate." },
+  "Legal & Professional Services": { primary: ["data", "identity"], secondary: ["apps"], rationale: "Client confidentiality and matter segregation drive data classification and identity work." },
+  "Education":                     { primary: ["identity", "devices"], secondary: ["networks"], rationale: "Mixed BYOD/managed estates and federated identities for staff and students." },
+  "Central Government":            { primary: ["identity", "data"], secondary: ["networks"], rationale: "NCSC CAF and government security classifications drive identity and data first." },
+  "Local Government":              { primary: ["identity", "data"], secondary: ["devices"], rationale: "Citizen-data protection and joiners-movers-leavers across mixed estates." },
+  "Energy & Utilities":            { primary: ["devices", "networks"], secondary: ["identity"], rationale: "OT-heavy with NIS2/CAF expectations on segmentation and visibility." },
+  "Telecommunications":            { primary: ["networks", "identity"], secondary: ["apps"], rationale: "Carrier-grade networks plus customer-identity systems are the priority axes." },
+  "Transport & Logistics":         { primary: ["devices", "data"], secondary: ["networks"], rationale: "Mixed estate including OT (vehicles, depots) and supply-chain data exposure." }
+};
+
+// ============================================================
+// QUICK-WINS RECOMMENDATIONS
+// Mapped from low-stage capabilities — each capability ID can have an
+// associated "if you're at Traditional/Initial, do this" recommendation.
+// ============================================================
+
+const QUICK_WINS = {
+  "id-auth":       "Roll out phishing-resistant MFA (FIDO2) for all admins as the highest-impact identity quick win. Then expand to high-risk roles, then all users.",
+  "id-pam":        "Eliminate standing admin rights via JIT elevation in your PAM tooling. Even a one-hour-cap policy meaningfully reduces blast radius.",
+  "id-lifecycle":  "Automate leaver deprovisioning across your top 10 applications via SCIM. Most identity incidents involve a delayed-removal account.",
+  "id-behaviour":  "Enable impossible-travel and atypical-sign-in alerts in your IdP today — most identity providers have this built in.",
+  "dev-inventory": "Reconcile MDM, EDR and IdP-registered-device inventories — gaps in this list are the unmanaged devices accessing your data.",
+  "dev-posture":   "Block sign-in from devices not reporting compliant status. Start with high-risk apps, expand from there.",
+  "dev-protection":"Replace signature-only AV with modern EDR; even basic EDR coverage reduces dwell time dramatically.",
+  "net-segmentation": "Identify and segment one critical workload (typically domain controllers, finance systems, or crown-jewel data) — start small, prove the model.",
+  "net-perimeter": "Pilot ZTNA for one application as a VPN replacement. Measure user experience and policy granularity before scaling.",
+  "net-encryption":"Audit and decommission cleartext internal protocols (LDAP, SMBv1, telnet, plain RDP). Enforce TLS for internal LOB apps.",
+  "app-access":    "Move all SaaS access through your IdP with conditional access. Shadow SaaS is the next problem, but stopping the bleeding on sanctioned SaaS comes first.",
+  "app-workload-id":"Replace your three highest-risk static API keys with managed identities or short-lived credentials. Pick the easiest cloud workloads first.",
+  "app-secdev":    "Add SCA/SAST and secrets scanning to your highest-traffic CI/CD pipeline. Catching one secret-in-repo justifies the investment.",
+  "data-discovery":"Run a data discovery scan against your top 5 sanctioned data stores. The shadow data findings will surprise leadership in a useful way.",
+  "data-class":    "Pick three classification labels and start applying them via auto-labelling in M365/Google Workspace — it builds the muscle for downstream policy.",
+  "data-dlp":      "Enable DLP alerting (not blocking) across email and major SaaS to baseline normal egress. You'll find the over-sharing patterns quickly."
+};
+
+// ============================================================
+// ROADMAP MOVE-UP HINTS
+// What does it take to move a capability from one stage to the next?
+// Generic guidance per pillar+function pair.
+// ============================================================
+
+const ROADMAP_HINTS = {
+  // Identity moves
+  "identity:traditional->initial": "Centralise authentication on a single IdP, enforce MFA broadly, deploy a PAM solution.",
+  "identity:initial->advanced":    "Roll out phishing-resistant MFA, JIT for admins, behavioural analytics, attribute-based access controls.",
+  "identity:advanced->optimal":    "Move to continuous, context-aware authorisation with real-time risk signals; eliminate standing privilege.",
+
+  // Devices moves
+  "devices:traditional->initial":  "Get unified device inventory; deploy MDM and modern EDR across managed estate.",
+  "devices:initial->advanced":     "Posture-at-access enforcement; hardware-bound device identity; OT visibility.",
+  "devices:advanced->optimal":     "Continuous posture evaluation throughout sessions; XDR with auto-response; OT in scope of identity-bound policy.",
+
+  // Networks moves
+  "networks:traditional->initial": "VLAN segmentation, central log aggregation, encrypt high-priority traffic flows.",
+  "networks:initial->advanced":    "ZTNA / SASE for remote access; micro-segmentation for crown jewels; NDR coverage.",
+  "networks:advanced->optimal":    "ZTNA for all access (remote and internal); pervasive mTLS; identity-aware policy at every PEP.",
+
+  // Apps moves
+  "apps:traditional->initial":     "All apps behind SSO; CI/CD pipelines with basic SAST/SCA; secrets vaulting.",
+  "apps:initial->advanced":        "Identity-aware proxies / ZTNA; managed workload identities; SBOM generation; runtime workload protection.",
+  "apps:advanced->optimal":        "Per-request app authorisation; signed/verified deployments; CNAPP across cloud estates; continuous API discovery.",
+
+  // Data moves
+  "data:traditional->initial":     "Sanctioned-data inventory; rolled-out classification labels; encryption at rest/in transit; CASB for SaaS.",
+  "data:initial->advanced":        "DSPM platform; auto-classification; unified DLP; SSPM for SaaS; data-layer access controls.",
+  "data:advanced->optimal":        "Continuous DSPM; classification-driven policy across all planes; confidential computing; SSPM auto-remediation."
+};
+
+
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  current: "identity",        // current pillar id, or "results"
+  scores: {},                 // { capId: stageId }
+  evidence: {},               // { capId: text }
+  context: {                  // setup info
+    org: "",
+    assessor: "",
+    sector: "",
+    date: new Date().toISOString().slice(0, 10)
+  }
+};
+
+const STAGE_VALUES = { traditional: 1, initial: 2, advanced: 3, optimal: 4 };
+
+// ============================================================
+// THEME
+// ============================================================
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('dh-theme', t); } catch(e) {}
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  setTheme(cur === 'light' ? 'dark' : 'light');
+}
+(function initTheme(){
+  let saved = null;
+  try { saved = localStorage.getItem('dh-theme'); } catch(e){}
+  if (saved) setTheme(saved);
+  else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) setTheme('dark');
+  else setTheme('light');
+})();
+
+// ============================================================
+// HELPERS
+// ============================================================
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function escapeAttr(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/'/g,"&#39;").replace(/"/g,"&quot;");
+}
+function pillar(id) { return PILLARS.find(p => p.id === id); }
+function capability(id) {
+  for (const p of PILLARS) {
+    const c = p.capabilities.find(x => x.id === id);
+    if (c) return { cap: c, pillar: p };
+  }
+  return null;
+}
+function stage(id) { return STAGES.find(s => s.id === id); }
+
+// ============================================================
+// SETUP / CONTEXT
+// ============================================================
+function initSetup() {
+  // Populate sector dropdown
+  const sel = document.getElementById('sector');
+  Object.keys(SECTOR_PRIORITIES).forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s; opt.textContent = s;
+    sel.appendChild(opt);
+  });
+  // Populate today's date
+  document.getElementById('assessDate').value = state.context.date;
+
+  // Wire up changes
+  document.getElementById('orgName').addEventListener('input', e => state.context.org = e.target.value);
+  document.getElementById('assessor').addEventListener('input', e => state.context.assessor = e.target.value);
+  document.getElementById('sector').addEventListener('change', e => state.context.sector = e.target.value);
+  document.getElementById('assessDate').addEventListener('change', e => state.context.date = e.target.value);
+}
+
+// ============================================================
+// PILLAR NAV (left)
+// ============================================================
+function renderPillarNav() {
+  const c = document.getElementById('navPillars');
+  c.innerHTML = PILLARS.map(p => {
+    const totals = pillarTotals(p.id);
+    const active = state.current === p.id ? 'active' : '';
+    return `<button class="nav-item ${active}" onclick="switchPillar('${p.id}')">
+      <span class="nav-icon">${p.icon}</span>
+      <span class="nav-name">${escapeHtml(p.name)}</span>
+      <span class="nav-progress">${totals.scored}/${totals.total}</span>
+    </button>`;
+  }).join('');
+  // Update results btn active state
+  const rbtn = document.getElementById('navResults');
+  rbtn.classList.toggle('active', state.current === 'results');
+}
+
+function switchPillar(id) {
+  state.current = id;
+  renderPillarNav();
+  renderAssessment();
+  // Scroll to top of main area
+  window.scrollTo({ top: document.querySelector('header.site').offsetHeight, behavior: 'smooth' });
+}
+
+// ============================================================
+// CAPABILITY RENDER
+// ============================================================
+function renderAssessment() {
+  if (state.current === 'results') { renderResults(); return; }
+  const p = pillar(state.current);
+  if (!p) return;
+  const totals = pillarTotals(p.id);
+  const pct = totals.total > 0 ? Math.round((totals.scored / totals.total) * 100) : 0;
+
+  let html = `
+    <div class="pillar-header">
+      <div class="pillar-eyebrow">Pillar · ${escapeHtml(p.id)}</div>
+      <h2 class="pillar-name"><span class="icon">${p.icon}</span>${escapeHtml(p.name)}</h2>
+      <p class="pillar-desc">${escapeHtml(p.desc)}</p>
+      <div class="pillar-progress-bar">
+        <div class="pillar-progress-fill" style="width:${pct}%"></div>
+      </div>
+      <div class="pillar-progress-meta">
+        <span>${totals.scored} of ${totals.total} capabilities scored</span>
+        <span>${pct}%</span>
+      </div>
+    </div>
+  `;
+
+  p.capabilities.forEach(cap => {
+    const score = state.scores[cap.id];
+    const ev = state.evidence[cap.id] || '';
+    const fnTag = cap.function ? `<span class="cap-fn-tag fn-${cap.function}">${escapeHtml(FUNCTIONS.find(f=>f.id===cap.function)?.short || cap.function)}</span>` : '';
+    const ncscPills = (cap.ncsc || []).map(pid => {
+      const np = NCSC_PRINCIPLES.find(x => x.id === pid);
+      if (!np) return '';
+      return `<span class="cap-ncsc-pill" data-tooltip="NCSC ${np.n}: ${escapeAttr(np.title)}">NCSC ${np.n}</span>`;
+    }).join('');
+
+    const stagesHTML = STAGES.map(s => {
+      const sel = score === s.id ? `selected s-${s.id}` : '';
+      return `<button class="stage-btn ${sel}" onclick="setScore('${cap.id}','${s.id}')">
+        <div class="stage-head">
+          <span>${s.short}</span>
+          <span class="stage-marker"></span>
+        </div>
+        <div class="stage-name">${escapeHtml(s.label)}</div>
+        <div class="stage-desc">${escapeHtml(cap.stages[s.id])}</div>
+      </button>`;
+    }).join('');
+
+    const scoredClass = score ? `scored s-${score}` : '';
+
+    html += `
+      <div class="capability ${scoredClass}" id="cap-${cap.id}">
+        <div class="cap-head">
+          <h3 class="cap-title">${escapeHtml(cap.title)}</h3>
+          ${fnTag}
+        </div>
+        <p class="cap-prompt">${escapeHtml(cap.prompt)}</p>
+        ${ncscPills ? `<div class="cap-ncsc">${ncscPills}</div>` : ''}
+        <div class="stages-grid">${stagesHTML}</div>
+        <div>
+          <div class="cap-evidence-label">Evidence / Notes (optional)</div>
+          <textarea class="cap-evidence" placeholder="What tooling, control or process supports this rating? e.g. 'MFA enforced via Azure AD CA policy; FIDO2 rolled out to admins (Q2 2025).'"
+            oninput="setEvidence('${cap.id}', this.value)">${escapeHtml(ev)}</textarea>
+        </div>
+      </div>
+    `;
+  });
+
+  document.getElementById('assessmentMain').innerHTML = html;
+}
+
+function setScore(capId, stageId) {
+  state.scores[capId] = stageId;
+  // Update just this card and the sidebars
+  renderAssessment();
+  renderPillarNav();
+  renderProgressSidebar();
+}
+
+function setEvidence(capId, text) {
+  state.evidence[capId] = text;
+  // No re-render needed — just store
+}
+
+// ============================================================
+// PROGRESS / SCORING
+// ============================================================
+function pillarTotals(pillarId) {
+  const p = pillar(pillarId);
+  if (!p) return { scored: 0, total: 0, sum: 0, avg: 0, byStage: {} };
+  const total = p.capabilities.length;
+  let scored = 0, sum = 0;
+  const byStage = { traditional: 0, initial: 0, advanced: 0, optimal: 0 };
+  p.capabilities.forEach(c => {
+    if (state.scores[c.id]) {
+      scored++;
+      sum += STAGE_VALUES[state.scores[c.id]];
+      byStage[state.scores[c.id]]++;
+    }
+  });
+  return { scored, total, sum, avg: scored > 0 ? sum / scored : 0, byStage };
+}
+
+function functionTotals(fnId) {
+  let scored = 0, sum = 0;
+  PILLARS.forEach(p => p.capabilities.forEach(c => {
+    if (c.function === fnId && state.scores[c.id]) {
+      scored++;
+      sum += STAGE_VALUES[state.scores[c.id]];
+    }
+  }));
+  return { scored, avg: scored > 0 ? sum / scored : 0 };
+}
+
+function overallTotals() {
+  let total = 0, scored = 0, sum = 0;
+  const byStage = { traditional: 0, initial: 0, advanced: 0, optimal: 0 };
+  PILLARS.forEach(p => p.capabilities.forEach(c => {
+    total++;
+    if (state.scores[c.id]) {
+      scored++;
+      sum += STAGE_VALUES[state.scores[c.id]];
+      byStage[state.scores[c.id]]++;
+    }
+  }));
+  return { total, scored, sum, avg: scored > 0 ? sum / scored : 0, byStage };
+}
+
+function avgToStage(avg) {
+  if (avg < 1.5) return 'traditional';
+  if (avg < 2.5) return 'initial';
+  if (avg < 3.5) return 'advanced';
+  return 'optimal';
+}
+
+function renderProgressSidebar() {
+  const o = overallTotals();
+  document.getElementById('psOverall').textContent = o.scored > 0 ? o.avg.toFixed(2) : '—';
+  document.getElementById('psOverallLabel').textContent =
+    o.scored > 0 ? `${o.scored}/${o.total} capabilities · ${stage(avgToStage(o.avg))?.label}` : 'No capabilities scored yet';
+
+  // Stage bars — proportional fill
+  const stageBars = document.getElementById('psStages');
+  if (o.scored === 0) {
+    stageBars.innerHTML = STAGES.map(() => `<div class="ps-stage-bar"></div>`).join('');
+  } else {
+    stageBars.innerHTML = STAGES.map(s => {
+      const c = o.byStage[s.id];
+      return c > 0 ? `<div class="ps-stage-bar filled s-${s.id}" style="flex:${c}" title="${c} ${s.label}"></div>`
+                   : `<div class="ps-stage-bar"></div>`;
+    }).join('');
+  }
+
+  // Per-pillar
+  const ppEl = document.getElementById('psPillars');
+  ppEl.innerHTML = PILLARS.map(p => {
+    const t = pillarTotals(p.id);
+    let stat;
+    if (t.scored === 0) stat = `0/${t.total}`;
+    else if (t.scored < t.total) stat = `${t.scored}/${t.total} · ${t.avg.toFixed(1)}`;
+    else stat = `${t.avg.toFixed(2)} · ${stage(avgToStage(t.avg))?.short}`;
+    return `<div class="ps-pillar">
+      <span class="ps-pillar-name">${p.icon} ${escapeHtml(p.name)}</span>
+      <span class="ps-pillar-stat">${stat}</span>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// RESULTS VIEW
+// ============================================================
+function showResults() {
+  state.current = 'results';
+  renderPillarNav();
+  renderResults();
+  window.scrollTo({ top: document.querySelector('header.site').offsetHeight, behavior: 'smooth' });
+}
+
+function renderResults() {
+  const o = overallTotals();
+  if (o.scored === 0) {
+    document.getElementById('assessmentMain').innerHTML = `
+      <div class="results-view">
+        <h2>Results & <span class="accent">report</span></h2>
+        <p>You haven't scored any capabilities yet. Pick a pillar from the left to begin.</p>
+        <div class="legend">
+          ${STAGES.map(s => `<div class="legend-item"><div class="legend-swatch" style="background:${s.colour}"></div>${escapeHtml(s.label)}</div>`).join('')}
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  let html = `
+    <div class="results-view" id="resultsRoot">
+      <h2>Results & <span class="accent">report</span></h2>
+      <div class="results-meta">
+        ${state.context.org ? `<span>${escapeHtml(state.context.org)}</span>` : ''}
+        ${state.context.assessor ? `<span>· Assessor: ${escapeHtml(state.context.assessor)}</span>` : ''}
+        ${state.context.sector ? `<span>· ${escapeHtml(state.context.sector)}</span>` : ''}
+        <span>· ${escapeHtml(state.context.date)}</span>
+        <span>· CISA ZTMM v2.0 + NCSC ZT Principles</span>
+      </div>
+      <p>${o.scored} of ${o.total} capabilities scored · Overall maturity <strong>${o.avg.toFixed(2)}</strong> (${stage(avgToStage(o.avg))?.label}).</p>
+  `;
+
+  // Sector context
+  if (state.context.sector && SECTOR_PRIORITIES[state.context.sector]) {
+    const s = SECTOR_PRIORITIES[state.context.sector];
+    html += `<div class="sector-context">
+      <h4>${escapeHtml(state.context.sector)} — typical ZT focus</h4>
+      <p>${escapeHtml(s.rationale)}</p>
+      <div class="sector-priorities">
+        ${s.primary.map(pid => {
+          const p = pillar(pid);
+          const t = p ? pillarTotals(pid) : null;
+          const score = t && t.scored > 0 ? `${t.avg.toFixed(1)}` : 'unscored';
+          return `<span class="sector-priority-tag">PRIORITY · ${escapeHtml(p?.name || pid)} · ${score}</span>`;
+        }).join('')}
+        ${(s.secondary || []).map(pid => {
+          const p = pillar(pid);
+          const t = p ? pillarTotals(pid) : null;
+          const score = t && t.scored > 0 ? `${t.avg.toFixed(1)}` : 'unscored';
+          return `<span class="sector-priority-tag secondary">SECONDARY · ${escapeHtml(p?.name || pid)} · ${score}</span>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+
+  // Heatmap
+  html += `<h3>Maturity heatmap</h3>
+    <p>Capability scoring across all pillars and cross-cutting functions.</p>
+    <div class="heatmap-wrap">
+      ${renderHeatmap()}
+    </div>
+    <div class="legend">
+      ${STAGES.map(s => `<div class="legend-item"><div class="legend-swatch" style="background:${s.colour}"></div>${escapeHtml(s.label)}</div>`).join('')}
+    </div>
+  `;
+
+  // Radars
+  html += `<h3>Maturity by pillar and function</h3>
+    <p>Radar charts comparing pillar-level and cross-cutting maturity.</p>
+    <div class="radar-grid">
+      <div class="radar-card">
+        <h4>Pillar maturity</h4>
+        ${renderRadar(PILLARS.map(p => ({ label: p.id === 'apps' ? 'Apps & Workloads' : p.name, value: pillarTotals(p.id).avg })))}
+      </div>
+      <div class="radar-card">
+        <h4>Cross-cutting functions</h4>
+        ${renderRadar(FUNCTIONS.map(f => ({ label: f.short, value: functionTotals(f.id).avg })))}
+      </div>
+    </div>
+  `;
+
+  // Gap register (Traditional + Initial)
+  const gaps = collectGaps();
+  if (gaps.length > 0) {
+    html += `<h3>Gap register</h3>
+      <p>Capabilities scored as Traditional or Initial. The largest gaps to your zero-trust target state.</p>
+      <div class="gap-list">
+        ${gaps.map(g => `
+          <div class="gap-item s-${g.score}">
+            <div class="gap-head">
+              <div>
+                <div class="gap-pillar">${escapeHtml(g.pillarName)}</div>
+                <div class="gap-title">${escapeHtml(g.title)}</div>
+              </div>
+              <span class="gap-stage s-${g.score}">${escapeHtml(stage(g.score)?.label)}</span>
+            </div>
+            <div class="gap-target">
+              <strong>Target (Optimal):</strong> ${escapeHtml(g.optimal)}
+            </div>
+            ${QUICK_WINS[g.id] ? `<div class="gap-quickwin">${escapeHtml(QUICK_WINS[g.id])}</div>` : ''}
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } else {
+    html += `<h3>Gap register</h3><p>No capabilities scored as Traditional or Initial — strong baseline established.</p>`;
+  }
+
+  // Roadmap
+  html += renderRoadmap();
+
+  // NCSC coverage
+  html += renderNCSCCoverage();
+
+  html += `</div>`;
+  document.getElementById('assessmentMain').innerHTML = html;
+}
+
+// ============================================================
+// HEATMAP
+// ============================================================
+function renderHeatmap() {
+  // Each pillar as a row of capability cells, grouped under function columns or "core"
+  // Layout choice: rows = pillars; columns = functions (Visibility, Automation, Governance) + Core
+  // Each cell shows count + avg stage of capabilities in that bucket
+  let html = `<div class="heatmap" style="grid-template-columns: 200px repeat(4, 1fr);">`;
+  // Header row
+  html += `<div class="heatmap-cell header">Pillar</div>`;
+  html += `<div class="heatmap-cell header">Core</div>`;
+  FUNCTIONS.forEach(f => {
+    html += `<div class="heatmap-cell header">${escapeHtml(f.short)}</div>`;
+  });
+  // Data rows
+  PILLARS.forEach(p => {
+    html += `<div class="heatmap-cell row-label">${p.icon} ${escapeHtml(p.name)}</div>`;
+    // Core (function = null)
+    html += renderHeatmapCell(p.capabilities.filter(c => !c.function));
+    FUNCTIONS.forEach(f => {
+      html += renderHeatmapCell(p.capabilities.filter(c => c.function === f.id));
+    });
+  });
+  html += `</div>`;
+  return html;
+}
+
+function renderHeatmapCell(caps) {
+  if (caps.length === 0) return `<div class="heatmap-cell empty">—</div>`;
+  let scored = 0, sum = 0;
+  caps.forEach(c => {
+    if (state.scores[c.id]) { scored++; sum += STAGE_VALUES[state.scores[c.id]]; }
+  });
+  if (scored === 0) {
+    return `<div class="heatmap-cell empty">${caps.length} capabilities · unscored</div>`;
+  }
+  const avg = sum / scored;
+  const st = avgToStage(avg);
+  return `<div class="heatmap-cell scored s-${st}">
+    <div class="heatmap-stage s-${st}">${stage(st)?.label} · ${avg.toFixed(2)}</div>
+    <div class="heatmap-cap-name">${caps.map(c => escapeHtml(c.title)).join(' · ')}</div>
+    ${scored < caps.length ? `<div style="font-size:10px;color:var(--text-muted);margin-top:2px;">${scored}/${caps.length} scored</div>` : ''}
+  </div>`;
+}
+
+// ============================================================
+// RADAR CHART (SVG)
+// ============================================================
+function renderRadar(items) {
+  // items = [{label, value (0-4)}]
+  if (items.length < 3) return '<p class="muted">Not enough data points for a radar chart.</p>';
+  const W = 400, H = 320, cx = W/2, cy = H/2 + 10;
+  const R = 100;
+  const N = items.length;
+  // Concentric rings (1, 2, 3, 4)
+  let html = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+  // Rings
+  for (let r = 1; r <= 4; r++) {
+    const rr = (r / 4) * R;
+    const points = [];
+    for (let i = 0; i < N; i++) {
+      const a = (i / N) * 2 * Math.PI - Math.PI/2;
+      points.push(`${(cx + Math.cos(a)*rr).toFixed(1)},${(cy + Math.sin(a)*rr).toFixed(1)}`);
+    }
+    html += `<polygon points="${points.join(' ')}" fill="none" stroke="var(--border-strong)" stroke-width="0.6" opacity="0.5"/>`;
+    // Ring label (1-4) on the right
+    if (r === 1 || r === 2 || r === 3 || r === 4) {
+      html += `<text x="${cx + rr + 4}" y="${cy + 3}" font-family="JetBrains Mono, monospace" font-size="9" fill="var(--text-muted)">${r}</text>`;
+    }
+  }
+  // Spokes
+  for (let i = 0; i < N; i++) {
+    const a = (i / N) * 2 * Math.PI - Math.PI/2;
+    html += `<line x1="${cx}" y1="${cy}" x2="${(cx + Math.cos(a)*R).toFixed(1)}" y2="${(cy + Math.sin(a)*R).toFixed(1)}" stroke="var(--border-strong)" stroke-width="0.6" opacity="0.5"/>`;
+  }
+  // Data polygon
+  const dataPoints = [];
+  for (let i = 0; i < N; i++) {
+    const a = (i / N) * 2 * Math.PI - Math.PI/2;
+    const v = items[i].value || 0;
+    const rr = (v / 4) * R;
+    dataPoints.push(`${(cx + Math.cos(a)*rr).toFixed(1)},${(cy + Math.sin(a)*rr).toFixed(1)}`);
+  }
+  html += `<polygon points="${dataPoints.join(' ')}" fill="var(--accent)" fill-opacity="0.2" stroke="var(--accent)" stroke-width="2"/>`;
+  // Data points
+  for (let i = 0; i < N; i++) {
+    const a = (i / N) * 2 * Math.PI - Math.PI/2;
+    const v = items[i].value || 0;
+    const rr = (v / 4) * R;
+    if (v > 0) {
+      html += `<circle cx="${(cx + Math.cos(a)*rr).toFixed(1)}" cy="${(cy + Math.sin(a)*rr).toFixed(1)}" r="3.5" fill="var(--accent)"/>`;
+    }
+  }
+  // Labels
+  for (let i = 0; i < N; i++) {
+    const a = (i / N) * 2 * Math.PI - Math.PI/2;
+    const lr = R + 22;
+    const lx = cx + Math.cos(a) * lr;
+    const ly = cy + Math.sin(a) * lr;
+    let anchor = 'middle';
+    if (Math.cos(a) > 0.3) anchor = 'start';
+    else if (Math.cos(a) < -0.3) anchor = 'end';
+    const v = items[i].value || 0;
+    html += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${anchor}" dominant-baseline="middle" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="var(--text-2)">${escapeHtml(items[i].label)}</text>`;
+    html += `<text x="${lx.toFixed(1)}" y="${(ly + 13).toFixed(1)}" text-anchor="${anchor}" dominant-baseline="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="var(--text-dim)">${v > 0 ? v.toFixed(2) : '—'}</text>`;
+  }
+  html += `</svg>`;
+  return html;
+}
+
+// ============================================================
+// GAPS / ROADMAP / NCSC COVERAGE
+// ============================================================
+function collectGaps() {
+  const gaps = [];
+  PILLARS.forEach(p => p.capabilities.forEach(c => {
+    const score = state.scores[c.id];
+    if (score === 'traditional' || score === 'initial') {
+      gaps.push({
+        id: c.id,
+        title: c.title,
+        pillarName: p.name,
+        pillarId: p.id,
+        score: score,
+        optimal: c.stages.optimal
+      });
+    }
+  }));
+  // Sort: Traditional first, then by pillar
+  gaps.sort((a, b) => {
+    if (a.score !== b.score) return a.score === 'traditional' ? -1 : 1;
+    return a.pillarName.localeCompare(b.pillarName);
+  });
+  return gaps;
+}
+
+function renderRoadmap() {
+  // For each pillar, suggest move-up steps based on current avg
+  let html = `<h3>Roadmap projection</h3>
+    <p>Suggested steps to move each pillar up one maturity stage from its current level.</p>
+    <div class="roadmap-grid">`;
+  PILLARS.forEach(p => {
+    const t = pillarTotals(p.id);
+    if (t.scored === 0) {
+      html += `<div class="roadmap-pillar">
+        <h4>${p.icon} ${escapeHtml(p.name)} <span class="roadmap-pillar-stage">unscored</span></h4>
+        <div class="roadmap-step">Score capabilities in this pillar to receive roadmap suggestions.</div>
+      </div>`;
+      return;
+    }
+    const cur = avgToStage(t.avg);
+    if (cur === 'optimal') {
+      html += `<div class="roadmap-pillar">
+        <h4>${p.icon} ${escapeHtml(p.name)} <span class="roadmap-pillar-stage">${stage(cur)?.label} · ${t.avg.toFixed(2)}</span></h4>
+        <div class="roadmap-step">Optimal stage reached. Focus on continuous improvement, expanding scope, and supporting other pillars.</div>
+      </div>`;
+      return;
+    }
+    const next = nextStage(cur);
+    const hint = ROADMAP_HINTS[`${p.id}:${cur}->${next}`] || `Move toward ${stage(next)?.label}.`;
+    html += `<div class="roadmap-pillar">
+      <h4>${p.icon} ${escapeHtml(p.name)} <span class="roadmap-pillar-stage">${stage(cur)?.label} · ${t.avg.toFixed(2)} → ${stage(next)?.label}</span></h4>
+      <div class="roadmap-step">${escapeHtml(hint)}</div>
+    </div>`;
+  });
+  html += `</div>`;
+  return html;
+}
+
+function nextStage(cur) {
+  const order = ['traditional', 'initial', 'advanced', 'optimal'];
+  const i = order.indexOf(cur);
+  if (i === -1 || i === order.length - 1) return cur;
+  return order[i + 1];
+}
+
+function renderNCSCCoverage() {
+  // For each NCSC principle, what capabilities map to it, and what's scored?
+  let html = `<h3>NCSC ZT principle coverage</h3>
+    <p>How completely your scored capabilities cover each of the eight NCSC Zero Trust principles.</p>
+    <div class="ncsc-grid">`;
+  NCSC_PRINCIPLES.forEach(np => {
+    const mapped = [];
+    PILLARS.forEach(p => p.capabilities.forEach(c => {
+      if ((c.ncsc || []).includes(np.id)) mapped.push(c);
+    }));
+    const scored = mapped.filter(c => state.scores[c.id]).length;
+    const pct = mapped.length > 0 ? Math.round((scored / mapped.length) * 100) : 0;
+    let avgStage = '';
+    if (scored > 0) {
+      const sum = mapped.reduce((acc, c) => acc + (state.scores[c.id] ? STAGE_VALUES[state.scores[c.id]] : 0), 0);
+      const avg = sum / scored;
+      avgStage = ` · ${stage(avgToStage(avg))?.label}`;
+    }
+    html += `<div class="ncsc-card">
+      <h5><span class="num">${np.n}</span> ${escapeHtml(np.title)}</h5>
+      <div style="font-size:11.5px;color:var(--text-dim);">${escapeHtml(np.desc)}</div>
+      <div class="coverage-meter"><div class="coverage-fill" style="width:${pct}%"></div></div>
+      <div class="coverage-stat">${scored}/${mapped.length} scored · ${pct}%${avgStage}</div>
+    </div>`;
+  });
+  html += `</div>`;
+  return html;
+}
+
+// ============================================================
+// EXPORTS
+// ============================================================
+function exportJSON() {
+  const payload = {
+    schema: "dh-zt-maturity",
+    schemaVersion: 1,
+    framework: "CISA ZTMM v2.0 + NCSC ZT principles",
+    exported: new Date().toISOString(),
+    context: state.context,
+    scores: state.scores,
+    evidence: state.evidence
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `zt-assessment-${(state.context.org || 'untitled').replace(/[^a-z0-9]/gi,'-').toLowerCase()}-${state.context.date}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast('JSON exported');
+}
+
+function loadJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const payload = JSON.parse(e.target.result);
+      if (payload.schema !== 'dh-zt-maturity') {
+        showToast('File schema not recognised');
+        return;
+      }
+      state.context = Object.assign(state.context, payload.context || {});
+      state.scores = payload.scores || {};
+      state.evidence = payload.evidence || {};
+      // Update setup form
+      document.getElementById('orgName').value = state.context.org || '';
+      document.getElementById('assessor').value = state.context.assessor || '';
+      document.getElementById('sector').value = state.context.sector || '';
+      document.getElementById('assessDate').value = state.context.date || new Date().toISOString().slice(0,10);
+      // Re-render
+      renderPillarNav();
+      renderAssessment();
+      renderProgressSidebar();
+      showToast(`Loaded · ${Object.keys(state.scores).length} scores`);
+    } catch (err) {
+      showToast('Could not parse file');
+      console.error(err);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = ''; // Reset so same file can be reloaded
+}
+
+function resetAssessment() {
+  if (!confirm('Reset everything? All scores, evidence and setup will be cleared.')) return;
+  state.scores = {};
+  state.evidence = {};
+  state.context = { org: '', assessor: '', sector: '', date: new Date().toISOString().slice(0,10) };
+  state.current = 'identity';
+  document.getElementById('orgName').value = '';
+  document.getElementById('assessor').value = '';
+  document.getElementById('sector').value = '';
+  document.getElementById('assessDate').value = state.context.date;
+  renderPillarNav();
+  renderAssessment();
+  renderProgressSidebar();
+  showToast('Reset complete');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  initSetup();
+  renderPillarNav();
+  renderAssessment();
+  renderProgressSidebar();
+});
+
+</script>
+</body>
+</html>
