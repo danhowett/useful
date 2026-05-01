@@ -1,0 +1,2470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATT&CK Technique Mapper · Dan Howett</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fafaf7;
+  --bg-elev: #ffffff;
+  --bg-muted: #f4f4ef;
+  --bg-subtle: #efefe8;
+  --border: #e8e6df;
+  --border-strong: #d6d3c9;
+  --text: #1a1a1a;
+  --text-2: #3a3a36;
+  --text-dim: #6b6b66;
+  --text-muted: #9a9a92;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-soft: #eff4ff;
+  --accent-text: #1e40af;
+  --green: #16a34a;
+  --green-soft: #dcfce7;
+  --orange: #ea580c;
+  --orange-soft: #ffedd5;
+  --red: #dc2626;
+  --red-soft: #fee2e2;
+  --purple: #7c3aed;
+  --purple-soft: #ede9fe;
+  --yellow: #eab308;
+  --yellow-soft: #fef9c3;
+  --shadow-sm: 0 1px 2px rgba(15, 15, 15, 0.04);
+  --shadow: 0 1px 3px rgba(15, 15, 15, 0.06), 0 1px 2px rgba(15, 15, 15, 0.04);
+  --shadow-lg: 0 8px 24px rgba(15, 15, 15, 0.06), 0 2px 4px rgba(15, 15, 15, 0.04);
+}
+[data-theme="dark"] {
+  --bg: #0e0f10;
+  --bg-elev: #18191b;
+  --bg-muted: #1d1e20;
+  --bg-subtle: #232528;
+  --border: #2a2c2f;
+  --border-strong: #3a3d40;
+  --text: #f0f0ee;
+  --text-2: #d6d6d2;
+  --text-dim: #8b8b85;
+  --text-muted: #5e5e58;
+  --accent: #60a5fa;
+  --accent-hover: #93c5fd;
+  --accent-soft: rgba(96, 165, 250, 0.12);
+  --accent-text: #93c5fd;
+  --green: #4ade80;
+  --green-soft: rgba(74, 222, 128, 0.16);
+  --orange: #fb923c;
+  --orange-soft: rgba(251, 146, 60, 0.16);
+  --red: #f87171;
+  --red-soft: rgba(248, 113, 113, 0.16);
+  --purple: #a78bfa;
+  --purple-soft: rgba(167, 139, 250, 0.16);
+  --yellow: #facc15;
+  --yellow-soft: rgba(250, 204, 21, 0.16);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01", "cv11";
+  letter-spacing: -0.005em;
+  transition: background 0.2s, color 0.2s;
+}
+.mono { font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace; }
+.serif { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-weight: 400; }
+a { color: inherit; text-decoration: none; }
+
+/* HEADER */
+header.site {
+  border-bottom: 1px solid var(--border);
+  background: rgba(250, 250, 247, 0.85);
+  backdrop-filter: saturate(180%) blur(10px);
+  -webkit-backdrop-filter: saturate(180%) blur(10px);
+  position: sticky; top: 0; z-index: 50;
+}
+[data-theme="dark"] header.site { background: rgba(14, 15, 16, 0.85); }
+.site-inner {
+  max-width: 1400px; margin: 0 auto; padding: 14px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.brand-link {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; font-weight: 600; color: var(--text);
+}
+.brand-mark {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 12px;
+}
+.brand-name .slash { color: var(--text-muted); margin: 0 5px; font-weight: 400; }
+.brand-name .second { color: var(--text-dim); font-weight: 500; }
+.site-meta { display: flex; align-items: center; gap: 10px; }
+.btn {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  padding: 7px 12px; border-radius: 7px;
+  font-size: 12px; font-family: inherit; font-weight: 500;
+  cursor: pointer; transition: all 0.15s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn:hover { background: var(--bg-muted); border-color: var(--border-strong); }
+.btn.primary {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+}
+.btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn.ghost { background: transparent; }
+.btn.danger { color: var(--red); border-color: var(--border); }
+.btn.danger:hover { background: var(--red-soft); border-color: var(--red); }
+.btn.sm { padding: 5px 10px; font-size: 11px; }
+.theme-toggle {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-dim); width: 32px; height: 32px;
+  border-radius: 8px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.theme-toggle:hover { background: var(--bg-muted); color: var(--text); }
+.theme-toggle svg { width: 15px; height: 15px; }
+.sun-icon { display: none; }
+.moon-icon { display: block; }
+[data-theme="dark"] .sun-icon { display: block; }
+[data-theme="dark"] .moon-icon { display: none; }
+
+/* MAIN */
+main {
+  max-width: 1400px; margin: 0 auto;
+  padding: 32px 28px 80px;
+}
+
+/* HERO BLOCK */
+.page-hero {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 24px; margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.page-hero-text { flex: 1; min-width: 280px; }
+.eyebrow {
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); letter-spacing: 0.05em;
+  text-transform: uppercase; margin-bottom: 10px;
+}
+h1.page-title {
+  font-size: 30px; line-height: 1.1; letter-spacing: -0.025em;
+  font-weight: 700; margin-bottom: 8px;
+}
+h1.page-title .accent {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic; font-weight: 400; color: var(--accent);
+  letter-spacing: -0.01em;
+}
+.page-lead {
+  font-size: 14.5px; color: var(--text-dim);
+  max-width: 720px; line-height: 1.55;
+}
+.page-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* SEARCH BAR */
+.search-section {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.search-row {
+  display: flex; gap: 10px; align-items: center;
+  margin-bottom: 12px;
+}
+.search-input-wrap {
+  flex: 1; position: relative;
+  display: flex; align-items: center;
+}
+.search-input-wrap svg {
+  position: absolute; left: 14px;
+  width: 16px; height: 16px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.search-input {
+  width: 100%;
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 11px 14px 11px 40px;
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  transition: border-color 0.15s;
+}
+.search-input:focus {
+  outline: none; border-color: var(--accent);
+  background: var(--bg-elev);
+}
+.search-tip {
+  font-size: 11.5px; color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+}
+.search-tip kbd {
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 4px; padding: 1px 5px;
+  font-family: inherit; font-size: 10px;
+  color: var(--text-2);
+  box-shadow: 0 1px 0 var(--border);
+}
+
+/* OBSERVATION CHIPS */
+.chips-container { display: flex; flex-wrap: wrap; gap: 6px; min-height: 24px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--accent-soft); color: var(--accent-text);
+  border: 1px solid var(--accent);
+  padding: 4px 10px; border-radius: 999px;
+  font-size: 12px; font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+  animation: chipIn 0.2s ease;
+}
+@keyframes chipIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+.chip .x {
+  cursor: pointer; opacity: 0.6;
+  transition: opacity 0.15s;
+  font-size: 14px; line-height: 1;
+}
+.chip .x:hover { opacity: 1; }
+.chip.unmatched {
+  background: var(--bg-muted); color: var(--text-dim);
+  border-color: var(--border);
+}
+.chips-empty {
+  font-size: 11.5px; color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  padding: 4px 0;
+}
+
+/* SUGGESTIONS */
+.suggestions {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-top: 12px; padding-top: 12px;
+  border-top: 1px dashed var(--border);
+}
+.suggestion-cat {
+  font-size: 10px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-muted); text-transform: uppercase;
+  letter-spacing: 0.05em; margin-right: 6px;
+  align-self: center;
+}
+.suggestion-chip {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  padding: 3px 9px; border-radius: 999px;
+  font-size: 11.5px; font-family: 'JetBrains Mono', monospace;
+  cursor: pointer; transition: all 0.15s;
+}
+.suggestion-chip:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+/* LAYOUT — sidebar + matrix */
+.layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+/* SIDEBAR */
+.sidebar {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  position: sticky; top: 80px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  box-shadow: var(--shadow-sm);
+}
+@media (max-width: 1100px) {
+  .sidebar { position: static; max-height: none; }
+}
+.sidebar-section { margin-bottom: 18px; }
+.sidebar-section:last-child { margin-bottom: 0; }
+.section-title {
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 0.06em; margin-bottom: 10px;
+  font-weight: 600;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.section-title .count {
+  background: var(--bg-muted); color: var(--text-dim);
+  padding: 1px 6px; border-radius: 4px;
+  font-size: 9.5px;
+}
+
+/* COUNTER PANEL */
+.counters {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border); border-radius: 8px;
+  overflow: hidden; margin-bottom: 12px;
+}
+.counter {
+  background: var(--bg-elev); padding: 10px;
+  text-align: center;
+}
+.counter-num {
+  display: block; font-size: 18px; font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: -0.02em; line-height: 1.1;
+}
+.counter-num.suggested { color: var(--yellow); }
+.counter-num.scoped { color: var(--red); }
+.counter-num.ruled-out { color: var(--text-muted); }
+.counter-num.actor { color: var(--purple); }
+.counter-label {
+  font-size: 9.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-muted); text-transform: uppercase;
+  letter-spacing: 0.04em; margin-top: 2px; display: block;
+}
+
+/* ACTOR LIST */
+.actor-list { display: flex; flex-direction: column; gap: 5px; }
+.actor-item {
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 7px; padding: 9px 11px;
+  cursor: pointer; transition: all 0.15s;
+  text-align: left; font-family: inherit;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.actor-item:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-muted);
+}
+.actor-item.active {
+  background: var(--purple-soft);
+  border-color: var(--purple);
+  color: var(--purple);
+}
+.actor-name {
+  font-size: 12.5px; font-weight: 600; line-height: 1.3;
+}
+.actor-meta {
+  font-size: 10.5px; color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+}
+.actor-item.active .actor-meta { color: var(--purple); opacity: 0.8; }
+
+/* MATRIX AREA */
+.matrix-area {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.matrix-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+  flex-wrap: wrap; gap: 8px;
+}
+.matrix-toolbar h2 {
+  font-size: 14px; font-weight: 600; letter-spacing: -0.01em;
+}
+.toolbar-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.legend {
+  display: flex; gap: 14px; flex-wrap: wrap;
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); margin-bottom: 14px;
+  padding: 10px 12px; background: var(--bg-muted);
+  border: 1px solid var(--border); border-radius: 8px;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-swatch {
+  width: 14px; height: 14px; border-radius: 3px;
+  border: 1px solid var(--border-strong);
+}
+.swatch-suggested { background: var(--yellow-soft); border-color: var(--yellow); }
+.swatch-scoped { background: var(--red-soft); border-color: var(--red); }
+.swatch-ruled { background: var(--bg-muted); }
+.swatch-actor { background: var(--purple-soft); border-color: var(--purple); }
+.swatch-both { background: linear-gradient(135deg, var(--yellow-soft) 0% 50%, var(--purple-soft) 50% 100%); border-color: var(--purple); }
+
+/* MATRIX GRID */
+.matrix-scroll {
+  overflow-x: auto;
+  margin: 0 -16px;
+  padding: 0 16px 8px;
+}
+.matrix-grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(140px, 1fr);
+  gap: 6px;
+  align-items: start;
+  min-width: max-content;
+}
+.tactic-col {
+  display: flex; flex-direction: column; gap: 3px;
+}
+.tactic-header {
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 8px 10px;
+  text-align: center;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-2);
+  margin-bottom: 4px;
+  position: sticky; top: 0; z-index: 2;
+}
+.tactic-header .tactic-id {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; font-weight: 500;
+  color: var(--text-muted); margin-top: 2px;
+  letter-spacing: 0.03em;
+}
+.tech {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 5px 7px;
+  font-size: 10.5px;
+  cursor: pointer;
+  line-height: 1.3;
+  transition: all 0.15s;
+  color: var(--text-2);
+  text-align: left;
+  font-family: inherit;
+  position: relative;
+  min-height: 28px;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.tech:hover { border-color: var(--border-strong); }
+.tech .tid {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; color: var(--text-muted);
+  font-weight: 500; letter-spacing: 0.02em;
+  display: block; margin-bottom: 1px;
+}
+.tech .tname { font-size: 10.5px; line-height: 1.25; }
+
+/* technique states */
+.tech.suggested {
+  background: var(--yellow-soft);
+  border-color: var(--yellow);
+  color: var(--text-2);
+}
+.tech.suggested .tid { color: #a16207; }
+[data-theme="dark"] .tech.suggested .tid { color: var(--yellow); }
+.tech.scoped {
+  background: var(--red-soft);
+  border-color: var(--red);
+  color: var(--text);
+  font-weight: 500;
+}
+.tech.scoped .tid { color: var(--red); }
+.tech.scoped::after {
+  content: "✓"; position: absolute;
+  top: 3px; right: 5px;
+  color: var(--red); font-size: 9px; font-weight: 700;
+}
+.tech.ruled {
+  text-decoration: line-through;
+  opacity: 0.45;
+}
+.tech.actor-overlay {
+  border-color: var(--purple);
+  border-width: 2px;
+}
+.tech.actor-overlay .tid::before {
+  content: "● "; color: var(--purple);
+}
+/* combined: scoped + suggested + actor */
+.tech.suggested.actor-overlay {
+  background: linear-gradient(135deg, var(--yellow-soft) 0% 60%, var(--purple-soft) 100%);
+}
+.tech.scoped.actor-overlay {
+  background: linear-gradient(135deg, var(--red-soft) 0% 60%, var(--purple-soft) 100%);
+}
+
+/* TECHNIQUE NOTE MODAL */
+.modal-bg {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-bg.active { display: flex; }
+.modal {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  max-width: 540px; width: 100%;
+  max-height: 85vh; overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+.modal-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 14px;
+}
+.modal-title { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+.modal-tid {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--text-dim);
+  margin-top: 2px;
+}
+.modal-tactics {
+  display: flex; flex-wrap: wrap; gap: 4px;
+  margin-bottom: 14px;
+}
+.modal-tactic-tag {
+  background: var(--bg-muted); color: var(--text-dim);
+  border: 1px solid var(--border);
+  padding: 2px 8px; border-radius: 4px;
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+}
+.state-row {
+  display: flex; gap: 6px; margin-bottom: 14px;
+}
+.state-btn {
+  flex: 1; padding: 8px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font-family: inherit; font-size: 11.5px; font-weight: 500;
+  color: var(--text-2); cursor: pointer;
+  transition: all 0.15s;
+}
+.state-btn:hover { background: var(--bg-subtle); }
+.state-btn.active.suggested-btn { background: var(--yellow-soft); border-color: var(--yellow); color: #854d0e; }
+[data-theme="dark"] .state-btn.active.suggested-btn { color: var(--yellow); }
+.state-btn.active.scoped-btn { background: var(--red-soft); border-color: var(--red); color: var(--red); }
+.state-btn.active.ruled-btn { background: var(--bg-subtle); color: var(--text-dim); text-decoration: line-through; }
+.state-btn.active.cleared-btn { background: var(--bg-elev); border-color: var(--border-strong); }
+
+.modal-section { margin-bottom: 14px; }
+.modal-section-label {
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 0.06em; margin-bottom: 6px; font-weight: 600;
+}
+.modal textarea {
+  width: 100%;
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 7px; padding: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; color: var(--text);
+  resize: vertical; min-height: 80px;
+  transition: border-color 0.15s;
+}
+.modal textarea:focus { outline: none; border-color: var(--accent); background: var(--bg-elev); }
+.matched-keywords {
+  display: flex; flex-wrap: wrap; gap: 4px;
+}
+.matched-kw {
+  background: var(--accent-soft); color: var(--accent-text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px; padding: 2px 8px; border-radius: 4px;
+}
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--text); color: var(--bg);
+  padding: 10px 16px; border-radius: 8px;
+  font-size: 12.5px; font-weight: 500;
+  z-index: 300; opacity: 0; transform: translateY(8px);
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+  box-shadow: var(--shadow-lg);
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* MUTED */
+.muted { color: var(--text-muted); }
+.dim { color: var(--text-dim); }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-muted); }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* DISCLAIMER PILL */
+.disclaimer-pill {
+  font-size: 11.5px; color: var(--text-dim);
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--orange-soft);
+  border: 1px solid var(--orange);
+  padding: 5px 12px; border-radius: 999px;
+  margin-bottom: 14px;
+  font-weight: 500;
+}
+.disclaimer-pill::before {
+  content: "!"; width: 16px; height: 16px;
+  background: var(--orange); color: #fff;
+  border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 10px; font-weight: 700;
+}
+[data-theme="dark"] .disclaimer-pill { color: var(--text-2); }
+
+/* PRINT */
+@media print {
+  header.site, .search-section, .sidebar, .matrix-toolbar .toolbar-actions,
+  .legend, .theme-toggle, .btn { display: none !important; }
+  body { background: white; color: black; }
+  .matrix-area, .tech, .tactic-header { background: white !important; color: black !important; border: 1px solid #ccc !important; }
+  main { max-width: 100%; padding: 0; }
+  .layout { grid-template-columns: 1fr; }
+}
+
+/* MOBILE EXPORT BAR — only shown on small screens */
+.mobile-exports {
+  display: none;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  margin-top: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.mobile-exports h3 {
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 0.06em; margin-bottom: 10px; font-weight: 600;
+}
+.mobile-exports-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+
+/* MOBILE / NARROW SCREENS */
+@media (max-width: 720px) {
+  main { padding: 20px 16px 60px; }
+  .site-inner { padding: 12px 16px; }
+  h1.page-title { font-size: 24px; }
+  .page-lead { font-size: 13px; }
+  .brand-name .second, .brand-name .slash { display: none; }
+  /* Hide export buttons in header on mobile */
+  .site-meta > .btn { display: none; }
+  .site-meta { gap: 8px; }
+  .search-section { padding: 14px; }
+  .search-row { flex-direction: column; align-items: stretch; gap: 8px; }
+  .search-tip { display: none; }
+  .matrix-toolbar { flex-direction: column; align-items: flex-start; }
+  .legend { font-size: 10px; gap: 10px; padding: 8px 10px; }
+  .matrix-area { padding: 12px; }
+  .layout { gap: 12px; }
+  .suggestions { gap: 4px; }
+  .suggestion-chip { font-size: 10.5px; padding: 2px 7px; }
+  .disclaimer-pill { font-size: 10.5px; padding: 4px 10px; }
+  .mobile-exports { display: block; }
+}
+@media (max-width: 480px) {
+  h1.page-title { font-size: 22px; }
+  .brand-link { font-size: 12px; }
+}
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="site-inner">
+    <a href="/useful/" class="brand-link">
+      <div class="brand-mark">DH</div>
+      <div class="brand-name">Dan Howett <span class="slash">/</span><span class="second">ATT&CK Mapper</span></div>
+    </a>
+    <div class="site-meta">
+      <button class="btn ghost sm" onclick="exportMarkdown()" title="Export in-scope as Markdown">MARKDOWN</button>
+      <button class="btn ghost sm" onclick="exportCSV()" title="Export in-scope as CSV">CSV</button>
+      <button class="btn ghost sm" onclick="exportNavigator()" title="Export as Navigator JSON layer">NAVIGATOR</button>
+      <button class="btn ghost sm" onclick="window.print()" title="Print / save PDF">PDF</button>
+      <button class="btn danger sm" onclick="resetAll()">RESET</button>
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+        <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <div class="page-hero">
+    <div class="page-hero-text">
+      <div class="eyebrow">MITRE ATT&CK · Enterprise · Technique Mapper</div>
+      <h1 class="page-title">Map observed activity to <span class="accent">ATT&CK</span>.</h1>
+      <p class="page-lead">
+        Type what you saw — <span class="mono dim">powershell</span>, <span class="mono dim">lsass</span>,
+        <span class="mono dim">schtasks</span>, <span class="mono dim">cobalt strike</span>,
+        <span class="mono dim">4624</span> — and the relevant techniques highlight in the matrix.
+        Click to promote into scope, compare against threat actors, capture notes, and export.
+      </p>
+    </div>
+  </div>
+
+  <div class="disclaimer-pill">Proof of concept only · Use at your own risk · ATT&CK v15-16 (Apr 2026)</div>
+
+  <!-- SEARCH -->
+  <section class="search-section">
+    <div class="search-row">
+      <div class="search-input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="searchInput" class="search-input" placeholder="Type observation and press Enter — e.g. powershell, lsass, schtasks, mimikatz, 4624..." autocomplete="off">
+      </div>
+      <span class="search-tip"><kbd>Enter</kbd> add · <kbd>Esc</kbd> clear input</span>
+    </div>
+    <div class="chips-container" id="chipsContainer">
+      <span class="chips-empty">No observations added yet — start typing above.</span>
+    </div>
+    <div class="suggestions" id="suggestions"></div>
+  </section>
+
+  <!-- LAYOUT -->
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="section-title">Counters</div>
+        <div class="counters">
+          <div class="counter">
+            <span class="counter-num suggested" id="cnt-suggested">0</span>
+            <span class="counter-label">Suggested</span>
+          </div>
+          <div class="counter">
+            <span class="counter-num scoped" id="cnt-scoped">0</span>
+            <span class="counter-label">In scope</span>
+          </div>
+          <div class="counter">
+            <span class="counter-num ruled-out" id="cnt-ruled">0</span>
+            <span class="counter-label">Ruled out</span>
+          </div>
+          <div class="counter">
+            <span class="counter-num actor" id="cnt-actor">0</span>
+            <span class="counter-label">Actor TTPs</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-title">Threat Actor Overlay <span class="count" id="actor-count">15</span></div>
+        <div class="actor-list" id="actorList"></div>
+      </div>
+    </aside>
+
+    <!-- MATRIX -->
+    <section class="matrix-area">
+      <div class="matrix-toolbar">
+        <h2>Enterprise Matrix · 14 tactics</h2>
+        <div class="toolbar-actions">
+          <button class="btn sm ghost" onclick="promoteAllSuggested()">PROMOTE ALL SUGGESTED →</button>
+          <button class="btn sm ghost" onclick="clearScoped()">CLEAR SCOPED</button>
+        </div>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item"><div class="legend-swatch swatch-suggested"></div>Suggested by keyword</div>
+        <div class="legend-item"><div class="legend-swatch swatch-scoped"></div>In scope</div>
+        <div class="legend-item"><div class="legend-swatch swatch-ruled"></div>Ruled out</div>
+        <div class="legend-item"><div class="legend-swatch swatch-actor"></div>Selected actor TTP</div>
+        <div class="legend-item">Click cell to add notes & change state</div>
+      </div>
+
+      <div class="matrix-scroll">
+        <div class="matrix-grid" id="matrixGrid"></div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Mobile-only export bar -->
+  <section class="mobile-exports">
+    <h3>Export</h3>
+    <div class="mobile-exports-row">
+      <button class="btn" onclick="exportMarkdown()">MARKDOWN</button>
+      <button class="btn" onclick="exportCSV()">CSV</button>
+      <button class="btn" onclick="exportNavigator()">NAVIGATOR JSON</button>
+      <button class="btn" onclick="window.print()">PRINT / PDF</button>
+    </div>
+  </section>
+
+</main>
+
+<!-- TECHNIQUE MODAL -->
+<div class="modal-bg" id="modalBg" onclick="if(event.target===this) closeModal()">
+  <div class="modal" id="modalContent">
+    <!-- populated dynamically -->
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// MITRE ATT&CK ENTERPRISE MATRIX
+// Last reviewed: April 2026
+// Scope: Enterprise tactics + techniques (no sub-techniques)
+// Source: MITRE ATT&CK v15-16 (Enterprise)
+// ============================================================
+
+const ATTACK_MATRIX = [
+  {
+    id: "TA0043",
+    name: "Reconnaissance",
+    short: "Recon",
+    desc: "Information gathering to plan future operations",
+    techniques: [
+      { id: "T1595", name: "Active Scanning" },
+      { id: "T1592", name: "Gather Victim Host Information" },
+      { id: "T1589", name: "Gather Victim Identity Information" },
+      { id: "T1590", name: "Gather Victim Network Information" },
+      { id: "T1591", name: "Gather Victim Org Information" },
+      { id: "T1598", name: "Phishing for Information" },
+      { id: "T1597", name: "Search Closed Sources" },
+      { id: "T1596", name: "Search Open Technical Databases" },
+      { id: "T1593", name: "Search Open Websites/Domains" },
+      { id: "T1594", name: "Search Victim-Owned Websites" }
+    ]
+  },
+  {
+    id: "TA0042",
+    name: "Resource Development",
+    short: "ResourceDev",
+    desc: "Establishing resources to support operations",
+    techniques: [
+      { id: "T1650", name: "Acquire Access" },
+      { id: "T1583", name: "Acquire Infrastructure" },
+      { id: "T1586", name: "Compromise Accounts" },
+      { id: "T1584", name: "Compromise Infrastructure" },
+      { id: "T1587", name: "Develop Capabilities" },
+      { id: "T1585", name: "Establish Accounts" },
+      { id: "T1588", name: "Obtain Capabilities" },
+      { id: "T1608", name: "Stage Capabilities" }
+    ]
+  },
+  {
+    id: "TA0001",
+    name: "Initial Access",
+    short: "InitialAccess",
+    desc: "Gaining entry into the environment",
+    techniques: [
+      { id: "T1189", name: "Drive-by Compromise" },
+      { id: "T1190", name: "Exploit Public-Facing Application" },
+      { id: "T1133", name: "External Remote Services" },
+      { id: "T1200", name: "Hardware Additions" },
+      { id: "T1566", name: "Phishing" },
+      { id: "T1091", name: "Replication Through Removable Media" },
+      { id: "T1195", name: "Supply Chain Compromise" },
+      { id: "T1199", name: "Trusted Relationship" },
+      { id: "T1078", name: "Valid Accounts" }
+    ]
+  },
+  {
+    id: "TA0002",
+    name: "Execution",
+    short: "Execution",
+    desc: "Running malicious code on a system",
+    techniques: [
+      { id: "T1651", name: "Cloud Administration Command" },
+      { id: "T1059", name: "Command and Scripting Interpreter" },
+      { id: "T1609", name: "Container Administration Command" },
+      { id: "T1610", name: "Deploy Container" },
+      { id: "T1203", name: "Exploitation for Client Execution" },
+      { id: "T1559", name: "Inter-Process Communication" },
+      { id: "T1106", name: "Native API" },
+      { id: "T1053", name: "Scheduled Task/Job" },
+      { id: "T1648", name: "Serverless Execution" },
+      { id: "T1129", name: "Shared Modules" },
+      { id: "T1072", name: "Software Deployment Tools" },
+      { id: "T1569", name: "System Services" },
+      { id: "T1204", name: "User Execution" },
+      { id: "T1047", name: "Windows Management Instrumentation" }
+    ]
+  },
+  {
+    id: "TA0003",
+    name: "Persistence",
+    short: "Persistence",
+    desc: "Maintaining access through restarts and credential changes",
+    techniques: [
+      { id: "T1098", name: "Account Manipulation" },
+      { id: "T1197", name: "BITS Jobs" },
+      { id: "T1547", name: "Boot or Logon Autostart Execution" },
+      { id: "T1037", name: "Boot or Logon Initialization Scripts" },
+      { id: "T1176", name: "Browser Extensions" },
+      { id: "T1554", name: "Compromise Client Software Binary" },
+      { id: "T1136", name: "Create Account" },
+      { id: "T1543", name: "Create or Modify System Process" },
+      { id: "T1546", name: "Event Triggered Execution" },
+      { id: "T1133b", name: "External Remote Services" },
+      { id: "T1574", name: "Hijack Execution Flow" },
+      { id: "T1525", name: "Implant Internal Image" },
+      { id: "T1556", name: "Modify Authentication Process" },
+      { id: "T1137", name: "Office Application Startup" },
+      { id: "T1542", name: "Pre-OS Boot" },
+      { id: "T1053b", name: "Scheduled Task/Job" },
+      { id: "T1505", name: "Server Software Component" },
+      { id: "T1205", name: "Traffic Signaling" },
+      { id: "T1078b", name: "Valid Accounts" }
+    ]
+  },
+  {
+    id: "TA0004",
+    name: "Privilege Escalation",
+    short: "PrivEsc",
+    desc: "Gaining higher-level permissions",
+    techniques: [
+      { id: "T1548", name: "Abuse Elevation Control Mechanism" },
+      { id: "T1134", name: "Access Token Manipulation" },
+      { id: "T1098b", name: "Account Manipulation" },
+      { id: "T1547b", name: "Boot or Logon Autostart Execution" },
+      { id: "T1037b", name: "Boot or Logon Initialization Scripts" },
+      { id: "T1543b", name: "Create or Modify System Process" },
+      { id: "T1484", name: "Domain or Tenant Policy Modification" },
+      { id: "T1611", name: "Escape to Host" },
+      { id: "T1546b", name: "Event Triggered Execution" },
+      { id: "T1068", name: "Exploitation for Privilege Escalation" },
+      { id: "T1574b", name: "Hijack Execution Flow" },
+      { id: "T1055", name: "Process Injection" },
+      { id: "T1053c", name: "Scheduled Task/Job" },
+      { id: "T1078c", name: "Valid Accounts" }
+    ]
+  },
+  {
+    id: "TA0005",
+    name: "Defense Evasion",
+    short: "DefenseEvasion",
+    desc: "Avoiding detection",
+    techniques: [
+      { id: "T1548b", name: "Abuse Elevation Control Mechanism" },
+      { id: "T1134b", name: "Access Token Manipulation" },
+      { id: "T1197b", name: "BITS Jobs" },
+      { id: "T1612", name: "Build Image on Host" },
+      { id: "T1140", name: "Deobfuscate/Decode Files or Information" },
+      { id: "T1610b", name: "Deploy Container" },
+      { id: "T1006", name: "Direct Volume Access" },
+      { id: "T1484b", name: "Domain or Tenant Policy Modification" },
+      { id: "T1480", name: "Execution Guardrails" },
+      { id: "T1211", name: "Exploitation for Defense Evasion" },
+      { id: "T1222", name: "File and Directory Permissions Modification" },
+      { id: "T1564", name: "Hide Artifacts" },
+      { id: "T1574c", name: "Hijack Execution Flow" },
+      { id: "T1562", name: "Impair Defenses" },
+      { id: "T1656", name: "Impersonation" },
+      { id: "T1070", name: "Indicator Removal" },
+      { id: "T1202", name: "Indirect Command Execution" },
+      { id: "T1036", name: "Masquerading" },
+      { id: "T1556b", name: "Modify Authentication Process" },
+      { id: "T1578", name: "Modify Cloud Compute Infrastructure" },
+      { id: "T1112", name: "Modify Registry" },
+      { id: "T1601", name: "Modify System Image" },
+      { id: "T1599", name: "Network Boundary Bridging" },
+      { id: "T1027", name: "Obfuscated Files or Information" },
+      { id: "T1647", name: "Plist File Modification" },
+      { id: "T1542b", name: "Pre-OS Boot" },
+      { id: "T1055b", name: "Process Injection" },
+      { id: "T1620", name: "Reflective Code Loading" },
+      { id: "T1207", name: "Rogue Domain Controller" },
+      { id: "T1014", name: "Rootkit" },
+      { id: "T1553", name: "Subvert Trust Controls" },
+      { id: "T1218", name: "System Binary Proxy Execution" },
+      { id: "T1216", name: "System Script Proxy Execution" },
+      { id: "T1221", name: "Template Injection" },
+      { id: "T1205b", name: "Traffic Signaling" },
+      { id: "T1127", name: "Trusted Developer Utilities Proxy Execution" },
+      { id: "T1535", name: "Unused/Unsupported Cloud Regions" },
+      { id: "T1550", name: "Use Alternate Authentication Material" },
+      { id: "T1078d", name: "Valid Accounts" },
+      { id: "T1497", name: "Virtualization/Sandbox Evasion" },
+      { id: "T1600", name: "Weaken Encryption" },
+      { id: "T1220", name: "XSL Script Processing" }
+    ]
+  },
+  {
+    id: "TA0006",
+    name: "Credential Access",
+    short: "CredAccess",
+    desc: "Stealing credentials",
+    techniques: [
+      { id: "T1557", name: "Adversary-in-the-Middle" },
+      { id: "T1110", name: "Brute Force" },
+      { id: "T1555", name: "Credentials from Password Stores" },
+      { id: "T1212", name: "Exploitation for Credential Access" },
+      { id: "T1187", name: "Forced Authentication" },
+      { id: "T1606", name: "Forge Web Credentials" },
+      { id: "T1056", name: "Input Capture" },
+      { id: "T1556c", name: "Modify Authentication Process" },
+      { id: "T1111", name: "Multi-Factor Authentication Interception" },
+      { id: "T1621", name: "Multi-Factor Authentication Request Generation" },
+      { id: "T1040", name: "Network Sniffing" },
+      { id: "T1003", name: "OS Credential Dumping" },
+      { id: "T1528", name: "Steal Application Access Token" },
+      { id: "T1649", name: "Steal or Forge Authentication Certificates" },
+      { id: "T1558", name: "Steal or Forge Kerberos Tickets" },
+      { id: "T1539", name: "Steal Web Session Cookie" },
+      { id: "T1552", name: "Unsecured Credentials" }
+    ]
+  },
+  {
+    id: "TA0007",
+    name: "Discovery",
+    short: "Discovery",
+    desc: "Learning about the environment",
+    techniques: [
+      { id: "T1087", name: "Account Discovery" },
+      { id: "T1010", name: "Application Window Discovery" },
+      { id: "T1217", name: "Browser Information Discovery" },
+      { id: "T1580", name: "Cloud Infrastructure Discovery" },
+      { id: "T1538", name: "Cloud Service Dashboard" },
+      { id: "T1526", name: "Cloud Service Discovery" },
+      { id: "T1619", name: "Cloud Storage Object Discovery" },
+      { id: "T1613", name: "Container and Resource Discovery" },
+      { id: "T1622", name: "Debugger Evasion" },
+      { id: "T1652", name: "Device Driver Discovery" },
+      { id: "T1482", name: "Domain Trust Discovery" },
+      { id: "T1083", name: "File and Directory Discovery" },
+      { id: "T1615", name: "Group Policy Discovery" },
+      { id: "T1654", name: "Log Enumeration" },
+      { id: "T1046", name: "Network Service Discovery" },
+      { id: "T1135", name: "Network Share Discovery" },
+      { id: "T1040b", name: "Network Sniffing" },
+      { id: "T1201", name: "Password Policy Discovery" },
+      { id: "T1120", name: "Peripheral Device Discovery" },
+      { id: "T1069", name: "Permission Groups Discovery" },
+      { id: "T1057", name: "Process Discovery" },
+      { id: "T1012", name: "Query Registry" },
+      { id: "T1018", name: "Remote System Discovery" },
+      { id: "T1518", name: "Software Discovery" },
+      { id: "T1082", name: "System Information Discovery" },
+      { id: "T1614", name: "System Location Discovery" },
+      { id: "T1016", name: "System Network Configuration Discovery" },
+      { id: "T1049", name: "System Network Connections Discovery" },
+      { id: "T1033", name: "System Owner/User Discovery" },
+      { id: "T1007", name: "System Service Discovery" },
+      { id: "T1124", name: "System Time Discovery" },
+      { id: "T1497b", name: "Virtualization/Sandbox Evasion" }
+    ]
+  },
+  {
+    id: "TA0008",
+    name: "Lateral Movement",
+    short: "LateralMov",
+    desc: "Moving through the environment",
+    techniques: [
+      { id: "T1210", name: "Exploitation of Remote Services" },
+      { id: "T1534", name: "Internal Spearphishing" },
+      { id: "T1570", name: "Lateral Tool Transfer" },
+      { id: "T1563", name: "Remote Service Session Hijacking" },
+      { id: "T1021", name: "Remote Services" },
+      { id: "T1091b", name: "Replication Through Removable Media" },
+      { id: "T1072b", name: "Software Deployment Tools" },
+      { id: "T1080", name: "Taint Shared Content" },
+      { id: "T1550b", name: "Use Alternate Authentication Material" }
+    ]
+  },
+  {
+    id: "TA0009",
+    name: "Collection",
+    short: "Collection",
+    desc: "Gathering data of interest",
+    techniques: [
+      { id: "T1557b", name: "Adversary-in-the-Middle" },
+      { id: "T1560", name: "Archive Collected Data" },
+      { id: "T1123", name: "Audio Capture" },
+      { id: "T1119", name: "Automated Collection" },
+      { id: "T1185", name: "Browser Session Hijacking" },
+      { id: "T1115", name: "Clipboard Data" },
+      { id: "T1530", name: "Data from Cloud Storage" },
+      { id: "T1602", name: "Data from Configuration Repository" },
+      { id: "T1213", name: "Data from Information Repositories" },
+      { id: "T1005", name: "Data from Local System" },
+      { id: "T1039", name: "Data from Network Shared Drive" },
+      { id: "T1025", name: "Data from Removable Media" },
+      { id: "T1074", name: "Data Staged" },
+      { id: "T1114", name: "Email Collection" },
+      { id: "T1056b", name: "Input Capture" },
+      { id: "T1113", name: "Screen Capture" },
+      { id: "T1125", name: "Video Capture" }
+    ]
+  },
+  {
+    id: "TA0011",
+    name: "Command and Control",
+    short: "C2",
+    desc: "Communicating with compromised systems",
+    techniques: [
+      { id: "T1071", name: "Application Layer Protocol" },
+      { id: "T1092", name: "Communication Through Removable Media" },
+      { id: "T1659", name: "Content Injection" },
+      { id: "T1132", name: "Data Encoding" },
+      { id: "T1001", name: "Data Obfuscation" },
+      { id: "T1568", name: "Dynamic Resolution" },
+      { id: "T1573", name: "Encrypted Channel" },
+      { id: "T1008", name: "Fallback Channels" },
+      { id: "T1665", name: "Hide Infrastructure" },
+      { id: "T1105", name: "Ingress Tool Transfer" },
+      { id: "T1104", name: "Multi-Stage Channels" },
+      { id: "T1095", name: "Non-Application Layer Protocol" },
+      { id: "T1571", name: "Non-Standard Port" },
+      { id: "T1572", name: "Protocol Tunneling" },
+      { id: "T1090", name: "Proxy" },
+      { id: "T1219", name: "Remote Access Software" },
+      { id: "T1205c", name: "Traffic Signaling" },
+      { id: "T1102", name: "Web Service" }
+    ]
+  },
+  {
+    id: "TA0010",
+    name: "Exfiltration",
+    short: "Exfil",
+    desc: "Stealing data",
+    techniques: [
+      { id: "T1020", name: "Automated Exfiltration" },
+      { id: "T1030", name: "Data Transfer Size Limits" },
+      { id: "T1048", name: "Exfiltration Over Alternative Protocol" },
+      { id: "T1041", name: "Exfiltration Over C2 Channel" },
+      { id: "T1011", name: "Exfiltration Over Other Network Medium" },
+      { id: "T1052", name: "Exfiltration Over Physical Medium" },
+      { id: "T1567", name: "Exfiltration Over Web Service" },
+      { id: "T1029", name: "Scheduled Transfer" },
+      { id: "T1537", name: "Transfer Data to Cloud Account" }
+    ]
+  },
+  {
+    id: "TA0040",
+    name: "Impact",
+    short: "Impact",
+    desc: "Disrupting, destroying or manipulating",
+    techniques: [
+      { id: "T1531", name: "Account Access Removal" },
+      { id: "T1485", name: "Data Destruction" },
+      { id: "T1486", name: "Data Encrypted for Impact" },
+      { id: "T1565", name: "Data Manipulation" },
+      { id: "T1491", name: "Defacement" },
+      { id: "T1561", name: "Disk Wipe" },
+      { id: "T1657", name: "Financial Theft" },
+      { id: "T1495", name: "Firmware Corruption" },
+      { id: "T1490", name: "Inhibit System Recovery" },
+      { id: "T1498", name: "Network Denial of Service" },
+      { id: "T1496", name: "Resource Hijacking" },
+      { id: "T1489", name: "Service Stop" },
+      { id: "T1529", name: "System Shutdown/Reboot" }
+    ]
+  }
+];
+
+// Note: T-IDs that appear in multiple tactics get suffixes (b, c, d) only for the matrix array
+// uniqueness. The display ID is the first part (before suffix). Real ATT&CK has techniques mapped
+// to multiple tactics — we render them in each but match by base ID.
+function baseTID(id) { return id.replace(/[a-z]$/, ""); }
+
+
+// ============================================================
+// KEYWORD-TO-ATT&CK MAPPING DICTIONARY
+// Map: input keyword/phrase → array of ATT&CK base T-IDs
+// Last reviewed: April 2026
+//
+// Coverage areas:
+//   - Tools (mimikatz, cobalt strike, psexec, etc.)
+//   - Behaviours (lateral movement, privilege escalation)
+//   - Plain English (phishing, ransomware, password spray)
+//   - Windows event IDs (4624, 4688, etc.)
+//   - LOLBins (rundll32, mshta, regsvr32, etc.)
+//   - Cloud indicators (oauth, federation, role assumption)
+// ============================================================
+
+const KEYWORD_MAP = {
+  // ============== INITIAL ACCESS ==============
+  "phishing": ["T1566", "T1204"],
+  "spearphishing": ["T1566"],
+  "phish": ["T1566"],
+  "malicious attachment": ["T1566", "T1204"],
+  "malicious link": ["T1566", "T1204"],
+  "macro": ["T1566", "T1204", "T1059"],
+  "doc with macro": ["T1566", "T1059"],
+  "qr code": ["T1566"],
+  "quishing": ["T1566"],
+  "drive-by": ["T1189"],
+  "drive by download": ["T1189"],
+  "watering hole": ["T1189"],
+  "exploit public": ["T1190"],
+  "exploit public-facing": ["T1190"],
+  "web shell": ["T1190", "T1505"],
+  "webshell": ["T1190", "T1505"],
+  "vpn compromise": ["T1133", "T1078"],
+  "rdp exposed": ["T1133", "T1078", "T1021"],
+  "supply chain": ["T1195"],
+  "third party": ["T1199", "T1195"],
+  "msp compromise": ["T1199"],
+  "trusted relationship": ["T1199"],
+  "valid accounts": ["T1078"],
+  "stolen credentials": ["T1078"],
+  "compromised account": ["T1078"],
+  "removable media": ["T1091"],
+  "usb": ["T1091", "T1052"],
+  "infected usb": ["T1091"],
+
+  // ============== EXECUTION ==============
+  "powershell": ["T1059"],
+  "ps1": ["T1059"],
+  "encoded command": ["T1059", "T1027"],
+  "powershell encoded": ["T1059", "T1027"],
+  "iex": ["T1059"],
+  "invoke-expression": ["T1059"],
+  "downloadstring": ["T1059", "T1105"],
+  "cmd.exe": ["T1059"],
+  "command shell": ["T1059"],
+  "bash": ["T1059"],
+  "python": ["T1059"],
+  "perl": ["T1059"],
+  "javascript": ["T1059"],
+  "vbscript": ["T1059"],
+  "wscript": ["T1059"],
+  "cscript": ["T1059"],
+  "scripting": ["T1059"],
+  "wmi": ["T1047"],
+  "wmic": ["T1047"],
+  "windows management instrumentation": ["T1047"],
+  "scheduled task": ["T1053"],
+  "schtasks": ["T1053"],
+  "at.exe": ["T1053"],
+  "cron": ["T1053"],
+  "systemd timer": ["T1053"],
+  "user execution": ["T1204"],
+  "double click": ["T1204"],
+  "user opened": ["T1204"],
+  "service execution": ["T1569"],
+  "psexec": ["T1569", "T1021"],
+  "exploit client": ["T1203"],
+  "exploit office": ["T1203"],
+  "follina": ["T1203"],
+  "cve-2022-30190": ["T1203"],
+  "log4j": ["T1190", "T1203"],
+  "log4shell": ["T1190", "T1203"],
+  "sccm": ["T1072"],
+  "intune": ["T1072"],
+  "rmm tool": ["T1219", "T1072"],
+
+  // ============== PERSISTENCE ==============
+  "registry run": ["T1547"],
+  "run key": ["T1547"],
+  "runonce": ["T1547"],
+  "startup folder": ["T1547"],
+  "logon script": ["T1037"],
+  "create account": ["T1136"],
+  "new user": ["T1136"],
+  "new admin": ["T1136", "T1098"],
+  "service installed": ["T1543"],
+  "new service": ["T1543"],
+  "wmi event subscription": ["T1546"],
+  "browser extension": ["T1176"],
+  "malicious extension": ["T1176"],
+  "outlook rule": ["T1137"],
+  "office addin": ["T1137"],
+  "bootkit": ["T1542"],
+  "uefi": ["T1542"],
+  "skeleton key": ["T1556"],
+  "modify auth": ["T1556"],
+  "dll search order": ["T1574"],
+  "dll hijack": ["T1574"],
+  "dll sideload": ["T1574"],
+  "dll sideloading": ["T1574"],
+  "iis module": ["T1505"],
+  "sql server stored procedure": ["T1505"],
+  "transport agent": ["T1505"],
+
+  // ============== PRIVILEGE ESCALATION ==============
+  "uac bypass": ["T1548"],
+  "fodhelper": ["T1548"],
+  "token impersonation": ["T1134"],
+  "token theft": ["T1134"],
+  "primary token": ["T1134"],
+  "make token": ["T1134"],
+  "exploit privesc": ["T1068"],
+  "kernel exploit": ["T1068"],
+  "printnightmare": ["T1068"],
+  "zerologon": ["T1068", "T1003"],
+  "process injection": ["T1055"],
+  "dll injection": ["T1055"],
+  "process hollowing": ["T1055"],
+  "reflective dll": ["T1055", "T1620"],
+  "thread hijacking": ["T1055"],
+  "apc injection": ["T1055"],
+  "container escape": ["T1611"],
+  "domain policy modification": ["T1484"],
+  "gpo abuse": ["T1484"],
+  "access token": ["T1134"],
+
+  // ============== DEFENSE EVASION ==============
+  "disable defender": ["T1562"],
+  "disable av": ["T1562"],
+  "disable edr": ["T1562"],
+  "tamper": ["T1562"],
+  "edr tamper": ["T1562"],
+  "stop service": ["T1562", "T1489"],
+  "kill av": ["T1562"],
+  "uninstall edr": ["T1562"],
+  "edr bypass": ["T1562"],
+  "edr evasion": ["T1562"],
+  "amsi bypass": ["T1562"],
+  "etw bypass": ["T1562"],
+  "sysmon disabled": ["T1562"],
+  "log cleared": ["T1070"],
+  "wevtutil cl": ["T1070"],
+  "clear event log": ["T1070"],
+  "clear logs": ["T1070"],
+  "delete logs": ["T1070"],
+  "indicator removal": ["T1070"],
+  "timestomp": ["T1070"],
+  "obfuscation": ["T1027"],
+  "obfuscated": ["T1027"],
+  "encoded": ["T1027"],
+  "base64": ["T1027", "T1140"],
+  "packed": ["T1027"],
+  "deobfuscate": ["T1140"],
+  "masquerading": ["T1036"],
+  "renamed binary": ["T1036"],
+  "svchost lookalike": ["T1036"],
+  "spoofed": ["T1036"],
+  "rundll32": ["T1218"],
+  "regsvr32": ["T1218"],
+  "mshta": ["T1218"],
+  "msbuild": ["T1127"],
+  "installutil": ["T1218"],
+  "regasm": ["T1218"],
+  "lolbin": ["T1218", "T1127"],
+  "lolbas": ["T1218"],
+  "living off the land": ["T1218", "T1059"],
+  "living-off-the-land": ["T1218", "T1059"],
+  "lotl": ["T1218", "T1059"],
+  "rootkit": ["T1014"],
+  "bootloader": ["T1542"],
+  "subvert trust": ["T1553"],
+  "code signing": ["T1553"],
+  "stolen cert": ["T1553"],
+  "modify registry": ["T1112"],
+  "reg.exe": ["T1112"],
+  "hidden file": ["T1564"],
+  "alternate data stream": ["T1564"],
+  "ads": ["T1564"],
+  "process doppelganging": ["T1055"],
+  "indirect command": ["T1202"],
+  "pcalua": ["T1202"],
+  "forfiles": ["T1202"],
+  "pass the hash": ["T1550"],
+  "pth": ["T1550"],
+  "pass the ticket": ["T1550"],
+  "ptt": ["T1550"],
+
+  // ============== CREDENTIAL ACCESS ==============
+  "mimikatz": ["T1003", "T1558", "T1552"],
+  "lsass": ["T1003"],
+  "lsass dump": ["T1003"],
+  "comsvcs": ["T1003"],
+  "procdump lsass": ["T1003"],
+  "credential dump": ["T1003"],
+  "credential dumping": ["T1003"],
+  "sam dump": ["T1003"],
+  "ntds.dit": ["T1003"],
+  "ntds": ["T1003"],
+  "dcsync": ["T1003"],
+  "dcshadow": ["T1003"],
+  "secretsdump": ["T1003"],
+  "credential theft": ["T1003", "T1555"],
+  "lazagne": ["T1555"],
+  "browser credentials": ["T1555"],
+  "saved password": ["T1555"],
+  "keychain": ["T1555"],
+  "credential manager": ["T1555"],
+  "brute force": ["T1110"],
+  "password spray": ["T1110"],
+  "password spraying": ["T1110"],
+  "credential stuffing": ["T1110"],
+  "rdp brute force": ["T1110", "T1021"],
+  "smb brute": ["T1110"],
+  "kerberoasting": ["T1558"],
+  "kerberoast": ["T1558"],
+  "asreproast": ["T1558"],
+  "asreproasting": ["T1558"],
+  "golden ticket": ["T1558"],
+  "silver ticket": ["T1558"],
+  "kerberos abuse": ["T1558"],
+  "rubeus": ["T1558"],
+  "tgt theft": ["T1558"],
+  "ccache": ["T1558"],
+  "keylogger": ["T1056"],
+  "keylog": ["T1056"],
+  "input capture": ["T1056"],
+  "form grabber": ["T1056"],
+  "mfa bombing": ["T1621"],
+  "mfa fatigue": ["T1621"],
+  "mfa spam": ["T1621"],
+  "push spam": ["T1621"],
+  "push bombing": ["T1621"],
+  "adversary in the middle": ["T1557"],
+  "evilginx": ["T1557", "T1539"],
+  "modlishka": ["T1557"],
+  "aitm": ["T1557"],
+  "session hijack": ["T1539", "T1185"],
+  "cookie theft": ["T1539"],
+  "steal cookie": ["T1539"],
+  "session token": ["T1528", "T1539"],
+  "oauth abuse": ["T1528"],
+  "oauth token theft": ["T1528"],
+  "oauth grant": ["T1528"],
+  "consent phishing": ["T1528", "T1566"],
+  "illicit consent": ["T1528"],
+  "device code phishing": ["T1528"],
+  "ad cs abuse": ["T1649"],
+  "certificate theft": ["T1649"],
+  "certifried": ["T1649"],
+  "esc1": ["T1649"],
+  "esc8": ["T1649"],
+  "shadow credentials": ["T1556"],
+  "responder": ["T1557"],
+  "ntlm relay": ["T1557"],
+  "llmnr poisoning": ["T1557"],
+  "mitm6": ["T1557"],
+  "unsecured credentials": ["T1552"],
+  "credentials in files": ["T1552"],
+  "credentials in registry": ["T1552"],
+  "git credentials": ["T1552"],
+  "private key": ["T1552"],
+  "ssh key": ["T1552"],
+
+  // ============== DISCOVERY ==============
+  "whoami": ["T1033"],
+  "net user": ["T1087"],
+  "net group": ["T1087", "T1069"],
+  "net localgroup": ["T1087", "T1069"],
+  "net view": ["T1018", "T1135"],
+  "nltest": ["T1018", "T1482"],
+  "domain admins": ["T1087", "T1069"],
+  "ad enumeration": ["T1087", "T1018"],
+  "ldap query": ["T1087", "T1018"],
+  "adfind": ["T1018", "T1087"],
+  "bloodhound": ["T1087", "T1482", "T1018"],
+  "sharphound": ["T1087", "T1482", "T1018"],
+  "ad recon": ["T1087", "T1018"],
+  "domain trust": ["T1482"],
+  "trustdump": ["T1482"],
+  "permission group": ["T1069"],
+  "ipconfig": ["T1016"],
+  "ifconfig": ["T1016"],
+  "netstat": ["T1049"],
+  "tasklist": ["T1057"],
+  "ps": ["T1057"],
+  "process listing": ["T1057"],
+  "systeminfo": ["T1082"],
+  "uname": ["T1082"],
+  "wmic os": ["T1082"],
+  "host enumeration": ["T1082"],
+  "port scan": ["T1046"],
+  "nmap": ["T1046"],
+  "masscan": ["T1046"],
+  "service scan": ["T1046"],
+  "share enumeration": ["T1135"],
+  "smb scan": ["T1135", "T1046"],
+  "file discovery": ["T1083"],
+  "find sensitive": ["T1083"],
+  "tree": ["T1083"],
+  "dir /s": ["T1083"],
+  "registry query": ["T1012"],
+  "reg query": ["T1012"],
+  "remote system": ["T1018"],
+  "ping sweep": ["T1018", "T1046"],
+  "cloud enum": ["T1580", "T1526"],
+  "scout suite": ["T1580"],
+  "cloudfox": ["T1580"],
+  "azure recon": ["T1580", "T1087"],
+  "aws enum": ["T1580", "T1087"],
+  "s3 enumeration": ["T1619"],
+  "blob enumeration": ["T1619"],
+
+  // ============== LATERAL MOVEMENT ==============
+  "lateral movement": ["T1021", "T1570"],
+  "smb": ["T1021", "T1570"],
+  "rdp": ["T1021"],
+  "remote desktop": ["T1021"],
+  "wmic process call create": ["T1021", "T1047"],
+  "winrm": ["T1021"],
+  "powershell remoting": ["T1021"],
+  "evil-winrm": ["T1021"],
+  "ssh lateral": ["T1021"],
+  "vnc": ["T1021"],
+  "remote service": ["T1021"],
+  "admin share": ["T1021", "T1570"],
+  "admin$": ["T1021"],
+  "c$": ["T1021"],
+  "ipc$": ["T1021"],
+  "smbexec": ["T1021"],
+  "wmiexec": ["T1021", "T1047"],
+  "atexec": ["T1053", "T1021"],
+  "dcomexec": ["T1021"],
+  "impacket": ["T1021", "T1003", "T1558"],
+  "internal phishing": ["T1534"],
+  "lateral tool transfer": ["T1570"],
+  "exploit remote service": ["T1210"],
+  "smbghost": ["T1210"],
+  "eternalblue": ["T1210"],
+  "ms17-010": ["T1210"],
+  "session hijacking": ["T1563"],
+  "tscon": ["T1563"],
+  "rdp session hijack": ["T1563"],
+
+  // ============== COLLECTION ==============
+  "data staging": ["T1074"],
+  "stage files": ["T1074"],
+  "compress data": ["T1560"],
+  "7zip": ["T1560"],
+  "7-zip": ["T1560"],
+  "winrar": ["T1560"],
+  "rar archive": ["T1560"],
+  "zip large": ["T1560"],
+  "tar archive": ["T1560"],
+  "screenshot": ["T1113"],
+  "screen capture": ["T1113"],
+  "screen recording": ["T1113"],
+  "clipboard": ["T1115"],
+  "audio capture": ["T1123"],
+  "video capture": ["T1125"],
+  "email collection": ["T1114"],
+  "mailbox export": ["T1114"],
+  "pst export": ["T1114"],
+  "ews abuse": ["T1114"],
+  "graph api mailbox": ["T1114"],
+  "sharepoint download": ["T1213"],
+  "confluence download": ["T1213"],
+  "wiki scraping": ["T1213"],
+  "data from cloud": ["T1530"],
+  "s3 download": ["T1530"],
+  "blob download": ["T1530"],
+  "automated collection": ["T1119"],
+
+  // ============== COMMAND AND CONTROL ==============
+  "cobalt strike": ["T1071", "T1055", "T1218", "T1027", "T1090"],
+  "cobaltstrike": ["T1071", "T1055", "T1218", "T1027"],
+  "beacon": ["T1071", "T1573"],
+  "metasploit": ["T1071", "T1055"],
+  "meterpreter": ["T1071", "T1055"],
+  "sliver": ["T1071", "T1573"],
+  "havoc": ["T1071", "T1573"],
+  "mythic": ["T1071", "T1573"],
+  "brute ratel": ["T1071", "T1573"],
+  "c2": ["T1071", "T1573"],
+  "c2 channel": ["T1071", "T1573"],
+  "command and control": ["T1071", "T1573"],
+  "https beacon": ["T1071", "T1573"],
+  "dns tunnel": ["T1071", "T1572"],
+  "dns tunneling": ["T1071", "T1572"],
+  "icmp tunnel": ["T1095", "T1572"],
+  "domain fronting": ["T1090", "T1568"],
+  "cdn abuse": ["T1090"],
+  "cloudflare abuse": ["T1090"],
+  "tor": ["T1090"],
+  "proxy chain": ["T1090"],
+  "domain generation": ["T1568"],
+  "dga": ["T1568"],
+  "fast flux": ["T1568"],
+  "dead drop": ["T1102"],
+  "github c2": ["T1102"],
+  "pastebin c2": ["T1102"],
+  "telegram c2": ["T1102"],
+  "discord c2": ["T1102"],
+  "social media c2": ["T1102"],
+  "remote access tool": ["T1219"],
+  "anydesk": ["T1219"],
+  "teamviewer": ["T1219"],
+  "screenconnect": ["T1219"],
+  "connectwise": ["T1219"],
+  "splashtop": ["T1219"],
+  "atera": ["T1219"],
+  "syncro": ["T1219"],
+  "ngrok": ["T1090", "T1572"],
+  "ingress tool transfer": ["T1105"],
+  "certutil download": ["T1105"],
+  "bitsadmin": ["T1105", "T1197"],
+  "curl wget": ["T1105"],
+  "tool drop": ["T1105"],
+
+  // ============== EXFILTRATION ==============
+  "exfiltration": ["T1041", "T1567"],
+  "exfil": ["T1041", "T1567"],
+  "data exfil": ["T1041", "T1567"],
+  "rclone": ["T1567"],
+  "megasync": ["T1567"],
+  "mega.nz": ["T1567"],
+  "dropbox upload": ["T1567"],
+  "google drive upload": ["T1567"],
+  "onedrive upload": ["T1567"],
+  "wetransfer": ["T1567"],
+  "exfil to cloud": ["T1567", "T1537"],
+  "cloud account upload": ["T1537"],
+  "exfil over c2": ["T1041"],
+  "ftp exfil": ["T1048"],
+  "scp exfil": ["T1048"],
+  "smtp exfil": ["T1048"],
+  "alternative protocol": ["T1048"],
+  "physical exfil": ["T1052"],
+  "data transfer size": ["T1030"],
+  "scheduled transfer": ["T1029"],
+
+  // ============== IMPACT ==============
+  "ransomware": ["T1486", "T1490", "T1489"],
+  "encrypt files": ["T1486"],
+  "encrypted for impact": ["T1486"],
+  "lockbit": ["T1486", "T1490"],
+  "alphv": ["T1486", "T1490"],
+  "blackcat": ["T1486", "T1490"],
+  "akira": ["T1486", "T1490"],
+  "black basta": ["T1486", "T1490"],
+  "ryuk": ["T1486"],
+  "conti": ["T1486"],
+  "play": ["T1486"],
+  "medusa": ["T1486"],
+  "ransomhub": ["T1486"],
+  "cl0p": ["T1486", "T1567"],
+  "shadow copy": ["T1490"],
+  "vssadmin delete": ["T1490"],
+  "wbadmin delete": ["T1490"],
+  "bcdedit": ["T1490"],
+  "delete backup": ["T1490"],
+  "inhibit recovery": ["T1490"],
+  "wiper": ["T1485", "T1561"],
+  "data destruction": ["T1485"],
+  "data wiped": ["T1485", "T1561"],
+  "disk wipe": ["T1561"],
+  "mbr wipe": ["T1561"],
+  "hermeticwiper": ["T1485", "T1561"],
+  "whispergate": ["T1485"],
+  "caddywiper": ["T1485"],
+  "isaacwiper": ["T1485"],
+  "data manipulation": ["T1565"],
+  "defacement": ["T1491"],
+  "service stop": ["T1489"],
+  "stopped services": ["T1489"],
+  "system shutdown": ["T1529"],
+  "force reboot": ["T1529"],
+  "ddos": ["T1498"],
+  "denial of service": ["T1498"],
+  "cryptomining": ["T1496"],
+  "crypto miner": ["T1496"],
+  "xmrig": ["T1496"],
+  "resource hijack": ["T1496"],
+  "cloud mining": ["T1496"],
+  "account locked": ["T1531"],
+  "account access removal": ["T1531"],
+  "financial fraud": ["T1657"],
+  "wire fraud": ["T1657"],
+  "invoice fraud": ["T1657"],
+  "bec": ["T1657", "T1078", "T1566"],
+  "business email compromise": ["T1657", "T1566"],
+
+  // ============== WINDOWS EVENT IDs ==============
+  "4624": ["T1078"],
+  "4625": ["T1110"],
+  "4648": ["T1078"],
+  "4672": ["T1078"],
+  "4688": ["T1059"],
+  "4697": ["T1543", "T1569"],
+  "4698": ["T1053"],
+  "4699": ["T1053"],
+  "4700": ["T1053"],
+  "4702": ["T1053"],
+  "4720": ["T1136"],
+  "4722": ["T1098"],
+  "4724": ["T1098"],
+  "4728": ["T1098"],
+  "4732": ["T1098"],
+  "4738": ["T1098"],
+  "5140": ["T1135"],
+  "5145": ["T1135"],
+  "1102": ["T1070"],
+  "104": ["T1070"],
+  "7045": ["T1543", "T1569"],
+
+  // Sysmon
+  "sysmon 1": ["T1059"],
+  "sysmon 3": ["T1071"],
+  "sysmon 7": ["T1574"],
+  "sysmon 8": ["T1055"],
+  "sysmon 10": ["T1003"],
+  "sysmon 11": ["T1105"],
+  "sysmon 12": ["T1112", "T1547"],
+  "sysmon 13": ["T1112", "T1547"],
+  "sysmon 22": ["T1071"],
+
+  // ============== CLOUD / IDENTITY ==============
+  "azure ad": ["T1078"],
+  "entra id": ["T1078"],
+  "okta": ["T1078"],
+  "global admin": ["T1078", "T1098"],
+  "privilege escalation cloud": ["T1098"],
+  "consent grant": ["T1528"],
+  "service principal": ["T1078", "T1098"],
+  "managed identity abuse": ["T1078"],
+  "iam abuse": ["T1078", "T1098"],
+  "assume role": ["T1078"],
+  "sts assume": ["T1078"],
+  "instance metadata": ["T1552"],
+  "imds": ["T1552"],
+  "169.254.169.254": ["T1552"],
+  "federated trust": ["T1606", "T1556"],
+  "saml forge": ["T1606"],
+  "golden saml": ["T1606"],
+  "adfs abuse": ["T1606", "T1556"],
+  "primary refresh token": ["T1528"],
+  "prt": ["T1528"],
+
+  // ============== RECON ==============
+  "reconnaissance": ["T1595", "T1596"],
+  "active scanning": ["T1595"],
+  "shodan": ["T1596"],
+  "censys": ["T1596"],
+  "github recon": ["T1593"],
+  "dorking": ["T1593"],
+  "linkedin recon": ["T1591"],
+  "harvester": ["T1589"],
+  "phishing for info": ["T1598"]
+};
+
+// Friendly labels for UI suggestions
+const KEYWORD_CATEGORIES = {
+  "Tools": ["mimikatz", "cobalt strike", "psexec", "bloodhound", "impacket", "rclone", "rubeus", "responder", "metasploit", "evilginx", "anydesk", "ngrok"],
+  "Behaviours": ["phishing", "lateral movement", "ransomware", "credential dumping", "data exfil", "password spray", "uac bypass", "process injection", "scheduled task", "lolbin"],
+  "Windows artefacts": ["4624", "4625", "4688", "4720", "schtasks", "wevtutil cl", "registry run", "service installed"],
+  "Cloud / identity": ["oauth grant", "mfa fatigue", "global admin", "device code phishing", "session token", "azure ad", "okta", "service principal", "imds"],
+  "Threat actor TTPs": ["log4shell", "kerberoasting", "golden saml", "ntlm relay", "dll sideload", "shadow copy", "wevtutil cl"]
+};
+
+
+// ============================================================
+// THREAT ACTOR LIBRARY
+// Last reviewed: April 2026 — refresh every 6 months
+// Each actor lists base T-IDs from public ATT&CK Group profiles
+// + recent reporting. Not exhaustive — focused on highest-confidence
+// TTPs for triage/comparison purposes.
+// ============================================================
+
+const THREAT_ACTORS = [
+  {
+    id: "lockbit",
+    name: "LockBit",
+    aka: ["Bitwise Spider"],
+    type: "Ransomware (RaaS)",
+    motivation: "Financial",
+    activeSince: "2019",
+    desc: "Highly active RaaS operation. Despite Operation Cronos disruption (Feb 2024), affiliates continue operations under rebrands. Double extortion with leak site.",
+    ttps: ["T1190", "T1078", "T1566", "T1133", "T1059", "T1053", "T1547",
+           "T1543", "T1003", "T1110", "T1018", "T1083", "T1135", "T1021",
+           "T1570", "T1486", "T1490", "T1489", "T1567", "T1562", "T1070"]
+  },
+  {
+    id: "alphv",
+    name: "ALPHV / BlackCat",
+    aka: ["Noberus"],
+    type: "Ransomware (RaaS)",
+    motivation: "Financial",
+    activeSince: "2021",
+    desc: "Rust-based ransomware. Performed 'exit scam' Mar 2024 after Change Healthcare attack. Affiliates moved to other RaaS programs but TTPs persist.",
+    ttps: ["T1078", "T1133", "T1190", "T1566", "T1059", "T1543", "T1547",
+           "T1003", "T1558", "T1110", "T1083", "T1018", "T1021", "T1570",
+           "T1486", "T1490", "T1562", "T1070", "T1567"]
+  },
+  {
+    id: "scattered-spider",
+    name: "Scattered Spider",
+    aka: ["UNC3944", "0ktapus", "Octo Tempest", "Roasted 0ktapus", "Muddled Libra"],
+    type: "eCrime / Social engineering",
+    motivation: "Financial",
+    activeSince: "2022",
+    desc: "English-speaking group known for sophisticated social engineering against helpdesks and SIM swapping. Targets identity providers (Okta), VMware ESXi, cloud environments. Multiple US/UK retail attacks 2024-2025.",
+    ttps: ["T1566", "T1078", "T1621", "T1556", "T1098", "T1539", "T1528",
+           "T1133", "T1219", "T1003", "T1558", "T1018", "T1087", "T1530",
+           "T1567", "T1486", "T1562"]
+  },
+  {
+    id: "fin7",
+    name: "FIN7",
+    aka: ["Carbanak Group", "Carbon Spider"],
+    type: "eCrime",
+    motivation: "Financial",
+    activeSince: "2013",
+    desc: "Long-running financial cybercrime group, operates as ransomware affiliate (BlackBasta, Conti) and runs own operations. Known for Carbanak backdoor and elaborate phishing.",
+    ttps: ["T1566", "T1204", "T1059", "T1053", "T1547", "T1543", "T1055",
+           "T1003", "T1071", "T1573", "T1218", "T1027", "T1486", "T1490"]
+  },
+  {
+    id: "apt29",
+    name: "APT29",
+    aka: ["Cozy Bear", "Midnight Blizzard", "NOBELIUM", "BlueBravo", "Cloaked Ursa"],
+    type: "Nation-state APT",
+    motivation: "Espionage (Russia, SVR)",
+    activeSince: "2008",
+    desc: "Russian SVR intelligence service. Known for SolarWinds, Microsoft tenant breach (2024), Hewlett Packard Enterprise breach. Targets governments, NGOs, tech companies. OAuth abuse and supply-chain operations.",
+    ttps: ["T1195", "T1078", "T1133", "T1566", "T1528", "T1606", "T1556",
+           "T1098", "T1003", "T1552", "T1114", "T1213", "T1530", "T1071",
+           "T1573", "T1090", "T1027"]
+  },
+  {
+    id: "apt28",
+    name: "APT28",
+    aka: ["Fancy Bear", "Forest Blizzard", "Sofacy", "STRONTIUM"],
+    type: "Nation-state APT",
+    motivation: "Espionage (Russia, GRU)",
+    activeSince: "2004",
+    desc: "Russian GRU. Targets governments, military, political organisations. Known for credential phishing, router exploitation (Moonlight Maze legacy), and disinformation operations.",
+    ttps: ["T1566", "T1190", "T1133", "T1078", "T1110", "T1003", "T1558",
+           "T1059", "T1053", "T1547", "T1071", "T1573", "T1102", "T1090"]
+  },
+  {
+    id: "volt-typhoon",
+    name: "Volt Typhoon",
+    aka: ["Vanguard Panda", "Insidious Taurus", "Bronze Silhouette"],
+    type: "Nation-state APT",
+    motivation: "Pre-positioning (China, MSS)",
+    activeSince: "2021",
+    desc: "Chinese state actor focused on critical infrastructure pre-positioning. Heavy living-off-the-land. Targets US/UK critical infrastructure, communications, transport. NSA/CISA/FBI advisory Feb 2024.",
+    ttps: ["T1190", "T1133", "T1078", "T1059", "T1218", "T1027", "T1003",
+           "T1018", "T1087", "T1083", "T1021", "T1071", "T1090", "T1562", "T1070"]
+  },
+  {
+    id: "salt-typhoon",
+    name: "Salt Typhoon",
+    aka: ["FamousSparrow", "GhostEmperor"],
+    type: "Nation-state APT",
+    motivation: "Espionage (China)",
+    activeSince: "2020",
+    desc: "Chinese state actor. Major US telecoms breach disclosed late 2024 — accessed wiretap systems and senior officials' communications. Targets telecoms, government.",
+    ttps: ["T1190", "T1133", "T1078", "T1014", "T1059", "T1027", "T1003",
+           "T1556", "T1071", "T1573", "T1090", "T1562", "T1070"]
+  },
+  {
+    id: "lazarus",
+    name: "Lazarus Group",
+    aka: ["HIDDEN COBRA", "APT38", "Diamond Sleet"],
+    type: "Nation-state APT",
+    motivation: "Espionage + Financial (DPRK)",
+    activeSince: "2009",
+    desc: "North Korean state actor. Crypto theft operations (Bybit $1.5B Feb 2025), supply chain attacks (3CX), software-developer targeting. Distinctive blend of espionage and financial motivation.",
+    ttps: ["T1566", "T1195", "T1190", "T1078", "T1059", "T1547", "T1543",
+           "T1574", "T1055", "T1003", "T1027", "T1071", "T1573", "T1657", "T1486"]
+  },
+  {
+    id: "sandworm",
+    name: "Sandworm",
+    aka: ["BlackEnergy", "Voodoo Bear", "Seashell Blizzard", "APT44"],
+    type: "Nation-state APT",
+    motivation: "Disruption / Espionage (Russia, GRU)",
+    activeSince: "2009",
+    desc: "Russian GRU Unit 74455. Known for destructive operations: NotPetya, Ukraine power grid, Olympic Destroyer. Heavy use of wipers in Russia-Ukraine war (HermeticWiper, CaddyWiper, AcidRain).",
+    ttps: ["T1190", "T1078", "T1133", "T1566", "T1059", "T1543", "T1547",
+           "T1003", "T1018", "T1021", "T1071", "T1573", "T1485", "T1561",
+           "T1486", "T1490", "T1495", "T1562"]
+  },
+  {
+    id: "akira",
+    name: "Akira",
+    aka: [],
+    type: "Ransomware (RaaS)",
+    motivation: "Financial",
+    activeSince: "2023",
+    desc: "Active RaaS that emerged 2023. Targets VPN appliances (Cisco ASA, SonicWall), VMware ESXi. CISA advisory April 2024. Possible Conti links.",
+    ttps: ["T1190", "T1133", "T1078", "T1059", "T1543", "T1547", "T1003",
+           "T1558", "T1018", "T1083", "T1021", "T1570", "T1567", "T1486",
+           "T1490", "T1489", "T1562", "T1070"]
+  },
+  {
+    id: "black-basta",
+    name: "Black Basta",
+    aka: ["BlackBasta"],
+    type: "Ransomware (RaaS)",
+    motivation: "Financial",
+    activeSince: "2022",
+    desc: "Highly active RaaS, internal chats leaked Feb 2025. Linked to Conti diaspora. Heavy use of Qakbot, then Pikabot. Targets manufacturing, healthcare. FIN7 affiliation.",
+    ttps: ["T1566", "T1190", "T1078", "T1059", "T1053", "T1543", "T1547",
+           "T1003", "T1558", "T1110", "T1018", "T1083", "T1021", "T1570",
+           "T1486", "T1490", "T1489", "T1562", "T1567"]
+  },
+  {
+    id: "play",
+    name: "Play",
+    aka: ["PlayCrypt", "Balloonfly"],
+    type: "Ransomware",
+    motivation: "Financial",
+    activeSince: "2022",
+    desc: "Closed-shop ransomware (not RaaS). Heavy ESXi targeting. Joint advisory CISA/ASD/FBI Dec 2023. Targets US/Europe/South America.",
+    ttps: ["T1190", "T1133", "T1078", "T1059", "T1547", "T1543", "T1003",
+           "T1018", "T1083", "T1021", "T1486", "T1490", "T1562", "T1070"]
+  },
+  {
+    id: "ransomhub",
+    name: "RansomHub",
+    aka: [],
+    type: "Ransomware (RaaS)",
+    motivation: "Financial",
+    activeSince: "2024",
+    desc: "Emerged Feb 2024, rapidly became top RaaS after ALPHV exit scam. Recruited LockBit/ALPHV affiliates. CISA advisory August 2024.",
+    ttps: ["T1190", "T1078", "T1566", "T1133", "T1059", "T1543", "T1547",
+           "T1003", "T1018", "T1021", "T1570", "T1486", "T1490", "T1489",
+           "T1562", "T1567"]
+  },
+  {
+    id: "cl0p",
+    name: "CL0P",
+    aka: ["TA505"],
+    type: "Extortion (data theft)",
+    motivation: "Financial",
+    activeSince: "2019",
+    desc: "Specialises in mass exploitation of file-transfer/web app zero-days (MOVEit, GoAnywhere, Accellion, Cleo). Pure data-theft extortion model — often skips encryption.",
+    ttps: ["T1190", "T1505", "T1059", "T1053", "T1003", "T1018", "T1083",
+           "T1213", "T1560", "T1041", "T1567", "T1071", "T1573", "T1027"]
+  }
+];
+
+// Sector-typical defaults
+const SECTOR_THREAT_HINTS = {
+  "Financial Services": ["lockbit", "alphv", "scattered-spider", "fin7", "lazarus", "ransomhub"],
+  "Healthcare": ["lockbit", "alphv", "black-basta", "ransomhub", "cl0p"],
+  "Critical National Infrastructure": ["volt-typhoon", "sandworm", "lazarus", "lockbit"],
+  "Manufacturing": ["lockbit", "alphv", "akira", "black-basta", "play", "ransomhub"],
+  "Technology / SaaS": ["scattered-spider", "apt29", "lazarus", "lockbit"],
+  "Retail & E-Commerce": ["scattered-spider", "fin7", "lockbit", "alphv", "ransomhub"],
+  "Legal & Professional Services": ["alphv", "lockbit", "akira", "cl0p"],
+  "Education": ["lockbit", "akira", "play", "ransomhub"],
+  "Central Government": ["apt29", "apt28", "volt-typhoon", "salt-typhoon", "sandworm"],
+  "Local Government": ["lockbit", "alphv", "play", "ransomhub"],
+  "Energy & Utilities": ["volt-typhoon", "sandworm", "lockbit", "akira"],
+  "Telecommunications": ["salt-typhoon", "volt-typhoon", "apt29", "lazarus"],
+  "Transport & Logistics": ["lockbit", "alphv", "akira", "ransomhub"],
+  "Media": ["lazarus", "apt29", "lockbit"]
+};
+
+
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  observations: [],         // [{kw, matched: [tids]}]
+  techStates: {},           // { tid: 'suggested'|'scoped'|'ruled' }
+  techNotes: {},            // { tid: 'note text' }
+  selectedActor: null,      // actor id
+};
+
+const VERSION_INFO = "ATT&CK Enterprise v15-16 · Apr 2026";
+
+// ============================================================
+// THEME
+// ============================================================
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('dh-theme', t); } catch(e) {}
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  setTheme(cur === 'light' ? 'dark' : 'light');
+}
+(function initTheme(){
+  let saved = null;
+  try { saved = localStorage.getItem('dh-theme'); } catch(e){}
+  if (saved) setTheme(saved);
+  else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) setTheme('dark');
+  else setTheme('light');
+})();
+
+// ============================================================
+// MATRIX RENDER
+// ============================================================
+function renderMatrix() {
+  const grid = document.getElementById('matrixGrid');
+  const actorTids = state.selectedActor
+    ? new Set(THREAT_ACTORS.find(a => a.id === state.selectedActor)?.ttps || [])
+    : new Set();
+
+  grid.innerHTML = ATTACK_MATRIX.map(tactic => {
+    const techHTML = tactic.techniques.map(t => {
+      const baseId = baseTID(t.id);
+      const techState = state.techStates[baseId];
+      const isActor = actorTids.has(baseId);
+      const cls = ['tech'];
+      if (techState === 'suggested') cls.push('suggested');
+      if (techState === 'scoped') cls.push('scoped');
+      if (techState === 'ruled') cls.push('ruled');
+      if (isActor) cls.push('actor-overlay');
+      return `<button class="${cls.join(' ')}" data-tid="${baseId}" data-name="${escapeAttr(t.name)}" onclick="openTech('${baseId}', '${escapeAttr(t.name)}')">
+        <span class="tid">${baseId}</span>
+        <span class="tname">${escapeHtml(t.name)}</span>
+      </button>`;
+    }).join('');
+    return `<div class="tactic-col">
+      <div class="tactic-header">${escapeHtml(tactic.name)}<span class="tactic-id">${tactic.id}</span></div>
+      ${techHTML}
+    </div>`;
+  }).join('');
+  updateCounters();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function escapeAttr(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/'/g,"&#39;").replace(/"/g,"&quot;");
+}
+
+function updateCounters() {
+  let s=0, sc=0, r=0;
+  Object.values(state.techStates).forEach(v => {
+    if (v === 'suggested') s++;
+    else if (v === 'scoped') sc++;
+    else if (v === 'ruled') r++;
+  });
+  document.getElementById('cnt-suggested').textContent = s;
+  document.getElementById('cnt-scoped').textContent = sc;
+  document.getElementById('cnt-ruled').textContent = r;
+  const actor = THREAT_ACTORS.find(a => a.id === state.selectedActor);
+  document.getElementById('cnt-actor').textContent = actor ? actor.ttps.length : 0;
+}
+
+// ============================================================
+// ACTOR LIST
+// ============================================================
+function renderActorList() {
+  const list = document.getElementById('actorList');
+  list.innerHTML = THREAT_ACTORS.map(a => {
+    const active = state.selectedActor === a.id;
+    return `<button class="actor-item ${active ? 'active' : ''}" onclick="toggleActor('${a.id}')">
+      <span class="actor-name">${escapeHtml(a.name)}</span>
+      <span class="actor-meta">${escapeHtml(a.type)} · ${a.ttps.length} TTPs</span>
+    </button>`;
+  }).join('');
+}
+
+function toggleActor(id) {
+  state.selectedActor = state.selectedActor === id ? null : id;
+  renderActorList();
+  renderMatrix();
+  if (state.selectedActor) {
+    const a = THREAT_ACTORS.find(x => x.id === id);
+    showToast(`${a.name} overlaid · ${a.ttps.length} TTPs highlighted`);
+  } else {
+    showToast('Actor overlay cleared');
+  }
+}
+
+// ============================================================
+// SEARCH / OBSERVATIONS
+// ============================================================
+function buildKeywordIndex() {
+  // Build an index of substring → tid set, sorted by keyword length DESC
+  // (longer keywords match first to avoid "ps" hitting "powershell" partials)
+  const entries = Object.entries(KEYWORD_MAP).map(([k, v]) => ({ kw: k.toLowerCase(), tids: v }));
+  entries.sort((a, b) => b.kw.length - a.kw.length);
+  return entries;
+}
+const KEYWORD_INDEX = buildKeywordIndex();
+
+function findMatches(input) {
+  const q = input.toLowerCase().trim();
+  if (!q) return [];
+  // Direct keyword hit (best)
+  if (KEYWORD_MAP[q]) return [...KEYWORD_MAP[q]];
+  // Partial: input contains a keyword, OR keyword contains input (>=3 chars)
+  const matched = new Set();
+  for (const e of KEYWORD_INDEX) {
+    if (q === e.kw) { e.tids.forEach(t => matched.add(t)); break; }
+    if (q.length >= 3 && (q.includes(e.kw) || e.kw.includes(q))) {
+      e.tids.forEach(t => matched.add(t));
+    }
+  }
+  return Array.from(matched);
+}
+
+function addObservation(text) {
+  const trimmed = text.trim();
+  if (!trimmed) return;
+  // Don't add duplicates
+  if (state.observations.some(o => o.kw.toLowerCase() === trimmed.toLowerCase())) {
+    showToast('Already added');
+    return;
+  }
+  const matches = findMatches(trimmed);
+  state.observations.push({ kw: trimmed, matched: matches });
+  // Update suggested states
+  matches.forEach(tid => {
+    if (!state.techStates[tid] || state.techStates[tid] === 'suggested') {
+      state.techStates[tid] = 'suggested';
+    }
+  });
+  renderChips();
+  renderMatrix();
+  if (matches.length === 0) {
+    showToast(`"${trimmed}" — no matches found`);
+  } else {
+    showToast(`+${matches.length} technique${matches.length===1?'':'s'} suggested`);
+  }
+}
+
+function removeObservation(kw) {
+  state.observations = state.observations.filter(o => o.kw !== kw);
+  // Recompute suggested states from remaining observations
+  recomputeSuggested();
+  renderChips();
+  renderMatrix();
+}
+
+function recomputeSuggested() {
+  // Build the set of TIDs still suggested by any observation
+  const stillSuggested = new Set();
+  state.observations.forEach(o => o.matched.forEach(t => stillSuggested.add(t)));
+  // Demote any 'suggested' that's no longer in the set
+  Object.keys(state.techStates).forEach(tid => {
+    if (state.techStates[tid] === 'suggested' && !stillSuggested.has(tid)) {
+      delete state.techStates[tid];
+    }
+  });
+  // Re-add suggestions for remaining matches that aren't already promoted/ruled
+  stillSuggested.forEach(tid => {
+    if (!state.techStates[tid]) state.techStates[tid] = 'suggested';
+  });
+}
+
+function renderChips() {
+  const c = document.getElementById('chipsContainer');
+  if (state.observations.length === 0) {
+    c.innerHTML = '<span class="chips-empty">No observations added yet — start typing above.</span>';
+    return;
+  }
+  c.innerHTML = state.observations.map(o => {
+    const cls = o.matched.length === 0 ? 'chip unmatched' : 'chip';
+    const label = escapeHtml(o.kw) + (o.matched.length > 0 ? ` <span class="dim">·${o.matched.length}</span>` : ' <span class="dim">·no match</span>');
+    return `<span class="${cls}">${label}<span class="x" onclick="removeObservation('${escapeAttr(o.kw)}')" title="Remove">×</span></span>`;
+  }).join('');
+}
+
+// ============================================================
+// SUGGESTIONS BAR
+// ============================================================
+function renderSuggestions() {
+  const s = document.getElementById('suggestions');
+  s.innerHTML = Object.entries(KEYWORD_CATEGORIES).map(([cat, kws]) => {
+    return `<span class="suggestion-cat">${cat.toUpperCase()}</span>` +
+      kws.map(k => `<button class="suggestion-chip" onclick="addObservation('${escapeAttr(k)}')">${escapeHtml(k)}</button>`).join('');
+  }).join('<br>').replace(/<br>/g, '');
+  // Just put them all together separated by category headers
+  let html = '';
+  Object.entries(KEYWORD_CATEGORIES).forEach(([cat, kws]) => {
+    html += `<span class="suggestion-cat">${cat.toUpperCase()}</span>`;
+    kws.forEach(k => {
+      html += `<button class="suggestion-chip" onclick="addObservation('${escapeAttr(k)}')">${escapeHtml(k)}</button>`;
+    });
+  });
+  s.innerHTML = html;
+}
+
+// ============================================================
+// TECHNIQUE MODAL
+// ============================================================
+function openTech(tid, name) {
+  // Find which tactics this tid appears in
+  const tactics = ATTACK_MATRIX.filter(t =>
+    t.techniques.some(tech => baseTID(tech.id) === tid)
+  );
+  const cur = state.techStates[tid] || 'cleared';
+  const note = state.techNotes[tid] || '';
+  // Find matching keywords for this tid
+  const matchedKeywords = state.observations.filter(o => o.matched.includes(tid)).map(o => o.kw);
+  const isActorTtp = state.selectedActor &&
+    THREAT_ACTORS.find(a => a.id === state.selectedActor)?.ttps.includes(tid);
+
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">${escapeHtml(name)}</div>
+        <div class="modal-tid">${tid}${isActorTtp ? ' · <span style="color:var(--purple);">'+escapeHtml(THREAT_ACTORS.find(a=>a.id===state.selectedActor).name)+' TTP</span>' : ''}</div>
+      </div>
+      <button class="btn ghost sm" onclick="closeModal()">CLOSE ✕</button>
+    </div>
+
+    <div class="modal-tactics">
+      ${tactics.map(t => `<span class="modal-tactic-tag">${escapeHtml(t.name)}</span>`).join('')}
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-label">State</div>
+      <div class="state-row">
+        <button class="state-btn cleared-btn ${cur==='cleared'?'active':''}" onclick="setState('${tid}', null)">— Clear</button>
+        <button class="state-btn suggested-btn ${cur==='suggested'?'active':''}" onclick="setState('${tid}', 'suggested')">Suggested</button>
+        <button class="state-btn scoped-btn ${cur==='scoped'?'active':''}" onclick="setState('${tid}', 'scoped')">In scope</button>
+        <button class="state-btn ruled-btn ${cur==='ruled'?'active':''}" onclick="setState('${tid}', 'ruled')">Ruled out</button>
+      </div>
+    </div>
+
+    ${matchedKeywords.length ? `
+    <div class="modal-section">
+      <div class="modal-section-label">Matched by your observations</div>
+      <div class="matched-keywords">
+        ${matchedKeywords.map(k => `<span class="matched-kw">${escapeHtml(k)}</span>`).join('')}
+      </div>
+    </div>` : ''}
+
+    <div class="modal-section">
+      <div class="modal-section-label">Investigation notes</div>
+      <textarea id="modalNote" placeholder="e.g. Observed via Sysmon EID 1, parent: outlook.exe, command line: powershell -enc ..." onchange="state.techNotes['${tid}'] = this.value;">${escapeHtml(note)}</textarea>
+    </div>
+
+    <div style="display:flex;gap:6px;justify-content:flex-end;">
+      <a href="https://attack.mitre.org/techniques/${tid}/" target="_blank" rel="noopener" class="btn sm ghost">VIEW ON MITRE.ORG ↗</a>
+      <button class="btn sm primary" onclick="closeModal()">DONE</button>
+    </div>
+  `;
+  document.getElementById('modalBg').classList.add('active');
+}
+function closeModal() {
+  document.getElementById('modalBg').classList.remove('active');
+}
+function setState(tid, newState) {
+  if (newState === null) delete state.techStates[tid];
+  else state.techStates[tid] = newState;
+  // Refresh modal buttons + matrix
+  // (re-open at same tid to refresh active state)
+  const tech = findTech(tid);
+  if (tech) openTech(tid, tech.name);
+  renderMatrix();
+}
+function findTech(tid) {
+  for (const tac of ATTACK_MATRIX) {
+    for (const t of tac.techniques) {
+      if (baseTID(t.id) === tid) return t;
+    }
+  }
+  return null;
+}
+
+// ============================================================
+// BULK ACTIONS
+// ============================================================
+function promoteAllSuggested() {
+  let n = 0;
+  Object.keys(state.techStates).forEach(tid => {
+    if (state.techStates[tid] === 'suggested') {
+      state.techStates[tid] = 'scoped';
+      n++;
+    }
+  });
+  renderMatrix();
+  showToast(n ? `${n} promoted to in-scope` : 'No suggested techniques to promote');
+}
+function clearScoped() {
+  if (!confirm('Clear all in-scope techniques? Suggested and ruled-out will be preserved.')) return;
+  Object.keys(state.techStates).forEach(tid => {
+    if (state.techStates[tid] === 'scoped') delete state.techStates[tid];
+  });
+  renderMatrix();
+  showToast('In-scope cleared');
+}
+function resetAll() {
+  if (!confirm('Reset everything — observations, scope, notes, actor selection?')) return;
+  state.observations = [];
+  state.techStates = {};
+  state.techNotes = {};
+  state.selectedActor = null;
+  document.getElementById('searchInput').value = '';
+  renderChips(); renderActorList(); renderMatrix();
+  showToast('Reset complete');
+}
+
+// ============================================================
+// EXPORTS
+// ============================================================
+function getScopedDetail() {
+  const rows = [];
+  ATTACK_MATRIX.forEach(tac => {
+    tac.techniques.forEach(t => {
+      const tid = baseTID(t.id);
+      if (state.techStates[tid] === 'scoped') {
+        // Check if already added (de-dup since techniques can appear in multiple tactics)
+        if (!rows.some(r => r.tid === tid)) {
+          const tactics = ATTACK_MATRIX.filter(tt =>
+            tt.techniques.some(te => baseTID(te.id) === tid)
+          ).map(tt => tt.name);
+          rows.push({
+            tid: tid,
+            name: t.name,
+            tactics: tactics,
+            note: state.techNotes[tid] || ''
+          });
+        }
+      }
+    });
+  });
+  return rows;
+}
+
+function exportMarkdown() {
+  const rows = getScopedDetail();
+  if (rows.length === 0) { showToast('No in-scope techniques to export'); return; }
+  const obs = state.observations.map(o => `\`${o.kw}\``).join(', ') || '_none_';
+  const actor = state.selectedActor ? THREAT_ACTORS.find(a => a.id === state.selectedActor) : null;
+  let md = `# ATT&CK Technique Mapping\n\n`;
+  md += `**Generated:** ${new Date().toISOString()}  \n`;
+  md += `**Source:** ${VERSION_INFO}  \n`;
+  md += `**Observations:** ${obs}  \n`;
+  if (actor) md += `**Actor overlay:** ${actor.name} (${actor.type})  \n`;
+  md += `**In-scope techniques:** ${rows.length}\n\n`;
+  md += `| ID | Technique | Tactic(s) | Notes |\n`;
+  md += `|---|---|---|---|\n`;
+  rows.forEach(r => {
+    md += `| [${r.tid}](https://attack.mitre.org/techniques/${r.tid}/) | ${r.name} | ${r.tactics.join(', ')} | ${(r.note || '').replace(/\n/g,' ').replace(/\|/g,'\\|')} |\n`;
+  });
+  download(md, `attack-mapping-${dateSlug()}.md`, 'text/markdown');
+  showToast('Markdown exported');
+}
+
+function exportCSV() {
+  const rows = getScopedDetail();
+  if (rows.length === 0) { showToast('No in-scope techniques to export'); return; }
+  const csv = [
+    ['Technique ID','Technique Name','Tactics','Notes','MITRE URL'].map(csvCell).join(','),
+    ...rows.map(r => [
+      r.tid, r.name, r.tactics.join('; '), r.note, `https://attack.mitre.org/techniques/${r.tid}/`
+    ].map(csvCell).join(','))
+  ].join('\n');
+  download(csv, `attack-mapping-${dateSlug()}.csv`, 'text/csv');
+  showToast('CSV exported');
+}
+function csvCell(s) {
+  s = String(s == null ? '' : s);
+  if (s.includes('"') || s.includes(',') || s.includes('\n')) {
+    return '"' + s.replace(/"/g,'""') + '"';
+  }
+  return s;
+}
+
+function exportNavigator() {
+  // MITRE Navigator layer JSON format
+  // https://github.com/mitre-attack/attack-navigator/blob/master/layers/LAYERFORMATv4_5.md
+  const techniques = [];
+  Object.keys(state.techStates).forEach(tid => {
+    const st = state.techStates[tid];
+    if (st === 'ruled') return;
+    let color = '';
+    let comment = state.techNotes[tid] || '';
+    if (st === 'scoped') color = '#dc2626';
+    else if (st === 'suggested') color = '#eab308';
+    if (!color) return;
+    // Find which tactics for proper Navigator entry
+    ATTACK_MATRIX.forEach(tac => {
+      if (tac.techniques.some(t => baseTID(t.id) === tid)) {
+        techniques.push({
+          techniqueID: tid,
+          tactic: tac.name.toLowerCase().replace(/\s+/g,'-'),
+          color: color,
+          comment: comment + (st === 'suggested' ? ' (suggested)' : ''),
+          enabled: true
+        });
+      }
+    });
+  });
+  const layer = {
+    name: `ATT&CK Mapping — ${dateSlug()}`,
+    versions: { attack: "16", navigator: "5.0.0", layer: "4.5" },
+    domain: "enterprise-attack",
+    description: `Generated by Dan Howett's ATT&CK Mapper · Observations: ${state.observations.map(o=>o.kw).join(', ')}`,
+    filters: { platforms: ["Linux","macOS","Windows","Network","PRE","Containers","Office 365","SaaS","Google Workspace","IaaS","Azure AD"] },
+    sorting: 0,
+    layout: { layout: "side", aggregateFunction: "average", showID: false, showName: true },
+    hideDisabled: false,
+    techniques: techniques,
+    gradient: { colors: ["#ffffff","#dc2626"], minValue: 0, maxValue: 100 },
+    legendItems: [
+      { color: "#dc2626", label: "In scope (observed/confirmed)" },
+      { color: "#eab308", label: "Suggested (keyword match)" }
+    ],
+    showTacticRowBackground: false,
+    selectTechniquesAcrossTactics: true,
+    selectSubtechniquesWithParent: false
+  };
+  download(JSON.stringify(layer, null, 2), `attack-layer-${dateSlug()}.json`, 'application/json');
+  showToast('Navigator JSON exported');
+}
+
+function dateSlug() {
+  return new Date().toISOString().split('T')[0];
+}
+function download(content, filename, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ============================================================
+// EVENTS
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  renderMatrix();
+  renderActorList();
+  renderSuggestions();
+
+  const input = document.getElementById('searchInput');
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      addObservation(input.value);
+      input.value = '';
+    } else if (e.key === 'Escape') {
+      input.value = '';
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.getElementById('modalBg').classList.contains('active')) {
+      closeModal();
+    }
+  });
+});
+
+</script>
+</body>
+</html>
