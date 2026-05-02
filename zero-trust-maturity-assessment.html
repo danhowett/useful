@@ -234,7 +234,7 @@ h1.hero-title .accent {
 /* DISCLAIMER */
 .disclaimer-section {
   background: var(--bg);
-  padding: 0 0 40px;
+  padding: 0 0 32px;
 }
 .disclaimer-inner {
   max-width: 1400px; margin: 0 auto; padding: 0 28px;
@@ -253,6 +253,113 @@ h1.hero-title .accent {
   color: #fff; border-radius: 50%; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   font-weight: 700; font-size: 11px; margin-top: 1px;
+}
+
+/* FRAMEWORKS SECTION */
+.frameworks-section {
+  background: var(--bg);
+  padding: 0 0 48px;
+  border-bottom: 1px solid var(--border);
+}
+.frameworks-inner {
+  max-width: 1400px; margin: 0 auto; padding: 0 28px;
+}
+.fw-header {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 16px; margin-bottom: 18px; flex-wrap: wrap;
+}
+.fw-header-text h2 {
+  font-size: 22px; font-weight: 700; letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+.fw-header-text h2 .accent {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic; font-weight: 400; color: var(--accent);
+}
+.fw-header-text p {
+  font-size: 13px; color: var(--text-dim); max-width: 720px;
+}
+.fw-toggle {
+  background: var(--bg-elev); border: 1px solid var(--border);
+  color: var(--text-2); padding: 7px 12px; border-radius: 7px;
+  font-size: 11.5px; font-family: 'JetBrains Mono', monospace;
+  cursor: pointer; font-weight: 500;
+  transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px;
+}
+.fw-toggle:hover { background: var(--bg-muted); border-color: var(--border-strong); }
+.fw-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
+}
+.fw-grid.collapsed { display: none; }
+.fw-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  display: flex; flex-direction: column;
+  transition: border-color 0.15s;
+}
+.fw-card:hover { border-color: var(--border-strong); }
+.fw-card-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 8px; margin-bottom: 8px;
+}
+.fw-badge {
+  font-size: 9px; font-family: 'JetBrains Mono', monospace;
+  padding: 2px 7px; border-radius: 4px;
+  letter-spacing: 0.06em; font-weight: 700;
+  white-space: nowrap;
+}
+.fw-badge-PRIMARY { background: var(--accent); color: #fff; }
+.fw-badge-OVERLAY { background: var(--purple); color: #fff; }
+.fw-badge-FOUNDATION { background: var(--st-optimal); color: #fff; }
+.fw-badge-REFERENCE { background: var(--bg-muted); color: var(--text-dim); border: 1px solid var(--border); }
+.fw-badge-POLICY { background: var(--orange); color: #fff; }
+.fw-card h3 {
+  font-size: 14.5px; font-weight: 600;
+  letter-spacing: -0.005em; line-height: 1.3;
+}
+.fw-card-meta {
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); margin-top: 2px;
+}
+.fw-card-role {
+  font-size: 11px; color: var(--accent-text); font-weight: 600;
+  margin: 6px 0 8px; font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.fw-card-desc {
+  font-size: 12.5px; color: var(--text-dim);
+  line-height: 1.5; flex: 1;
+  margin-bottom: 10px;
+}
+.fw-card-links {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  border-top: 1px solid var(--border); padding-top: 10px;
+}
+.fw-link {
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: var(--accent); font-weight: 500;
+  display: inline-flex; align-items: center; gap: 4px;
+  text-decoration: none;
+}
+.fw-link:hover { text-decoration: underline; }
+
+/* Pillar-header CISA reference */
+.pillar-cisa-ref {
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); margin-top: 8px;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.pillar-cisa-ref a {
+  color: var(--accent); text-decoration: none;
+}
+.pillar-cisa-ref a:hover { text-decoration: underline; }
+
+/* NCSC pill as link */
+a.cap-ncsc-pill {
+  text-decoration: none;
 }
 
 /* MAIN — assessment area */
@@ -963,6 +1070,19 @@ main.assessment {
   </div>
 </section>
 
+<section class="frameworks-section">
+  <div class="frameworks-inner">
+    <div class="fw-header">
+      <div class="fw-header-text">
+        <h2>Assessing against <span class="accent">recognised</span> frameworks</h2>
+        <p>This tool maps to public framework descriptions. Each capability links back to its source so you can read the canonical guidance directly.</p>
+      </div>
+      <button class="fw-toggle" onclick="toggleFrameworks()" id="fwToggle">SHOW DETAIL ↓</button>
+    </div>
+    <div class="fw-grid collapsed" id="fwGrid"></div>
+  </div>
+</section>
+
 <main class="assessment">
   <div class="assessment-inner">
 
@@ -1051,6 +1171,93 @@ const NCSC_PRINCIPLES = [
   { id: "p7", n: 7, title: "Don't trust any network",                       desc: "Don't trust any network, including your own." },
   { id: "p8", n: 8, title: "Choose ZT-designed services",                   desc: "Choose services designed for zero trust." }
 ];
+
+// ============================================================
+// FRAMEWORK REFERENCES — official sources behind the assessment
+// ============================================================
+const FRAMEWORKS = [
+  {
+    id: "cisa-ztmm",
+    name: "CISA Zero Trust Maturity Model",
+    version: "v2.0",
+    publisher: "Cybersecurity and Infrastructure Security Agency (CISA), USA",
+    date: "April 2023",
+    role: "Primary scoring framework",
+    desc: "The pillar structure (Identity, Devices, Networks, Applications & Workloads, Data), three cross-cutting capabilities (Visibility & Analytics, Automation & Orchestration, Governance), and four maturity stages (Traditional → Initial → Advanced → Optimal) used in this assessment are taken from CISA's ZTMM v2.0. Capability descriptors are written to align with CISA's stage definitions.",
+    url: "https://www.cisa.gov/resources-tools/resources/zero-trust-maturity-model",
+    pdf: "https://www.cisa.gov/sites/default/files/2023-04/zero_trust_maturity_model_v2_508.pdf",
+    badge: "PRIMARY"
+  },
+  {
+    id: "ncsc-zt",
+    name: "NCSC Zero Trust Architecture Design Principles",
+    version: "v1.0",
+    publisher: "National Cyber Security Centre (NCSC), UK",
+    date: "Updated 2024",
+    role: "Cross-reference overlay (UK)",
+    desc: "Each capability in the assessment is mapped to the relevant NCSC ZT principles (1-8). The NCSC guidance is the de facto UK reference for zero trust and complements CISA's structure with a UK-specific perspective and policy-based architectural framing.",
+    url: "https://www.ncsc.gov.uk/collection/zero-trust/architecture-design-principles",
+    parent: "https://www.ncsc.gov.uk/collection/zero-trust",
+    badge: "OVERLAY"
+  },
+  {
+    id: "nist-800-207",
+    name: "NIST SP 800-207 — Zero Trust Architecture",
+    version: "Final (Aug 2020)",
+    publisher: "National Institute of Standards and Technology (NIST), USA",
+    date: "August 2020",
+    role: "Foundational architectural reference",
+    desc: "The canonical zero-trust definitional document. CISA's ZTMM explicitly builds on NIST 800-207's seven tenets. Defines the Policy Decision Point / Policy Administrator / Policy Enforcement Point pattern that underpins the architecture this assessment evaluates. Not a maturity model — used here as architectural grounding.",
+    url: "https://csrc.nist.gov/pubs/sp/800/207/final",
+    pdf: "https://nvlpubs.nist.gov/nistpubs/specialpublications/NIST.SP.800-207.pdf",
+    badge: "FOUNDATION"
+  },
+  {
+    id: "dod-ztra",
+    name: "DoD Zero Trust Reference Architecture",
+    version: "v2.0",
+    publisher: "US Department of Defense",
+    date: "July 2022",
+    role: "Cross-reference (advanced)",
+    desc: "Most granular publicly-available ZT reference (152 capabilities, 7 pillars). Not the primary scoring source for this tool — generally too detailed for non-DoD organisations — but useful as a cross-reference for organisations doing detailed maturity benchmarking, especially in defence/CNI sectors.",
+    url: "https://dodcio.defense.gov/Portals/0/Documents/Library/(U)ZT_RA_v2.0(U)_Sep22.pdf",
+    badge: "REFERENCE"
+  },
+  {
+    id: "microsoft-zt",
+    name: "Microsoft Zero Trust Maturity Model",
+    version: "Current",
+    publisher: "Microsoft",
+    date: "Continuously updated",
+    role: "Cross-reference (vendor)",
+    desc: "Microsoft's ZT framing maps closely to CISA's pillars (with a 'Endpoints' and 'Apps' split rather than 'Devices' and 'Apps & Workloads'). Useful for Microsoft-heavy estates as it includes implementation guidance for Entra ID, Intune, Defender, Purview. Vendor-specific but practitioner-recognised.",
+    url: "https://learn.microsoft.com/en-us/security/zero-trust/zero-trust-overview",
+    badge: "REFERENCE"
+  },
+  {
+    id: "omb-m22-09",
+    name: "OMB M-22-09 — Federal Zero Trust Strategy",
+    version: "January 2022",
+    publisher: "US Office of Management and Budget",
+    date: "January 2022",
+    role: "Policy context",
+    desc: "The US executive memorandum that mandates zero trust across federal civilian agencies. Drives the alignment of CISA's ZTMM v2.0 with specific policy goals (phishing-resistant MFA, encryption everywhere, application-layer access). Useful policy context but not a scoring framework.",
+    url: "https://www.whitehouse.gov/wp-content/uploads/2022/01/M-22-09.pdf",
+    badge: "POLICY"
+  }
+];
+
+// ============================================================
+// PER-PILLAR FRAMEWORK CITATIONS
+// What CISA ZTMM section each pillar's capabilities derive from.
+// ============================================================
+const PILLAR_REFS = {
+  "identity":  { cisa: "ZTMM §2 — Identity Pillar (pp. 13-15)" },
+  "devices":   { cisa: "ZTMM §3 — Devices Pillar (pp. 16-19)" },
+  "networks":  { cisa: "ZTMM §4 — Networks Pillar (pp. 20-22)" },
+  "apps":      { cisa: "ZTMM §5 — Applications & Workloads Pillar (pp. 23-25)" },
+  "data":      { cisa: "ZTMM §6 — Data Pillar (pp. 26-29)" }
+};
 
 // ============================================================
 // PILLARS — capabilities with stage descriptors
@@ -1665,6 +1872,44 @@ function initSetup() {
 }
 
 // ============================================================
+// FRAMEWORKS RENDER
+// ============================================================
+function renderFrameworks() {
+  const g = document.getElementById('fwGrid');
+  if (!g) return;
+  g.innerHTML = FRAMEWORKS.map(fw => {
+    const links = [];
+    if (fw.url) links.push(`<a href="${fw.url}" target="_blank" rel="noopener" class="fw-link">Official page ↗</a>`);
+    if (fw.pdf) links.push(`<a href="${fw.pdf}" target="_blank" rel="noopener" class="fw-link">PDF ↗</a>`);
+    if (fw.parent) links.push(`<a href="${fw.parent}" target="_blank" rel="noopener" class="fw-link">Collection ↗</a>`);
+    return `<div class="fw-card">
+      <div class="fw-card-head">
+        <div>
+          <h3>${escapeHtml(fw.name)}</h3>
+          <div class="fw-card-meta">${escapeHtml(fw.version)} · ${escapeHtml(fw.publisher)}</div>
+        </div>
+        <span class="fw-badge fw-badge-${fw.badge}">${escapeHtml(fw.badge)}</span>
+      </div>
+      <div class="fw-card-role">${escapeHtml(fw.role)}</div>
+      <div class="fw-card-desc">${escapeHtml(fw.desc)}</div>
+      <div class="fw-card-links">${links.join('')}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleFrameworks() {
+  const g = document.getElementById('fwGrid');
+  const btn = document.getElementById('fwToggle');
+  if (g.classList.contains('collapsed')) {
+    g.classList.remove('collapsed');
+    btn.textContent = 'HIDE DETAIL ↑';
+  } else {
+    g.classList.add('collapsed');
+    btn.textContent = 'SHOW DETAIL ↓';
+  }
+}
+
+// ============================================================
 // PILLAR NAV (left)
 // ============================================================
 function renderPillarNav() {
@@ -1706,7 +1951,8 @@ function renderAssessment() {
       <div class="pillar-eyebrow">Pillar · ${escapeHtml(p.id)}</div>
       <h2 class="pillar-name"><span class="icon">${p.icon}</span>${escapeHtml(p.name)}</h2>
       <p class="pillar-desc">${escapeHtml(p.desc)}</p>
-      <div class="pillar-progress-bar">
+      ${PILLAR_REFS[p.id] ? `<div class="pillar-cisa-ref">↪ <a href="${FRAMEWORKS[0].pdf}" target="_blank" rel="noopener">${escapeHtml(PILLAR_REFS[p.id].cisa)} ↗</a></div>` : ''}
+      <div class="pillar-progress-bar" style="margin-top:14px;">
         <div class="pillar-progress-fill" style="width:${pct}%"></div>
       </div>
       <div class="pillar-progress-meta">
@@ -1723,7 +1969,7 @@ function renderAssessment() {
     const ncscPills = (cap.ncsc || []).map(pid => {
       const np = NCSC_PRINCIPLES.find(x => x.id === pid);
       if (!np) return '';
-      return `<span class="cap-ncsc-pill" data-tooltip="NCSC ${np.n}: ${escapeAttr(np.title)}">NCSC ${np.n}</span>`;
+      return `<a href="https://www.ncsc.gov.uk/collection/zero-trust/architecture-design-principles" target="_blank" rel="noopener" class="cap-ncsc-pill" data-tooltip="NCSC ${np.n}: ${escapeAttr(np.title)} — opens NCSC ↗">NCSC ${np.n}</a>`;
     }).join('');
 
     const stagesHTML = STAGES.map(s => {
@@ -1977,6 +2223,20 @@ function renderResults() {
 
   // NCSC coverage
   html += renderNCSCCoverage();
+
+  // References
+  html += `<h3>References & sources</h3>
+    <p>This assessment is based on the following publicly-available frameworks. Click through for the official guidance.</p>
+    <div class="ncsc-grid">
+      ${FRAMEWORKS.map(fw => `<div class="ncsc-card">
+        <h5><span class="num">${escapeHtml(fw.badge)}</span> ${escapeHtml(fw.name)}</h5>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">${escapeHtml(fw.version)} · ${escapeHtml(fw.publisher)}</div>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+          ${fw.url ? `<a href="${fw.url}" target="_blank" rel="noopener" class="fw-link">Official ↗</a>` : ''}
+          ${fw.pdf ? `<a href="${fw.pdf}" target="_blank" rel="noopener" class="fw-link">PDF ↗</a>` : ''}
+        </div>
+      </div>`).join('')}
+    </div>`;
 
   html += `</div>`;
   document.getElementById('assessmentMain').innerHTML = html;
@@ -2277,6 +2537,7 @@ function showToast(msg) {
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
   initSetup();
+  renderFrameworks();
   renderPillarNav();
   renderAssessment();
   renderProgressSidebar();
