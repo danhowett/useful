@@ -1,0 +1,2481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supplier Cyber Risk Assessment · Dan Howett</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fafaf7;
+  --bg-elev: #ffffff;
+  --bg-muted: #f4f4ef;
+  --bg-subtle: #efefe8;
+  --bg-band: #e6ebf2;
+  --border: #e8e6df;
+  --border-strong: #d6d3c9;
+  --text: #1a1a1a;
+  --text-2: #3a3a36;
+  --text-dim: #6b6b66;
+  --text-muted: #9a9a92;
+  --accent: #1d4ed8;
+  --accent-hover: #1e40af;
+  --accent-soft: #eff4ff;
+  --accent-text: #1e40af;
+  --t1: #dc2626; --t1-soft: #fee2e2;
+  --t2: #ea580c; --t2-soft: #ffedd5;
+  --t3: #f59e0b; --t3-soft: #fef3c7;
+  --t4: #16a34a; --t4-soft: #dcfce7;
+  --orange: #ea580c;
+  --orange-soft: #ffedd5;
+  --purple: #7c3aed;
+  --purple-soft: #ede9fe;
+  --shadow-sm: 0 1px 2px rgba(15, 15, 15, 0.04);
+  --shadow: 0 1px 3px rgba(15, 15, 15, 0.06), 0 1px 2px rgba(15, 15, 15, 0.04);
+  --shadow-lg: 0 8px 24px rgba(15, 15, 15, 0.06), 0 2px 4px rgba(15, 15, 15, 0.04);
+}
+[data-theme="dark"] {
+  --bg: #0e0f10;
+  --bg-elev: #18191b;
+  --bg-muted: #1d1e20;
+  --bg-subtle: #232528;
+  --bg-band: #14161a;
+  --border: #2a2c2f;
+  --border-strong: #3a3d40;
+  --text: #f0f0ee;
+  --text-2: #d6d6d2;
+  --text-dim: #9a9a92;
+  --text-muted: #5e5e58;
+  --accent: #60a5fa;
+  --accent-hover: #93c5fd;
+  --accent-soft: rgba(96, 165, 250, 0.12);
+  --accent-text: #93c5fd;
+  --t1: #f87171; --t1-soft: rgba(248, 113, 113, 0.16);
+  --t2: #fb923c; --t2-soft: rgba(251, 146, 60, 0.16);
+  --t3: #fbbf24; --t3-soft: rgba(251, 191, 36, 0.16);
+  --t4: #4ade80; --t4-soft: rgba(74, 222, 128, 0.16);
+  --orange: #fb923c;
+  --orange-soft: rgba(251, 146, 60, 0.16);
+  --purple: #a78bfa;
+  --purple-soft: rgba(167, 139, 250, 0.16);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg-band); color: var(--text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01", "cv11";
+  letter-spacing: -0.005em;
+  transition: background 0.2s, color 0.2s;
+}
+.mono { font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace; }
+.serif { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-weight: 400; }
+a { color: inherit; text-decoration: none; }
+
+/* HEADER */
+header.site {
+  border-bottom: 1px solid var(--border);
+  background: rgba(250, 250, 247, 0.92);
+  backdrop-filter: saturate(180%) blur(10px);
+  -webkit-backdrop-filter: saturate(180%) blur(10px);
+  position: sticky; top: 0; z-index: 60;
+}
+[data-theme="dark"] header.site { background: rgba(14, 15, 16, 0.92); }
+.site-inner {
+  max-width: 1400px; margin: 0 auto; padding: 14px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.brand-link {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; font-weight: 600; color: var(--text);
+}
+.brand-mark {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 12px;
+}
+.brand-name .slash { color: var(--text-muted); margin: 0 5px; font-weight: 400; }
+.brand-name .second { color: var(--text-dim); font-weight: 500; }
+.site-meta { display: flex; align-items: center; gap: 10px; }
+.btn {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  padding: 7px 12px; border-radius: 7px;
+  font-size: 12px; font-family: inherit; font-weight: 500;
+  cursor: pointer; transition: all 0.15s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn:hover { background: var(--bg-muted); border-color: var(--border-strong); }
+.btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn.danger { color: var(--t1); border-color: var(--border); }
+.btn.danger:hover { background: var(--t1-soft); border-color: var(--t1); }
+.btn.sm { padding: 5px 10px; font-size: 11px; }
+.btn.lg { padding: 11px 18px; font-size: 13px; }
+.theme-toggle {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-dim); width: 32px; height: 32px;
+  border-radius: 8px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.theme-toggle:hover { background: var(--bg-muted); color: var(--text); }
+.theme-toggle svg { width: 15px; height: 15px; }
+.sun-icon { display: none; }
+.moon-icon { display: block; }
+[data-theme="dark"] .sun-icon { display: block; }
+[data-theme="dark"] .moon-icon { display: none; }
+
+/* HERO */
+.hero-section {
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 48px 0 36px;
+}
+.hero-inner {
+  max-width: 1400px; margin: 0 auto; padding: 0 28px;
+}
+.hero { max-width: 780px; }
+.hero-eyebrow {
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: var(--accent); letter-spacing: 0.08em;
+  text-transform: uppercase; font-weight: 600;
+  margin-bottom: 14px;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.hero-eyebrow::before {
+  content: ""; width: 24px; height: 2px;
+  background: var(--accent);
+}
+h1.hero-title {
+  font-size: 36px; line-height: 1.05; letter-spacing: -0.025em;
+  font-weight: 700; margin-bottom: 14px;
+}
+h1.hero-title .accent {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic; font-weight: 400; color: var(--accent);
+  font-size: 1.05em;
+}
+.hero-lead {
+  font-size: 14.5px; color: var(--text-dim);
+  max-width: 720px; line-height: 1.6;
+}
+.hero-meta {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  font-size: 12px; color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  margin-top: 18px;
+}
+.hero-meta .pill {
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  padding: 3px 9px; border-radius: 999px;
+}
+
+/* DISCLAIMER */
+.disclaimer-section {
+  background: var(--bg);
+  padding: 0 0 32px;
+}
+.disclaimer-inner {
+  max-width: 1400px; margin: 0 auto; padding: 0 28px;
+}
+.disclaimer {
+  background: var(--orange-soft);
+  border: 1px solid var(--orange);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex; gap: 12px; align-items: flex-start;
+  font-size: 13px; line-height: 1.55;
+  color: var(--text-2);
+}
+.disclaimer-icon {
+  width: 18px; height: 18px; background: var(--orange);
+  color: #fff; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 11px; margin-top: 1px;
+}
+
+/* MAIN */
+main {
+  background: var(--bg-band);
+  padding: 32px 0 80px;
+  min-height: 60vh;
+}
+.main-inner {
+  max-width: 1400px; margin: 0 auto; padding: 0 28px;
+}
+
+/* VIEW SWITCHER (top of main area) */
+.view-tabs {
+  display: flex; gap: 4px; margin-bottom: 18px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+  width: fit-content;
+}
+.view-tab {
+  background: transparent; border: none;
+  padding: 8px 14px; border-radius: 7px;
+  font-family: inherit; font-size: 12.5px; font-weight: 500;
+  color: var(--text-2); cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.view-tab:hover { background: var(--bg-muted); }
+.view-tab.active {
+  background: var(--accent); color: #fff;
+}
+.view-tab .count {
+  background: rgba(255,255,255,0.2);
+  padding: 1px 6px; border-radius: 999px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px; font-weight: 600;
+}
+.view-tab:not(.active) .count {
+  background: var(--bg-muted); color: var(--text-dim);
+}
+
+/* PORTFOLIO VIEW */
+.portfolio-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px 24px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.portfolio-card h2 {
+  font-size: 22px; font-weight: 700; letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+.portfolio-card h2 .accent {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic; font-weight: 400; color: var(--accent);
+}
+.portfolio-card .lead {
+  color: var(--text-dim); font-size: 14px;
+  margin-bottom: 16px; max-width: 720px;
+}
+.portfolio-actions {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+/* SUPPLIER TABLE */
+.supplier-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 13px;
+}
+.supplier-table th {
+  background: var(--bg-muted);
+  padding: 11px 14px;
+  text-align: left;
+  font-size: 10.5px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+}
+.supplier-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.supplier-table tr:last-child td { border-bottom: none; }
+.supplier-table tr.supplier-row { cursor: pointer; transition: background 0.15s; }
+.supplier-table tr.supplier-row:hover { background: var(--bg-muted); }
+.supplier-name { font-weight: 600; color: var(--text); }
+.supplier-meta-line {
+  font-size: 11.5px; color: var(--text-dim); margin-top: 2px;
+}
+
+/* TIER BADGE */
+.tier-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  font-weight: 700; letter-spacing: 0.04em;
+  padding: 3px 8px; border-radius: 999px;
+  text-transform: uppercase; white-space: nowrap;
+  border: 1px solid;
+}
+.tier-badge.tier1 { background: var(--t1-soft); color: var(--t1); border-color: var(--t1); }
+.tier-badge.tier2 { background: var(--t2-soft); color: var(--t2); border-color: var(--t2); }
+.tier-badge.tier3 { background: var(--t3-soft); color: var(--t3); border-color: var(--t3); }
+.tier-badge.tier4 { background: var(--t4-soft); color: var(--t4); border-color: var(--t4); }
+.tier-badge.untriaged {
+  background: var(--bg-muted); color: var(--text-dim); border-color: var(--border);
+}
+
+/* SCORE PILL */
+.score-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px; font-weight: 600;
+  padding: 3px 8px; border-radius: 5px;
+  background: var(--bg-muted); color: var(--text-2);
+  border: 1px solid var(--border);
+}
+.score-pill.good { background: var(--t4-soft); color: var(--t4); border-color: var(--t4); }
+.score-pill.warn { background: var(--t3-soft); color: #b45309; border-color: var(--t3); }
+[data-theme="dark"] .score-pill.warn { color: var(--t3); }
+.score-pill.bad  { background: var(--t1-soft); color: var(--t1); border-color: var(--t1); }
+.score-pill.unscored { font-style: italic; opacity: 0.7; }
+
+/* EMPTY STATE */
+.empty-state {
+  text-align: center; padding: 64px 24px;
+  background: var(--bg-elev);
+  border: 1px dashed var(--border-strong);
+  border-radius: 14px;
+}
+.empty-state h3 {
+  font-size: 18px; font-weight: 600; margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+.empty-state p {
+  color: var(--text-dim); font-size: 14px;
+  max-width: 480px; margin: 0 auto 18px;
+}
+
+/* ASSESSMENT VIEW */
+.assess-header {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px 24px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.assess-back {
+  font-size: 11.5px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim);
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-bottom: 12px; cursor: pointer;
+  background: transparent; border: none; padding: 0;
+}
+.assess-back:hover { color: var(--accent); }
+.assess-supplier-name {
+  font-size: 24px; font-weight: 700; letter-spacing: -0.02em;
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 6px;
+}
+.assess-supplier-meta {
+  color: var(--text-dim); font-size: 13px;
+  font-family: 'JetBrains Mono', monospace;
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+
+/* STAGE NAV */
+.stage-nav {
+  display: flex; gap: 4px; margin: 16px 0 0;
+  flex-wrap: wrap;
+}
+.stage-btn {
+  background: transparent; border: 1px solid var(--border);
+  padding: 7px 12px; border-radius: 7px;
+  font-family: inherit; font-size: 12px; font-weight: 500;
+  color: var(--text-2); cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.stage-btn:hover { background: var(--bg-muted); }
+.stage-btn.active {
+  background: var(--accent-soft); border-color: var(--accent);
+  color: var(--accent-text); font-weight: 600;
+}
+.stage-btn.done::before {
+  content: "✓"; color: var(--t4); font-weight: 700;
+}
+.stage-btn .stage-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px; opacity: 0.7;
+}
+
+/* TRIAGE VIEW */
+.triage-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 22px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-sm);
+}
+.triage-q-num {
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); letter-spacing: 0.06em;
+  text-transform: uppercase; font-weight: 600;
+  margin-bottom: 4px;
+}
+.triage-q-title {
+  font-size: 16px; font-weight: 600; letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+.triage-q-prompt {
+  color: var(--text-dim); font-size: 13.5px; margin-bottom: 14px;
+}
+.triage-options {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.triage-option {
+  background: var(--bg-muted);
+  border: 1.5px solid var(--border);
+  border-radius: 8px; padding: 10px 14px;
+  cursor: pointer;
+  font-family: inherit; font-size: 13px;
+  color: var(--text-2);
+  text-align: left;
+  display: flex; align-items: center; gap: 10px;
+  transition: all 0.15s;
+}
+.triage-option:hover { border-color: var(--border-strong); background: var(--bg-subtle); }
+.triage-option.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-text); font-weight: 500;
+}
+.triage-option .marker {
+  width: 14px; height: 14px;
+  border-radius: 50%; border: 2px solid var(--border-strong);
+  flex-shrink: 0;
+}
+.triage-option.selected .marker {
+  border-color: var(--accent); background: var(--accent);
+  position: relative;
+}
+.triage-option.selected .marker::after {
+  content: ""; position: absolute;
+  top: 2px; left: 2px;
+  width: 6px; height: 6px; background: #fff; border-radius: 50%;
+}
+
+/* TIER RESULT CARD */
+.tier-result {
+  background: var(--bg-elev);
+  border: 1.5px solid;
+  border-radius: 14px;
+  padding: 22px 24px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.tier-result.tier1 { border-color: var(--t1); background: linear-gradient(180deg, var(--t1-soft) 0%, var(--bg-elev) 80%); }
+.tier-result.tier2 { border-color: var(--t2); background: linear-gradient(180deg, var(--t2-soft) 0%, var(--bg-elev) 80%); }
+.tier-result.tier3 { border-color: var(--t3); background: linear-gradient(180deg, var(--t3-soft) 0%, var(--bg-elev) 80%); }
+.tier-result.tier4 { border-color: var(--t4); background: linear-gradient(180deg, var(--t4-soft) 0%, var(--bg-elev) 80%); }
+.tier-result h3 {
+  font-size: 18px; font-weight: 700; letter-spacing: -0.01em;
+  display: flex; align-items: center; gap: 12px; margin-bottom: 6px;
+}
+.tier-result .tier-rationale {
+  font-size: 13.5px; color: var(--text-2);
+  line-height: 1.55; margin-bottom: 12px;
+}
+.tier-result .tier-sla {
+  font-size: 12.5px; color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--bg-elev); border: 1px solid var(--border);
+  padding: 8px 12px; border-radius: 7px;
+  line-height: 1.5;
+}
+
+/* DOMAIN ASSESSMENT */
+.domain-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 22px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-sm);
+}
+.domain-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 14px; margin-bottom: 4px;
+}
+.domain-title {
+  font-size: 17px; font-weight: 700; letter-spacing: -0.01em;
+  display: flex; align-items: center; gap: 10px;
+}
+.domain-progress {
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); white-space: nowrap;
+  padding-top: 4px;
+}
+.domain-desc {
+  color: var(--text-dim); font-size: 13.5px;
+  margin-bottom: 14px;
+}
+.question {
+  border-top: 1px solid var(--border);
+  padding: 14px 0;
+}
+.question:last-child { padding-bottom: 0; }
+.question-head {
+  display: flex; gap: 10px; align-items: flex-start;
+  margin-bottom: 10px;
+}
+.question-text {
+  flex: 1; font-size: 13.5px; line-height: 1.45;
+  color: var(--text-2); font-weight: 500;
+}
+.question-meta {
+  display: flex; gap: 4px; flex-wrap: wrap;
+  margin-top: 6px;
+}
+.q-tag {
+  font-size: 10px; font-family: 'JetBrains Mono', monospace;
+  background: var(--bg-muted); color: var(--text-dim);
+  padding: 2px 6px; border-radius: 4px;
+  border: 1px solid var(--border);
+}
+.q-tag.severity-high { background: var(--t1-soft); color: var(--t1); border-color: var(--t1); }
+.q-tag.severity-medium { background: var(--t3-soft); color: #b45309; border-color: var(--t3); }
+[data-theme="dark"] .q-tag.severity-medium { color: var(--t3); }
+.q-tag.severity-low { background: var(--bg-muted); color: var(--text-dim); }
+.q-tag a { color: inherit; text-decoration: none; }
+.q-tag a:hover { text-decoration: underline; color: var(--accent); }
+
+/* RESPONSE BUTTONS */
+.response-row {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  margin: 8px 0;
+}
+.response-btn {
+  flex: 1; min-width: 80px;
+  background: var(--bg-muted);
+  border: 1.5px solid var(--border);
+  border-radius: 7px; padding: 7px 10px;
+  font-family: inherit; font-size: 12px; font-weight: 500;
+  color: var(--text-2); cursor: pointer;
+  transition: all 0.15s;
+}
+.response-btn:hover { background: var(--bg-subtle); }
+.response-btn.selected.r-yes { background: var(--t4-soft); border-color: var(--t4); color: var(--t4); }
+.response-btn.selected.r-partial { background: var(--t3-soft); border-color: var(--t3); color: #b45309; }
+[data-theme="dark"] .response-btn.selected.r-partial { color: var(--t3); }
+.response-btn.selected.r-no { background: var(--t1-soft); border-color: var(--t1); color: var(--t1); }
+.response-btn.selected.r-na { background: var(--bg-subtle); border-color: var(--border-strong); color: var(--text-dim); }
+.response-btn.selected.r-unknown { background: var(--purple-soft); border-color: var(--purple); color: var(--purple); }
+
+.q-evidence {
+  width: 100%;
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 7px; padding: 8px 11px;
+  font-family: inherit; font-size: 12.5px; color: var(--text);
+  resize: vertical; min-height: 38px; margin-top: 6px;
+  transition: border-color 0.15s;
+}
+.q-evidence:focus { outline: none; border-color: var(--accent); background: var(--bg-elev); }
+.q-evidence-prompt {
+  font-size: 11px; color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+/* RESULTS VIEW (single supplier or portfolio) */
+.results-view {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.results-view h2 {
+  font-size: 22px; font-weight: 700; letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+.results-view h2 .accent {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic; font-weight: 400; color: var(--accent);
+}
+.results-view h3 {
+  font-size: 15px; font-weight: 600; letter-spacing: -0.01em;
+  margin-bottom: 12px; margin-top: 24px;
+}
+.results-view h3:first-of-type { margin-top: 0; }
+.results-view p { color: var(--text-dim); margin-bottom: 12px; font-size: 13.5px; }
+
+/* DOMAIN HEATMAP */
+.domain-heatmap {
+  display: grid; grid-template-columns: 220px 1fr; gap: 8px;
+  margin-bottom: 16px;
+}
+.heatmap-row { display: contents; }
+.heatmap-label {
+  background: var(--bg-muted);
+  padding: 10px 12px; border-radius: 7px;
+  font-size: 12.5px; font-weight: 500;
+  display: flex; align-items: center; gap: 8px;
+  border: 1px solid var(--border);
+}
+.heatmap-cells {
+  display: flex; gap: 3px;
+  background: var(--border); padding: 1px;
+  border-radius: 7px;
+}
+.heatmap-cell {
+  flex: 1; min-height: 38px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  background: var(--bg-elev);
+  font-weight: 600;
+  border-radius: 5px;
+  cursor: default;
+  position: relative;
+}
+.heatmap-cell.r-yes { background: var(--t4-soft); color: var(--t4); }
+.heatmap-cell.r-partial { background: var(--t3-soft); color: #b45309; }
+[data-theme="dark"] .heatmap-cell.r-partial { color: var(--t3); }
+.heatmap-cell.r-no { background: var(--t1-soft); color: var(--t1); }
+.heatmap-cell.r-na { background: var(--bg-muted); color: var(--text-muted); }
+.heatmap-cell.r-unknown { background: var(--purple-soft); color: var(--purple); }
+.heatmap-cell.unanswered { background: var(--bg-elev); color: var(--text-muted); opacity: 0.5; }
+
+/* FINDINGS REGISTER */
+.findings-list { display: flex; flex-direction: column; gap: 8px; }
+.finding-item {
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-left: 3px solid;
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.finding-item.severity-high { border-left-color: var(--t1); }
+.finding-item.severity-medium { border-left-color: var(--t3); }
+.finding-item.severity-low { border-left-color: var(--text-muted); }
+.finding-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 12px; margin-bottom: 4px;
+}
+.finding-title {
+  font-weight: 600; font-size: 13.5px; line-height: 1.3;
+  flex: 1;
+}
+.finding-domain {
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.finding-tags {
+  display: flex; gap: 4px; flex-wrap: wrap;
+}
+.finding-evidence {
+  font-size: 12px; color: var(--text-dim);
+  margin-top: 6px; padding-top: 6px;
+  border-top: 1px dashed var(--border);
+  font-family: 'JetBrains Mono', monospace;
+  white-space: pre-wrap;
+}
+
+/* SUMMARY METRICS */
+.summary-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px; margin-bottom: 18px;
+}
+.summary-stat {
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.summary-stat .num {
+  font-size: 24px; font-weight: 700;
+  letter-spacing: -0.02em; line-height: 1;
+  font-family: 'JetBrains Mono', monospace;
+}
+.summary-stat .label {
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 0.04em; margin-top: 4px;
+}
+.summary-stat.tier1 .num { color: var(--t1); }
+.summary-stat.tier2 .num { color: var(--t2); }
+.summary-stat.tier3 .num { color: var(--t3); }
+.summary-stat.tier4 .num { color: var(--t4); }
+.summary-stat.findings-high .num { color: var(--t1); }
+.summary-stat.findings-med .num { color: var(--t3); }
+
+/* PORTFOLIO HEATMAP */
+.portfolio-heatmap-wrap { overflow-x: auto; margin-bottom: 16px; }
+.portfolio-heatmap {
+  border-collapse: collapse;
+  font-size: 12px;
+  min-width: 100%;
+}
+.portfolio-heatmap th {
+  background: var(--bg-muted);
+  padding: 8px 10px;
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0;
+}
+.portfolio-heatmap th.dom-col { writing-mode: vertical-rl; transform: rotate(180deg); padding: 8px 4px; min-width: 30px; }
+.portfolio-heatmap td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.portfolio-heatmap td.dom-cell {
+  text-align: center; padding: 4px;
+  min-width: 30px;
+}
+.portfolio-heatmap td.dom-cell.r-yes { background: var(--t4-soft); }
+.portfolio-heatmap td.dom-cell.r-partial { background: var(--t3-soft); }
+.portfolio-heatmap td.dom-cell.r-no { background: var(--t1-soft); }
+.portfolio-heatmap td.dom-cell.unscored { background: var(--bg-muted); color: var(--text-muted); }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--text); color: var(--bg);
+  padding: 10px 16px; border-radius: 8px;
+  font-size: 12.5px; font-weight: 500;
+  z-index: 300; opacity: 0; transform: translateY(8px);
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+  box-shadow: var(--shadow-lg);
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* MODAL */
+.modal-bg {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-bg.active { display: flex; }
+.modal {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  max-width: 560px; width: 100%;
+  max-height: 85vh; overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+.modal h3 {
+  font-size: 17px; font-weight: 600; letter-spacing: -0.01em;
+  margin-bottom: 14px;
+}
+.modal label {
+  display: block; font-size: 11px; color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em;
+  margin-bottom: 4px; margin-top: 12px; text-transform: uppercase;
+}
+.modal input,
+.modal select,
+.modal textarea {
+  width: 100%; background: var(--bg-muted);
+  border: 1px solid var(--border); color: var(--text);
+  padding: 9px 12px; border-radius: 7px;
+  font-family: inherit; font-size: 13px;
+}
+.modal input:focus, .modal select:focus, .modal textarea:focus {
+  outline: none; border-color: var(--accent); background: var(--bg-elev);
+}
+.modal-actions {
+  display: flex; gap: 8px; justify-content: flex-end;
+  margin-top: 18px; padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-muted); }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* PRINT */
+@media print {
+  header.site, .view-tabs, .portfolio-actions, .stage-nav, .assess-back,
+  .response-btn:not(.selected), .theme-toggle, .btn { display: none !important; }
+  body, main, .hero-section { background: white !important; color: black !important; }
+  .portfolio-card, .results-view, .domain-card, .assess-header, .triage-card, .tier-result, .finding-item, .summary-stat {
+    background: white !important; color: black !important; border: 1px solid #ccc !important;
+    box-shadow: none !important; page-break-inside: avoid;
+  }
+}
+
+/* MOBILE */
+@media (max-width: 720px) {
+  .hero-section { padding: 36px 0 24px; }
+  .hero-inner, .disclaimer-inner, .main-inner, .site-inner { padding-left: 18px; padding-right: 18px; }
+  h1.hero-title { font-size: 28px; }
+  .brand-name .second, .brand-name .slash { display: none; }
+  .site-meta .btn { display: none; }
+  .domain-heatmap { grid-template-columns: 1fr; }
+  .heatmap-cells { flex-wrap: wrap; }
+  .results-view { padding: 18px; }
+  .supplier-table { font-size: 12px; }
+  .supplier-table th, .supplier-table td { padding: 8px 10px; }
+  /* Hide some columns on narrow screens */
+  .col-hide-mobile { display: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="site-inner">
+    <a href="/useful/" class="brand-link">
+      <div class="brand-mark">DH</div>
+      <div class="brand-name">Dan Howett <span class="slash">/</span><span class="second">Supplier Cyber Risk</span></div>
+    </a>
+    <div class="site-meta">
+      <button class="btn ghost sm" onclick="exportJSON()" title="Save portfolio as JSON">SAVE JSON</button>
+      <button class="btn ghost sm" onclick="document.getElementById('loadFile').click()" title="Load saved portfolio">LOAD</button>
+      <input type="file" id="loadFile" accept=".json" style="display:none" onchange="loadJSON(event)">
+      <button class="btn ghost sm" onclick="window.print()" title="Print or save PDF">PDF</button>
+      <button class="btn danger sm" onclick="resetAll()">RESET</button>
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+        <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<section class="hero-section">
+  <div class="hero-inner">
+    <div class="hero">
+      <div class="hero-eyebrow">Supplier risk · NCSC + NIST 800-161 + ISO 27036</div>
+      <h1 class="hero-title">Right-sized <span class="accent">supplier</span> cyber risk assessment.</h1>
+      <p class="hero-lead">
+        Triage suppliers into 4 tiers (Critical / Important / Standard / Light-touch) by data sensitivity,
+        criticality, access type, dependency and regulation. Each tier gets a depth-appropriate questionnaire
+        of up to 47 questions across 8 control domains. Mapped to the
+        <strong>NCSC 12 Supply Chain Principles</strong>, with cross-references to
+        <strong>NIST SP 800-161r1</strong> and <strong>ISO/IEC 27036</strong>.
+      </p>
+      <div class="hero-meta">
+        <span class="pill">4 tiers</span>
+        <span class="pill">8 domains</span>
+        <span class="pill">47 questions</span>
+        <span class="pill">NCSC + NIST + ISO</span>
+        <span class="pill">Portfolio view</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="disclaimer-section">
+  <div class="disclaimer-inner">
+    <div class="disclaimer">
+      <div class="disclaimer-icon">!</div>
+      <div>
+        <strong>Proof of concept only.</strong> This tool is a self-assessment aid that maps to public framework
+        descriptions. It does not constitute formal due diligence or substitute for legal review,
+        contractual negotiation, or independent assurance. Use at your own risk.
+      </div>
+    </div>
+  </div>
+</section>
+
+<main>
+  <div class="main-inner" id="mainArea">
+    <!-- populated by JS -->
+  </div>
+</main>
+
+<!-- ADD SUPPLIER MODAL -->
+<div class="modal-bg" id="addModal" onclick="if(event.target===this) closeModal()">
+  <div class="modal">
+    <h3>Add supplier</h3>
+    <label for="newSupplierName">Supplier name *</label>
+    <input type="text" id="newSupplierName" placeholder="e.g. Acme Cloud Services Ltd">
+    <label for="newSupplierService">Service / product</label>
+    <input type="text" id="newSupplierService" placeholder="e.g. HR SaaS platform">
+    <label for="newSupplierOwner">Internal owner</label>
+    <input type="text" id="newSupplierOwner" placeholder="e.g. CFO / IT Director">
+    <label for="newSupplierContract">Contract value (optional)</label>
+    <input type="text" id="newSupplierContract" placeholder="e.g. £150k/year">
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" onclick="confirmAddSupplier()">Add supplier</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// SUPPLIER CYBER RISK ASSESSMENT — DATA MODEL
+// Last reviewed: April 2026
+//
+// Primary framework: NCSC Supply Chain Security — 12 Principles
+// Cross-references:  NIST SP 800-161r1 (C-SCRM)
+//                    ISO/IEC 27036 (Information security for supplier relationships)
+//                    NCSC CAF Principle A4 (Supply Chain) — for CNI-relevant orgs
+// ============================================================
+
+// ---------- TIERS ----------
+// Each tier has a depth indicator showing how many questions per domain are asked
+const TIERS = [
+  {
+    id: "tier1",
+    label: "Tier 1 — Critical",
+    short: "T1",
+    colour: "#dc2626",
+    soft: "#fee2e2",
+    desc: "Loss or compromise materially threatens organisational viability, regulatory standing, or safety. Examples: core banking platform, ICS/OT operator, primary cloud provider for production workloads.",
+    sla: "Annual full assessment + quarterly check-in. SOC 2 Type II / ISO 27001 / equivalent required.",
+    minControls: "All applicable controls reviewed; on-site or evidence-based review; right-to-audit exercised at least every 2 years.",
+    depth: "full"   // every applicable question
+  },
+  {
+    id: "tier2",
+    label: "Tier 2 — Important",
+    short: "T2",
+    colour: "#ea580c",
+    soft: "#ffedd5",
+    desc: "Loss or compromise causes significant operational disruption, regulatory exposure or material financial impact, but the organisation can continue to function. Examples: HR SaaS, finance SaaS, important non-production cloud services.",
+    sla: "Full assessment every 18 months. Independent attestation expected.",
+    minControls: "All core domains reviewed; documented evidence of certifications; questionnaire-based.",
+    depth: "comprehensive" // most questions
+  },
+  {
+    id: "tier3",
+    label: "Tier 3 — Standard",
+    short: "T3",
+    colour: "#f59e0b",
+    soft: "#fef3c7",
+    desc: "Loss or compromise is recoverable with manageable effort. Limited data sensitivity and operational dependency. Examples: marketing analytics, training platforms, ticketing systems.",
+    sla: "Reassessment every 2 years or on material change.",
+    minControls: "Streamlined questionnaire; focus on identity, data and incident response.",
+    depth: "core"   // core questions only
+  },
+  {
+    id: "tier4",
+    label: "Tier 4 — Light-touch",
+    short: "T4",
+    colour: "#16a34a",
+    soft: "#dcfce7",
+    desc: "Limited or no access to systems or sensitive data. Low criticality. Examples: stationery suppliers, catering, generic SaaS without data integration.",
+    sla: "Self-attestation only. Refresh every 3 years.",
+    minControls: "Confirm Cyber Essentials / equivalent baseline.",
+    depth: "light"  // minimum questions only
+  }
+];
+
+// ---------- TIERING CRITERIA ----------
+// Used in triage step. Each criterion has weighted options that contribute
+// to a tier score; aggregate score determines tier.
+const TIERING_CRITERIA = [
+  {
+    id: "data",
+    title: "Data sensitivity",
+    prompt: "What is the most sensitive class of data the supplier processes, stores or accesses?",
+    options: [
+      { id: "none",    label: "None / public-only data",                                weight: 0 },
+      { id: "internal",label: "Internal business data (no personal or regulated)",     weight: 1 },
+      { id: "personal",label: "Personal data (employee, customer)",                    weight: 3 },
+      { id: "sensitive",label:"Special-category, financial or commercially sensitive", weight: 4 },
+      { id: "regulated",label:"Regulated data (PCI, health, classified, NIS2 essential)", weight: 5 }
+    ]
+  },
+  {
+    id: "criticality",
+    title: "Operational criticality",
+    prompt: "What is the operational impact if the supplier is unavailable for an extended period (>24 hours)?",
+    options: [
+      { id: "none",    label: "Negligible — workaround easy",                          weight: 0 },
+      { id: "minor",   label: "Minor inconvenience",                                   weight: 1 },
+      { id: "moderate",label: "Material disruption to internal teams",                 weight: 2 },
+      { id: "major",   label: "Major disruption — customer-facing impact",             weight: 4 },
+      { id: "critical",label: "Critical — core operations halted",                     weight: 5 }
+    ]
+  },
+  {
+    id: "access",
+    title: "Access type",
+    prompt: "What level of access does the supplier have to your systems, data or premises?",
+    options: [
+      { id: "none",     label: "None — disconnected service",                          weight: 0 },
+      { id: "email",    label: "Email/document exchange only",                         weight: 1 },
+      { id: "saas",     label: "SaaS platform — supplier holds your data",             weight: 3 },
+      { id: "network",  label: "Direct network connection or remote access to systems",weight: 4 },
+      { id: "privileged",label:"Privileged / admin access to production systems",      weight: 5 }
+    ]
+  },
+  {
+    id: "dependency",
+    title: "Dependency / substitutability",
+    prompt: "How easily could the supplier be replaced if needed?",
+    options: [
+      { id: "easy",    label: "Many alternatives, easy switch",                        weight: 0 },
+      { id: "some",    label: "Some alternatives, several months to switch",           weight: 1 },
+      { id: "limited", label: "Limited alternatives, 6-12 months to switch",           weight: 3 },
+      { id: "single",  label: "Single-source — bespoke / no realistic alternative",    weight: 5 }
+    ]
+  },
+  {
+    id: "regulation",
+    title: "Regulatory implications",
+    prompt: "What regulatory regimes are engaged by this supplier relationship?",
+    options: [
+      { id: "none",    label: "No specific regulatory implications",                   weight: 0 },
+      { id: "gdpr",    label: "UK GDPR / Data Protection Act (processor relationship)",weight: 2 },
+      { id: "pci",     label: "PCI DSS / HIPAA / sectoral regulation",                 weight: 3 },
+      { id: "fs",      label: "DORA / PRA SS2/21 (financial services third-party)",    weight: 4 },
+      { id: "cni",     label: "NIS2 / NCSC CAF (essential / important entity)",        weight: 5 }
+    ]
+  }
+];
+
+// Tier thresholds (sum of weights across the 5 criteria; max=25)
+function calculateTier(criteriaScores) {
+  // criteriaScores: { criteriaId: optionId }
+  let total = 0;
+  TIERING_CRITERIA.forEach(c => {
+    const opt = c.options.find(o => o.id === criteriaScores[c.id]);
+    if (opt) total += opt.weight;
+  });
+  // Thresholds chosen so that any single "regulated/critical" answer pushes minimum Tier 2
+  if (total >= 16) return { tierId: "tier1", score: total };
+  if (total >= 10) return { tierId: "tier2", score: total };
+  if (total >= 5)  return { tierId: "tier3", score: total };
+  return                  { tierId: "tier4", score: total };
+}
+
+// ---------- ASSESSMENT DOMAINS ----------
+// Each domain contains questions with depth tags (light/core/comprehensive/full)
+// indicating which tier triggers the question.
+//
+// Severity: low / medium / high — used to weight findings
+// ncsc: NCSC Supply Chain Principle reference (1-12)
+// nist: NIST SP 800-161r1 control family reference
+// iso: ISO 27036 part reference
+// caf: NCSC CAF Principle A4 outcome (only where directly relevant)
+
+const DOMAINS = [
+  {
+    id: "governance",
+    title: "Governance & risk management",
+    icon: "📋",
+    desc: "Does the supplier have appropriate cyber security governance, ownership and risk management in place?",
+    questions: [
+      {
+        id: "gov-policy",
+        text: "Does the supplier have a documented information security policy approved by senior management and reviewed annually?",
+        depth: "light",
+        severity: "high",
+        ncsc: [1,2],
+        nist: ["ID.GV-1"],
+        iso: "27036-2 §6.2",
+        evidencePrompt: "Latest dated policy document or extract; CISO/equivalent sign-off."
+      },
+      {
+        id: "gov-leader",
+        text: "Is there a named individual (CISO/equivalent) accountable for information security at board level?",
+        depth: "core",
+        severity: "medium",
+        ncsc: [1],
+        nist: ["ID.GV-2"],
+        iso: "27036-2 §6.1"
+      },
+      {
+        id: "gov-cert",
+        text: "Does the supplier hold a recognised security certification (Cyber Essentials, Cyber Essentials Plus, ISO 27001, SOC 2 Type II)?",
+        depth: "light",
+        severity: "high",
+        ncsc: [4,7],
+        nist: ["ID.GV-3"],
+        iso: "27036-2 §7.3",
+        evidencePrompt: "Certificate number, issuing body, scope, expiry date."
+      },
+      {
+        id: "gov-risk",
+        text: "Does the supplier perform regular cyber risk assessments and maintain a current risk register?",
+        depth: "comprehensive",
+        severity: "medium",
+        ncsc: [1,3],
+        nist: ["ID.RA-1","ID.RA-3"],
+        iso: "27036-2 §7.2"
+      },
+      {
+        id: "gov-fourth-party",
+        text: "Does the supplier maintain visibility of their own sub-processors / fourth parties and assess their security?",
+        depth: "comprehensive",
+        severity: "high",
+        ncsc: [3,4,8],
+        nist: ["ID.SC-2","ID.SC-3"],
+        iso: "27036-2 §7.4"
+      },
+      {
+        id: "gov-training",
+        text: "Do supplier staff with access to your data complete cyber security awareness training at least annually?",
+        depth: "core",
+        severity: "medium",
+        ncsc: [5],
+        nist: ["PR.AT-1"],
+        iso: "27036-2 §6.3"
+      },
+      {
+        id: "gov-screening",
+        text: "Are supplier staff with access to your data subject to background checks / personnel screening?",
+        depth: "full",
+        severity: "medium",
+        ncsc: [5],
+        nist: ["PR.IP-11"],
+        iso: "27036-2 §6.3"
+      }
+    ]
+  },
+  {
+    id: "iam",
+    title: "Identity & access management",
+    icon: "🔑",
+    desc: "How does the supplier authenticate users, manage privileges and protect access to your data?",
+    questions: [
+      {
+        id: "iam-mfa",
+        text: "Is multi-factor authentication enforced for all users with access to your data, including admin accounts?",
+        depth: "light",
+        severity: "high",
+        ncsc: [4],
+        nist: ["PR.AC-7"],
+        iso: "27036-2 §7.5"
+      },
+      {
+        id: "iam-mfa-phish",
+        text: "Is phishing-resistant MFA (FIDO2, smart cards, certificate-based) used for privileged access?",
+        depth: "comprehensive",
+        severity: "high",
+        ncsc: [4],
+        nist: ["PR.AC-7"]
+      },
+      {
+        id: "iam-pam",
+        text: "Are privileged accounts managed through a PAM solution with session recording and just-in-time elevation?",
+        depth: "comprehensive",
+        severity: "high",
+        ncsc: [4],
+        nist: ["PR.AC-1","PR.AC-4"]
+      },
+      {
+        id: "iam-leaver",
+        text: "Are leaver accounts (supplier staff who change role or leave) deprovisioned within one working day?",
+        depth: "core",
+        severity: "high",
+        ncsc: [4],
+        nist: ["PR.AC-1"],
+        iso: "27036-2 §7.5"
+      },
+      {
+        id: "iam-review",
+        text: "Are access rights to your data reviewed at least quarterly?",
+        depth: "comprehensive",
+        severity: "medium",
+        ncsc: [4],
+        nist: ["PR.AC-4"]
+      },
+      {
+        id: "iam-shared",
+        text: "Are shared/generic accounts prohibited or, where unavoidable, individually attributable?",
+        depth: "full",
+        severity: "medium",
+        ncsc: [4],
+        nist: ["PR.AC-1"]
+      }
+    ]
+  },
+  {
+    id: "data",
+    title: "Data protection",
+    icon: "🔒",
+    desc: "How is your data protected at rest, in transit and through its lifecycle with the supplier?",
+    questions: [
+      {
+        id: "data-class",
+        text: "Does the supplier classify data and apply protections proportionate to its sensitivity?",
+        depth: "core",
+        severity: "medium",
+        ncsc: [4],
+        nist: ["PR.DS-5"],
+        iso: "27036-2 §7.6"
+      },
+      {
+        id: "data-encryption-rest",
+        text: "Is your data encrypted at rest using current cryptographic standards (AES-256 or equivalent)?",
+        depth: "light",
+        severity: "high",
+        ncsc: [4],
+        nist: ["PR.DS-1"]
+      },
+      {
+        id: "data-encryption-transit",
+        text: "Is all data in transit protected by TLS 1.2+ with strong cipher suites and valid certificates?",
+        depth: "light",
+        severity: "high",
+        ncsc: [4],
+        nist: ["PR.DS-2"]
+      },
+      {
+        id: "data-key-mgmt",
+        text: "Is encryption key management formally controlled with rotation and separation of duties?",
+        depth: "comprehensive",
+        severity: "medium",
+        ncsc: [4],
+        nist: ["PR.DS-1","PR.DS-2"]
+      },
+      {
+        id: "data-residency",
+        text: "Is the data residency / geographical processing location explicitly defined and contractually controlled?",
+        depth: "core",
+        severity: "high",
+        ncsc: [4,9],
+        nist: ["ID.SC-3"],
+        iso: "27036-2 §7.6"
+      },
+      {
+        id: "data-segregation",
+        text: "Is your data logically segregated from other customers' data (tenancy isolation)?",
+        depth: "comprehensive",
+        severity: "high",
+        ncsc: [4],
+        nist: ["PR.DS-5"]
+      },
+      {
+        id: "data-retention",
+        text: "Is data retention defined contractually with secure deletion or return at end of relationship?",
+        depth: "core",
+        severity: "high",
+        ncsc: [10],
+        nist: ["PR.IP-6"],
+        iso: "27036-2 §7.10"
+      },
+      {
+        id: "data-dlp",
+        text: "Are data loss prevention controls in place to detect and prevent unauthorised exfiltration?",
+        depth: "full",
+        severity: "medium",
+        ncsc: [4],
+        nist: ["PR.DS-5"]
+      }
+    ]
+  },
+  {
+    id: "vuln",
+    title: "Vulnerability & patch management",
+    icon: "🩹",
+    desc: "How does the supplier identify and remediate security vulnerabilities in its services?",
+    questions: [
+      {
+        id: "vuln-program",
+        text: "Does the supplier operate a documented vulnerability management programme with defined SLAs by severity?",
+        depth: "core",
+        severity: "high",
+        ncsc: [4],
+        nist: ["RS.MI-3","ID.RA-1"]
+      },
+      {
+        id: "vuln-patch-critical",
+        text: "Are critical-severity vulnerabilities (CVSS 9+) patched within 14 days?",
+        depth: "core",
+        severity: "high",
+        ncsc: [4],
+        nist: ["RS.MI-3"]
+      },
+      {
+        id: "vuln-pentest",
+        text: "Is the service subject to independent penetration testing at least annually?",
+        depth: "comprehensive",
+        severity: "high",
+        ncsc: [7],
+        nist: ["DE.CM-8"],
+        iso: "27036-3 §6.4"
+      },
+      {
+        id: "vuln-disclosure",
+        text: "Does the supplier operate a public vulnerability disclosure programme?",
+        depth: "comprehensive",
+        severity: "low",
+        ncsc: [7],
+        nist: ["RS.AN-5"]
+      },
+      {
+        id: "vuln-secdev",
+        text: "Is secure development lifecycle (SAST, SCA, secrets scanning) integrated into the supplier's CI/CD?",
+        depth: "full",
+        severity: "medium",
+        ncsc: [4],
+        nist: ["PR.IP-2"]
+      },
+      {
+        id: "vuln-sbom",
+        text: "Does the supplier maintain a Software Bill of Materials (SBOM) for the products / services they provide?",
+        depth: "full",
+        severity: "low",
+        ncsc: [3,4],
+        nist: ["ID.SC-3"]
+      }
+    ]
+  },
+  {
+    id: "monitoring",
+    title: "Logging, monitoring & detection",
+    icon: "📡",
+    desc: "How does the supplier detect security events affecting your data or services?",
+    questions: [
+      {
+        id: "mon-logging",
+        text: "Are security-relevant events (authentication, privileged actions, data access) logged centrally?",
+        depth: "core",
+        severity: "high",
+        ncsc: [4],
+        nist: ["PR.PT-1","DE.CM-1"]
+      },
+      {
+        id: "mon-retention",
+        text: "Are security logs retained for at least 12 months?",
+        depth: "core",
+        severity: "medium",
+        ncsc: [4],
+        nist: ["PR.PT-1"]
+      },
+      {
+        id: "mon-soc",
+        text: "Is the service monitored 24×7 by a SOC (internal or outsourced) with documented detection use cases?",
+        depth: "comprehensive",
+        severity: "high",
+        ncsc: [4],
+        nist: ["DE.CM-1","DE.AE-1"]
+      },
+      {
+        id: "mon-customer-access",
+        text: "Are security-relevant logs available to you on request (and ideally via API/feed)?",
+        depth: "full",
+        severity: "medium",
+        ncsc: [4,7],
+        nist: ["PR.PT-1"]
+      },
+      {
+        id: "mon-threat-intel",
+        text: "Does the supplier consume threat intelligence relevant to its sector and apply it to detection?",
+        depth: "full",
+        severity: "low",
+        ncsc: [4],
+        nist: ["RS.AN-5","ID.RA-2"]
+      }
+    ]
+  },
+  {
+    id: "incident",
+    title: "Incident response & breach notification",
+    icon: "🚨",
+    desc: "How does the supplier respond to incidents and notify you of any that affect your data or services?",
+    questions: [
+      {
+        id: "ir-plan",
+        text: "Does the supplier have a documented and tested incident response plan?",
+        depth: "light",
+        severity: "high",
+        ncsc: [4,8],
+        nist: ["RS.RP-1"],
+        iso: "27036-2 §7.7"
+      },
+      {
+        id: "ir-notify-time",
+        text: "Is contractual notification of an incident affecting your data within an explicitly defined and tight window (typically 24-72 hours)?",
+        depth: "light",
+        severity: "high",
+        ncsc: [8,11],
+        nist: ["RS.CO-2"],
+        iso: "27036-2 §7.7"
+      },
+      {
+        id: "ir-contact",
+        text: "Is there a named 24×7 contact point for security incident notification?",
+        depth: "core",
+        severity: "high",
+        ncsc: [8],
+        nist: ["RS.CO-2"]
+      },
+      {
+        id: "ir-exercise",
+        text: "Is the incident response plan exercised at least annually, including a scenario involving a customer impact?",
+        depth: "comprehensive",
+        severity: "medium",
+        ncsc: [8],
+        nist: ["RS.IM-1"]
+      },
+      {
+        id: "ir-pir",
+        text: "Are post-incident reviews / root-cause analyses shared with affected customers?",
+        depth: "comprehensive",
+        severity: "medium",
+        ncsc: [8],
+        nist: ["RS.IM-1","RS.IM-2"]
+      },
+      {
+        id: "ir-forensics",
+        text: "Is the supplier capable of providing forensic evidence following an incident affecting your data?",
+        depth: "full",
+        severity: "medium",
+        ncsc: [8],
+        nist: ["RS.AN-3"]
+      }
+    ]
+  },
+  {
+    id: "resilience",
+    title: "Business continuity & resilience",
+    icon: "🛡️",
+    desc: "Can the supplier maintain or rapidly recover service in the event of disruption?",
+    questions: [
+      {
+        id: "res-bcp",
+        text: "Does the supplier have a documented and tested business continuity plan with defined RTOs and RPOs?",
+        depth: "core",
+        severity: "high",
+        ncsc: [9],
+        nist: ["PR.IP-9","RS.RP-1"],
+        iso: "27036-2 §7.8",
+        caf: "B5.a — Resilience preparation"
+      },
+      {
+        id: "res-test",
+        text: "Is the BCP tested at least annually, with results made available to customers on request?",
+        depth: "comprehensive",
+        severity: "medium",
+        ncsc: [9],
+        nist: ["PR.IP-10"],
+        caf: "B5.b — Design for resilience"
+      },
+      {
+        id: "res-backups",
+        text: "Are backups of customer data taken, encrypted, geographically separated and tested for restoration?",
+        depth: "core",
+        severity: "high",
+        ncsc: [9],
+        nist: ["PR.IP-4","RC.RP-1"]
+      },
+      {
+        id: "res-dependencies",
+        text: "Has the supplier identified its own critical dependencies (cloud, network, key suppliers) and resilience risks?",
+        depth: "comprehensive",
+        severity: "medium",
+        ncsc: [3,9],
+        nist: ["ID.SC-3"]
+      },
+      {
+        id: "res-ransomware",
+        text: "Does the supplier have specific ransomware-resilience controls (immutable backups, segmented recovery)?",
+        depth: "comprehensive",
+        severity: "high",
+        ncsc: [4,9],
+        nist: ["PR.DS-1","RC.RP-1"]
+      }
+    ]
+  },
+  {
+    id: "contract",
+    title: "Contract & assurance",
+    icon: "📜",
+    desc: "Are the right contractual provisions and assurance mechanisms in place?",
+    questions: [
+      {
+        id: "ctr-clauses",
+        text: "Do contracts include explicit cyber security provisions (controls, certifications, audit rights, notification, sub-processor approval)?",
+        depth: "light",
+        severity: "high",
+        ncsc: [6,7],
+        nist: ["ID.SC-3"],
+        iso: "27036-2 §6.4"
+      },
+      {
+        id: "ctr-audit",
+        text: "Do you have a contractual right to audit (or accept independent attestation in lieu)?",
+        depth: "core",
+        severity: "high",
+        ncsc: [7],
+        nist: ["ID.SC-4"],
+        iso: "27036-2 §7.9"
+      },
+      {
+        id: "ctr-liability",
+        text: "Are liability limits, cyber-incident-specific provisions and insurance requirements proportionate to the risk?",
+        depth: "comprehensive",
+        severity: "medium",
+        ncsc: [6],
+        nist: ["ID.SC-3"]
+      },
+      {
+        id: "ctr-subprocessor",
+        text: "Are sub-processor changes subject to prior notification or approval?",
+        depth: "comprehensive",
+        severity: "medium",
+        ncsc: [3,6],
+        nist: ["ID.SC-3"]
+      },
+      {
+        id: "ctr-termination",
+        text: "Is there a defined termination plan including secure data return / deletion and continuity provisions?",
+        depth: "core",
+        severity: "high",
+        ncsc: [10,11],
+        nist: ["ID.SC-3"],
+        iso: "27036-2 §7.10"
+      }
+    ]
+  }
+];
+
+// Severity weights for findings score (higher = worse)
+const SEVERITY_WEIGHTS = { low: 1, medium: 3, high: 5 };
+
+// Question response options
+const RESPONSE_OPTIONS = [
+  { id: "yes",     label: "Yes",                             score: 1.0,  colour: "#16a34a", soft: "#dcfce7" },
+  { id: "partial", label: "Partial",                         score: 0.5,  colour: "#f59e0b", soft: "#fef3c7" },
+  { id: "no",      label: "No",                              score: 0.0,  colour: "#dc2626", soft: "#fee2e2" },
+  { id: "na",      label: "N/A",                             score: null, colour: "#6b6b66", soft: "#efefe8" },
+  { id: "unknown", label: "Unknown",                         score: 0.0,  colour: "#7c3aed", soft: "#ede9fe" }
+];
+
+// Tier depth → which questions to show
+function isQuestionInTier(question, tierId) {
+  const tier = TIERS.find(t => t.id === tierId);
+  if (!tier) return false;
+  const depthMap = {
+    light:         ["light"],
+    core:          ["light", "core"],
+    comprehensive: ["light", "core", "comprehensive"],
+    full:          ["light", "core", "comprehensive", "full"]
+  };
+  return depthMap[tier.depth].includes(question.depth);
+}
+
+// ============================================================
+// FRAMEWORK REFERENCES
+// ============================================================
+const FRAMEWORKS = [
+  {
+    id: "ncsc-supply-chain",
+    name: "NCSC Supply Chain Security — 12 Principles",
+    publisher: "National Cyber Security Centre (NCSC), UK",
+    role: "Primary framework",
+    desc: "The 12 principles structure the assessment domains. Principles cover: (1) understand risks, (2) value of assets, (3) who suppliers are, (4) security requirements, (5) raise awareness, (6) contractual provisions, (7) right to audit, (8) incident reporting, (9) resilience, (10) end-of-contract data, (11) build trust, (12) continual improvement.",
+    url: "https://www.ncsc.gov.uk/collection/supply-chain-security/principles-supply-chain-security",
+    badge: "PRIMARY"
+  },
+  {
+    id: "ncsc-assess",
+    name: "NCSC: How to assess supply chain cyber security",
+    publisher: "NCSC, UK (with CMORG)",
+    role: "Assessment methodology",
+    desc: "NCSC's practical 5-stage methodology for assessing supply chain cyber security. Provides the procedural backbone behind this tool's tier-and-questionnaire approach.",
+    url: "https://www.ncsc.gov.uk/collection/assess-supply-chain-cyber-security",
+    badge: "METHODOLOGY"
+  },
+  {
+    id: "nist-800-161",
+    name: "NIST SP 800-161r1 — Cybersecurity Supply Chain Risk Management",
+    publisher: "NIST, USA",
+    role: "Detailed control reference",
+    desc: "Detailed C-SCRM control practices. This tool's questions reference NIST CSF subcategories (PR.AC, ID.SC, RS.RP etc.) drawn from 800-161r1 to enable cross-mapping with US-style frameworks.",
+    url: "https://csrc.nist.gov/pubs/sp/800/161/r1/final",
+    pdf: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-161r1.pdf",
+    badge: "CONTROL REF"
+  },
+  {
+    id: "iso-27036",
+    name: "ISO/IEC 27036 — Information security for supplier relationships",
+    publisher: "ISO/IEC",
+    role: "International standard",
+    desc: "Four-part standard covering supplier-relationship information security. Part 1 (overview), Part 2 (requirements), Part 3 (ICT supply chain), Part 4 (cloud services). Questions cite specific 27036-2/27036-3 clauses where directly applicable.",
+    url: "https://www.iso.org/standard/82905.html",
+    badge: "INTL STANDARD"
+  },
+  {
+    id: "ncsc-caf-a4",
+    name: "NCSC CAF Principle A4 — Supply Chain",
+    publisher: "NCSC, UK",
+    role: "Cross-reference (CNI / NIS regulated)",
+    desc: "For NIS-regulated essential / important entities, the NCSC Cyber Assessment Framework A4 outcomes apply. This tool tags relevant resilience and incident response questions to A4-aligned outcomes.",
+    url: "https://www.ncsc.gov.uk/collection/cyber-assessment-framework/caf-objective-a-managing-security-risk/principle-a4-supply-chain",
+    badge: "CAF / NIS"
+  }
+];
+
+
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  view: "portfolio",          // 'portfolio' | 'triage' | 'assessment' | 'results' | 'portfolio-results'
+  currentSupplierId: null,
+  currentStage: "triage",     // within assessment view: 'triage' | 'tier' | 'assess' | 'results'
+  suppliers: {}               // { supplierId: supplierObj }
+};
+
+// supplierObj structure:
+// {
+//   id, name, service, owner, contract,
+//   triage: { criteriaId: optionId, ... },
+//   tier: 'tier1'|...|null,
+//   responses: { questionId: { response: 'yes', evidence: '...' } },
+//   created, lastModified
+// }
+
+// ============================================================
+// THEME
+// ============================================================
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('dh-theme', t); } catch(e) {}
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  setTheme(cur === 'light' ? 'dark' : 'light');
+}
+(function initTheme(){
+  let saved = null;
+  try { saved = localStorage.getItem('dh-theme'); } catch(e){}
+  if (saved) setTheme(saved);
+  else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) setTheme('dark');
+  else setTheme('light');
+})();
+
+// ============================================================
+// HELPERS
+// ============================================================
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function escapeAttr(s) {
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/'/g,"&#39;").replace(/"/g,"&quot;");
+}
+function genId() {
+  return 's-' + Math.random().toString(36).slice(2, 10);
+}
+function getTier(tierId) { return TIERS.find(t => t.id === tierId); }
+function getDomain(domainId) { return DOMAINS.find(d => d.id === domainId); }
+function getQuestion(qId) {
+  for (const d of DOMAINS) {
+    const q = d.questions.find(qq => qq.id === qId);
+    if (q) return { question: q, domain: d };
+  }
+  return null;
+}
+
+function suppliersList() {
+  return Object.values(state.suppliers).sort((a, b) => {
+    const tierOrder = { tier1: 1, tier2: 2, tier3: 3, tier4: 4, null: 5 };
+    const at = tierOrder[a.tier] || 5;
+    const bt = tierOrder[b.tier] || 5;
+    if (at !== bt) return at - bt;
+    return (a.name || '').localeCompare(b.name || '');
+  });
+}
+
+// ============================================================
+// VIEW ROUTER
+// ============================================================
+function render() {
+  switch (state.view) {
+    case 'portfolio':         renderPortfolio(); break;
+    case 'portfolio-results': renderPortfolioResults(); break;
+    case 'assessment':        renderAssessment(); break;
+    default:                  renderPortfolio();
+  }
+}
+
+function setView(view) {
+  state.view = view;
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ============================================================
+// PORTFOLIO VIEW (default)
+// ============================================================
+function renderPortfolio() {
+  const suppliers = suppliersList();
+  const html = `
+    <div class="view-tabs">
+      <button class="view-tab active" onclick="setView('portfolio')">📋 Suppliers <span class="count">${suppliers.length}</span></button>
+      <button class="view-tab" onclick="setView('portfolio-results')" ${suppliers.length === 0 ? 'disabled style="opacity:0.5"' : ''}>📊 Portfolio Report</button>
+    </div>
+
+    <div class="portfolio-card">
+      <h2>Supplier <span class="accent">portfolio</span></h2>
+      <p class="lead">Add suppliers to triage them into a tier (Critical / Important / Standard / Light-touch). Each tier gets a depth-appropriate questionnaire across 8 control domains.</p>
+      <div class="portfolio-actions">
+        <button class="btn primary" onclick="openAddSupplier()">+ Add supplier</button>
+        <button class="btn" onclick="exportJSON()">Save portfolio as JSON</button>
+        <button class="btn" onclick="document.getElementById('loadFile').click()">Load saved portfolio</button>
+      </div>
+    </div>
+
+    ${suppliers.length === 0 ? renderEmptyState() : renderSupplierTable(suppliers)}
+  `;
+  document.getElementById('mainArea').innerHTML = html;
+}
+
+function renderEmptyState() {
+  return `<div class="empty-state">
+    <h3>No suppliers yet</h3>
+    <p>Add your first supplier to begin. The tool will guide you through a 5-question triage to determine the appropriate assessment depth.</p>
+    <button class="btn primary lg" onclick="openAddSupplier()">+ Add supplier</button>
+  </div>`;
+}
+
+function renderSupplierTable(suppliers) {
+  const rows = suppliers.map(s => {
+    const tier = s.tier ? getTier(s.tier) : null;
+    const tierBadge = tier
+      ? `<span class="tier-badge ${s.tier}">${escapeHtml(tier.short)} ${escapeHtml(tier.label.replace(/^Tier \d+ — /, ''))}</span>`
+      : `<span class="tier-badge untriaged">UNTRIAGED</span>`;
+    const score = computeSupplierScore(s);
+    const scorePill = renderScorePill(score, s);
+    const findings = countFindings(s);
+    const findingsText = findings.high + findings.medium > 0
+      ? `<span class="mono" style="font-size:11px;">${findings.high}H · ${findings.medium}M · ${findings.low}L</span>`
+      : (s.tier ? `<span style="color:var(--text-muted);font-size:11px;">—</span>` : `<span style="color:var(--text-muted);font-size:11px;">Pending</span>`);
+    return `<tr class="supplier-row" onclick="openSupplier('${s.id}')">
+      <td>
+        <div class="supplier-name">${escapeHtml(s.name)}</div>
+        <div class="supplier-meta-line">${escapeHtml(s.service || '—')}${s.owner ? ' · ' + escapeHtml(s.owner) : ''}</div>
+      </td>
+      <td>${tierBadge}</td>
+      <td>${scorePill}</td>
+      <td>${findingsText}</td>
+      <td class="col-hide-mobile">${escapeHtml(s.contract || '—')}</td>
+      <td><button class="btn sm" onclick="event.stopPropagation();deleteSupplier('${s.id}')" title="Remove supplier">×</button></td>
+    </tr>`;
+  }).join('');
+  return `<table class="supplier-table">
+    <thead>
+      <tr>
+        <th>Supplier</th>
+        <th>Tier</th>
+        <th>Score</th>
+        <th>Findings</th>
+        <th class="col-hide-mobile">Contract</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function renderScorePill(score, supplier) {
+  if (!supplier.tier) return `<span class="score-pill unscored">awaiting tier</span>`;
+  if (score === null) return `<span class="score-pill unscored">not started</span>`;
+  const pct = Math.round(score * 100);
+  const cls = pct >= 80 ? 'good' : pct >= 60 ? 'warn' : 'bad';
+  return `<span class="score-pill ${cls}">${pct}%</span>`;
+}
+
+// ============================================================
+// ADD / DELETE SUPPLIER
+// ============================================================
+function openAddSupplier() {
+  document.getElementById('newSupplierName').value = '';
+  document.getElementById('newSupplierService').value = '';
+  document.getElementById('newSupplierOwner').value = '';
+  document.getElementById('newSupplierContract').value = '';
+  document.getElementById('addModal').classList.add('active');
+  setTimeout(() => document.getElementById('newSupplierName').focus(), 100);
+}
+function closeModal() { document.getElementById('addModal').classList.remove('active'); }
+
+function confirmAddSupplier() {
+  const name = document.getElementById('newSupplierName').value.trim();
+  if (!name) { showToast('Supplier name required'); return; }
+  const id = genId();
+  state.suppliers[id] = {
+    id,
+    name,
+    service: document.getElementById('newSupplierService').value.trim(),
+    owner: document.getElementById('newSupplierOwner').value.trim(),
+    contract: document.getElementById('newSupplierContract').value.trim(),
+    triage: {},
+    tier: null,
+    responses: {},
+    evidence: {},
+    created: new Date().toISOString(),
+    lastModified: new Date().toISOString()
+  };
+  closeModal();
+  state.currentSupplierId = id;
+  state.currentStage = "triage";
+  setView('assessment');
+  showToast(`Added: ${name}`);
+}
+
+function deleteSupplier(id) {
+  const s = state.suppliers[id];
+  if (!s) return;
+  if (!confirm(`Remove "${s.name}" and all associated data?`)) return;
+  delete state.suppliers[id];
+  render();
+  showToast('Supplier removed');
+}
+
+function openSupplier(id) {
+  state.currentSupplierId = id;
+  const s = state.suppliers[id];
+  if (!s) return;
+  // Decide which stage to show
+  if (!s.tier) state.currentStage = "triage";
+  else if (Object.keys(s.responses).length === 0) state.currentStage = "assess";
+  else state.currentStage = "results";
+  setView('assessment');
+}
+
+// ============================================================
+// ASSESSMENT VIEW (per-supplier)
+// ============================================================
+function renderAssessment() {
+  const s = state.suppliers[state.currentSupplierId];
+  if (!s) { setView('portfolio'); return; }
+
+  const stages = [
+    { id: "triage",  num: "01", label: "Triage", done: hasTriageComplete(s) },
+    { id: "tier",    num: "02", label: "Tier",   done: !!s.tier },
+    { id: "assess",  num: "03", label: "Assessment", done: hasAssessmentStarted(s) && hasTierProgress(s).pct === 100 },
+    { id: "results", num: "04", label: "Results", done: false }
+  ];
+
+  let stageHTML = '';
+  switch (state.currentStage) {
+    case 'triage':  stageHTML = renderTriage(s); break;
+    case 'tier':    stageHTML = renderTierResult(s); break;
+    case 'assess':  stageHTML = renderQuestionnaire(s); break;
+    case 'results': stageHTML = renderSupplierResults(s); break;
+    default:        stageHTML = renderTriage(s);
+  }
+
+  const html = `
+    <div class="assess-header">
+      <button class="assess-back" onclick="setView('portfolio')">← Portfolio</button>
+      <div class="assess-supplier-name">
+        ${escapeHtml(s.name)}
+        ${s.tier ? `<span class="tier-badge ${s.tier}">${escapeHtml(getTier(s.tier).short)}</span>` : ''}
+      </div>
+      <div class="assess-supplier-meta">
+        ${s.service ? `<span>${escapeHtml(s.service)}</span>` : ''}
+        ${s.owner ? `<span>· Owner: ${escapeHtml(s.owner)}</span>` : ''}
+        ${s.contract ? `<span>· ${escapeHtml(s.contract)}</span>` : ''}
+      </div>
+      <div class="stage-nav">
+        ${stages.map(stg => {
+          const enabled = stg.id === 'triage' || (stg.id === 'tier' && hasTriageComplete(s)) ||
+                          ((stg.id === 'assess' || stg.id === 'results') && s.tier);
+          const cls = (stg.id === state.currentStage ? 'active ' : '') + (stg.done ? 'done ' : '');
+          return `<button class="stage-btn ${cls}" onclick="${enabled ? `setStage('${stg.id}')` : ''}" ${!enabled ? 'disabled style="opacity:0.4;cursor:not-allowed"' : ''}>
+            <span class="stage-num">${stg.num}</span> ${escapeHtml(stg.label)}
+          </button>`;
+        }).join('')}
+      </div>
+    </div>
+    ${stageHTML}
+  `;
+  document.getElementById('mainArea').innerHTML = html;
+}
+
+function setStage(stageId) {
+  const s = state.suppliers[state.currentSupplierId];
+  if (!s) return;
+  // Auto-promote: if going to tier and triage complete, calculate tier
+  if (stageId === 'tier' && hasTriageComplete(s) && !s.tier) {
+    s.tier = calculateTier(s.triage).tierId;
+    s.lastModified = new Date().toISOString();
+  }
+  state.currentStage = stageId;
+  renderAssessment();
+}
+
+function hasTriageComplete(s) {
+  return TIERING_CRITERIA.every(c => s.triage[c.id]);
+}
+function hasAssessmentStarted(s) {
+  return Object.keys(s.responses).length > 0;
+}
+
+// ============================================================
+// TRIAGE
+// ============================================================
+function renderTriage(s) {
+  let html = `<div class="portfolio-card" style="margin-bottom:14px;">
+    <h2 style="font-size:18px;">Triage <span class="accent">questions</span></h2>
+    <p class="lead">Five questions to determine the appropriate assessment depth. Answers feed a weighted scoring model that maps to one of four tiers.</p>
+  </div>`;
+
+  TIERING_CRITERIA.forEach((c, i) => {
+    const selected = s.triage[c.id];
+    html += `<div class="triage-card">
+      <div class="triage-q-num">Q${i+1} of ${TIERING_CRITERIA.length}</div>
+      <div class="triage-q-title">${escapeHtml(c.title)}</div>
+      <div class="triage-q-prompt">${escapeHtml(c.prompt)}</div>
+      <div class="triage-options">
+        ${c.options.map(opt => `<button class="triage-option ${selected === opt.id ? 'selected' : ''}" onclick="setTriage('${c.id}', '${opt.id}')">
+          <div class="marker"></div>
+          <div>${escapeHtml(opt.label)}</div>
+        </button>`).join('')}
+      </div>
+    </div>`;
+  });
+
+  if (hasTriageComplete(s)) {
+    html += `<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">
+      <button class="btn primary lg" onclick="setStage('tier')">Calculate tier →</button>
+    </div>`;
+  }
+  return html;
+}
+
+function setTriage(criteriaId, optionId) {
+  const s = state.suppliers[state.currentSupplierId];
+  if (!s) return;
+  s.triage[criteriaId] = optionId;
+  // If tier was previously set and triage changes, recalculate
+  if (s.tier) {
+    s.tier = calculateTier(s.triage).tierId;
+  }
+  s.lastModified = new Date().toISOString();
+  renderAssessment();
+}
+
+// ============================================================
+// TIER RESULT
+// ============================================================
+function renderTierResult(s) {
+  if (!s.tier) {
+    return `<div class="empty-state"><h3>Triage incomplete</h3><p>Answer all 5 triage questions to calculate the tier.</p></div>`;
+  }
+  const tier = getTier(s.tier);
+  const calc = calculateTier(s.triage);
+
+  // Build rationale from triage answers
+  const rationale = TIERING_CRITERIA.map(c => {
+    const opt = c.options.find(o => o.id === s.triage[c.id]);
+    return opt ? `<strong>${escapeHtml(c.title)}:</strong> ${escapeHtml(opt.label)} (+${opt.weight})` : '';
+  }).filter(Boolean).join(' &nbsp;·&nbsp; ');
+
+  // What's included for this tier?
+  let questionCount = 0;
+  DOMAINS.forEach(d => d.questions.forEach(q => {
+    if (isQuestionInTier(q, s.tier)) questionCount++;
+  }));
+
+  return `<div class="tier-result ${s.tier}">
+    <h3>
+      <span class="tier-badge ${s.tier}">${escapeHtml(tier.short)}</span>
+      ${escapeHtml(tier.label)}
+      <span class="mono" style="font-size:11px;color:var(--text-dim);font-weight:400;letter-spacing:0.04em;">SCORE ${calc.score}/25</span>
+    </h3>
+    <p class="tier-rationale">${escapeHtml(tier.desc)}</p>
+    <div style="font-size:12px;color:var(--text-2);margin-bottom:12px;line-height:1.55;">${rationale}</div>
+    <div class="tier-sla">
+      <strong>Assurance expectation:</strong> ${escapeHtml(tier.sla)}<br>
+      <strong>Approach:</strong> ${escapeHtml(tier.minControls)}
+    </div>
+  </div>
+  <div class="portfolio-card">
+    <h2 style="font-size:16px;">What's next</h2>
+    <p class="lead">${questionCount} questions across 8 control domains will be presented in the assessment, scaled to ${tier.label}.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn primary lg" onclick="setStage('assess')">Begin assessment →</button>
+      <button class="btn" onclick="setStage('triage')">Revise triage</button>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// QUESTIONNAIRE
+// ============================================================
+function renderQuestionnaire(s) {
+  if (!s.tier) return renderTierResult(s);
+  let html = '';
+
+  DOMAINS.forEach(d => {
+    const tierQuestions = d.questions.filter(q => isQuestionInTier(q, s.tier));
+    if (tierQuestions.length === 0) return;
+
+    const answered = tierQuestions.filter(q => s.responses[q.id]?.response).length;
+
+    html += `<div class="domain-card">
+      <div class="domain-head">
+        <div class="domain-title"><span>${d.icon}</span>${escapeHtml(d.title)}</div>
+        <div class="domain-progress">${answered}/${tierQuestions.length}</div>
+      </div>
+      <div class="domain-desc">${escapeHtml(d.desc)}</div>
+      ${tierQuestions.map(q => renderQuestion(q, s)).join('')}
+    </div>`;
+  });
+
+  // Progress / continue button
+  const prog = hasTierProgress(s);
+  html += `<div class="portfolio-card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+    <div>
+      <div style="font-weight:600;font-size:14px;">${prog.answered} of ${prog.total} questions answered (${prog.pct}%)</div>
+      <div style="font-size:12px;color:var(--text-dim);margin-top:2px;">Unanswered questions are treated as gaps in the report.</div>
+    </div>
+    <button class="btn primary lg" onclick="setStage('results')">View results →</button>
+  </div>`;
+
+  return html;
+}
+
+function renderQuestion(q, s) {
+  const resp = s.responses[q.id] || {};
+  const evidence = s.evidence[q.id] || '';
+  const ncscLinks = (q.ncsc || []).map(p => `<span class="q-tag"><a href="https://www.ncsc.gov.uk/collection/supply-chain-security/principles-supply-chain-security" target="_blank" rel="noopener">NCSC P${p}</a></span>`).join('');
+  const nistTags = (q.nist || []).map(n => `<span class="q-tag">${escapeHtml(n)}</span>`).join('');
+  const isoTag = q.iso ? `<span class="q-tag">ISO ${escapeHtml(q.iso)}</span>` : '';
+  const cafTag = q.caf ? `<span class="q-tag">CAF ${escapeHtml(q.caf)}</span>` : '';
+
+  return `<div class="question">
+    <div class="question-head">
+      <div style="flex:1;">
+        <div class="question-text">${escapeHtml(q.text)}</div>
+        <div class="question-meta">
+          <span class="q-tag severity-${q.severity}">${escapeHtml(q.severity.toUpperCase())} severity</span>
+          ${ncscLinks}
+          ${nistTags}
+          ${isoTag}
+          ${cafTag}
+        </div>
+      </div>
+    </div>
+    <div class="response-row">
+      ${RESPONSE_OPTIONS.map(opt => `<button class="response-btn ${resp.response === opt.id ? 'selected r-' + opt.id : ''}" onclick="setResponse('${q.id}', '${opt.id}')">${escapeHtml(opt.label)}</button>`).join('')}
+    </div>
+    <textarea class="q-evidence" placeholder="${q.evidencePrompt ? escapeAttr(q.evidencePrompt) : 'Optional notes / evidence reference'}" oninput="setEvidence('${q.id}', this.value)">${escapeHtml(evidence)}</textarea>
+  </div>`;
+}
+
+function setResponse(qId, optionId) {
+  const s = state.suppliers[state.currentSupplierId];
+  if (!s) return;
+  if (!s.responses[qId]) s.responses[qId] = {};
+  s.responses[qId].response = optionId;
+  s.lastModified = new Date().toISOString();
+  // Re-render only the single question for performance? For now, full re-render of assess.
+  // (Lightweight — domains are reasonably small.)
+  renderAssessment();
+}
+
+function setEvidence(qId, text) {
+  const s = state.suppliers[state.currentSupplierId];
+  if (!s) return;
+  if (!s.evidence) s.evidence = {};
+  s.evidence[qId] = text;
+  s.lastModified = new Date().toISOString();
+  // Don't re-render; live storage only
+}
+
+// ============================================================
+// SCORING
+// ============================================================
+function hasTierProgress(s) {
+  if (!s.tier) return { total: 0, answered: 0, pct: 0 };
+  let total = 0, answered = 0;
+  DOMAINS.forEach(d => d.questions.forEach(q => {
+    if (isQuestionInTier(q, s.tier)) {
+      total++;
+      if (s.responses[q.id]?.response) answered++;
+    }
+  }));
+  return { total, answered, pct: total > 0 ? Math.round((answered / total) * 100) : 0 };
+}
+
+function computeSupplierScore(s) {
+  // Weighted by severity. N/A excluded. Unknown counts as 0.
+  if (!s.tier) return null;
+  let totalWeight = 0, achieved = 0;
+  DOMAINS.forEach(d => d.questions.forEach(q => {
+    if (!isQuestionInTier(q, s.tier)) return;
+    const r = s.responses[q.id]?.response;
+    if (!r) return;  // Unanswered ignored from score (but counted as gap)
+    if (r === 'na') return;
+    const opt = RESPONSE_OPTIONS.find(o => o.id === r);
+    const w = SEVERITY_WEIGHTS[q.severity] || 1;
+    totalWeight += w;
+    if (opt && opt.score !== null) achieved += w * opt.score;
+  }));
+  if (totalWeight === 0) return null;
+  return achieved / totalWeight;
+}
+
+function countFindings(s) {
+  // Findings = questions answered No or Partial. Unanswered also count for high-severity.
+  if (!s.tier) return { high: 0, medium: 0, low: 0 };
+  const c = { high: 0, medium: 0, low: 0 };
+  DOMAINS.forEach(d => d.questions.forEach(q => {
+    if (!isQuestionInTier(q, s.tier)) return;
+    const r = s.responses[q.id]?.response;
+    if (r === 'no' || r === 'partial' || r === 'unknown') c[q.severity]++;
+    else if (!r && q.severity === 'high') c.high++;  // Unanswered high-sev is a finding
+  }));
+  return c;
+}
+
+function collectFindings(s) {
+  const findings = [];
+  DOMAINS.forEach(d => d.questions.forEach(q => {
+    if (!isQuestionInTier(q, s.tier)) return;
+    const r = s.responses[q.id]?.response;
+    let status = null;
+    if (r === 'no') status = 'no';
+    else if (r === 'partial') status = 'partial';
+    else if (r === 'unknown') status = 'unknown';
+    else if (!r && q.severity === 'high') status = 'unanswered-high';
+    if (status) {
+      findings.push({
+        id: q.id, text: q.text, domain: d.title, domainId: d.id,
+        severity: q.severity, status,
+        evidence: s.evidence?.[q.id] || '',
+        ncsc: q.ncsc || [], nist: q.nist || []
+      });
+    }
+  }));
+  // Sort: high severity first, then medium, then low
+  findings.sort((a, b) => {
+    const sord = { high: 1, medium: 2, low: 3 };
+    return sord[a.severity] - sord[b.severity];
+  });
+  return findings;
+}
+
+// ============================================================
+// SUPPLIER RESULTS
+// ============================================================
+function renderSupplierResults(s) {
+  if (!s.tier) {
+    return `<div class="empty-state"><h3>Tier required</h3><p>Complete triage to enable assessment.</p></div>`;
+  }
+  const score = computeSupplierScore(s);
+  const prog = hasTierProgress(s);
+  const findings = collectFindings(s);
+  const findingsCount = countFindings(s);
+  const tier = getTier(s.tier);
+
+  // Summary stats
+  const summary = `<div class="summary-grid">
+    <div class="summary-stat ${s.tier}">
+      <div class="num">${escapeHtml(tier.short)}</div>
+      <div class="label">${escapeHtml(tier.label.replace(/^Tier \d+ — /, ''))}</div>
+    </div>
+    <div class="summary-stat">
+      <div class="num">${score !== null ? Math.round(score * 100) + '%' : '—'}</div>
+      <div class="label">Control coverage</div>
+    </div>
+    <div class="summary-stat">
+      <div class="num">${prog.answered}/${prog.total}</div>
+      <div class="label">Questions answered</div>
+    </div>
+    <div class="summary-stat findings-high">
+      <div class="num">${findingsCount.high}</div>
+      <div class="label">High-severity findings</div>
+    </div>
+    <div class="summary-stat findings-med">
+      <div class="num">${findingsCount.medium}</div>
+      <div class="label">Medium-severity findings</div>
+    </div>
+  </div>`;
+
+  // Domain heatmap
+  let heatmap = `<div class="domain-heatmap">`;
+  DOMAINS.forEach(d => {
+    const tQs = d.questions.filter(q => isQuestionInTier(q, s.tier));
+    if (tQs.length === 0) return;
+    heatmap += `<div class="heatmap-row">
+      <div class="heatmap-label"><span>${d.icon}</span>${escapeHtml(d.title)}</div>
+      <div class="heatmap-cells">
+        ${tQs.map(q => {
+          const r = s.responses[q.id]?.response;
+          const cls = r ? `r-${r}` : 'unanswered';
+          const label = r ? (RESPONSE_OPTIONS.find(o => o.id === r)?.label || r).slice(0,1) : '?';
+          const tipText = `${q.text.slice(0, 80)}${q.text.length > 80 ? '...' : ''} — ${r ? RESPONSE_OPTIONS.find(o => o.id === r)?.label : 'Unanswered'}`;
+          return `<div class="heatmap-cell ${cls}" title="${escapeAttr(tipText)}">${escapeHtml(label)}</div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  });
+  heatmap += `</div>`;
+
+  // Findings register
+  let findingsHTML = '';
+  if (findings.length === 0) {
+    findingsHTML = `<p style="color:var(--text-dim);">No findings — all in-scope controls answered Yes.</p>`;
+  } else {
+    findingsHTML = `<div class="findings-list">${findings.map(f => `<div class="finding-item severity-${f.severity}">
+      <div class="finding-head">
+        <div class="finding-title">${escapeHtml(f.text)}</div>
+        <div class="finding-tags">
+          <span class="q-tag severity-${f.severity}">${escapeHtml(f.severity.toUpperCase())}</span>
+          <span class="q-tag">${escapeHtml(f.status === 'no' ? 'NO' : f.status === 'partial' ? 'PARTIAL' : f.status === 'unknown' ? 'UNKNOWN' : 'UNANSWERED')}</span>
+        </div>
+      </div>
+      <div class="finding-domain">${escapeHtml(f.domain)} · NCSC P${f.ncsc.join(', P')}</div>
+      ${f.evidence ? `<div class="finding-evidence">${escapeHtml(f.evidence)}</div>` : ''}
+    </div>`).join('')}</div>`;
+  }
+
+  // Frameworks references
+  const frameworksHTML = renderFrameworksFooter();
+
+  return `<div class="results-view">
+    <h2>Assessment <span class="accent">summary</span></h2>
+    <p>${escapeHtml(s.name)} · ${escapeHtml(s.service || 'No service description')} · Last modified ${escapeHtml(s.lastModified.slice(0, 10))}</p>
+    ${summary}
+    <h3>Control coverage by domain</h3>
+    <p>Each cell represents one in-scope question for this tier.</p>
+    ${heatmap}
+    <h3>Findings register</h3>
+    <p>Items answered No, Partial, Unknown, or unanswered high-severity controls.</p>
+    ${findingsHTML}
+    ${frameworksHTML}
+  </div>`;
+}
+
+function renderFrameworksFooter() {
+  return `<h3>Frameworks referenced</h3>
+    <p>This assessment maps to public framework guidance.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;">
+      ${FRAMEWORKS.map(fw => `<div style="background:var(--bg-muted);border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
+        <div style="font-size:13px;font-weight:600;margin-bottom:2px;">${escapeHtml(fw.name)}</div>
+        <div style="font-size:10.5px;font-family:'JetBrains Mono',monospace;color:var(--text-dim);margin-bottom:6px;">${escapeHtml(fw.publisher)}</div>
+        <a href="${escapeAttr(fw.url)}" target="_blank" rel="noopener" style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--accent);">Official ↗</a>
+        ${fw.pdf ? `<a href="${escapeAttr(fw.pdf)}" target="_blank" rel="noopener" style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--accent);margin-left:8px;">PDF ↗</a>` : ''}
+      </div>`).join('')}
+    </div>`;
+}
+
+// ============================================================
+// PORTFOLIO RESULTS (aggregate view)
+// ============================================================
+function renderPortfolioResults() {
+  const suppliers = suppliersList();
+  if (suppliers.length === 0) {
+    setView('portfolio');
+    return;
+  }
+
+  // Tabs
+  let html = `<div class="view-tabs">
+    <button class="view-tab" onclick="setView('portfolio')">📋 Suppliers <span class="count">${suppliers.length}</span></button>
+    <button class="view-tab active" onclick="setView('portfolio-results')">📊 Portfolio Report</button>
+  </div>`;
+
+  // Tier breakdown
+  const byTier = { tier1: 0, tier2: 0, tier3: 0, tier4: 0, untriaged: 0 };
+  let totalFindings = { high: 0, medium: 0, low: 0 };
+  let assessedCount = 0;
+  suppliers.forEach(s => {
+    if (s.tier) byTier[s.tier]++;
+    else byTier.untriaged++;
+    if (Object.keys(s.responses).length > 0) assessedCount++;
+    const f = countFindings(s);
+    totalFindings.high += f.high;
+    totalFindings.medium += f.medium;
+    totalFindings.low += f.low;
+  });
+
+  html += `<div class="results-view">
+    <h2>Portfolio <span class="accent">overview</span></h2>
+    <p>${suppliers.length} supplier${suppliers.length === 1 ? '' : 's'} in the register · ${assessedCount} with assessments started</p>
+
+    <div class="summary-grid">
+      <div class="summary-stat tier1"><div class="num">${byTier.tier1}</div><div class="label">Tier 1 — Critical</div></div>
+      <div class="summary-stat tier2"><div class="num">${byTier.tier2}</div><div class="label">Tier 2 — Important</div></div>
+      <div class="summary-stat tier3"><div class="num">${byTier.tier3}</div><div class="label">Tier 3 — Standard</div></div>
+      <div class="summary-stat tier4"><div class="num">${byTier.tier4}</div><div class="label">Tier 4 — Light-touch</div></div>
+      ${byTier.untriaged > 0 ? `<div class="summary-stat"><div class="num">${byTier.untriaged}</div><div class="label">Untriaged</div></div>` : ''}
+    </div>
+
+    <h3>Open findings across portfolio</h3>
+    <div class="summary-grid">
+      <div class="summary-stat findings-high"><div class="num">${totalFindings.high}</div><div class="label">High</div></div>
+      <div class="summary-stat findings-med"><div class="num">${totalFindings.medium}</div><div class="label">Medium</div></div>
+      <div class="summary-stat"><div class="num">${totalFindings.low}</div><div class="label">Low</div></div>
+    </div>
+
+    <h3>Domain heatmap by supplier</h3>
+    <p>Average control posture per domain across each scored supplier. Shading is the dominant response (Yes/Partial/No/Unanswered).</p>
+    <div class="portfolio-heatmap-wrap">
+      ${renderPortfolioHeatmap(suppliers)}
+    </div>
+
+    <h3>Supplier list (sorted by tier and findings)</h3>
+    ${renderSupplierTable(suppliers.slice().sort((a, b) => {
+      const fa = countFindings(a).high * 5 + countFindings(a).medium * 2 + countFindings(a).low;
+      const fb = countFindings(b).high * 5 + countFindings(b).medium * 2 + countFindings(b).low;
+      return fb - fa;
+    }))}
+
+    ${renderFrameworksFooter()}
+  </div>`;
+
+  document.getElementById('mainArea').innerHTML = html;
+}
+
+function renderPortfolioHeatmap(suppliers) {
+  // Table: rows = suppliers, columns = domains
+  let html = `<table class="portfolio-heatmap"><thead><tr><th>Supplier</th><th>Tier</th>`;
+  DOMAINS.forEach(d => {
+    html += `<th class="dom-col" title="${escapeAttr(d.title)}">${escapeHtml(d.title.slice(0, 16))}</th>`;
+  });
+  html += `</tr></thead><tbody>`;
+
+  suppliers.forEach(s => {
+    if (!s.tier) {
+      html += `<tr><td>${escapeHtml(s.name)}</td><td><span class="tier-badge untriaged">—</span></td>${DOMAINS.map(() => `<td class="dom-cell unscored">—</td>`).join('')}</tr>`;
+      return;
+    }
+    const tier = getTier(s.tier);
+    html += `<tr><td>${escapeHtml(s.name)}</td><td><span class="tier-badge ${s.tier}">${escapeHtml(tier.short)}</span></td>`;
+    DOMAINS.forEach(d => {
+      const tQs = d.questions.filter(q => isQuestionInTier(q, s.tier));
+      if (tQs.length === 0) { html += `<td class="dom-cell unscored">—</td>`; return; }
+      // Tally responses
+      let yes = 0, no = 0, partial = 0, unanswered = 0;
+      tQs.forEach(q => {
+        const r = s.responses[q.id]?.response;
+        if (r === 'yes') yes++;
+        else if (r === 'no') no++;
+        else if (r === 'partial' || r === 'unknown') partial++;
+        else if (r !== 'na') unanswered++;
+      });
+      const total = yes + no + partial + unanswered;
+      if (total === 0 || unanswered === total) { html += `<td class="dom-cell unscored">—</td>`; return; }
+      // Dominant
+      let cls = 'r-yes';
+      if (no > yes && no > partial) cls = 'r-no';
+      else if (partial > yes) cls = 'r-partial';
+      else if (yes < total / 2) cls = 'r-partial';
+      const score = total > 0 ? Math.round((yes / (total)) * 100) : 0;
+      html += `<td class="dom-cell ${cls}" title="${yes}Y/${partial}P/${no}N/${unanswered}?">${score}%</td>`;
+    });
+    html += `</tr>`;
+  });
+  html += `</tbody></table>`;
+  return html;
+}
+
+// ============================================================
+// EXPORTS
+// ============================================================
+function exportJSON() {
+  const payload = {
+    schema: "dh-supplier-risk",
+    schemaVersion: 1,
+    framework: "NCSC Supply Chain Security 12 Principles + NIST SP 800-161r1 + ISO/IEC 27036",
+    exported: new Date().toISOString(),
+    suppliers: state.suppliers
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `supplier-portfolio-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast('Portfolio exported');
+}
+
+function loadJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const payload = JSON.parse(e.target.result);
+      if (payload.schema !== 'dh-supplier-risk') {
+        showToast('File schema not recognised');
+        return;
+      }
+      state.suppliers = payload.suppliers || {};
+      // Ensure backward compatibility
+      Object.values(state.suppliers).forEach(s => {
+        if (!s.evidence) s.evidence = {};
+        if (!s.responses) s.responses = {};
+        if (!s.triage) s.triage = {};
+      });
+      setView('portfolio');
+      showToast(`Loaded · ${Object.keys(state.suppliers).length} suppliers`);
+    } catch (err) {
+      showToast('Could not parse file');
+      console.error(err);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function resetAll() {
+  if (Object.keys(state.suppliers).length > 0 &&
+      !confirm('Reset everything — all suppliers and assessments will be removed?')) return;
+  state.suppliers = {};
+  state.currentSupplierId = null;
+  state.currentStage = 'triage';
+  setView('portfolio');
+  showToast('Reset complete');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  render();
+  // Modal escape close
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+    // Also: on add-supplier modal, Enter confirms
+    if (e.key === 'Enter' && document.getElementById('addModal').classList.contains('active')) {
+      const target = document.activeElement;
+      if (target && target.tagName === 'INPUT') confirmAddSupplier();
+    }
+  });
+});
+
+</script>
+</body>
+</html>
