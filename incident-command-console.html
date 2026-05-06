@@ -1,0 +1,2200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Incident Command Console · Dan Howett</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fafaf7;
+  --bg-elev: #ffffff;
+  --bg-muted: #f4f4ef;
+  --bg-subtle: #efefe8;
+  --bg-band: #e6ebf2;
+  --border: #e8e6df;
+  --border-strong: #d6d3c9;
+  --text: #1a1a1a;
+  --text-2: #3a3a36;
+  --text-dim: #6b6b66;
+  --text-muted: #9a9a92;
+  --accent: #1d4ed8;
+  --accent-hover: #1e40af;
+  --accent-soft: #eff4ff;
+  --accent-text: #1e40af;
+  --p1: #dc2626; --p1-soft: #fee2e2;
+  --p2: #ea580c; --p2-soft: #ffedd5;
+  --p3: #f59e0b; --p3-soft: #fef3c7;
+  --p4: #16a34a; --p4-soft: #dcfce7;
+  --orange: #ea580c;
+  --orange-soft: #ffedd5;
+  --purple: #7c3aed;
+  --purple-soft: #ede9fe;
+  --green: #16a34a;
+  --green-soft: #dcfce7;
+  --red: #dc2626;
+  --red-soft: #fee2e2;
+  --shadow-sm: 0 1px 2px rgba(15, 15, 15, 0.04);
+  --shadow: 0 1px 3px rgba(15, 15, 15, 0.06), 0 1px 2px rgba(15, 15, 15, 0.04);
+  --shadow-lg: 0 8px 24px rgba(15, 15, 15, 0.06), 0 2px 4px rgba(15, 15, 15, 0.04);
+}
+[data-theme="dark"] {
+  --bg: #0e0f10;
+  --bg-elev: #18191b;
+  --bg-muted: #1d1e20;
+  --bg-subtle: #232528;
+  --bg-band: #14161a;
+  --border: #2a2c2f;
+  --border-strong: #3a3d40;
+  --text: #f0f0ee;
+  --text-2: #d6d6d2;
+  --text-dim: #9a9a92;
+  --text-muted: #5e5e58;
+  --accent: #60a5fa;
+  --accent-hover: #93c5fd;
+  --accent-soft: rgba(96, 165, 250, 0.12);
+  --accent-text: #93c5fd;
+  --p1: #f87171; --p1-soft: rgba(248, 113, 113, 0.16);
+  --p2: #fb923c; --p2-soft: rgba(251, 146, 60, 0.16);
+  --p3: #fbbf24; --p3-soft: rgba(251, 191, 36, 0.16);
+  --p4: #4ade80; --p4-soft: rgba(74, 222, 128, 0.16);
+  --orange: #fb923c;
+  --orange-soft: rgba(251, 146, 60, 0.16);
+  --purple: #a78bfa;
+  --purple-soft: rgba(167, 139, 250, 0.16);
+  --green: #4ade80;
+  --green-soft: rgba(74, 222, 128, 0.16);
+  --red: #f87171;
+  --red-soft: rgba(248, 113, 113, 0.16);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg-band); color: var(--text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01", "cv11";
+  letter-spacing: -0.005em;
+}
+.mono { font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace; }
+.serif { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-weight: 400; }
+a { color: inherit; text-decoration: none; }
+
+/* ===== TOP HEADER (brand + controls) ===== */
+header.site {
+  border-bottom: 1px solid var(--border);
+  background: rgba(250, 250, 247, 0.92);
+  backdrop-filter: saturate(180%) blur(10px);
+  -webkit-backdrop-filter: saturate(180%) blur(10px);
+  position: sticky; top: 0; z-index: 60;
+}
+[data-theme="dark"] header.site { background: rgba(14, 15, 16, 0.92); }
+.site-inner {
+  max-width: 1600px; margin: 0 auto; padding: 12px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.brand-link {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; font-weight: 600; color: var(--text);
+}
+.brand-mark {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 12px;
+}
+.brand-name .slash { color: var(--text-muted); margin: 0 5px; font-weight: 400; }
+.brand-name .second { color: var(--text-dim); font-weight: 500; }
+.site-meta { display: flex; align-items: center; gap: 8px; }
+.btn {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  padding: 6px 11px; border-radius: 6px;
+  font-size: 11.5px; font-family: inherit; font-weight: 500;
+  cursor: pointer; transition: all 0.15s;
+  display: inline-flex; align-items: center; gap: 5px;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--bg-muted); border-color: var(--border-strong); }
+.btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn.danger { color: var(--red); border-color: var(--border); }
+.btn.danger:hover { background: var(--red-soft); border-color: var(--red); }
+.btn.sm { padding: 4px 8px; font-size: 10.5px; }
+.btn.xs { padding: 2px 7px; font-size: 10px; border-radius: 4px; }
+.theme-toggle {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-dim); width: 30px; height: 30px;
+  border-radius: 7px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.theme-toggle:hover { background: var(--bg-muted); color: var(--text); }
+.theme-toggle svg { width: 14px; height: 14px; }
+.sun-icon { display: none; }
+.moon-icon { display: block; }
+[data-theme="dark"] .sun-icon { display: block; }
+[data-theme="dark"] .moon-icon { display: none; }
+
+/* Auto-save toggle */
+.autosave-toggle {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim);
+  background: var(--bg-elev); border: 1px solid var(--border);
+  padding: 5px 9px; border-radius: 6px; cursor: pointer;
+  transition: all 0.15s;
+  text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500;
+}
+.autosave-toggle:hover { background: var(--bg-muted); }
+.autosave-toggle .dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--text-muted);
+}
+.autosave-toggle.on { color: var(--green); border-color: var(--green); }
+.autosave-toggle.on .dot { background: var(--green); animation: pulse 2.5s ease-in-out infinite; }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ===== INCIDENT COMMAND BAR (sticky just below header) ===== */
+.command-bar {
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 53px; z-index: 50;
+  box-shadow: var(--shadow-sm);
+}
+.command-inner {
+  max-width: 1600px; margin: 0 auto; padding: 14px 24px;
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  align-items: center; gap: 18px;
+}
+.cmd-incident-name {
+  display: flex; flex-direction: column; gap: 4px; min-width: 0;
+}
+.cmd-incident-label {
+  font-size: 10px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); letter-spacing: 0.06em;
+  text-transform: uppercase; font-weight: 600;
+}
+.cmd-incident-title {
+  font-size: 18px; font-weight: 700; letter-spacing: -0.01em;
+  line-height: 1.1;
+  display: flex; align-items: center; gap: 10px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cmd-incident-title .placeholder {
+  color: var(--text-muted); font-style: italic;
+  font-family: 'Instrument Serif', Georgia, serif; font-weight: 400;
+}
+.cmd-incident-meta {
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim);
+}
+
+.cmd-block {
+  display: flex; flex-direction: column; gap: 2px;
+  min-width: 100px;
+}
+.cmd-block-label {
+  font-size: 9px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 0.06em; font-weight: 600;
+}
+.cmd-clock {
+  font-size: 22px; font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: -0.02em; line-height: 1;
+  color: var(--text);
+}
+.cmd-clock.idle { color: var(--text-muted); }
+
+.cmd-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 999px;
+  font-size: 11px; font-weight: 600;
+  border: 1px solid;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.cmd-pill.severity.p1 { background: var(--p1-soft); color: var(--p1); border-color: var(--p1); }
+.cmd-pill.severity.p2 { background: var(--p2-soft); color: var(--p2); border-color: var(--p2); }
+.cmd-pill.severity.p3 { background: var(--p3-soft); color: var(--p3); border-color: var(--p3); }
+.cmd-pill.severity.p4 { background: var(--p4-soft); color: var(--p4); border-color: var(--p4); }
+.cmd-pill.severity.unset { background: var(--bg-muted); color: var(--text-dim); border-color: var(--border); }
+.cmd-pill.phase {
+  background: var(--accent-soft); color: var(--accent-text);
+  border-color: var(--accent);
+}
+.cmd-pill.phase.unset { background: var(--bg-muted); color: var(--text-dim); border-color: var(--border); }
+
+/* ===== MAIN LAYOUT ===== */
+main {
+  background: var(--bg-band);
+  min-height: calc(100vh - 53px);
+  padding: 24px 0 100px;
+}
+.layout {
+  max-width: 1600px; margin: 0 auto;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 1fr; }
+  aside.section-nav { display: none; }
+}
+
+/* SECTION NAV (left) */
+aside.section-nav {
+  position: sticky; top: 130px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: var(--shadow-sm);
+  max-height: calc(100vh - 150px);
+  overflow-y: auto;
+}
+.nav-title {
+  font-size: 9.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 0.06em; font-weight: 600;
+  padding: 4px 8px 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 9px; border-radius: 6px;
+  font-size: 12.5px; color: var(--text-2);
+  cursor: pointer; transition: all 0.15s;
+  background: transparent; border: none;
+  width: 100%; text-align: left; font-family: inherit;
+  margin-bottom: 1px;
+}
+.nav-item:hover { background: var(--bg-muted); }
+.nav-item .nav-icon { font-size: 13px; flex-shrink: 0; opacity: 0.85; }
+.nav-item .nav-name { flex: 1; }
+.nav-item .nav-count {
+  font-size: 10px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  background: var(--bg-muted);
+  padding: 1px 6px; border-radius: 4px;
+}
+
+/* MAIN STACK (right) */
+.main-stack { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+
+.section {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 22px;
+  box-shadow: var(--shadow-sm);
+  scroll-margin-top: 140px;
+}
+.section h2 {
+  font-size: 16px; font-weight: 700; letter-spacing: -0.01em;
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 6px;
+}
+.section h2 .icon { opacity: 0.85; }
+.section h2 .count {
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  font-weight: 500; color: var(--text-muted);
+  background: var(--bg-muted); padding: 2px 7px; border-radius: 4px;
+  margin-left: 4px;
+}
+.section .lead {
+  color: var(--text-dim); font-size: 12.5px;
+  margin-bottom: 14px; max-width: 720px;
+}
+.section-actions {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;
+}
+
+/* Empty state inside section */
+.empty {
+  text-align: center; padding: 24px 16px;
+  color: var(--text-muted); font-size: 13px;
+  background: var(--bg-muted); border: 1px dashed var(--border-strong);
+  border-radius: 8px;
+}
+
+/* ===== INCIDENT SUMMARY SECTION ===== */
+.summary-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+@media (max-width: 720px) { .summary-grid { grid-template-columns: 1fr; } }
+.summary-field {
+  background: var(--bg-muted); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 12px;
+}
+.summary-field label {
+  display: block; font-size: 9.5px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); letter-spacing: 0.06em;
+  text-transform: uppercase; margin-bottom: 4px; font-weight: 600;
+}
+.summary-field input,
+.summary-field select,
+.summary-field textarea {
+  width: 100%; background: transparent;
+  border: none; color: var(--text);
+  font-family: inherit; font-size: 13px;
+  padding: 0; outline: none;
+}
+.summary-field textarea { min-height: 32px; resize: vertical; }
+.summary-field.full { grid-column: 1 / -1; }
+
+/* ===== PHASE TRACKER ===== */
+.phase-tracker {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+  background: var(--bg-muted); padding: 4px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+.phase-step {
+  background: transparent; border: 1px solid transparent;
+  padding: 10px 12px; border-radius: 6px;
+  font-family: inherit; font-size: 12px; font-weight: 500;
+  color: var(--text-2); cursor: pointer;
+  text-align: left; transition: all 0.15s;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.phase-step:hover { background: var(--bg-elev); }
+.phase-step.current {
+  background: var(--accent-soft); border-color: var(--accent);
+  color: var(--accent-text); font-weight: 600;
+}
+.phase-step.passed {
+  background: var(--green-soft); border-color: var(--green);
+  color: var(--green); opacity: 0.85;
+}
+.phase-step .step-num {
+  font-size: 9.5px; font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  opacity: 0.7;
+}
+.phase-step .step-name { line-height: 1.2; }
+.phase-desc {
+  font-size: 12px; color: var(--text-dim);
+  padding: 8px 4px 0;
+}
+
+/* ===== ROLES SECTION ===== */
+.roles-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 8px;
+}
+.role-card {
+  background: var(--bg-muted); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 12px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.role-card.assigned { border-left: 3px solid var(--accent); }
+.role-card.critical:not(.assigned) { border-left: 3px solid var(--p2); }
+.role-head {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.role-name {
+  font-size: 12.5px; font-weight: 600;
+  display: flex; align-items: center; gap: 6px;
+}
+.role-name .role-tag {
+  font-size: 9px; font-family: 'JetBrains Mono', monospace;
+  background: var(--bg-elev); border: 1px solid var(--border);
+  padding: 1px 5px; border-radius: 3px;
+  color: var(--text-dim);
+}
+.role-card.assigned .role-name .role-tag {
+  background: var(--accent-soft); color: var(--accent-text); border-color: var(--accent);
+}
+.role-desc {
+  font-size: 11px; color: var(--text-dim);
+  line-height: 1.4;
+}
+.role-input {
+  background: var(--bg-elev); border: 1px solid var(--border);
+  border-radius: 5px; padding: 5px 8px;
+  font-family: inherit; font-size: 12px; color: var(--text);
+  width: 100%;
+}
+.role-input:focus { outline: none; border-color: var(--accent); }
+.role-contact {
+  font-size: 11px; color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+  word-break: break-all;
+}
+
+/* ===== ITEM ROWS (decisions, actions, notifications, evidence, comms, notes) ===== */
+.item-list {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.item-row {
+  background: var(--bg-muted); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 12px;
+  display: flex; gap: 10px; align-items: flex-start;
+  font-size: 13px; line-height: 1.45;
+}
+.item-row.severity-high { border-left: 3px solid var(--p1); }
+.item-row.severity-med { border-left: 3px solid var(--p3); }
+.item-ts {
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); white-space: nowrap;
+  padding-top: 1px; min-width: 56px;
+}
+.item-body { flex: 1; min-width: 0; }
+.item-text { color: var(--text); margin-bottom: 3px; }
+.item-meta {
+  font-size: 11px; color: var(--text-dim);
+  display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+}
+.item-meta .pill {
+  background: var(--bg-elev); border: 1px solid var(--border);
+  padding: 1px 6px; border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  letter-spacing: 0.02em;
+}
+.item-meta .pill.status-open { background: var(--p1-soft); color: var(--p1); border-color: var(--p1); }
+.item-meta .pill.status-in-progress { background: var(--p3-soft); color: var(--p3); border-color: var(--p3); }
+.item-meta .pill.status-blocked { background: var(--purple-soft); color: var(--purple); border-color: var(--purple); }
+.item-meta .pill.status-done { background: var(--green-soft); color: var(--green); border-color: var(--green); }
+.item-meta .pill.status-cancelled { background: var(--bg-subtle); color: var(--text-muted); }
+.item-meta .pill.cat-internal { background: var(--accent-soft); color: var(--accent-text); border-color: var(--accent); }
+.item-meta .pill.cat-regulator { background: var(--p1-soft); color: var(--p1); border-color: var(--p1); }
+.item-meta .pill.cat-external { background: var(--p2-soft); color: var(--p2); border-color: var(--p2); }
+.item-actions {
+  display: flex; gap: 4px; align-items: center;
+}
+.icon-btn {
+  background: transparent; border: 1px solid transparent;
+  color: var(--text-muted); padding: 3px 6px; border-radius: 4px;
+  cursor: pointer; font-family: inherit; font-size: 11px;
+  transition: all 0.15s;
+}
+.icon-btn:hover { background: var(--bg-elev); color: var(--text); border-color: var(--border); }
+.icon-btn.danger:hover { color: var(--red); border-color: var(--red); }
+
+/* ===== ADD ROW (inline forms at top of each section) ===== */
+.add-row {
+  background: var(--bg-elev); border: 1.5px dashed var(--border-strong);
+  border-radius: 8px; padding: 10px;
+  display: grid; gap: 6px;
+  margin-bottom: 10px;
+}
+.add-row.compact {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
+.add-row.expanded {
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+.add-row input,
+.add-row select,
+.add-row textarea {
+  background: var(--bg-muted); border: 1px solid var(--border);
+  color: var(--text); padding: 7px 10px; border-radius: 6px;
+  font-family: inherit; font-size: 12.5px;
+  width: 100%;
+}
+.add-row input:focus,
+.add-row select:focus,
+.add-row textarea:focus {
+  outline: none; border-color: var(--accent); background: var(--bg-elev);
+}
+.add-row textarea { resize: vertical; min-height: 36px; }
+
+/* ===== TIMELINE SECTION ===== */
+.timeline {
+  display: flex; flex-direction: column; gap: 0;
+  position: relative;
+}
+.timeline-item {
+  display: grid; grid-template-columns: 80px 26px 1fr;
+  gap: 12px; padding: 8px 0;
+  align-items: flex-start;
+  position: relative;
+}
+.timeline-item .tl-time {
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); padding-top: 3px; text-align: right;
+  white-space: nowrap;
+}
+.timeline-item .tl-icon {
+  width: 26px; height: 26px;
+  background: var(--bg-elev); border: 1.5px solid var(--border);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; flex-shrink: 0;
+  z-index: 2; position: relative;
+}
+.timeline-item .tl-body {
+  background: var(--bg-muted); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 12px;
+  font-size: 12.5px; line-height: 1.5;
+}
+.timeline-item .tl-type {
+  font-size: 9.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); letter-spacing: 0.04em;
+  text-transform: uppercase; font-weight: 600;
+  margin-bottom: 2px;
+}
+.timeline-item .tl-by {
+  font-size: 10.5px; color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  margin-top: 3px;
+}
+/* connecting line */
+.timeline-item:not(:last-child)::before {
+  content: ""; position: absolute;
+  left: 105px; top: 30px; bottom: -8px;
+  width: 1px; background: var(--border);
+  z-index: 1;
+}
+
+/* ===== FRAMEWORKS REFERENCE FOOTER ===== */
+.frameworks-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 8px;
+}
+.fw-card {
+  background: var(--bg-muted); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 12px;
+  display: flex; flex-direction: column;
+}
+.fw-card h4 { font-size: 12.5px; font-weight: 600; line-height: 1.3; margin-bottom: 2px; display: flex; gap: 6px; align-items: flex-start; }
+.fw-card .fw-badge {
+  font-size: 9px; font-family: 'JetBrains Mono', monospace;
+  background: var(--accent); color: #fff;
+  padding: 1px 6px; border-radius: 4px;
+  letter-spacing: 0.06em; font-weight: 700;
+  flex-shrink: 0; margin-top: 1px;
+}
+.fw-card .fw-badge.role-PRIMARY { background: var(--accent); }
+.fw-card .fw-badge.role-UK { background: var(--purple); }
+.fw-card .fw-badge.role-INTL { background: var(--green); }
+.fw-card .fw-badge.role-PRACT { background: var(--orange); }
+.fw-card .fw-meta {
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); margin-bottom: 6px;
+}
+.fw-card .fw-desc {
+  font-size: 11.5px; color: var(--text-dim);
+  line-height: 1.4; flex: 1; margin-bottom: 8px;
+}
+.fw-card .fw-links {
+  display: flex; gap: 8px; border-top: 1px solid var(--border); padding-top: 8px;
+}
+.fw-card .fw-links a {
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--accent); font-weight: 500;
+}
+.fw-card .fw-links a:hover { text-decoration: underline; }
+
+/* ===== FLOATING QUICK LOG ===== */
+.quick-log-fab {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--accent); color: #fff;
+  border: none; border-radius: 999px;
+  padding: 14px 22px; font-family: inherit;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; z-index: 100;
+  box-shadow: 0 8px 24px rgba(29, 78, 216, 0.35), 0 2px 4px rgba(0,0,0,0.1);
+  display: inline-flex; align-items: center; gap: 8px;
+  transition: all 0.15s;
+}
+.quick-log-fab:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 32px rgba(29, 78, 216, 0.4), 0 4px 8px rgba(0,0,0,0.1);
+}
+.quick-log-fab .icon { font-size: 16px; }
+.quick-log-fab kbd {
+  background: rgba(255,255,255,0.2); border-radius: 3px;
+  padding: 1px 5px; font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  margin-left: 4px;
+}
+
+/* Quick Log modal */
+.quick-log-modal {
+  display: none;
+  position: fixed; bottom: 80px; right: 24px;
+  width: 420px; max-width: calc(100vw - 48px);
+  background: var(--bg-elev); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.18), 0 4px 12px rgba(0,0,0,0.08);
+  z-index: 101;
+}
+.quick-log-modal.active { display: block; }
+.quick-log-modal h3 {
+  font-size: 13px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 0.06em; font-weight: 600; margin-bottom: 10px;
+}
+.quick-log-modal textarea {
+  width: 100%; background: var(--bg-muted);
+  border: 1px solid var(--border); color: var(--text);
+  border-radius: 8px; padding: 10px;
+  font-family: inherit; font-size: 13px; line-height: 1.5;
+  resize: vertical; min-height: 80px;
+}
+.quick-log-modal textarea:focus { outline: none; border-color: var(--accent); background: var(--bg-elev); }
+.quick-log-actions {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 8px; margin-top: 10px;
+}
+.quick-log-type {
+  display: flex; gap: 4px; flex-wrap: wrap;
+}
+.qlt-btn {
+  background: var(--bg-muted); border: 1px solid var(--border);
+  color: var(--text-dim); padding: 3px 8px; border-radius: 4px;
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  cursor: pointer; transition: all 0.15s;
+  font-weight: 500;
+}
+.qlt-btn:hover { background: var(--bg-subtle); }
+.qlt-btn.selected {
+  background: var(--accent-soft); color: var(--accent-text);
+  border-color: var(--accent); font-weight: 600;
+}
+.qlt-hint {
+  font-size: 10px; color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  margin-top: 8px;
+}
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 90px; right: 24px;
+  background: var(--text); color: var(--bg);
+  padding: 9px 14px; border-radius: 7px;
+  font-size: 12px; font-weight: 500;
+  z-index: 200; opacity: 0; transform: translateY(8px);
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+  box-shadow: var(--shadow-lg);
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* DISCLAIMER */
+.disclaimer-strip {
+  background: var(--orange-soft); border: 1px solid var(--orange);
+  border-radius: 8px; padding: 8px 12px;
+  font-size: 11.5px; color: var(--text-2);
+  display: flex; gap: 8px; align-items: flex-start;
+  margin-bottom: 16px;
+}
+.disclaimer-strip .icon {
+  width: 14px; height: 14px; background: var(--orange);
+  color: #fff; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 9px; margin-top: 1px;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-muted); }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* PRINT */
+@media print {
+  header.site, .command-bar, aside.section-nav, .quick-log-fab, .quick-log-modal,
+  .add-row, .icon-btn, .btn, .theme-toggle { display: none !important; }
+  body, main { background: white !important; color: black !important; }
+  .layout { grid-template-columns: 1fr !important; }
+  .section, .item-row, .role-card, .summary-field, .phase-step, .fw-card {
+    background: white !important; color: black !important;
+    border: 1px solid #ccc !important; box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+  .timeline-item .tl-body { border: 1px solid #ccc !important; background: white !important; }
+}
+
+/* MOBILE */
+@media (max-width: 720px) {
+  .site-inner, .command-inner, .layout { padding-left: 16px !important; padding-right: 16px !important; }
+  .command-inner { grid-template-columns: 1fr; gap: 8px; }
+  .cmd-incident-title { font-size: 16px; white-space: normal; }
+  .cmd-clock { font-size: 18px; }
+  .brand-name .second, .brand-name .slash { display: none; }
+  .site-meta .btn:not(.danger) { display: none; }
+  .autosave-toggle { display: none; }
+  .phase-tracker { grid-template-columns: 1fr 1fr; }
+  .section { padding: 14px; }
+  .quick-log-fab { padding: 12px 16px; font-size: 12px; }
+  .quick-log-modal { right: 16px; left: 16px; width: auto; }
+}
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="site-inner">
+    <a href="/useful/" class="brand-link">
+      <div class="brand-mark">DH</div>
+      <div class="brand-name">Dan Howett <span class="slash">/</span><span class="second">Incident Command Console</span></div>
+    </a>
+    <div class="site-meta">
+      <button class="autosave-toggle" id="autosaveToggle" onclick="toggleAutosave()" title="Toggle browser auto-save">
+        <span class="dot"></span>
+        <span id="autosaveLabel">AUTO-SAVE OFF</span>
+      </button>
+      <button class="btn ghost sm" onclick="exportJSON()">SAVE JSON</button>
+      <button class="btn ghost sm" onclick="document.getElementById('loadFile').click()">LOAD</button>
+      <input type="file" id="loadFile" accept=".json" style="display:none" onchange="loadJSON(event)">
+      <button class="btn ghost sm" onclick="exportMarkdown()">EXPORT MD</button>
+      <button class="btn ghost sm" onclick="window.print()">PDF</button>
+      <button class="btn danger sm" onclick="resetAll()">RESET</button>
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+        <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- COMMAND BAR (incident name, clock, phase, severity) -->
+<div class="command-bar">
+  <div class="command-inner">
+    <div class="cmd-incident-name">
+      <div class="cmd-incident-label">Incident</div>
+      <div class="cmd-incident-title" id="cmdIncidentTitle">
+        <span class="placeholder">Untitled incident — set name below</span>
+      </div>
+      <div class="cmd-incident-meta" id="cmdIncidentMeta">Not declared yet</div>
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-block-label">Elapsed</div>
+      <div class="cmd-clock idle" id="cmdClock">— : — : —</div>
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-block-label">Severity</div>
+      <button class="cmd-pill severity unset" id="cmdSeverity" onclick="cycleSeverity()" title="Click to cycle severity">— SET</button>
+    </div>
+    <div class="cmd-block">
+      <div class="cmd-block-label">Phase</div>
+      <button class="cmd-pill phase unset" id="cmdPhase" onclick="document.getElementById('section-phase').scrollIntoView({behavior:'smooth',block:'start'});">— SET</button>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div class="layout">
+
+    <!-- LEFT SECTION NAV -->
+    <aside class="section-nav" id="sectionNav">
+      <div class="nav-title">Sections</div>
+      <button class="nav-item" onclick="scrollToSection('summary')"><span class="nav-icon">📋</span><span class="nav-name">Summary</span></button>
+      <button class="nav-item" onclick="scrollToSection('phase')"><span class="nav-icon">🔄</span><span class="nav-name">Phase</span></button>
+      <button class="nav-item" onclick="scrollToSection('roles')"><span class="nav-icon">👥</span><span class="nav-name">Roles</span><span class="nav-count" id="navRolesCount">0</span></button>
+      <button class="nav-item" onclick="scrollToSection('decisions')"><span class="nav-icon">🎯</span><span class="nav-name">Decisions</span><span class="nav-count" id="navDecisionsCount">0</span></button>
+      <button class="nav-item" onclick="scrollToSection('actions')"><span class="nav-icon">✓</span><span class="nav-name">Actions</span><span class="nav-count" id="navActionsCount">0</span></button>
+      <button class="nav-item" onclick="scrollToSection('notifications')"><span class="nav-icon">📣</span><span class="nav-name">Notifications</span><span class="nav-count" id="navNotificationsCount">0</span></button>
+      <button class="nav-item" onclick="scrollToSection('comms')"><span class="nav-icon">💬</span><span class="nav-name">External Comms</span><span class="nav-count" id="navCommsCount">0</span></button>
+      <button class="nav-item" onclick="scrollToSection('evidence')"><span class="nav-icon">🔒</span><span class="nav-name">Evidence</span><span class="nav-count" id="navEvidenceCount">0</span></button>
+      <button class="nav-item" onclick="scrollToSection('timeline')"><span class="nav-icon">⏱</span><span class="nav-name">Timeline</span><span class="nav-count" id="navTimelineCount">0</span></button>
+      <button class="nav-item" onclick="scrollToSection('frameworks')"><span class="nav-icon">📚</span><span class="nav-name">Frameworks</span></button>
+    </aside>
+
+    <!-- MAIN STACK -->
+    <div class="main-stack" id="mainStack">
+
+      <div class="disclaimer-strip">
+        <div class="icon">!</div>
+        <div><strong>Proof of concept only.</strong> Not a substitute for your IR plan, legal counsel, or formal IR platform. Use to capture and structure information during incidents — verify regulatory deadlines and reporting routes against authoritative sources.</div>
+      </div>
+
+      <!-- SUMMARY -->
+      <section class="section" id="section-summary">
+        <h2><span class="icon">📋</span>Incident summary</h2>
+        <p class="lead">Core facts about the incident. Set name and declare time to start the elapsed clock.</p>
+        <div class="summary-grid">
+          <div class="summary-field">
+            <label>Incident name *</label>
+            <input type="text" id="incName" placeholder="e.g. Ransomware on Finance file server" oninput="updateSummary()">
+          </div>
+          <div class="summary-field">
+            <label>Type</label>
+            <select id="incType" onchange="updateSummary()">
+              <option value="">— Choose type —</option>
+            </select>
+          </div>
+          <div class="summary-field">
+            <label>Declared at</label>
+            <input type="datetime-local" id="incDeclared" onchange="updateSummary()">
+          </div>
+          <div class="summary-field">
+            <label>Reported by</label>
+            <input type="text" id="incReporter" placeholder="e.g. SOC analyst / customer / monitoring" oninput="updateSummary()">
+          </div>
+          <div class="summary-field full">
+            <label>Brief description</label>
+            <textarea id="incDesc" placeholder="2-3 sentence summary of what's happening — useful for the timeline export." oninput="updateSummary()"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- PHASE TRACKER -->
+      <section class="section" id="section-phase">
+        <h2><span class="icon">🔄</span>Phase tracker</h2>
+        <p class="lead">Click to set current phase. Phase changes are auto-logged to the timeline.</p>
+        <div class="phase-tracker" id="phaseTracker"></div>
+        <div class="phase-desc" id="phaseDesc">No phase set.</div>
+      </section>
+
+      <!-- ROLES -->
+      <section class="section" id="section-roles">
+        <h2><span class="icon">👥</span>Roles & people <span class="count" id="rolesCount">0/11</span></h2>
+        <p class="lead">Assign people to incident roles. Type a name + Enter to assign. Click a role to clear.</p>
+        <div class="roles-grid" id="rolesGrid"></div>
+      </section>
+
+      <!-- DECISIONS -->
+      <section class="section" id="section-decisions">
+        <h2><span class="icon">🎯</span>Decision log <span class="count" id="decisionsCount">0</span></h2>
+        <p class="lead">Record key decisions: what was decided, by whom, why. Critical for post-incident review and any later legal/regulatory enquiry.</p>
+        <div class="add-row" style="grid-template-columns: 1fr 130px 130px auto;">
+          <input type="text" id="addDecisionText" placeholder="Decision (e.g. 'Isolate finance file server from network')" onkeydown="if(event.key==='Enter') addDecision()">
+          <input type="text" id="addDecisionBy" placeholder="Decided by">
+          <select id="addDecisionTag">
+            <option value="">— Outcome —</option>
+          </select>
+          <button class="btn primary sm" onclick="addDecision()">+ Add</button>
+        </div>
+        <div class="item-list" id="decisionsList"></div>
+      </section>
+
+      <!-- ACTIONS -->
+      <section class="section" id="section-actions">
+        <h2><span class="icon">✓</span>Action register <span class="count" id="actionsCount">0</span></h2>
+        <p class="lead">Open actions, owners, due dates. The "what's outstanding right now" view.</p>
+        <div class="add-row" style="grid-template-columns: 1fr 140px 130px 110px auto;">
+          <input type="text" id="addActionText" placeholder="Action (e.g. 'Reset all admin credentials')" onkeydown="if(event.key==='Enter') addAction()">
+          <input type="text" id="addActionOwner" placeholder="Owner">
+          <input type="datetime-local" id="addActionDue">
+          <select id="addActionStatus">
+            <option value="open">Open</option>
+            <option value="in-progress">In progress</option>
+            <option value="blocked">Blocked</option>
+            <option value="done">Done</option>
+          </select>
+          <button class="btn primary sm" onclick="addAction()">+ Add</button>
+        </div>
+        <div class="item-list" id="actionsList"></div>
+      </section>
+
+      <!-- NOTIFICATIONS -->
+      <section class="section" id="section-notifications">
+        <h2><span class="icon">📣</span>Notification log <span class="count" id="notificationsCount">0</span></h2>
+        <p class="lead">Who's been told, when, and how. Single most important record for legal and regulatory protection.</p>
+        <div class="add-row" style="grid-template-columns: 1fr 1fr 130px auto;">
+          <select id="addNotifyTarget">
+            <option value="">— Notification target —</option>
+          </select>
+          <input type="text" id="addNotifyBy" placeholder="Notified by">
+          <input type="text" id="addNotifyMethod" placeholder="Method (email, call, portal)">
+          <button class="btn primary sm" onclick="addNotification()">+ Log</button>
+        </div>
+        <div class="item-list" id="notificationsList"></div>
+      </section>
+
+      <!-- EXTERNAL COMMS -->
+      <section class="section" id="section-comms">
+        <h2><span class="icon">💬</span>External comms tracker <span class="count" id="commsCount">0</span></h2>
+        <p class="lead">Statements, customer notifications, press. Track draft → review → approved → sent.</p>
+        <div class="add-row" style="grid-template-columns: 1fr 130px 130px auto;">
+          <input type="text" id="addCommsTitle" placeholder="Comms title (e.g. 'Customer notification — Phase 1')" onkeydown="if(event.key==='Enter') addComms()">
+          <select id="addCommsChannel">
+            <option value="">— Channel —</option>
+          </select>
+          <select id="addCommsStatus">
+            <option value="draft">Draft</option>
+            <option value="review">In review</option>
+            <option value="approved">Approved</option>
+            <option value="sent">Sent</option>
+          </select>
+          <button class="btn primary sm" onclick="addComms()">+ Add</button>
+        </div>
+        <div class="item-list" id="commsList"></div>
+      </section>
+
+      <!-- EVIDENCE -->
+      <section class="section" id="section-evidence">
+        <h2><span class="icon">🔒</span>Evidence register <span class="count" id="evidenceCount">0</span></h2>
+        <p class="lead">Artifacts captured: file/host/log description, hash, who collected, where stored.</p>
+        <div class="add-row" style="grid-template-columns: 1fr 130px 200px auto;">
+          <input type="text" id="addEvidenceItem" placeholder="Item (e.g. 'C:\\Users\\admin\\Downloads\\malware.exe — finance-srv-01')" onkeydown="if(event.key==='Enter') addEvidence()">
+          <input type="text" id="addEvidenceBy" placeholder="Collected by">
+          <input type="text" id="addEvidenceHash" placeholder="SHA-256 hash (optional)">
+          <button class="btn primary sm" onclick="addEvidence()">+ Add</button>
+        </div>
+        <div class="item-list" id="evidenceList"></div>
+      </section>
+
+      <!-- TIMELINE -->
+      <section class="section" id="section-timeline">
+        <h2><span class="icon">⏱</span>Timeline <span class="count" id="timelineCount">0</span></h2>
+        <p class="lead">All events from every section, sorted oldest to newest. Auto-built — nothing to add here directly (use Quick Log or section forms).</p>
+        <div class="timeline" id="timeline"></div>
+      </section>
+
+      <!-- FRAMEWORKS -->
+      <section class="section" id="section-frameworks">
+        <h2><span class="icon">📚</span>Frameworks referenced</h2>
+        <p class="lead">This console aligns with public IR frameworks. Click through for the canonical guidance.</p>
+        <div class="frameworks-grid" id="frameworksGrid"></div>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<!-- FLOATING QUICK LOG -->
+<button class="quick-log-fab" onclick="openQuickLog()" title="Quick log (Q)">
+  <span class="icon">⚡</span>
+  <span>Quick log</span>
+  <kbd>Q</kbd>
+</button>
+
+<div class="quick-log-modal" id="quickLogModal">
+  <h3>⚡ Quick log entry</h3>
+  <textarea id="quickLogText" placeholder="What happened? (Enter to save, Shift+Enter for newline)"></textarea>
+  <div class="quick-log-actions">
+    <div class="quick-log-type" id="quickLogTypes"></div>
+    <div style="display:flex;gap:6px;">
+      <button class="btn sm" onclick="closeQuickLog()">Cancel</button>
+      <button class="btn primary sm" onclick="saveQuickLog()">Log</button>
+    </div>
+  </div>
+  <div class="qlt-hint">Timestamp set to now. Will appear in the timeline.</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// INCIDENT COMMAND CONSOLE — DATA MODEL
+// Last reviewed: April 2026
+//
+// Primary framework: NIST SP 800-61r2 (Computer Security Incident Handling Guide)
+// Cross-references:  NCSC Incident Management
+//                    ISO/IEC 27035 (Information security incident management)
+//                    SANS PICERL (Preparation, Identification, Containment,
+//                                 Eradication, Recovery, Lessons Learned)
+// ============================================================
+
+// ---------- PHASES (NIST 800-61r2) ----------
+const PHASES = [
+  {
+    id: "preparation",
+    label: "Preparation",
+    short: "PREP",
+    desc: "Pre-incident: tooling, plans, training, contacts in place. (You shouldn't typically be here once an incident is declared.)",
+    colour: "#6b6b66",
+    nist: "§3.1",
+    sans: "Preparation",
+    iso: "Plan & Prepare"
+  },
+  {
+    id: "detection",
+    label: "Detection & Analysis",
+    short: "D&A",
+    desc: "Confirm the incident is real, scope it, identify affected systems and data, classify severity. Most of the early-incident effort happens here.",
+    colour: "#f59e0b",
+    nist: "§3.2",
+    sans: "Identification",
+    iso: "Detect & Report → Assess & Decide"
+  },
+  {
+    id: "cer",
+    label: "Containment, Eradication & Recovery",
+    short: "CER",
+    desc: "Stop the bleeding (contain), remove the threat (eradicate), restore systems and operations (recover). Often iterative — partial containment, more analysis, more containment.",
+    colour: "#dc2626",
+    nist: "§3.3",
+    sans: "Containment / Eradication / Recovery",
+    iso: "Respond"
+  },
+  {
+    id: "post",
+    label: "Post-Incident Activity",
+    short: "PIR",
+    desc: "Lessons learned, evidence retention, formal closure, control improvements. Often skipped under pressure — capture it here while it's fresh.",
+    colour: "#16a34a",
+    nist: "§3.4",
+    sans: "Lessons Learned",
+    iso: "Learn Lessons"
+  }
+];
+
+// ---------- SEVERITY ----------
+const SEVERITIES = [
+  { id: "p1", label: "P1 — Critical", short: "P1", colour: "#dc2626", soft: "#fee2e2",
+    desc: "Major business impact, customer-facing outage, regulated data exposure, ransomware enterprise-wide." },
+  { id: "p2", label: "P2 — High", short: "P2", colour: "#ea580c", soft: "#ffedd5",
+    desc: "Significant impact, contained but actively spreading, sensitive data at risk, single business-critical system." },
+  { id: "p3", label: "P3 — Medium", short: "P3", colour: "#f59e0b", soft: "#fef3c7",
+    desc: "Limited impact, contained to single system or small user group, no confirmed data loss." },
+  { id: "p4", label: "P4 — Low", short: "P4", colour: "#16a34a", soft: "#dcfce7",
+    desc: "Minor anomaly, near-miss, single user, IOC matched without confirmed compromise." }
+];
+
+// ---------- ROLES (typical IR team) ----------
+// Recommended roles based on NIST 800-61 / NCSC IR guidance and practitioner experience
+const ROLES = [
+  { id: "ic",       label: "Incident Commander",      short: "IC",   desc: "Owns the incident end-to-end. Single point of accountability for decisions and direction.", critical: true },
+  { id: "deputy",   label: "Deputy IC / Scribe",      short: "DEP",  desc: "Backs up the IC, often doubles as scribe to keep this console up to date.", critical: true },
+  { id: "tech",     label: "Technical Lead",          short: "TECH", desc: "Coordinates technical response — analysts, engineers, vendors.", critical: true },
+  { id: "comms",    label: "Communications Lead",     short: "COMM", desc: "All external/internal messaging. The single approved voice." },
+  { id: "exec",     label: "Executive Sponsor",       short: "EXEC", desc: "Senior leadership channel. Approves business-impacting decisions, manages board." },
+  { id: "legal",    label: "Legal Counsel",           short: "LEG",  desc: "Reviews regulatory notification, evidence preservation, contractual obligations." },
+  { id: "comp",     label: "Compliance / DPO",        short: "COMP", desc: "Data protection and regulatory reporting (ICO, sector regulators)." },
+  { id: "hr",       label: "HR Liaison",              short: "HR",   desc: "Activates if insider threat suspected or staff impact." },
+  { id: "fin",      label: "Finance Liaison",         short: "FIN",  desc: "Approves emergency spend, vendor activations, ransom considerations." },
+  { id: "ext-ir",   label: "External IR Firm",        short: "EXT",  desc: "Retained IR partner / breach coach." },
+  { id: "insurer",  label: "Cyber Insurer / Broker",  short: "INS",  desc: "Notification triggers cover; insurer often appoints panel firms." }
+];
+
+// ---------- INCIDENT TYPES ----------
+const INCIDENT_TYPES = [
+  "Ransomware",
+  "Business Email Compromise (BEC)",
+  "Data exfiltration / Extortion",
+  "Insider threat",
+  "Account compromise / Credential theft",
+  "Phishing campaign",
+  "Malware / RAT",
+  "Web application compromise",
+  "DDoS",
+  "Supply chain compromise",
+  "MSP / Third-party compromise",
+  "Cloud account takeover",
+  "OT / ICS incident",
+  "Physical / Lost device",
+  "Other / Unknown"
+];
+
+// ---------- NOTIFICATION TARGETS ----------
+// Common notification destinations with regulatory / contractual context
+const NOTIFICATION_TARGETS = [
+  { id: "internal-exec", label: "Internal: Executive team",   category: "Internal", default: true },
+  { id: "internal-board", label: "Internal: Board",           category: "Internal" },
+  { id: "internal-legal", label: "Internal: Legal",           category: "Internal", default: true },
+  { id: "internal-comms", label: "Internal: Comms / PR",      category: "Internal" },
+  { id: "internal-staff", label: "Internal: All staff",       category: "Internal" },
+  { id: "ico",           label: "ICO (UK GDPR — 72hr)",       category: "Regulator", note: "Personal data breach with risk to rights and freedoms — Art. 33 UK GDPR." },
+  { id: "ncsc",          label: "NCSC (voluntary)",           category: "Regulator", note: "Voluntary reporting via report.ncsc.gov.uk — recommended for significant cyber incidents." },
+  { id: "nis2-regulator",label: "NIS2 / CAF regulator (24hr early warning)", category: "Regulator", note: "Essential / important entities — sector regulator (Ofcom, Ofgem, etc.) within 24hr." },
+  { id: "fca",           label: "FCA (financial services)",    category: "Regulator", note: "Material operational incidents / cyber events — FCA Principle 11 / SUP 15." },
+  { id: "pra",           label: "PRA (banking)",               category: "Regulator", note: "Material cyber incidents under PRA SS2/21 operational resilience." },
+  { id: "ofcom",         label: "Ofcom (telecoms)",            category: "Regulator", note: "Significant security compromise — Telecommunications Security Act." },
+  { id: "ofgem",         label: "Ofgem (energy)",              category: "Regulator" },
+  { id: "ofwat",         label: "Ofwat (water)",               category: "Regulator" },
+  { id: "law-enforce",   label: "Law enforcement (Action Fraud / NCA)", category: "Regulator", note: "For ransomware: Action Fraud + NCA (do not pay without legal/sanctions check)." },
+  { id: "customers",     label: "Customers (affected parties)",category: "External" },
+  { id: "partners",      label: "Partners / Suppliers",        category: "External" },
+  { id: "insurer",       label: "Cyber Insurer",               category: "External", default: true, note: "Cyber policies typically require notification within 24-72hr of awareness, often before incurring costs." },
+  { id: "ext-ir",        label: "External IR firm",            category: "External" },
+  { id: "ext-counsel",   label: "External legal counsel",      category: "External" },
+  { id: "media",         label: "Media (statement)",           category: "External" }
+];
+
+// ---------- ACTION STATUS ----------
+const ACTION_STATUS = [
+  { id: "open",       label: "Open",       colour: "#dc2626", soft: "#fee2e2" },
+  { id: "in-progress",label: "In progress",colour: "#f59e0b", soft: "#fef3c7" },
+  { id: "blocked",    label: "Blocked",    colour: "#7c3aed", soft: "#ede9fe" },
+  { id: "done",       label: "Done",       colour: "#16a34a", soft: "#dcfce7" },
+  { id: "cancelled",  label: "Cancelled",  colour: "#6b6b66", soft: "#efefe8" }
+];
+
+// ---------- DECISION OUTCOME TAGS ----------
+const DECISION_TAGS = [
+  "Approved", "Rejected", "Deferred", "Conditional", "Escalated"
+];
+
+// ---------- COMMS STATUS ----------
+const COMMS_STATUS = [
+  { id: "draft",    label: "Draft",     colour: "#6b6b66" },
+  { id: "review",   label: "In review", colour: "#f59e0b" },
+  { id: "approved", label: "Approved",  colour: "#1d4ed8" },
+  { id: "sent",     label: "Sent",      colour: "#16a34a" }
+];
+
+// ---------- COMMS CHANNELS ----------
+const COMMS_CHANNELS = [
+  "Email", "Statement", "Press release", "Social media",
+  "Customer notification", "Status page", "SMS / Text", "Phone call", "In-person"
+];
+
+// ---------- EVENT TYPES (the timeline primitive) ----------
+const EVENT_TYPES = {
+  phase:        { label: "Phase change",   icon: "🔄", colour: "#1d4ed8" },
+  decision:     { label: "Decision",       icon: "🎯", colour: "#7c3aed" },
+  action:       { label: "Action",         icon: "✓",  colour: "#dc2626" },
+  notification: { label: "Notification",   icon: "📣", colour: "#16a34a" },
+  evidence:     { label: "Evidence",       icon: "🔒", colour: "#ea580c" },
+  comms:        { label: "Comms",          icon: "💬", colour: "#0ea5e9" },
+  role:         { label: "Role assignment",icon: "👤", colour: "#7c3aed" },
+  note:         { label: "Note",           icon: "📝", colour: "#6b6b66" },
+  severity:     { label: "Severity change",icon: "⚠️", colour: "#dc2626" }
+};
+
+// ---------- FRAMEWORKS REFERENCE ----------
+const FRAMEWORKS = [
+  {
+    id: "nist-800-61r2",
+    name: "NIST SP 800-61r2 — Computer Security Incident Handling Guide",
+    publisher: "NIST, USA",
+    role: "Primary phase model",
+    desc: "Defines the four-phase model used by this console (Preparation, Detection & Analysis, Containment-Eradication-Recovery, Post-Incident Activity). The de facto reference for incident handling worldwide.",
+    url: "https://csrc.nist.gov/pubs/sp/800/61/r2/final",
+    pdf: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-61r2.pdf",
+    badge: "PRIMARY"
+  },
+  {
+    id: "ncsc-incident",
+    name: "NCSC Incident Management Guidance",
+    publisher: "NCSC, UK",
+    role: "UK practitioner reference",
+    desc: "NCSC's incident management collection covering preparation, response, recovery and lessons learned — UK-specific reporting routes (NCSC, ICO, sector regulators).",
+    url: "https://www.ncsc.gov.uk/collection/incident-management",
+    badge: "UK REFERENCE"
+  },
+  {
+    id: "iso-27035",
+    name: "ISO/IEC 27035 — Information security incident management",
+    publisher: "ISO/IEC",
+    role: "International standard",
+    desc: "Three-part standard covering principles, guidelines for response, and ICT incident response. Phase model maps to NIST with slightly different naming (Plan & Prepare, Detect & Report, Assess & Decide, Respond, Learn Lessons).",
+    url: "https://www.iso.org/standard/78973.html",
+    badge: "INTL STANDARD"
+  },
+  {
+    id: "sans-picerl",
+    name: "SANS PICERL — Incident Handler's Handbook",
+    publisher: "SANS Institute",
+    role: "Practitioner phase model",
+    desc: "The six-phase practitioner model (Preparation → Identification → Containment → Eradication → Recovery → Lessons Learned) widely used in IR training. Maps to NIST's four phases with finer granularity in the active-response phases.",
+    url: "https://www.sans.org/white-papers/33901/",
+    badge: "PRACTITIONER"
+  }
+];
+
+
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  incident: {
+    name: "",
+    type: "",
+    declaredAt: "",
+    reporter: "",
+    description: "",
+    severity: null,
+    phase: null
+  },
+  roles: {},          // { roleId: { name, contact } }
+  decisions: [],      // [{ id, ts, text, by, tag }]
+  actions: [],        // [{ id, ts, text, owner, due, status }]
+  notifications: [],  // [{ id, ts, targetId, by, method }]
+  comms: [],          // [{ id, ts, title, channel, status }]
+  evidence: [],       // [{ id, ts, item, by, hash }]
+  events: []          // unified timeline events: [{ id, ts, type, content, by, meta }]
+};
+
+const AUTOSAVE_KEY = "dh-iccc-autosave-v1";
+const AUTOSAVE_TOGGLE_KEY = "dh-iccc-autosave-on";
+let autosaveOn = false;
+let clockInterval = null;
+
+// ============================================================
+// THEME
+// ============================================================
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('dh-theme', t); } catch(e) {}
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  setTheme(cur === 'light' ? 'dark' : 'light');
+}
+(function initTheme(){
+  let saved = null;
+  try { saved = localStorage.getItem('dh-theme'); } catch(e){}
+  if (saved) setTheme(saved);
+  else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) setTheme('dark');
+  else setTheme('light');
+})();
+
+// ============================================================
+// HELPERS
+// ============================================================
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function escapeAttr(s) {
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/'/g,"&#39;").replace(/"/g,"&quot;");
+}
+function genId() { return Math.random().toString(36).slice(2, 10); }
+function nowIso() { return new Date().toISOString(); }
+function fmtTime(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+}
+function fmtDateTime(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' });
+}
+
+// ============================================================
+// AUTOSAVE
+// ============================================================
+function loadAutosaveState() {
+  try {
+    const tog = localStorage.getItem(AUTOSAVE_TOGGLE_KEY);
+    autosaveOn = tog === '1';
+    if (autosaveOn) {
+      const stored = localStorage.getItem(AUTOSAVE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && parsed.schema === 'dh-iccc') {
+          Object.assign(state, parsed.state || {});
+        }
+      }
+    }
+  } catch(e) { console.warn('Autosave load failed', e); }
+  updateAutosaveUI();
+}
+function saveAutosave() {
+  if (!autosaveOn) return;
+  try {
+    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({
+      schema: 'dh-iccc', schemaVersion: 1, state, savedAt: nowIso()
+    }));
+  } catch(e) { console.warn('Autosave write failed', e); }
+}
+function toggleAutosave() {
+  autosaveOn = !autosaveOn;
+  try {
+    localStorage.setItem(AUTOSAVE_TOGGLE_KEY, autosaveOn ? '1' : '0');
+    if (autosaveOn) saveAutosave();
+    else localStorage.removeItem(AUTOSAVE_KEY);
+  } catch(e) {}
+  updateAutosaveUI();
+  showToast(autosaveOn ? 'Auto-save ON — state persists in this browser' : 'Auto-save OFF — local data cleared');
+}
+function updateAutosaveUI() {
+  const btn = document.getElementById('autosaveToggle');
+  const lbl = document.getElementById('autosaveLabel');
+  if (autosaveOn) {
+    btn.classList.add('on');
+    lbl.textContent = 'AUTO-SAVE ON';
+  } else {
+    btn.classList.remove('on');
+    lbl.textContent = 'AUTO-SAVE OFF';
+  }
+}
+
+// ============================================================
+// EVENT (unified timeline primitive)
+// ============================================================
+function addEvent(type, content, by, meta) {
+  const ev = { id: genId(), ts: nowIso(), type, content, by: by || '', meta: meta || {} };
+  state.events.push(ev);
+  return ev;
+}
+
+// ============================================================
+// SUMMARY
+// ============================================================
+function updateSummary() {
+  state.incident.name        = document.getElementById('incName').value;
+  state.incident.type        = document.getElementById('incType').value;
+  state.incident.declaredAt  = document.getElementById('incDeclared').value;
+  state.incident.reporter    = document.getElementById('incReporter').value;
+  state.incident.description = document.getElementById('incDesc').value;
+  renderCommandBar();
+  saveAutosave();
+}
+
+function setupSummaryDropdowns() {
+  const typeSel = document.getElementById('incType');
+  INCIDENT_TYPES.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t; opt.textContent = t;
+    typeSel.appendChild(opt);
+  });
+
+  // Decision tag dropdown
+  const tagSel = document.getElementById('addDecisionTag');
+  DECISION_TAGS.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t; opt.textContent = t;
+    tagSel.appendChild(opt);
+  });
+
+  // Notification target dropdown
+  const notSel = document.getElementById('addNotifyTarget');
+  let lastCat = null;
+  NOTIFICATION_TARGETS.forEach(t => {
+    if (t.category !== lastCat) {
+      const sep = document.createElement('option');
+      sep.disabled = true; sep.textContent = `─── ${t.category} ───`;
+      notSel.appendChild(sep);
+      lastCat = t.category;
+    }
+    const opt = document.createElement('option');
+    opt.value = t.id; opt.textContent = t.label;
+    notSel.appendChild(opt);
+  });
+
+  // Comms channel dropdown
+  const chSel = document.getElementById('addCommsChannel');
+  COMMS_CHANNELS.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    chSel.appendChild(opt);
+  });
+
+  // Quick log type buttons
+  const qltc = document.getElementById('quickLogTypes');
+  ['note','decision','action','phase'].forEach((t, i) => {
+    const b = document.createElement('button');
+    b.className = 'qlt-btn' + (t === 'note' ? ' selected' : '');
+    b.dataset.type = t;
+    b.textContent = t.toUpperCase();
+    b.onclick = () => {
+      qltc.querySelectorAll('.qlt-btn').forEach(x => x.classList.remove('selected'));
+      b.classList.add('selected');
+    };
+    qltc.appendChild(b);
+  });
+}
+
+function loadSummaryFields() {
+  document.getElementById('incName').value     = state.incident.name || '';
+  document.getElementById('incType').value     = state.incident.type || '';
+  document.getElementById('incDeclared').value = state.incident.declaredAt || '';
+  document.getElementById('incReporter').value = state.incident.reporter || '';
+  document.getElementById('incDesc').value     = state.incident.description || '';
+}
+
+// ============================================================
+// COMMAND BAR (top sticky)
+// ============================================================
+function renderCommandBar() {
+  const titleEl = document.getElementById('cmdIncidentTitle');
+  if (state.incident.name) {
+    titleEl.innerHTML = escapeHtml(state.incident.name);
+  } else {
+    titleEl.innerHTML = `<span class="placeholder">Untitled incident — set name below</span>`;
+  }
+  const meta = document.getElementById('cmdIncidentMeta');
+  const parts = [];
+  if (state.incident.type) parts.push(state.incident.type);
+  if (state.incident.declaredAt) parts.push(`declared ${fmtDateTime(state.incident.declaredAt)}`);
+  if (state.incident.reporter) parts.push(`by ${state.incident.reporter}`);
+  meta.textContent = parts.length > 0 ? parts.join(' · ') : 'Not declared yet';
+
+  // Severity pill
+  const sevBtn = document.getElementById('cmdSeverity');
+  if (state.incident.severity) {
+    const sev = SEVERITIES.find(s => s.id === state.incident.severity);
+    sevBtn.className = `cmd-pill severity ${state.incident.severity}`;
+    sevBtn.textContent = sev ? sev.short + ' ' + sev.label.split(' — ')[1] : state.incident.severity;
+  } else {
+    sevBtn.className = 'cmd-pill severity unset';
+    sevBtn.textContent = '— SET';
+  }
+
+  // Phase pill
+  const phBtn = document.getElementById('cmdPhase');
+  if (state.incident.phase) {
+    const ph = PHASES.find(p => p.id === state.incident.phase);
+    phBtn.className = 'cmd-pill phase';
+    phBtn.textContent = ph ? ph.short + ' ' + ph.label : state.incident.phase;
+  } else {
+    phBtn.className = 'cmd-pill phase unset';
+    phBtn.textContent = '— SET';
+  }
+}
+
+function tickClock() {
+  const el = document.getElementById('cmdClock');
+  if (!state.incident.declaredAt) {
+    el.classList.add('idle');
+    el.textContent = '— : — : —';
+    return;
+  }
+  const declared = new Date(state.incident.declaredAt).getTime();
+  const now = Date.now();
+  if (isNaN(declared) || declared > now) {
+    el.classList.add('idle');
+    el.textContent = '— : — : —';
+    return;
+  }
+  el.classList.remove('idle');
+  let diff = Math.floor((now - declared) / 1000);
+  const h = Math.floor(diff / 3600); diff -= h * 3600;
+  const m = Math.floor(diff / 60); diff -= m * 60;
+  const s = diff;
+  el.textContent = `${String(h).padStart(2,'0')} : ${String(m).padStart(2,'0')} : ${String(s).padStart(2,'0')}`;
+}
+
+function cycleSeverity() {
+  const order = [null, 'p1', 'p2', 'p3', 'p4'];
+  const cur = state.incident.severity;
+  const idx = order.indexOf(cur);
+  const next = order[(idx + 1) % order.length];
+  state.incident.severity = next;
+  if (next) {
+    const sev = SEVERITIES.find(s => s.id === next);
+    addEvent('severity', `Severity set: ${sev.label}`, '', { severity: next });
+  } else {
+    addEvent('severity', `Severity cleared`, '', {});
+  }
+  renderCommandBar();
+  renderTimeline();
+  updateNavCounts();
+  saveAutosave();
+}
+
+// ============================================================
+// PHASE TRACKER
+// ============================================================
+function renderPhaseTracker() {
+  const container = document.getElementById('phaseTracker');
+  container.innerHTML = PHASES.map((p, i) => {
+    const curIdx = state.incident.phase ? PHASES.findIndex(x => x.id === state.incident.phase) : -1;
+    let cls = 'phase-step';
+    if (curIdx === i) cls += ' current';
+    else if (curIdx > i) cls += ' passed';
+    return `<button class="${cls}" onclick="setPhase('${p.id}')">
+      <span class="step-num">Phase ${i+1} · ${escapeHtml(p.short)}</span>
+      <span class="step-name">${escapeHtml(p.label)}</span>
+    </button>`;
+  }).join('');
+
+  const desc = document.getElementById('phaseDesc');
+  if (state.incident.phase) {
+    const ph = PHASES.find(p => p.id === state.incident.phase);
+    desc.innerHTML = `<strong>${escapeHtml(ph.label)}.</strong> ${escapeHtml(ph.desc)} <span class="mono" style="color:var(--text-muted);font-size:11px;">NIST ${escapeHtml(ph.nist)} · ISO 27035: ${escapeHtml(ph.iso)} · SANS: ${escapeHtml(ph.sans)}</span>`;
+  } else {
+    desc.textContent = 'No phase set. Click a phase above to set the current incident phase.';
+  }
+}
+
+function setPhase(phaseId) {
+  if (state.incident.phase === phaseId) return;
+  const prev = state.incident.phase;
+  state.incident.phase = phaseId;
+  const ph = PHASES.find(p => p.id === phaseId);
+  const prevPh = prev ? PHASES.find(p => p.id === prev) : null;
+  const content = prevPh ? `Phase advanced: ${prevPh.label} → ${ph.label}` : `Phase set: ${ph.label}`;
+  addEvent('phase', content, '', { from: prev, to: phaseId });
+  renderPhaseTracker();
+  renderCommandBar();
+  renderTimeline();
+  updateNavCounts();
+  saveAutosave();
+}
+
+// ============================================================
+// ROLES
+// ============================================================
+function renderRoles() {
+  const container = document.getElementById('rolesGrid');
+  container.innerHTML = ROLES.map(r => {
+    const assigned = state.roles[r.id];
+    const cls = 'role-card' + (assigned ? ' assigned' : (r.critical ? ' critical' : ''));
+    return `<div class="${cls}">
+      <div class="role-head">
+        <div class="role-name">
+          ${escapeHtml(r.label)}
+          <span class="role-tag">${escapeHtml(r.short)}</span>
+        </div>
+        ${assigned ? `<button class="icon-btn danger" onclick="clearRole('${r.id}')" title="Clear">×</button>` : ''}
+      </div>
+      <div class="role-desc">${escapeHtml(r.desc)}</div>
+      ${assigned ? `
+        <input class="role-input" type="text" value="${escapeAttr(assigned.name)}" oninput="updateRoleName('${r.id}', this.value)" placeholder="Name">
+        <input class="role-input" type="text" value="${escapeAttr(assigned.contact || '')}" oninput="updateRoleContact('${r.id}', this.value)" placeholder="Contact (phone, email, slack)">
+      ` : `
+        <input class="role-input" type="text" placeholder="Type name + Enter to assign" onkeydown="if(event.key==='Enter') assignRole('${r.id}', this.value)">
+      `}
+    </div>`;
+  }).join('');
+
+  const count = Object.keys(state.roles).length;
+  document.getElementById('rolesCount').textContent = `${count}/${ROLES.length}`;
+}
+
+function assignRole(roleId, name) {
+  name = (name || '').trim();
+  if (!name) return;
+  state.roles[roleId] = { name, contact: '' };
+  const r = ROLES.find(x => x.id === roleId);
+  addEvent('role', `${r.label} assigned to ${name}`, '', { roleId, name });
+  renderRoles();
+  renderTimeline();
+  updateNavCounts();
+  saveAutosave();
+}
+function updateRoleName(roleId, name) {
+  if (!state.roles[roleId]) return;
+  state.roles[roleId].name = name;
+  saveAutosave();
+}
+function updateRoleContact(roleId, contact) {
+  if (!state.roles[roleId]) return;
+  state.roles[roleId].contact = contact;
+  saveAutosave();
+}
+function clearRole(roleId) {
+  const r = ROLES.find(x => x.id === roleId);
+  const old = state.roles[roleId];
+  delete state.roles[roleId];
+  if (old) addEvent('role', `${r.label} cleared (was: ${old.name})`, '', { roleId });
+  renderRoles();
+  renderTimeline();
+  updateNavCounts();
+  saveAutosave();
+}
+
+// ============================================================
+// DECISIONS
+// ============================================================
+function addDecision() {
+  const text = document.getElementById('addDecisionText').value.trim();
+  if (!text) { showToast('Decision text required'); return; }
+  const by = document.getElementById('addDecisionBy').value.trim();
+  const tag = document.getElementById('addDecisionTag').value;
+  const item = { id: genId(), ts: nowIso(), text, by, tag };
+  state.decisions.push(item);
+  addEvent('decision', text, by, { tag, decisionId: item.id });
+  document.getElementById('addDecisionText').value = '';
+  document.getElementById('addDecisionBy').value = '';
+  document.getElementById('addDecisionTag').value = '';
+  renderDecisions();
+  renderTimeline();
+  updateNavCounts();
+  saveAutosave();
+}
+function renderDecisions() {
+  const c = document.getElementById('decisionsList');
+  if (state.decisions.length === 0) {
+    c.innerHTML = `<div class="empty">No decisions logged yet.</div>`;
+  } else {
+    // Newest first
+    const items = state.decisions.slice().reverse();
+    c.innerHTML = items.map(d => `<div class="item-row">
+      <div class="item-ts">${escapeHtml(fmtTime(d.ts))}</div>
+      <div class="item-body">
+        <div class="item-text">${escapeHtml(d.text)}</div>
+        <div class="item-meta">
+          ${d.by ? `<span>by ${escapeHtml(d.by)}</span>` : ''}
+          ${d.tag ? `<span class="pill">${escapeHtml(d.tag)}</span>` : ''}
+        </div>
+      </div>
+      <div class="item-actions">
+        <button class="icon-btn danger" onclick="deleteDecision('${d.id}')">×</button>
+      </div>
+    </div>`).join('');
+  }
+  document.getElementById('decisionsCount').textContent = state.decisions.length;
+}
+function deleteDecision(id) {
+  state.decisions = state.decisions.filter(x => x.id !== id);
+  state.events = state.events.filter(e => e.meta?.decisionId !== id);
+  renderDecisions(); renderTimeline(); updateNavCounts(); saveAutosave();
+}
+
+// ============================================================
+// ACTIONS
+// ============================================================
+function addAction() {
+  const text = document.getElementById('addActionText').value.trim();
+  if (!text) { showToast('Action text required'); return; }
+  const owner = document.getElementById('addActionOwner').value.trim();
+  const due = document.getElementById('addActionDue').value;
+  const status = document.getElementById('addActionStatus').value || 'open';
+  const item = { id: genId(), ts: nowIso(), text, owner, due, status };
+  state.actions.push(item);
+  addEvent('action', text, owner, { status, due, actionId: item.id });
+  document.getElementById('addActionText').value = '';
+  document.getElementById('addActionOwner').value = '';
+  document.getElementById('addActionDue').value = '';
+  document.getElementById('addActionStatus').value = 'open';
+  renderActions();
+  renderTimeline();
+  updateNavCounts();
+  saveAutosave();
+}
+function renderActions() {
+  const c = document.getElementById('actionsList');
+  if (state.actions.length === 0) {
+    c.innerHTML = `<div class="empty">No actions logged yet.</div>`;
+  } else {
+    // Sort: open first, in-progress next, done/cancelled last
+    const ord = { open: 1, 'in-progress': 2, blocked: 3, done: 4, cancelled: 5 };
+    const items = state.actions.slice().sort((a, b) => (ord[a.status]||9) - (ord[b.status]||9));
+    c.innerHTML = items.map(a => {
+      const stLabel = ACTION_STATUS.find(s => s.id === a.status)?.label || a.status;
+      return `<div class="item-row">
+        <div class="item-ts">${escapeHtml(fmtTime(a.ts))}</div>
+        <div class="item-body">
+          <div class="item-text">${escapeHtml(a.text)}</div>
+          <div class="item-meta">
+            ${a.owner ? `<span>${escapeHtml(a.owner)}</span>` : ''}
+            ${a.due ? `<span>due ${escapeHtml(fmtDateTime(a.due))}</span>` : ''}
+            <select class="pill" style="cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10px;padding:1px 6px;" onchange="updateActionStatus('${a.id}', this.value)">
+              ${ACTION_STATUS.map(s => `<option value="${s.id}" ${s.id === a.status ? 'selected' : ''}>${escapeHtml(s.label)}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="item-actions">
+          <button class="icon-btn danger" onclick="deleteAction('${a.id}')">×</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  const open = state.actions.filter(a => a.status === 'open' || a.status === 'in-progress' || a.status === 'blocked').length;
+  document.getElementById('actionsCount').textContent = open > 0 ? `${open} open / ${state.actions.length}` : state.actions.length;
+}
+function updateActionStatus(id, status) {
+  const a = state.actions.find(x => x.id === id);
+  if (!a) return;
+  const old = a.status;
+  a.status = status;
+  addEvent('action', `Action status: ${a.text} (${old} → ${status})`, '', { actionId: id, statusChange: true });
+  renderActions(); renderTimeline(); updateNavCounts(); saveAutosave();
+}
+function deleteAction(id) {
+  state.actions = state.actions.filter(x => x.id !== id);
+  state.events = state.events.filter(e => e.meta?.actionId !== id);
+  renderActions(); renderTimeline(); updateNavCounts(); saveAutosave();
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+function addNotification() {
+  const targetId = document.getElementById('addNotifyTarget').value;
+  if (!targetId) { showToast('Target required'); return; }
+  const target = NOTIFICATION_TARGETS.find(t => t.id === targetId);
+  const by = document.getElementById('addNotifyBy').value.trim();
+  const method = document.getElementById('addNotifyMethod').value.trim();
+  const item = { id: genId(), ts: nowIso(), targetId, by, method };
+  state.notifications.push(item);
+  addEvent('notification', `Notified: ${target.label}`, by, { targetId, method, category: target.category, notifId: item.id });
+  document.getElementById('addNotifyTarget').value = '';
+  document.getElementById('addNotifyBy').value = '';
+  document.getElementById('addNotifyMethod').value = '';
+  renderNotifications();
+  renderTimeline();
+  updateNavCounts();
+  saveAutosave();
+}
+function renderNotifications() {
+  const c = document.getElementById('notificationsList');
+  if (state.notifications.length === 0) {
+    c.innerHTML = `<div class="empty">No notifications logged yet.</div>`;
+  } else {
+    const items = state.notifications.slice().reverse();
+    c.innerHTML = items.map(n => {
+      const target = NOTIFICATION_TARGETS.find(t => t.id === n.targetId);
+      const cat = (target?.category || 'External').toLowerCase();
+      return `<div class="item-row">
+        <div class="item-ts">${escapeHtml(fmtTime(n.ts))}</div>
+        <div class="item-body">
+          <div class="item-text">${escapeHtml(target?.label || n.targetId)}</div>
+          <div class="item-meta">
+            <span class="pill cat-${cat}">${escapeHtml(target?.category || 'External')}</span>
+            ${n.by ? `<span>by ${escapeHtml(n.by)}</span>` : ''}
+            ${n.method ? `<span>via ${escapeHtml(n.method)}</span>` : ''}
+            ${target?.note ? `<span style="color:var(--text-muted);font-style:italic;">${escapeHtml(target.note)}</span>` : ''}
+          </div>
+        </div>
+        <div class="item-actions">
+          <button class="icon-btn danger" onclick="deleteNotification('${n.id}')">×</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('notificationsCount').textContent = state.notifications.length;
+}
+function deleteNotification(id) {
+  state.notifications = state.notifications.filter(x => x.id !== id);
+  state.events = state.events.filter(e => e.meta?.notifId !== id);
+  renderNotifications(); renderTimeline(); updateNavCounts(); saveAutosave();
+}
+
+// ============================================================
+// COMMS
+// ============================================================
+function addComms() {
+  const title = document.getElementById('addCommsTitle').value.trim();
+  if (!title) { showToast('Comms title required'); return; }
+  const channel = document.getElementById('addCommsChannel').value;
+  const status = document.getElementById('addCommsStatus').value || 'draft';
+  const item = { id: genId(), ts: nowIso(), title, channel, status };
+  state.comms.push(item);
+  addEvent('comms', `${title} (${status})`, '', { channel, status, commsId: item.id });
+  document.getElementById('addCommsTitle').value = '';
+  document.getElementById('addCommsChannel').value = '';
+  document.getElementById('addCommsStatus').value = 'draft';
+  renderComms();
+  renderTimeline();
+  updateNavCounts();
+  saveAutosave();
+}
+function renderComms() {
+  const c = document.getElementById('commsList');
+  if (state.comms.length === 0) {
+    c.innerHTML = `<div class="empty">No external comms logged yet.</div>`;
+  } else {
+    const items = state.comms.slice().reverse();
+    c.innerHTML = items.map(co => {
+      const stLabel = COMMS_STATUS.find(s => s.id === co.status)?.label || co.status;
+      return `<div class="item-row">
+        <div class="item-ts">${escapeHtml(fmtTime(co.ts))}</div>
+        <div class="item-body">
+          <div class="item-text">${escapeHtml(co.title)}</div>
+          <div class="item-meta">
+            ${co.channel ? `<span class="pill">${escapeHtml(co.channel)}</span>` : ''}
+            <select class="pill" style="cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10px;padding:1px 6px;" onchange="updateCommsStatus('${co.id}', this.value)">
+              ${COMMS_STATUS.map(s => `<option value="${s.id}" ${s.id === co.status ? 'selected' : ''}>${escapeHtml(s.label)}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="item-actions">
+          <button class="icon-btn danger" onclick="deleteComms('${co.id}')">×</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('commsCount').textContent = state.comms.length;
+}
+function updateCommsStatus(id, status) {
+  const co = state.comms.find(x => x.id === id);
+  if (!co) return;
+  const old = co.status;
+  co.status = status;
+  addEvent('comms', `Comms status: ${co.title} (${old} → ${status})`, '', { commsId: id, statusChange: true });
+  renderComms(); renderTimeline(); updateNavCounts(); saveAutosave();
+}
+function deleteComms(id) {
+  state.comms = state.comms.filter(x => x.id !== id);
+  state.events = state.events.filter(e => e.meta?.commsId !== id);
+  renderComms(); renderTimeline(); updateNavCounts(); saveAutosave();
+}
+
+// ============================================================
+// EVIDENCE
+// ============================================================
+function addEvidence() {
+  const item = document.getElementById('addEvidenceItem').value.trim();
+  if (!item) { showToast('Evidence item required'); return; }
+  const by = document.getElementById('addEvidenceBy').value.trim();
+  const hash = document.getElementById('addEvidenceHash').value.trim();
+  const e = { id: genId(), ts: nowIso(), item, by, hash };
+  state.evidence.push(e);
+  addEvent('evidence', `Evidence captured: ${item}`, by, { hash, evidenceId: e.id });
+  document.getElementById('addEvidenceItem').value = '';
+  document.getElementById('addEvidenceBy').value = '';
+  document.getElementById('addEvidenceHash').value = '';
+  renderEvidence();
+  renderTimeline();
+  updateNavCounts();
+  saveAutosave();
+}
+function renderEvidence() {
+  const c = document.getElementById('evidenceList');
+  if (state.evidence.length === 0) {
+    c.innerHTML = `<div class="empty">No evidence captured yet.</div>`;
+  } else {
+    const items = state.evidence.slice().reverse();
+    c.innerHTML = items.map(ev => `<div class="item-row">
+      <div class="item-ts">${escapeHtml(fmtTime(ev.ts))}</div>
+      <div class="item-body">
+        <div class="item-text">${escapeHtml(ev.item)}</div>
+        <div class="item-meta">
+          ${ev.by ? `<span>collected by ${escapeHtml(ev.by)}</span>` : ''}
+          ${ev.hash ? `<span class="pill" style="font-family:monospace;">${escapeHtml(ev.hash.slice(0, 32))}${ev.hash.length > 32 ? '…' : ''}</span>` : ''}
+        </div>
+      </div>
+      <div class="item-actions">
+        <button class="icon-btn danger" onclick="deleteEvidence('${ev.id}')">×</button>
+      </div>
+    </div>`).join('');
+  }
+  document.getElementById('evidenceCount').textContent = state.evidence.length;
+}
+function deleteEvidence(id) {
+  state.evidence = state.evidence.filter(x => x.id !== id);
+  state.events = state.events.filter(e => e.meta?.evidenceId !== id);
+  renderEvidence(); renderTimeline(); updateNavCounts(); saveAutosave();
+}
+
+// ============================================================
+// TIMELINE (auto-built from events)
+// ============================================================
+function renderTimeline() {
+  const c = document.getElementById('timeline');
+  if (state.events.length === 0) {
+    c.innerHTML = `<div class="empty">Timeline will populate as you log decisions, actions, notifications and other events.</div>`;
+    document.getElementById('timelineCount').textContent = '0';
+    return;
+  }
+  const sorted = state.events.slice().sort((a, b) => new Date(a.ts) - new Date(b.ts));
+  c.innerHTML = sorted.map(e => {
+    const t = EVENT_TYPES[e.type] || { label: e.type, icon: '•' };
+    return `<div class="timeline-item">
+      <div class="tl-time">${escapeHtml(fmtTime(e.ts))}</div>
+      <div class="tl-icon">${t.icon}</div>
+      <div class="tl-body">
+        <div class="tl-type">${escapeHtml(t.label)}</div>
+        <div>${escapeHtml(e.content)}</div>
+        ${e.by ? `<div class="tl-by">by ${escapeHtml(e.by)}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('timelineCount').textContent = sorted.length;
+}
+
+// ============================================================
+// QUICK LOG
+// ============================================================
+function openQuickLog() {
+  document.getElementById('quickLogModal').classList.add('active');
+  setTimeout(() => document.getElementById('quickLogText').focus(), 50);
+}
+function closeQuickLog() {
+  document.getElementById('quickLogModal').classList.remove('active');
+  document.getElementById('quickLogText').value = '';
+}
+function saveQuickLog() {
+  const text = document.getElementById('quickLogText').value.trim();
+  if (!text) { closeQuickLog(); return; }
+  const typeBtn = document.querySelector('#quickLogTypes .qlt-btn.selected');
+  const type = typeBtn ? typeBtn.dataset.type : 'note';
+  if (type === 'decision') {
+    const item = { id: genId(), ts: nowIso(), text, by: '', tag: '' };
+    state.decisions.push(item);
+    addEvent('decision', text, '', { decisionId: item.id, fromQuickLog: true });
+    renderDecisions();
+  } else if (type === 'action') {
+    const item = { id: genId(), ts: nowIso(), text, owner: '', due: '', status: 'open' };
+    state.actions.push(item);
+    addEvent('action', text, '', { actionId: item.id, status: 'open', fromQuickLog: true });
+    renderActions();
+  } else if (type === 'phase') {
+    addEvent('note', `Phase note: ${text}`, '', { fromQuickLog: true });
+  } else {
+    addEvent('note', text, '', { fromQuickLog: true });
+  }
+  closeQuickLog();
+  renderTimeline();
+  updateNavCounts();
+  saveAutosave();
+  showToast('Logged to timeline');
+}
+
+// ============================================================
+// FRAMEWORKS
+// ============================================================
+function renderFrameworks() {
+  const c = document.getElementById('frameworksGrid');
+  c.innerHTML = FRAMEWORKS.map(fw => {
+    const roleClass = fw.badge.includes('PRIMARY') ? 'PRIMARY' :
+                      fw.badge.includes('UK') ? 'UK' :
+                      fw.badge.includes('INTL') ? 'INTL' : 'PRACT';
+    return `<div class="fw-card">
+      <h4><span class="fw-badge role-${roleClass}">${escapeHtml(fw.badge)}</span><span>${escapeHtml(fw.name)}</span></h4>
+      <div class="fw-meta">${escapeHtml(fw.publisher)}</div>
+      <div class="fw-desc">${escapeHtml(fw.desc)}</div>
+      <div class="fw-links">
+        ${fw.url ? `<a href="${escapeAttr(fw.url)}" target="_blank" rel="noopener">Official ↗</a>` : ''}
+        ${fw.pdf ? `<a href="${escapeAttr(fw.pdf)}" target="_blank" rel="noopener">PDF ↗</a>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// NAV COUNTS
+// ============================================================
+function updateNavCounts() {
+  const setIf = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setIf('navRolesCount', Object.keys(state.roles).length);
+  setIf('navDecisionsCount', state.decisions.length);
+  const openA = state.actions.filter(a => a.status !== 'done' && a.status !== 'cancelled').length;
+  setIf('navActionsCount', openA > 0 ? `${openA}/${state.actions.length}` : state.actions.length);
+  setIf('navNotificationsCount', state.notifications.length);
+  setIf('navCommsCount', state.comms.length);
+  setIf('navEvidenceCount', state.evidence.length);
+  setIf('navTimelineCount', state.events.length);
+}
+
+// ============================================================
+// SCROLL
+// ============================================================
+function scrollToSection(id) {
+  const el = document.getElementById('section-' + id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ============================================================
+// EXPORTS
+// ============================================================
+function exportJSON() {
+  const payload = {
+    schema: "dh-iccc",
+    schemaVersion: 1,
+    framework: "NIST SP 800-61r2 (primary) + NCSC + ISO 27035 + SANS PICERL",
+    exported: nowIso(),
+    state
+  };
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const slug = (state.incident.name || 'incident').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'incident';
+  a.href = url;
+  a.download = `iccc-${slug}-${nowIso().slice(0, 10)}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast('JSON exported');
+}
+
+function loadJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const payload = JSON.parse(e.target.result);
+      if (payload.schema !== 'dh-iccc') { showToast('File schema not recognised'); return; }
+      // Reset and reload
+      Object.assign(state, {
+        incident: payload.state?.incident || state.incident,
+        roles: payload.state?.roles || {},
+        decisions: payload.state?.decisions || [],
+        actions: payload.state?.actions || [],
+        notifications: payload.state?.notifications || [],
+        comms: payload.state?.comms || [],
+        evidence: payload.state?.evidence || [],
+        events: payload.state?.events || []
+      });
+      loadSummaryFields();
+      renderAll();
+      showToast(`Loaded · ${state.events.length} events`);
+    } catch (err) {
+      showToast('Could not parse file');
+      console.error(err);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function exportMarkdown() {
+  const lines = [];
+  lines.push(`# Incident report — ${state.incident.name || '(untitled)'}`);
+  lines.push('');
+  lines.push(`**Type:** ${state.incident.type || '—'}`);
+  lines.push(`**Declared:** ${state.incident.declaredAt ? fmtDateTime(state.incident.declaredAt) : '—'}`);
+  lines.push(`**Reported by:** ${state.incident.reporter || '—'}`);
+  lines.push(`**Severity:** ${state.incident.severity ? SEVERITIES.find(s => s.id === state.incident.severity)?.label : '—'}`);
+  lines.push(`**Phase:** ${state.incident.phase ? PHASES.find(p => p.id === state.incident.phase)?.label : '—'}`);
+  lines.push('');
+  lines.push('## Description');
+  lines.push(state.incident.description || '_(none)_');
+  lines.push('');
+
+  // Roles
+  lines.push('## Roles & people');
+  if (Object.keys(state.roles).length === 0) lines.push('_None assigned_');
+  else {
+    ROLES.forEach(r => {
+      const a = state.roles[r.id];
+      if (a) lines.push(`- **${r.label}:** ${a.name}${a.contact ? ' — ' + a.contact : ''}`);
+    });
+  }
+  lines.push('');
+
+  // Decisions
+  lines.push(`## Decision log (${state.decisions.length})`);
+  if (state.decisions.length === 0) lines.push('_None_');
+  else state.decisions.slice().sort((a,b) => new Date(a.ts) - new Date(b.ts)).forEach(d => {
+    lines.push(`- **${fmtDateTime(d.ts)}** — ${d.text}${d.by ? ` _(${d.by})_` : ''}${d.tag ? ` **[${d.tag}]**` : ''}`);
+  });
+  lines.push('');
+
+  // Actions
+  lines.push(`## Action register (${state.actions.length})`);
+  if (state.actions.length === 0) lines.push('_None_');
+  else state.actions.forEach(a => {
+    lines.push(`- **[${a.status.toUpperCase()}]** ${a.text}${a.owner ? ` — owner: ${a.owner}` : ''}${a.due ? ` — due ${fmtDateTime(a.due)}` : ''}`);
+  });
+  lines.push('');
+
+  // Notifications
+  lines.push(`## Notification log (${state.notifications.length})`);
+  if (state.notifications.length === 0) lines.push('_None_');
+  else state.notifications.slice().sort((a,b) => new Date(a.ts) - new Date(b.ts)).forEach(n => {
+    const t = NOTIFICATION_TARGETS.find(x => x.id === n.targetId);
+    lines.push(`- **${fmtDateTime(n.ts)}** — ${t?.label || n.targetId}${n.by ? ` (by ${n.by})` : ''}${n.method ? ` via ${n.method}` : ''}`);
+  });
+  lines.push('');
+
+  // Comms
+  lines.push(`## External comms (${state.comms.length})`);
+  if (state.comms.length === 0) lines.push('_None_');
+  else state.comms.forEach(c => {
+    lines.push(`- **[${c.status.toUpperCase()}]** ${c.title}${c.channel ? ` — ${c.channel}` : ''}`);
+  });
+  lines.push('');
+
+  // Evidence
+  lines.push(`## Evidence register (${state.evidence.length})`);
+  if (state.evidence.length === 0) lines.push('_None_');
+  else state.evidence.forEach(e => {
+    lines.push(`- **${fmtDateTime(e.ts)}** — ${e.item}${e.by ? ` (by ${e.by})` : ''}${e.hash ? ` — \`${e.hash}\`` : ''}`);
+  });
+  lines.push('');
+
+  // Timeline
+  lines.push(`## Timeline (${state.events.length} events)`);
+  if (state.events.length === 0) lines.push('_None_');
+  else {
+    const sorted = state.events.slice().sort((a, b) => new Date(a.ts) - new Date(b.ts));
+    sorted.forEach(e => {
+      const t = EVENT_TYPES[e.type] || { label: e.type };
+      lines.push(`- **${fmtDateTime(e.ts)}** — _${t.label}:_ ${e.content}${e.by ? ` (${e.by})` : ''}`);
+    });
+  }
+  lines.push('');
+
+  lines.push('---');
+  lines.push('_Exported from Incident Command Console — aligned with NIST SP 800-61r2._');
+
+  const md = lines.join('\n');
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const slug = (state.incident.name || 'incident').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'incident';
+  a.href = url;
+  a.download = `iccc-report-${slug}-${nowIso().slice(0, 10)}.md`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast('Markdown exported');
+}
+
+// ============================================================
+// RESET
+// ============================================================
+function resetAll() {
+  if (state.events.length > 0 && !confirm('Reset everything? All incident data will be cleared.')) return;
+  Object.assign(state, {
+    incident: { name:"", type:"", declaredAt:"", reporter:"", description:"", severity:null, phase:null },
+    roles: {}, decisions: [], actions: [], notifications: [], comms: [], evidence: [], events: []
+  });
+  loadSummaryFields();
+  renderAll();
+  if (autosaveOn) {
+    try { localStorage.removeItem(AUTOSAVE_KEY); } catch(e) {}
+  }
+  showToast('Reset complete');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ============================================================
+// RENDER ALL
+// ============================================================
+function renderAll() {
+  renderCommandBar();
+  renderPhaseTracker();
+  renderRoles();
+  renderDecisions();
+  renderActions();
+  renderNotifications();
+  renderComms();
+  renderEvidence();
+  renderTimeline();
+  updateNavCounts();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  setupSummaryDropdowns();
+  loadAutosaveState();
+  loadSummaryFields();
+  renderFrameworks();
+  renderAll();
+  // Live clock
+  clockInterval = setInterval(tickClock, 1000);
+  tickClock();
+
+  // Global keyboard shortcut: Q to open quick log
+  document.addEventListener('keydown', (e) => {
+    // Don't trigger when user is in an input/textarea/select
+    const tag = document.activeElement?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+      // In quick log textarea, Enter saves (Shift+Enter newline), Esc closes
+      if (e.target.id === 'quickLogText') {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          saveQuickLog();
+        } else if (e.key === 'Escape') {
+          closeQuickLog();
+        }
+      }
+      return;
+    }
+    if (e.key === 'q' || e.key === 'Q') {
+      e.preventDefault();
+      openQuickLog();
+    } else if (e.key === 'Escape') {
+      closeQuickLog();
+    }
+  });
+});
+
+</script>
+</body>
+</html>
