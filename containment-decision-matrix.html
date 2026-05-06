@@ -1,0 +1,2651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Containment Decision Matrix · Dan Howett</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fafaf7;
+  --bg-elev: #ffffff;
+  --bg-muted: #f4f4ef;
+  --bg-subtle: #efefe8;
+  --bg-band: #e6ebf2;
+  --border: #e8e6df;
+  --border-strong: #d6d3c9;
+  --text: #1a1a1a;
+  --text-2: #3a3a36;
+  --text-dim: #6b6b66;
+  --text-muted: #9a9a92;
+  --accent: #1d4ed8;
+  --accent-hover: #1e40af;
+  --accent-soft: #eff4ff;
+  --accent-text: #1e40af;
+  --first: #16a34a; --first-soft: #dcfce7;
+  --care: #f59e0b; --care-soft: #fef3c7;
+  --avoid: #dc2626; --avoid-soft: #fee2e2;
+  --na: #9a9a92; --na-soft: #efefe8;
+  --orange: #ea580c;
+  --orange-soft: #ffedd5;
+  --purple: #7c3aed;
+  --purple-soft: #ede9fe;
+  --shadow-sm: 0 1px 2px rgba(15, 15, 15, 0.04);
+  --shadow: 0 1px 3px rgba(15, 15, 15, 0.06), 0 1px 2px rgba(15, 15, 15, 0.04);
+  --shadow-lg: 0 8px 24px rgba(15, 15, 15, 0.06), 0 2px 4px rgba(15, 15, 15, 0.04);
+}
+[data-theme="dark"] {
+  --bg: #0e0f10;
+  --bg-elev: #18191b;
+  --bg-muted: #1d1e20;
+  --bg-subtle: #232528;
+  --bg-band: #14161a;
+  --border: #2a2c2f;
+  --border-strong: #3a3d40;
+  --text: #f0f0ee;
+  --text-2: #d6d6d2;
+  --text-dim: #9a9a92;
+  --text-muted: #5e5e58;
+  --accent: #60a5fa;
+  --accent-hover: #93c5fd;
+  --accent-soft: rgba(96, 165, 250, 0.12);
+  --accent-text: #93c5fd;
+  --first: #4ade80; --first-soft: rgba(74, 222, 128, 0.16);
+  --care: #fbbf24; --care-soft: rgba(251, 191, 36, 0.16);
+  --avoid: #f87171; --avoid-soft: rgba(248, 113, 113, 0.16);
+  --na: #6b6b66; --na-soft: rgba(107, 107, 102, 0.16);
+  --orange: #fb923c;
+  --orange-soft: rgba(251, 146, 60, 0.16);
+  --purple: #a78bfa;
+  --purple-soft: rgba(167, 139, 250, 0.16);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg-band); color: var(--text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01", "cv11";
+  letter-spacing: -0.005em;
+}
+.mono { font-family: 'JetBrains Mono', monospace; }
+.serif { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-weight: 400; }
+a { color: inherit; text-decoration: none; }
+
+/* HEADER */
+header.site {
+  border-bottom: 1px solid var(--border);
+  background: rgba(250, 250, 247, 0.92);
+  backdrop-filter: saturate(180%) blur(10px);
+  position: sticky; top: 0; z-index: 60;
+}
+[data-theme="dark"] header.site { background: rgba(14, 15, 16, 0.92); }
+.site-inner {
+  max-width: 1400px; margin: 0 auto; padding: 14px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.brand-link {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; font-weight: 600; color: var(--text);
+}
+.brand-mark {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 12px;
+}
+.brand-name .slash { color: var(--text-muted); margin: 0 5px; font-weight: 400; }
+.brand-name .second { color: var(--text-dim); font-weight: 500; }
+.site-meta { display: flex; align-items: center; gap: 8px; }
+.btn {
+  background: var(--bg-elev); border: 1px solid var(--border);
+  color: var(--text-2); padding: 7px 12px; border-radius: 7px;
+  font-size: 12px; font-family: inherit; font-weight: 500;
+  cursor: pointer; transition: all 0.15s;
+  display: inline-flex; align-items: center; gap: 6px;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--bg-muted); border-color: var(--border-strong); }
+.btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn.danger { color: var(--avoid); border-color: var(--border); }
+.btn.danger:hover { background: var(--avoid-soft); border-color: var(--avoid); }
+.btn.sm { padding: 5px 10px; font-size: 11px; }
+.btn.lg { padding: 11px 18px; font-size: 14px; }
+.theme-toggle {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-dim); width: 32px; height: 32px;
+  border-radius: 8px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.theme-toggle:hover { background: var(--bg-muted); color: var(--text); }
+.theme-toggle svg { width: 15px; height: 15px; }
+.sun-icon { display: none; }
+.moon-icon { display: block; }
+[data-theme="dark"] .sun-icon { display: block; }
+[data-theme="dark"] .moon-icon { display: none; }
+
+/* HERO */
+.hero-section {
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 40px 0 28px;
+}
+.hero-inner {
+  max-width: 1400px; margin: 0 auto; padding: 0 28px;
+}
+.hero { max-width: 820px; }
+.hero-eyebrow {
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: var(--accent); letter-spacing: 0.08em;
+  text-transform: uppercase; font-weight: 600;
+  margin-bottom: 12px;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.hero-eyebrow::before {
+  content: ""; width: 24px; height: 2px;
+  background: var(--accent);
+}
+h1.hero-title {
+  font-size: 32px; line-height: 1.05; letter-spacing: -0.025em;
+  font-weight: 700; margin-bottom: 12px;
+}
+h1.hero-title .accent {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic; font-weight: 400; color: var(--accent);
+  font-size: 1.05em;
+}
+.hero-lead {
+  font-size: 14.5px; color: var(--text-dim);
+  max-width: 760px; line-height: 1.6;
+}
+.hero-meta {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  font-size: 12px; color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  margin-top: 16px;
+}
+.hero-meta .pill {
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  padding: 3px 9px; border-radius: 999px;
+}
+
+/* DISCLAIMER */
+.disclaimer-section {
+  background: var(--bg);
+  padding: 0 0 28px;
+}
+.disclaimer-inner {
+  max-width: 1400px; margin: 0 auto; padding: 0 28px;
+}
+.disclaimer {
+  background: var(--orange-soft);
+  border: 1px solid var(--orange);
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex; gap: 10px; align-items: flex-start;
+  font-size: 12.5px; line-height: 1.55;
+  color: var(--text-2);
+}
+.disclaimer-icon {
+  width: 16px; height: 16px; background: var(--orange);
+  color: #fff; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 10px; margin-top: 1px;
+}
+
+/* MAIN */
+main {
+  background: var(--bg-band);
+  min-height: 60vh;
+  padding: 28px 0 80px;
+}
+.main-inner {
+  max-width: 1400px; margin: 0 auto; padding: 0 28px;
+}
+
+/* STAGE NAV */
+.stage-nav {
+  display: flex; gap: 4px; margin-bottom: 16px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+  width: fit-content;
+}
+.stage-tab {
+  background: transparent; border: none;
+  padding: 8px 16px; border-radius: 7px;
+  font-family: inherit; font-size: 12.5px; font-weight: 500;
+  color: var(--text-2); cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.stage-tab .stage-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px; opacity: 0.65;
+}
+.stage-tab:hover:not(.disabled) { background: var(--bg-muted); }
+.stage-tab.active {
+  background: var(--accent); color: #fff;
+}
+.stage-tab.active .stage-num { opacity: 0.85; }
+.stage-tab.done::before {
+  content: "✓"; color: var(--first); font-weight: 700;
+  margin-right: 4px;
+}
+.stage-tab.active.done::before { color: #fff; }
+.stage-tab.disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* PANELS */
+.panel {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.panel h2 {
+  font-size: 22px; font-weight: 700; letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+.panel h2 .accent {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic; font-weight: 400; color: var(--accent);
+}
+.panel .lead {
+  color: var(--text-dim); font-size: 14px;
+  margin-bottom: 18px; max-width: 760px;
+}
+.panel h3 {
+  font-size: 14px; font-weight: 600; letter-spacing: -0.01em;
+  margin-top: 22px; margin-bottom: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--text-dim);
+}
+.panel h3:first-child { margin-top: 0; }
+
+/* CHOICE GRID (used for profiles & scenarios) */
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+}
+.choice-card {
+  background: var(--bg-muted);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: var(--text-2);
+  transition: all 0.15s;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.choice-card:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-subtle);
+}
+.choice-card.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: var(--shadow-sm);
+}
+.choice-head {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 14.5px; font-weight: 600;
+  color: var(--text);
+}
+.choice-icon {
+  font-size: 16px;
+  color: var(--text-dim);
+  width: 24px; text-align: center;
+}
+.choice-card.selected .choice-icon { color: var(--accent); }
+.choice-desc {
+  font-size: 12px; color: var(--text-dim);
+  line-height: 1.45;
+}
+.choice-keypoint {
+  font-size: 11.5px;
+  font-style: italic;
+  color: var(--text-2);
+  background: var(--bg-elev);
+  border-left: 2px solid var(--accent);
+  padding: 6px 10px;
+  border-radius: 4px;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+.choice-card.selected .choice-keypoint {
+  background: rgba(255,255,255,0.4);
+}
+[data-theme="dark"] .choice-card.selected .choice-keypoint {
+  background: rgba(0,0,0,0.2);
+}
+
+/* SCENARIO SEVERITY */
+.choice-card.scenario {
+  position: relative;
+}
+.scenario-sev {
+  font-size: 9.5px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid;
+  margin-left: auto;
+}
+.scenario-sev.critical { background: var(--avoid-soft); color: var(--avoid); border-color: var(--avoid); }
+.scenario-sev.high     { background: var(--orange-soft); color: var(--orange); border-color: var(--orange); }
+.scenario-sev.medium   { background: var(--care-soft); color: var(--care); border-color: var(--care); }
+.scenario-sev.unknown  { background: var(--bg-elev); color: var(--text-dim); border-color: var(--border-strong); }
+
+/* CONTINUE BAR */
+.continue-bar {
+  display: flex; justify-content: flex-end; align-items: center;
+  gap: 12px; margin-top: 18px; padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.continue-bar .summary {
+  flex: 1;
+  font-size: 12.5px; color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+}
+.continue-bar .summary strong { color: var(--text); font-weight: 600; }
+
+/* NARROWING QUESTIONS */
+.narrow-q {
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+.narrow-q-num {
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); letter-spacing: 0.06em;
+  text-transform: uppercase; font-weight: 600;
+  margin-bottom: 4px;
+}
+.narrow-q-text {
+  font-size: 14.5px; font-weight: 600;
+  margin-bottom: 12px; color: var(--text);
+  line-height: 1.4;
+}
+.narrow-options {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.narrow-option {
+  background: var(--bg-elev);
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  padding: 9px 12px;
+  cursor: pointer;
+  font-family: inherit; font-size: 13px;
+  color: var(--text-2);
+  text-align: left;
+  display: flex; align-items: center; gap: 10px;
+  transition: all 0.15s;
+}
+.narrow-option:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-muted);
+}
+.narrow-option.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-text); font-weight: 500;
+}
+.narrow-option .marker {
+  width: 14px; height: 14px;
+  border-radius: 50%; border: 2px solid var(--border-strong);
+  flex-shrink: 0;
+}
+.narrow-option.selected .marker {
+  border-color: var(--accent); background: var(--accent);
+  position: relative;
+}
+.narrow-option.selected .marker::after {
+  content: ""; position: absolute;
+  top: 2px; left: 2px;
+  width: 6px; height: 6px; background: #fff; border-radius: 50%;
+}
+
+/* RECOMMEND VIEW */
+.context-summary {
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  display: flex; gap: 18px; flex-wrap: wrap;
+  font-size: 12.5px;
+}
+.ctx-block {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.ctx-label {
+  font-size: 9.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 0.06em; font-weight: 600;
+}
+.ctx-value { font-weight: 600; }
+
+/* TIER BANDS */
+.tier-band {
+  margin-bottom: 18px;
+}
+.tier-band-head {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border-left: 3px solid;
+}
+.tier-band-head h3 {
+  font-family: inherit !important;
+  text-transform: none !important;
+  letter-spacing: -0.01em !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: var(--text) !important;
+  margin: 0 !important;
+}
+.tier-band-head .count {
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  background: var(--bg-elev);
+  padding: 2px 8px; border-radius: 999px;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+.tier-band-head .meta {
+  font-size: 12px; color: var(--text-dim);
+  margin-left: auto;
+}
+.tier-band.first .tier-band-head { background: var(--first-soft); border-left-color: var(--first); }
+.tier-band.care  .tier-band-head { background: var(--care-soft); border-left-color: var(--care); }
+.tier-band.avoid .tier-band-head { background: var(--avoid-soft); border-left-color: var(--avoid); }
+.tier-band.na    .tier-band-head { background: var(--na-soft);    border-left-color: var(--na); }
+
+/* OPTION ROW */
+.option-list {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.option {
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+}
+.option-head {
+  display: flex; align-items: flex-start; gap: 8px;
+  flex-wrap: wrap; margin-bottom: 6px;
+}
+.option-cat {
+  font-size: 9.5px; font-family: 'JetBrains Mono', monospace;
+  background: var(--bg-elev); border: 1px solid var(--border);
+  padding: 1px 6px; border-radius: 3px;
+  color: var(--text-dim); letter-spacing: 0.04em;
+  text-transform: uppercase; font-weight: 600;
+}
+.option-title {
+  font-size: 14.5px; font-weight: 600;
+  line-height: 1.3; color: var(--text);
+}
+.option-desc {
+  font-size: 12.5px; color: var(--text-dim);
+  margin-bottom: 10px; line-height: 1.5;
+}
+
+/* DIMENSIONS GRID */
+.dim-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  background: var(--bg-elev);
+  padding: 8px; border-radius: 8px;
+  border: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+@media (max-width: 720px) {
+  .dim-grid { grid-template-columns: repeat(4, 1fr); }
+}
+.dim-cell {
+  display: flex; flex-direction: column; gap: 3px;
+  align-items: flex-start;
+  padding: 4px 6px;
+}
+.dim-label {
+  font-size: 9.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 0.04em; font-weight: 600;
+}
+.dim-bar {
+  display: flex; gap: 2px; width: 100%;
+}
+.dim-bar-seg {
+  flex: 1; height: 6px;
+  background: var(--bg-muted);
+  border-radius: 1px;
+}
+.dim-bar-seg.filled.high { background: var(--first); }
+.dim-bar-seg.filled.med  { background: var(--care); }
+.dim-bar-seg.filled.low  { background: var(--avoid); }
+.dim-value {
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+/* PROFILE NOTE / WARNING */
+.option-note {
+  background: var(--care-soft);
+  border: 1px solid var(--care);
+  border-left: 3px solid var(--care);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.5;
+  margin-top: 6px;
+}
+.option-note::before {
+  content: "⚠ "; font-weight: 700;
+  color: var(--care);
+}
+.option-note strong { font-weight: 700; }
+
+/* OPTION ACTIONS (mark as selected/deferred/rejected) */
+.option-actions {
+  display: flex; flex-direction: column; gap: 6px;
+  min-width: 130px;
+}
+@media (max-width: 720px) {
+  .option { grid-template-columns: 1fr; }
+  .option-actions { flex-direction: row; flex-wrap: wrap; }
+}
+.mark-btn {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+  display: flex; align-items: center; gap: 6px;
+}
+.mark-btn:hover { background: var(--bg-muted); border-color: var(--border-strong); }
+.mark-btn.selected.selected-mark { background: var(--first-soft); border-color: var(--first); color: var(--first); }
+.mark-btn.selected.deferred-mark { background: var(--care-soft); border-color: var(--care); color: var(--care); }
+.mark-btn.selected.rejected-mark { background: var(--avoid-soft); border-color: var(--avoid); color: var(--avoid); }
+
+.rationale-input {
+  width: 100%;
+  background: var(--bg-elev); border: 1px solid var(--border);
+  color: var(--text); border-radius: 6px;
+  padding: 7px 10px; font-family: inherit;
+  font-size: 12px;
+  resize: vertical; min-height: 32px;
+  margin-top: 6px;
+}
+.rationale-input:focus { outline: none; border-color: var(--accent); }
+
+/* TOGGLE FOR EXPANDED OPTIONS */
+.expand-toggle {
+  background: var(--bg-elev); border: 1.5px dashed var(--border-strong);
+  border-radius: 10px; padding: 12px 16px;
+  display: flex; align-items: center; gap: 12px;
+  font-family: inherit; font-size: 13px;
+  color: var(--text-2); cursor: pointer;
+  transition: all 0.15s;
+  width: 100%; margin-bottom: 18px;
+}
+.expand-toggle:hover { background: var(--bg-muted); border-color: var(--text-dim); }
+.expand-toggle .icon {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  color: var(--accent);
+  font-weight: 600;
+  width: 20px; text-align: center;
+}
+.expand-toggle .label { flex: 1; }
+.expand-toggle .count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--text-dim);
+}
+
+/* FRAMEWORKS */
+.frameworks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+}
+.fw-card {
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex; flex-direction: column;
+}
+.fw-card h4 {
+  font-size: 13px; font-weight: 600;
+  display: flex; gap: 8px; align-items: flex-start;
+  margin-bottom: 4px;
+}
+.fw-card .fw-badge {
+  font-size: 9px; font-family: 'JetBrains Mono', monospace;
+  background: var(--accent); color: #fff;
+  padding: 2px 6px; border-radius: 3px;
+  letter-spacing: 0.06em; font-weight: 700;
+  flex-shrink: 0; margin-top: 1px;
+}
+.fw-card .fw-meta {
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); margin-bottom: 6px;
+}
+.fw-card .fw-desc {
+  font-size: 12px; color: var(--text-dim);
+  line-height: 1.45; flex: 1; margin-bottom: 8px;
+}
+.fw-card .fw-links {
+  display: flex; gap: 8px; padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.fw-card .fw-links a {
+  font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
+  color: var(--accent); font-weight: 500;
+}
+.fw-card .fw-links a:hover { text-decoration: underline; }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--text); color: var(--bg);
+  padding: 10px 16px; border-radius: 8px;
+  font-size: 12.5px; font-weight: 500;
+  z-index: 200; opacity: 0; transform: translateY(8px);
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+  box-shadow: var(--shadow-lg);
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-muted); }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+
+/* PRINT */
+@media print {
+  header.site, .stage-nav, .continue-bar, .expand-toggle,
+  .mark-btn, .rationale-input, .btn, .theme-toggle { display: none !important; }
+  body, main, .hero-section { background: white !important; color: black !important; }
+  .panel, .option, .narrow-q, .choice-card, .fw-card, .context-summary {
+    background: white !important; color: black !important;
+    border: 1px solid #ccc !important; box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+  .tier-band-head { border: 1px solid #888 !important; }
+}
+
+/* MOBILE */
+@media (max-width: 720px) {
+  .hero-section { padding: 32px 0 24px; }
+  .hero-inner, .disclaimer-inner, .main-inner, .site-inner { padding-left: 18px; padding-right: 18px; }
+  h1.hero-title { font-size: 26px; }
+  .brand-name .second, .brand-name .slash { display: none; }
+  .site-meta .btn:not(.danger) { display: none; }
+  .panel { padding: 18px; }
+  .stage-nav { width: 100%; overflow-x: auto; }
+}
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="site-inner">
+    <a href="/useful/" class="brand-link">
+      <div class="brand-mark">DH</div>
+      <div class="brand-name">Dan Howett <span class="slash">/</span><span class="second">Containment Decision Matrix</span></div>
+    </a>
+    <div class="site-meta">
+      <button class="btn ghost sm" onclick="exportJSON()">SAVE JSON</button>
+      <button class="btn ghost sm" onclick="document.getElementById('loadFile').click()">LOAD</button>
+      <input type="file" id="loadFile" accept=".json" style="display:none" onchange="loadJSON(event)">
+      <button class="btn ghost sm" onclick="exportMarkdown()">EXPORT MD</button>
+      <button class="btn ghost sm" onclick="window.print()">PDF</button>
+      <button class="btn danger sm" onclick="resetAll()">RESET</button>
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+        <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<section class="hero-section">
+  <div class="hero-inner">
+    <div class="hero">
+      <div class="hero-eyebrow">Decision support · NIST 800-61r2 · Containment phase</div>
+      <h1 class="hero-title">Think before you <span class="accent">contain.</span></h1>
+      <p class="hero-lead">
+        A decision-support tool for the IC under pressure. Pick your architecture profile and the threat
+        scenario you're facing, answer 3-5 narrowing questions, and the tool surfaces a ranked, annotated
+        set of containment options — with seven trade-off dimensions, profile-specific warnings, and
+        rationale capture for the post-incident review. <strong>Not</strong> a runbook: this is a
+        decision aid for thinking through what containment buys you and costs you.
+      </p>
+      <div class="hero-meta">
+        <span class="pill">7 architecture profiles</span>
+        <span class="pill">12 threat scenarios</span>
+        <span class="pill">35 containment options</span>
+        <span class="pill">7 dimensions</span>
+        <span class="pill">JSON export</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="disclaimer-section">
+  <div class="disclaimer-inner">
+    <div class="disclaimer">
+      <div class="disclaimer-icon">!</div>
+      <div>
+        <strong>Decision support only — not advice.</strong> This tool surfaces trade-offs to help an
+        IC think; it does not tell you what to do. Containment decisions have legal, contractual, and
+        operational consequences that only you and your team can weigh. <strong>You should not rely on
+        this tool's outputs</strong> without independent verification, and the author accepts no
+        liability whatsoever for any loss, damage, or consequence arising from its use. Use at your own risk.
+      </div>
+    </div>
+  </div>
+</section>
+
+<main>
+  <div class="main-inner">
+
+    <!-- STAGE NAV -->
+    <div class="stage-nav" id="stageNav">
+      <button class="stage-tab active" id="tab-orient" onclick="setStage('orient')">
+        <span class="stage-num">01</span> Orient
+      </button>
+      <button class="stage-tab disabled" id="tab-narrow" onclick="setStage('narrow')">
+        <span class="stage-num">02</span> Narrow
+      </button>
+      <button class="stage-tab disabled" id="tab-recommend" onclick="setStage('recommend')">
+        <span class="stage-num">03</span> Recommend
+      </button>
+    </div>
+
+    <!-- STAGE CONTENT (populated by JS) -->
+    <div id="stageContent"></div>
+
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// CONTAINMENT DECISION MATRIX — DATA MODEL
+// Last reviewed: April 2026
+//
+// Decision support tool for incident containment.
+// Combines (Architecture Profile + Threat Scenario + Narrowing answers)
+// to produce a ranked, annotated set of containment options.
+//
+// Frameworks referenced:
+//   - NIST SP 800-61r2 (containment phase guidance)
+//   - NCSC Incident Management
+//   - SANS PICERL (Containment phase)
+// ============================================================
+
+// ============================================================
+// ARCHITECTURE PROFILES
+// ============================================================
+const PROFILES = [
+  {
+    id: "flat",
+    label: "Flat / single-segment",
+    short: "Flat",
+    icon: "▦",
+    desc: "Single network with minimal segmentation. Most hosts can reach most others. Typical of SMEs and legacy estates.",
+    keyPoint: "Lateral movement is fast and hard to bound. Containment options collapse early — speed matters more than precision."
+  },
+  {
+    id: "segmented",
+    label: "Segmented enterprise",
+    short: "Segmented",
+    icon: "▣",
+    desc: "Mid-to-large enterprise with VLANs, identity tiering, datacentre/cloud separation, and east-west firewalling.",
+    keyPoint: "Surgical containment is feasible. Know your segments and trust relationships before pulling triggers."
+  },
+  {
+    id: "huband-spoke",
+    label: "Hub-and-spoke (HQ + sites)",
+    short: "Hub-spoke",
+    icon: "✦",
+    desc: "Central HQ environment with many feeder sites — retail stores, branches, factories, regional offices.",
+    keyPoint: "Containment cascades asymmetrically. Isolating HQ kills every site. Isolating one site rarely contains threats already in HQ."
+  },
+  {
+    id: "federated",
+    label: "Group / federated (multi-entity)",
+    short: "Federated",
+    icon: "⬡",
+    desc: "Holding company with subsidiaries. Often shared identity and some shared services, but separate operational estates.",
+    keyPoint: "Lateral risk via shared services (often identity) is the killer. Subsidiary isolation alone may not contain threats riding the shared plane."
+  },
+  {
+    id: "cloud-first",
+    label: "Cloud-first / SaaS-heavy",
+    short: "Cloud",
+    icon: "☁",
+    desc: "Estate dominated by SaaS and cloud workloads. Limited or no traditional perimeter. Identity is the new perimeter.",
+    keyPoint: "Containment shifts from network actions to identity and management-plane actions. Token revocation matters more than cable-pulling."
+  },
+  {
+    id: "ot-hybrid",
+    label: "OT / hybrid IT-OT",
+    short: "OT-hybrid",
+    icon: "⚙",
+    desc: "Industrial estate with OT/ICS systems alongside enterprise IT. Manufacturing, energy, transport, water, healthcare equipment.",
+    keyPoint: "Safety considerations dominate. IT containment actions can break OT operations and vice versa. OT engineer must be in the loop."
+  },
+  {
+    id: "managed",
+    label: "Managed / outsourced",
+    short: "Managed",
+    icon: "⬢",
+    desc: "Significant portions of the estate operated by an MSP / MSSP / cloud-managed services partner.",
+    keyPoint: "Authority to act is constrained. Containment requires vendor cooperation. Confirm contractual SLA and escalation paths early."
+  }
+];
+
+// ============================================================
+// THREAT SCENARIOS
+// ============================================================
+const SCENARIOS = [
+  {
+    id: "ransomware-active",
+    label: "Ransomware — active encryption",
+    short: "Ransomware (active)",
+    icon: "⚠",
+    severity: "critical",
+    desc: "Encryption is observably underway: files changing extensions, ransom notes appearing, processes running on multiple hosts.",
+    primaryGoal: "Stop the encryption from spreading further. Preserve what's not yet hit. Forensic preservation is secondary to halting damage."
+  },
+  {
+    id: "ransomware-pre",
+    label: "Ransomware — pre-encryption stage",
+    short: "Ransomware (pre)",
+    icon: "⚠",
+    severity: "critical",
+    desc: "Indicators of imminent ransomware (Cobalt Strike beacons, AD recon, backup tampering, staging) but encryption hasn't begun.",
+    primaryGoal: "Disrupt the staging. Prevent encryption launch and exfil. Precision is possible — use it."
+  },
+  {
+    id: "bec",
+    label: "BEC / account compromise",
+    short: "BEC / Account",
+    icon: "✉",
+    severity: "high",
+    desc: "Attacker has authenticated access to one or more user accounts. Common signs: anomalous mailbox rules, sent items, financial requests, atypical sign-ins.",
+    primaryGoal: "Sever the attacker's identity-plane access. Limit fraud and lateral pivots. Network actions are largely irrelevant."
+  },
+  {
+    id: "exfil",
+    label: "Confirmed data exfiltration in progress",
+    short: "Exfil (active)",
+    icon: "↗",
+    severity: "critical",
+    desc: "Data leaving the environment: confirmed via DLP, NDR, cloud audit logs, or third-party notification.",
+    primaryGoal: "Stop the egress. Identify what's leaving. Preserve evidence of what's already gone."
+  },
+  {
+    id: "apt",
+    label: "Persistent access / suspected APT",
+    short: "APT / Persistent",
+    icon: "◆",
+    severity: "high",
+    desc: "Long-dwell-time intrusion: multiple footholds, custom tooling, careful operator behaviour, possibly months of undetected access.",
+    primaryGoal: "Don't tip off the operator. Preserve evidence. Precision and patience matter more than speed."
+  },
+  {
+    id: "insider-malicious",
+    label: "Insider threat — malicious",
+    short: "Insider (malicious)",
+    icon: "▲",
+    severity: "high",
+    desc: "Employee or contractor deliberately exfiltrating, sabotaging, or providing access to a third party.",
+    primaryGoal: "Sever access without alerting. Preserve evidence for HR/legal. Identity and data actions, not network."
+  },
+  {
+    id: "insider-accidental",
+    label: "Insider threat — accidental",
+    short: "Insider (accidental)",
+    icon: "△",
+    severity: "medium",
+    desc: "User has accidentally exposed data — misconfigured share, mis-sent email, lost device, accidental external grant.",
+    primaryGoal: "Stop further exposure. Recall/revoke what's possible. Network response usually unnecessary."
+  },
+  {
+    id: "webapp",
+    label: "Web application compromise",
+    short: "Web app",
+    icon: "◐",
+    severity: "high",
+    desc: "Customer-facing or internal web application has been compromised — webshell, vulnerability exploited, defacement, malicious code injected.",
+    primaryGoal: "Contain the application without unnecessarily breaking adjacent systems. Decide service-up-or-down trade-off."
+  },
+  {
+    id: "cloud-takeover",
+    label: "Cloud account takeover",
+    short: "Cloud takeover",
+    icon: "☁",
+    severity: "critical",
+    desc: "Cloud or SaaS account compromised — IAM credentials, API keys, OAuth grants, service principals.",
+    primaryGoal: "Revoke at the management plane. Rotate credentials. Investigate what was accessed/created/changed."
+  },
+  {
+    id: "supply-chain",
+    label: "Supply chain compromise",
+    short: "Supply chain",
+    icon: "⛓",
+    severity: "high",
+    desc: "Trusted vendor / software / service has been compromised — vendor product backdoored, MSP breached, dependency poisoned.",
+    primaryGoal: "Bound the trust relationship. Identify what the compromised vendor can reach. Coordinate with the vendor's IR."
+  },
+  {
+    id: "ot",
+    label: "OT incident",
+    short: "OT",
+    icon: "⚙",
+    severity: "critical",
+    desc: "Industrial control system / operational technology compromise. May affect physical processes, safety systems, production.",
+    primaryGoal: "Safety first. Maintain process visibility. Contain without inducing unsafe state. OT engineer leads."
+  },
+  {
+    id: "triage",
+    label: "Unknown / triage in progress",
+    short: "Triage",
+    icon: "?",
+    severity: "unknown",
+    desc: "Something's wrong but the picture isn't clear. Alerts firing, anomalous behaviour, partial information.",
+    primaryGoal: "Conservative actions only. Preserve evidence. Don't compound the problem with hasty containment."
+  }
+];
+
+// ============================================================
+// NARROWING QUESTIONS (per scenario)
+// 3-5 questions per scenario. Answers shift recommendation weighting.
+// ============================================================
+const NARROWING = {
+  "ransomware-active": [
+    {
+      id: "encryption-active",
+      text: "Is encryption still actively spreading (new files being affected right now)?",
+      options: [
+        { id: "yes", label: "Yes — still spreading", weight: { speed: 3, precision: -1 } },
+        { id: "no", label: "No — appears to have stopped", weight: { precision: 2 } },
+        { id: "unknown", label: "Unknown", weight: { speed: 2 } }
+      ]
+    },
+    {
+      id: "backups-isolated",
+      text: "Are backups confirmed isolated and immutable (untouched by attacker)?",
+      options: [
+        { id: "yes", label: "Yes — confirmed safe", weight: { recovery: 2 } },
+        { id: "no", label: "No — backups at risk or compromised", weight: { speed: 2, backup_protect: 5 } },
+        { id: "unknown", label: "Unknown", weight: { backup_protect: 3 } }
+      ]
+    },
+    {
+      id: "scope",
+      text: "What is the known scope of affected hosts?",
+      options: [
+        { id: "single", label: "Single host", weight: { precision: 3 } },
+        { id: "few", label: "A handful of hosts", weight: { precision: 2 } },
+        { id: "segment", label: "An entire segment / many hosts", weight: { speed: 3, broad: 2 } },
+        { id: "unknown", label: "Unknown / spreading", weight: { speed: 3, broad: 3 } }
+      ]
+    },
+    {
+      id: "crown-jewels",
+      text: "Are crown-jewel systems (DCs, finance, regulated data) in scope?",
+      options: [
+        { id: "yes", label: "Yes — confirmed in scope", weight: { speed: 4, broad: 2 } },
+        { id: "no", label: "No — not yet affected", weight: { precision: 1 } },
+        { id: "unknown", label: "Unknown", weight: { speed: 2 } }
+      ]
+    }
+  ],
+  "ransomware-pre": [
+    {
+      id: "staging-stage",
+      text: "What stage of the kill chain is observed?",
+      options: [
+        { id: "recon", label: "Recon / discovery only", weight: { precision: 3, evidence: 2 } },
+        { id: "lateral", label: "Lateral movement underway", weight: { speed: 2, precision: 2 } },
+        { id: "exfil", label: "Exfil / data staging observed", weight: { speed: 3, egress_block: 4 } },
+        { id: "imminent", label: "Encryption imminent (backup tampering, etc.)", weight: { speed: 4, backup_protect: 4 } }
+      ]
+    },
+    {
+      id: "c2-known",
+      text: "Are the C2 channels identified (IPs, domains, beacon patterns)?",
+      options: [
+        { id: "yes", label: "Yes — block-ready", weight: { egress_block: 3, precision: 2 } },
+        { id: "partial", label: "Partial — some indicators", weight: { precision: 1 } },
+        { id: "no", label: "No", weight: { speed: 2 } }
+      ]
+    },
+    {
+      id: "tooling",
+      text: "What attacker tooling is observed?",
+      options: [
+        { id: "off-shelf", label: "Off-the-shelf (Cobalt Strike, Mimikatz, common loaders)", weight: { precision: 1 } },
+        { id: "custom", label: "Custom / sophisticated", weight: { evidence: 3, precision: 2 } },
+        { id: "mixed", label: "Mixed", weight: { evidence: 1 } }
+      ]
+    }
+  ],
+  "bec": [
+    {
+      id: "mailbox-rules",
+      text: "Have malicious mailbox rules / forwarders been created?",
+      options: [
+        { id: "yes", label: "Yes — confirmed", weight: { identity: 3, comms: 2 } },
+        { id: "no", label: "No", weight: { identity: 1 } },
+        { id: "unknown", label: "Unknown — not checked yet", weight: { identity: 2, comms: 1 } }
+      ]
+    },
+    {
+      id: "tokens",
+      text: "Are MFA / refresh tokens potentially compromised (token theft / AiTM)?",
+      options: [
+        { id: "yes", label: "Yes — strong indicators", weight: { identity: 4, token_revoke: 4 } },
+        { id: "suspected", label: "Suspected", weight: { identity: 3, token_revoke: 3 } },
+        { id: "no", label: "No — password reset alone may suffice", weight: { identity: 1 } },
+        { id: "unknown", label: "Unknown", weight: { identity: 3, token_revoke: 2 } }
+      ]
+    },
+    {
+      id: "privileged",
+      text: "Is the affected account privileged (admin, finance signatory, exec)?",
+      options: [
+        { id: "yes", label: "Yes — privileged or sensitive", weight: { speed: 3, identity: 2 } },
+        { id: "no", label: "No — standard user", weight: { precision: 1 } }
+      ]
+    },
+    {
+      id: "recent-activity",
+      text: "Has anything unusual been sent from the account in the last few hours?",
+      options: [
+        { id: "yes", label: "Yes — confirmed bad sends", weight: { comms: 3, identity: 2 } },
+        { id: "no", label: "No", weight: {} },
+        { id: "unknown", label: "Unknown — need to check", weight: { evidence: 1 } }
+      ]
+    }
+  ],
+  "exfil": [
+    {
+      id: "still-active",
+      text: "Is exfiltration still active (egress observable now)?",
+      options: [
+        { id: "yes", label: "Yes — still flowing", weight: { speed: 4, egress_block: 5 } },
+        { id: "no", label: "No — appears to have stopped", weight: { evidence: 3 } },
+        { id: "unknown", label: "Unknown", weight: { egress_block: 3 } }
+      ]
+    },
+    {
+      id: "destination",
+      text: "Is the exfil destination identified?",
+      options: [
+        { id: "yes", label: "Yes — specific IPs/domains known", weight: { egress_block: 4, precision: 3 } },
+        { id: "partial", label: "Partial — some indicators", weight: { egress_block: 2 } },
+        { id: "no", label: "No", weight: { speed: 2, broad: 2 } }
+      ]
+    },
+    {
+      id: "data-class",
+      text: "What classification of data is involved?",
+      options: [
+        { id: "regulated", label: "Regulated (PCI / health / personal at scale)", weight: { speed: 4, broad: 2 } },
+        { id: "sensitive", label: "Sensitive (commercial / IP)", weight: { speed: 3 } },
+        { id: "internal", label: "Internal-only", weight: { speed: 2 } },
+        { id: "unknown", label: "Unknown", weight: { speed: 3 } }
+      ]
+    },
+    {
+      id: "lateral",
+      text: "Has lateral movement been observed?",
+      options: [
+        { id: "yes", label: "Yes — multiple hosts involved", weight: { broad: 3, speed: 2 } },
+        { id: "no", label: "No — appears localised", weight: { precision: 3 } },
+        { id: "unknown", label: "Unknown", weight: { broad: 2 } }
+      ]
+    }
+  ],
+  "apt": [
+    {
+      id: "tip-off-risk",
+      text: "How important is avoiding tipping off the attacker?",
+      options: [
+        { id: "critical", label: "Critical — preserve undetected investigation", weight: { evidence: 5, precision: 3, stealth: 5 } },
+        { id: "important", label: "Important but not absolute", weight: { evidence: 3, precision: 2 } },
+        { id: "low", label: "Low — they've likely already detected our response", weight: { speed: 2 } }
+      ]
+    },
+    {
+      id: "scope-known",
+      text: "Is the full scope of attacker presence understood?",
+      options: [
+        { id: "yes", label: "Yes — mapped via threat hunt", weight: { precision: 3 } },
+        { id: "partial", label: "Partial", weight: { evidence: 2, precision: 1 } },
+        { id: "no", label: "No — investigation early", weight: { evidence: 4, precision: -2 } }
+      ]
+    },
+    {
+      id: "ir-firm",
+      text: "Is an external IR firm engaged?",
+      options: [
+        { id: "yes-onsite", label: "Yes — actively leading containment", weight: {} },
+        { id: "yes-remote", label: "Yes — remote support", weight: {} },
+        { id: "no", label: "No — internal only", weight: { precision: -1, evidence: 1 } }
+      ]
+    }
+  ],
+  "insider-malicious": [
+    {
+      id: "still-employed",
+      text: "Is the individual still actively employed / authorised?",
+      options: [
+        { id: "yes", label: "Yes — still in role", weight: { stealth: 4, evidence: 3 } },
+        { id: "leaving", label: "Notice served / leaving soon", weight: { speed: 3, evidence: 2 } },
+        { id: "left", label: "Already departed", weight: { speed: 2, identity: 3 } }
+      ]
+    },
+    {
+      id: "evidence-stage",
+      text: "What is the state of evidence collection?",
+      options: [
+        { id: "early", label: "Early — gathering evidence quietly", weight: { stealth: 4, evidence: 4 } },
+        { id: "sufficient", label: "Sufficient evidence gathered", weight: { speed: 2 } },
+        { id: "post-action", label: "Post-action (HR/legal already engaged)", weight: { speed: 3, identity: 3 } }
+      ]
+    },
+    {
+      id: "data-target",
+      text: "What is the attacker primarily targeting?",
+      options: [
+        { id: "data", label: "Data (exfil to personal accounts / USB)", weight: { data_protect: 4, comms: 2 } },
+        { id: "sabotage", label: "Sabotage / destruction", weight: { speed: 4, identity: 3 } },
+        { id: "third-party", label: "Providing access to a third party", weight: { identity: 4, broad: 2 } }
+      ]
+    }
+  ],
+  "insider-accidental": [
+    {
+      id: "exposure-channel",
+      text: "How was the data exposed?",
+      options: [
+        { id: "email", label: "Mis-sent email / wrong recipient", weight: { comms: 3, recall: 4 } },
+        { id: "share", label: "Misconfigured share / public link", weight: { data_protect: 4 } },
+        { id: "device", label: "Lost or stolen device", weight: { identity: 3, device_lock: 4 } },
+        { id: "saas", label: "Accidental SaaS external grant", weight: { data_protect: 3 } }
+      ]
+    },
+    {
+      id: "data-class-acc",
+      text: "What classification was the exposed data?",
+      options: [
+        { id: "regulated", label: "Regulated", weight: { speed: 3 } },
+        { id: "sensitive", label: "Sensitive", weight: { speed: 2 } },
+        { id: "internal", label: "Internal-only", weight: { speed: 1 } }
+      ]
+    },
+    {
+      id: "third-party",
+      text: "Who has access to the exposed data?",
+      options: [
+        { id: "internal", label: "Other internal staff only", weight: { precision: 2 } },
+        { id: "known-external", label: "Known external party (named recipients)", weight: { recall: 3 } },
+        { id: "unknown-external", label: "Unknown external (public link, etc.)", weight: { speed: 3, data_protect: 3 } }
+      ]
+    }
+  ],
+  "webapp": [
+    {
+      id: "service-criticality",
+      text: "What is the business criticality of the affected web service?",
+      options: [
+        { id: "critical", label: "Customer-facing / revenue-critical", weight: { precision: 3, broad: -2 } },
+        { id: "important", label: "Internal / important", weight: { precision: 1 } },
+        { id: "low", label: "Low criticality", weight: { speed: 2, broad: 2 } }
+      ]
+    },
+    {
+      id: "compromise-type",
+      text: "What kind of compromise has been observed?",
+      options: [
+        { id: "webshell", label: "Webshell / RCE confirmed", weight: { speed: 3, app_offline: 3 } },
+        { id: "defacement", label: "Defacement / visible change", weight: { app_offline: 4, comms: 3 } },
+        { id: "injection", label: "Malicious code injection (skimmer, etc.)", weight: { app_offline: 3, data_protect: 3 } },
+        { id: "data-access", label: "Unauthorised data access via app", weight: { precision: 2, data_protect: 3 } }
+      ]
+    },
+    {
+      id: "patch-available",
+      text: "Is a patch / fix available and ready to deploy?",
+      options: [
+        { id: "yes", label: "Yes — ready to deploy", weight: { recovery: 3 } },
+        { id: "soon", label: "Coming soon", weight: { app_offline: 2 } },
+        { id: "no", label: "No — no fix available yet", weight: { app_offline: 4 } }
+      ]
+    }
+  ],
+  "cloud-takeover": [
+    {
+      id: "account-type",
+      text: "What type of cloud principal is compromised?",
+      options: [
+        { id: "iam-user", label: "IAM user (human)", weight: { identity: 3, token_revoke: 3 } },
+        { id: "service-principal", label: "Service principal / managed identity", weight: { identity: 4, sp_disable: 5 } },
+        { id: "api-key", label: "Long-lived API key / access key", weight: { identity: 3, secret_rotate: 5 } },
+        { id: "oauth", label: "OAuth grant / consented app", weight: { identity: 4, oauth_revoke: 5 } }
+      ]
+    },
+    {
+      id: "scope-cloud",
+      text: "What's the scope of compromised access?",
+      options: [
+        { id: "single-account", label: "Single user, low privilege", weight: { precision: 2 } },
+        { id: "limited-priv", label: "Limited privileges (specific resources)", weight: { precision: 2, identity: 2 } },
+        { id: "broad-priv", label: "Broad / admin privileges", weight: { speed: 4, broad: 3, identity: 4 } },
+        { id: "global-admin", label: "Global / tenant admin", weight: { speed: 5, broad: 4, identity: 5 } }
+      ]
+    },
+    {
+      id: "actions-taken",
+      text: "Has the attacker performed actions in the environment?",
+      options: [
+        { id: "yes-known", label: "Yes — known actions identified", weight: { evidence: 3 } },
+        { id: "yes-unknown", label: "Yes — but unclear what", weight: { evidence: 4, broad: 2 } },
+        { id: "no", label: "No / unknown", weight: { precision: 1 } }
+      ]
+    }
+  ],
+  "supply-chain": [
+    {
+      id: "vendor-type",
+      text: "What kind of vendor relationship is compromised?",
+      options: [
+        { id: "software", label: "Software vendor (product backdoored, dependency poisoned)", weight: { broad: 3, evidence: 3 } },
+        { id: "msp", label: "MSP / IT services partner", weight: { speed: 3, broad: 4 } },
+        { id: "saas", label: "SaaS provider", weight: { identity: 3 } },
+        { id: "hardware", label: "Hardware / firmware", weight: { evidence: 4 } }
+      ]
+    },
+    {
+      id: "vendor-cooperation",
+      text: "Is the vendor cooperating?",
+      options: [
+        { id: "actively", label: "Actively coordinating with our IR", weight: { precision: 2 } },
+        { id: "limited", label: "Limited information shared", weight: { broad: 2, evidence: 2 } },
+        { id: "uncooperative", label: "Uncooperative / unresponsive", weight: { broad: 4, speed: 2 } }
+      ]
+    },
+    {
+      id: "trust-scope",
+      text: "What can the compromised vendor reach in your estate?",
+      options: [
+        { id: "narrow", label: "Narrow — specific systems/data only", weight: { precision: 3 } },
+        { id: "moderate", label: "Moderate — common credential/service paths", weight: { broad: 2, identity: 2 } },
+        { id: "broad", label: "Broad — privileged access / management plane", weight: { broad: 4, identity: 4, speed: 3 } }
+      ]
+    }
+  ],
+  "ot": [
+    {
+      id: "process-state",
+      text: "What is the current state of the affected OT process?",
+      options: [
+        { id: "running-stable", label: "Running, stable, no production impact", weight: { stealth: 3, precision: 4 } },
+        { id: "degraded", label: "Degraded / partial impact", weight: { precision: 2 } },
+        { id: "unsafe", label: "Trending toward unsafe state", weight: { speed: 5, safety: 5 } },
+        { id: "down", label: "Already down / safe state engaged", weight: { evidence: 3, precision: 2 } }
+      ]
+    },
+    {
+      id: "ot-engineer",
+      text: "Is an OT engineer in the response?",
+      options: [
+        { id: "yes-onsite", label: "Yes — on site / leading", weight: {} },
+        { id: "yes-remote", label: "Yes — remote support only", weight: { precision: -1 } },
+        { id: "no", label: "No", weight: { precision: -3, safety: 4 } }
+      ]
+    },
+    {
+      id: "it-ot-bridge",
+      text: "Is the IT-OT bridge / DMZ confirmed compromised?",
+      options: [
+        { id: "yes", label: "Yes — bridge compromise confirmed", weight: { speed: 4, ot_isolate: 5 } },
+        { id: "suspected", label: "Suspected", weight: { ot_isolate: 4 } },
+        { id: "no", label: "No — IT-side only", weight: { precision: 2 } }
+      ]
+    }
+  ],
+  "triage": [
+    {
+      id: "what-known",
+      text: "What do you actually know right now?",
+      options: [
+        { id: "alert-only", label: "Alert fired — nothing confirmed", weight: { stealth: 3, precision: 2, evidence: 3 } },
+        { id: "anomaly", label: "Anomalous behaviour observed but not yet attributed", weight: { evidence: 3, precision: 2 } },
+        { id: "third-party", label: "Third-party notification received", weight: { evidence: 3, broad: 2 } }
+      ]
+    },
+    {
+      id: "investigation-capability",
+      text: "What investigation capability is immediately available?",
+      options: [
+        { id: "full", label: "Full — SOC, EDR, logs, threat hunt capability", weight: { precision: 3 } },
+        { id: "partial", label: "Partial", weight: { precision: 1 } },
+        { id: "limited", label: "Limited — escalating to external IR", weight: { evidence: 2 } }
+      ]
+    },
+    {
+      id: "time-pressure",
+      text: "Is there immediate time pressure (active damage, regulatory clock, business impact)?",
+      options: [
+        { id: "yes", label: "Yes — active impact", weight: { speed: 3 } },
+        { id: "moderate", label: "Some pressure but not urgent", weight: { precision: 2 } },
+        { id: "no", label: "No — investigate calmly", weight: { evidence: 3, stealth: 3 } }
+      ]
+    }
+  ]
+};
+
+// ============================================================
+// CONTAINMENT OPTIONS
+// Each option has:
+//   - id, label, category, tier ("core" | "expanded")
+//   - desc: one-sentence what-it-is
+//   - dimensions: { effectiveness, speed, reversibility, business, collateral, forensic, authority }
+//     scale 1-5 where 5 = best (faster speed, more reversible, less collateral, less forensic loss, less authority needed)
+//   - profileNotes: { profileId: "warning text" } — only shown for that profile
+//   - profileApplicability: { profileId: "applicable" | "limited" | "na" } — drives "N/A" tier
+//   - scenarioBoost: { scenarioId: number } — added to base effectiveness for that scenario
+//   - tags: ["network", "identity", "endpoint", ...] for filtering
+//   - tagWeights: ["speed", "egress_block", ...] — narrowing-question weights that boost this option
+// ============================================================
+const OPTIONS = [
+  // ===== ENDPOINT (CORE) =====
+  {
+    id: "isolate-host-edr",
+    label: "Isolate host via EDR network quarantine",
+    category: "Endpoint",
+    tier: "core",
+    desc: "Use EDR to cut the host's network access while keeping the agent connected for analysis.",
+    dimensions: { effectiveness: 4, speed: 5, reversibility: 5, business: 3, collateral: 4, forensic: 4, authority: 4 },
+    profileApplicability: { flat: "applicable", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "limited", "ot-hybrid": "limited", managed: "limited" },
+    profileNotes: {
+      "flat": "Isolating a single host buys minutes — lateral movement may have already occurred. Combine with broader actions.",
+      "cloud-first": "Only applicable to managed endpoints with EDR. SaaS/cloud workloads need different actions.",
+      "ot-hybrid": "Never isolate OT or OT-adjacent endpoints via EDR without OT engineer approval. May break operational dependencies.",
+      "managed": "Confirm MSP has authority to execute and reasonable response time."
+    },
+    scenarioBoost: { "ransomware-active": 1, "ransomware-pre": 1, "apt": 0, "exfil": 1, "webapp": 0 },
+    tags: ["endpoint", "network"],
+    tagWeights: ["speed", "precision"]
+  },
+  {
+    id: "power-off",
+    label: "Power off the host (physical or hard shutdown)",
+    category: "Endpoint",
+    tier: "core",
+    desc: "Pull the cable, hold the power button, or kill the VM. Most absolute action.",
+    dimensions: { effectiveness: 5, speed: 5, reversibility: 4, business: 2, collateral: 3, forensic: 1, authority: 4 },
+    profileApplicability: { flat: "applicable", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "applicable", "ot-hybrid": "limited", managed: "limited" },
+    profileNotes: {
+      "ot-hybrid": "Powering off OT systems can induce unsafe states. OT engineer must approve and may follow shutdown procedures.",
+      "managed": "Coordinate with MSP — they may have alternative methods preserving more evidence."
+    },
+    scenarioBoost: { "ransomware-active": 1, "apt": -2, "ot": -3 },
+    tags: ["endpoint", "drastic"],
+    tagWeights: ["speed"]
+  },
+  {
+    id: "rebuild-host",
+    label: "Re-image / rebuild the host",
+    category: "Endpoint",
+    tier: "core",
+    desc: "Wipe and rebuild from known-good media. Final eradication step.",
+    dimensions: { effectiveness: 5, speed: 1, reversibility: 1, business: 2, collateral: 2, forensic: 1, authority: 3 },
+    profileApplicability: { flat: "applicable", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "applicable", "ot-hybrid": "limited", managed: "applicable" },
+    profileNotes: {
+      "ot-hybrid": "OT systems often can't be simply re-imaged — vendor-supplied images, calibration, certifications required."
+    },
+    scenarioBoost: { "ransomware-active": 0, "apt": 1, "webapp": 1 },
+    tags: ["endpoint", "eradication"],
+    tagWeights: ["recovery"]
+  },
+  // ===== IDENTITY (CORE) =====
+  {
+    id: "disable-account",
+    label: "Disable user account",
+    category: "Identity",
+    tier: "core",
+    desc: "Lock the account at the IdP. Stops new sign-ins immediately.",
+    dimensions: { effectiveness: 4, speed: 5, reversibility: 5, business: 3, collateral: 4, forensic: 5, authority: 5 },
+    profileApplicability: { flat: "applicable", segmented: "applicable", "huband-spoke": "applicable", federated: "limited", "cloud-first": "applicable", "ot-hybrid": "applicable", managed: "applicable" },
+    profileNotes: {
+      "federated": "If identity is shared across the group, disabling propagates to all subsidiaries — confirm scope."
+    },
+    scenarioBoost: { "bec": 2, "insider-malicious": 2, "cloud-takeover": 1, "exfil": 1, "apt": -1 },
+    tags: ["identity"],
+    tagWeights: ["identity"]
+  },
+  {
+    id: "force-password-reset",
+    label: "Force password reset (single user or scoped group)",
+    category: "Identity",
+    tier: "core",
+    desc: "Invalidate the current password. Does not invalidate active sessions on its own.",
+    dimensions: { effectiveness: 3, speed: 4, reversibility: 5, business: 4, collateral: 5, forensic: 5, authority: 5 },
+    profileApplicability: { flat: "applicable", segmented: "applicable", "huband-spoke": "applicable", federated: "limited", "cloud-first": "applicable", "ot-hybrid": "applicable", managed: "applicable" },
+    profileNotes: {
+      "federated": "Confirm whether reset propagates across federated tenants."
+    },
+    scenarioBoost: { "bec": 1, "insider-accidental": 1 },
+    tags: ["identity"],
+    tagWeights: ["identity"]
+  },
+  {
+    id: "revoke-tokens",
+    label: "Revoke active sessions / refresh tokens",
+    category: "Identity",
+    tier: "core",
+    desc: "Invalidate existing OAuth/OIDC sessions and refresh tokens. Critical when tokens are stolen.",
+    dimensions: { effectiveness: 5, speed: 4, reversibility: 4, business: 3, collateral: 3, forensic: 5, authority: 4 },
+    profileApplicability: { flat: "applicable", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "applicable", "ot-hybrid": "applicable", managed: "applicable" },
+    profileNotes: {
+      "cloud-first": "Essential for SaaS/cloud takeover. Password reset alone is insufficient if tokens stolen.",
+      "federated": "Revocation may be tenant-specific — confirm scope across federated identities."
+    },
+    scenarioBoost: { "bec": 3, "cloud-takeover": 3, "apt": 1 },
+    tags: ["identity", "cloud"],
+    tagWeights: ["token_revoke", "identity"]
+  },
+  // ===== NETWORK (CORE) =====
+  {
+    id: "block-edge",
+    label: "Block IP / domain at perimeter",
+    category: "Network",
+    tier: "core",
+    desc: "Block known-bad indicators at firewall, proxy, DNS. Fast and surgical when indicators are good.",
+    dimensions: { effectiveness: 4, speed: 5, reversibility: 5, business: 5, collateral: 5, forensic: 5, authority: 4 },
+    profileApplicability: { flat: "applicable", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "limited", "ot-hybrid": "applicable", managed: "applicable" },
+    profileNotes: {
+      "cloud-first": "Limited applicability — most cloud-first traffic doesn't transit a corporate perimeter."
+    },
+    scenarioBoost: { "exfil": 2, "ransomware-pre": 2, "apt": 1 },
+    tags: ["network"],
+    tagWeights: ["egress_block", "precision"]
+  },
+  {
+    id: "isolate-segment",
+    label: "Isolate a network segment / VLAN",
+    category: "Network",
+    tier: "core",
+    desc: "Cut a defined network segment off from the rest. Containment by zoning.",
+    dimensions: { effectiveness: 4, speed: 4, reversibility: 4, business: 2, collateral: 2, forensic: 3, authority: 3 },
+    profileApplicability: { flat: "na", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "limited", "ot-hybrid": "applicable", managed: "limited" },
+    profileNotes: {
+      "flat": "Not applicable — no meaningful segments to isolate.",
+      "huband-spoke": "Consider isolating an individual site rather than an HQ segment.",
+      "managed": "Requires MSP cooperation if they manage the network."
+    },
+    scenarioBoost: { "ransomware-active": 2, "exfil": 1, "ot": 1 },
+    tags: ["network"],
+    tagWeights: ["broad", "speed"]
+  },
+  {
+    id: "egress-off",
+    label: "Block all outbound internet egress",
+    category: "Network",
+    tier: "core",
+    desc: "Cut internet access entirely. Wartime move that buys time when indicators are unclear.",
+    dimensions: { effectiveness: 5, speed: 4, reversibility: 4, business: 1, collateral: 1, forensic: 4, authority: 1 },
+    profileApplicability: { flat: "applicable", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "limited", "ot-hybrid": "limited", managed: "limited" },
+    profileNotes: {
+      "cloud-first": "Doesn't help — your services are the cloud. Use cloud-side controls instead.",
+      "ot-hybrid": "Many OT estates have dependencies on external services (vendor support, time, telemetry) — assess before cutting.",
+      "managed": "MSP services may break — coordinate."
+    },
+    scenarioBoost: { "exfil": 3, "ransomware-pre": 2, "ransomware-active": 2 },
+    tags: ["network", "drastic"],
+    tagWeights: ["egress_block", "speed", "broad"]
+  },
+  // ===== CLOUD / SAAS (CORE) =====
+  {
+    id: "disable-sp",
+    label: "Disable service principal / managed identity",
+    category: "Cloud",
+    tier: "core",
+    desc: "Disable the compromised cloud service identity. Stops automated processes.",
+    dimensions: { effectiveness: 5, speed: 4, reversibility: 4, business: 2, collateral: 3, forensic: 5, authority: 3 },
+    profileApplicability: { flat: "limited", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "applicable", "ot-hybrid": "limited", managed: "limited" },
+    profileNotes: {
+      "managed": "MSP-managed service principals — coordinate disablement so you don't break their tooling."
+    },
+    scenarioBoost: { "cloud-takeover": 3, "supply-chain": 2 },
+    tags: ["cloud", "identity"],
+    tagWeights: ["sp_disable", "identity"]
+  },
+  {
+    id: "rotate-secrets",
+    label: "Rotate secrets / API keys / certificates",
+    category: "Cloud",
+    tier: "core",
+    desc: "Roll all credentials potentially exposed. Tedious but essential.",
+    dimensions: { effectiveness: 5, speed: 2, reversibility: 5, business: 3, collateral: 4, forensic: 5, authority: 3 },
+    profileApplicability: { flat: "applicable", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "applicable", "ot-hybrid": "applicable", managed: "applicable" },
+    profileNotes: {},
+    scenarioBoost: { "cloud-takeover": 3, "supply-chain": 3, "apt": 2 },
+    tags: ["cloud", "identity"],
+    tagWeights: ["secret_rotate", "identity"]
+  },
+  {
+    id: "revoke-oauth",
+    label: "Revoke OAuth grants / consented apps",
+    category: "Cloud",
+    tier: "core",
+    desc: "Remove consented apps and OAuth grants the attacker may be using.",
+    dimensions: { effectiveness: 5, speed: 4, reversibility: 5, business: 4, collateral: 4, forensic: 5, authority: 4 },
+    profileApplicability: { flat: "limited", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "applicable", "ot-hybrid": "limited", managed: "applicable" },
+    profileNotes: {},
+    scenarioBoost: { "cloud-takeover": 2, "bec": 2 },
+    tags: ["cloud", "identity"],
+    tagWeights: ["oauth_revoke", "identity"]
+  },
+  // ===== DATA / APP (CORE) =====
+  {
+    id: "freeze-backups",
+    label: "Freeze / protect backups",
+    category: "Data",
+    tier: "core",
+    desc: "Lock backups against modification or deletion. Critical pre-ransomware action.",
+    dimensions: { effectiveness: 5, speed: 4, reversibility: 5, business: 5, collateral: 5, forensic: 5, authority: 4 },
+    profileApplicability: { flat: "applicable", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "applicable", "ot-hybrid": "applicable", managed: "applicable" },
+    profileNotes: {
+      "managed": "Backup services often outsourced — confirm MSP can/will action immediately."
+    },
+    scenarioBoost: { "ransomware-active": 3, "ransomware-pre": 3 },
+    tags: ["data", "preserve"],
+    tagWeights: ["backup_protect", "speed"]
+  },
+  {
+    id: "take-app-offline",
+    label: "Take application offline (maintenance mode)",
+    category: "Application",
+    tier: "core",
+    desc: "Stop the application service. Trade-off: customer impact vs further compromise.",
+    dimensions: { effectiveness: 5, speed: 4, reversibility: 5, business: 1, collateral: 3, forensic: 4, authority: 2 },
+    profileApplicability: { flat: "applicable", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "applicable", "ot-hybrid": "limited", managed: "applicable" },
+    profileNotes: {
+      "ot-hybrid": "Application may control physical processes — OT engineer must approve."
+    },
+    scenarioBoost: { "webapp": 3 },
+    tags: ["application"],
+    tagWeights: ["app_offline"]
+  },
+  {
+    id: "data-readonly",
+    label: "Make data store read-only",
+    category: "Data",
+    tier: "core",
+    desc: "Prevent further data modification. Useful for live exfil and accidental exposure.",
+    dimensions: { effectiveness: 4, speed: 4, reversibility: 5, business: 3, collateral: 4, forensic: 5, authority: 3 },
+    profileApplicability: { flat: "applicable", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "applicable", "ot-hybrid": "limited", managed: "applicable" },
+    profileNotes: {},
+    scenarioBoost: { "exfil": 2, "insider-accidental": 2, "insider-malicious": 2 },
+    tags: ["data"],
+    tagWeights: ["data_protect"]
+  },
+
+  // ===== EXPANDED OPTIONS =====
+  {
+    id: "block-process",
+    label: "Block process via EDR",
+    category: "Endpoint",
+    tier: "expanded",
+    desc: "Kill or prevent execution of a specific process across the estate.",
+    dimensions: { effectiveness: 4, speed: 5, reversibility: 5, business: 4, collateral: 5, forensic: 4, authority: 4 },
+    profileApplicability: { flat: "applicable", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "limited", "ot-hybrid": "limited", managed: "applicable" },
+    profileNotes: {
+      "ot-hybrid": "Don't block processes on OT systems without engineer approval — may halt safe operations."
+    },
+    scenarioBoost: { "ransomware-active": 2, "ransomware-pre": 2 },
+    tags: ["endpoint"],
+    tagWeights: ["speed"]
+  },
+  {
+    id: "disable-session",
+    label: "Disable user session (kill open desktop sessions)",
+    category: "Endpoint",
+    tier: "expanded",
+    desc: "Forcibly log the user out without disabling the account.",
+    dimensions: { effectiveness: 3, speed: 4, reversibility: 5, business: 3, collateral: 4, forensic: 4, authority: 4 },
+    profileApplicability: { flat: "applicable", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "limited", "ot-hybrid": "applicable", managed: "applicable" },
+    profileNotes: {},
+    scenarioBoost: { "insider-malicious": 1 },
+    tags: ["endpoint", "identity"],
+    tagWeights: []
+  },
+  {
+    id: "tier-isolate-admins",
+    label: "Tier-isolate admin accounts",
+    category: "Identity",
+    tier: "expanded",
+    desc: "Move privileged accounts to isolated jump hosts and revoke standing privilege.",
+    dimensions: { effectiveness: 4, speed: 2, reversibility: 4, business: 3, collateral: 3, forensic: 5, authority: 2 },
+    profileApplicability: { flat: "limited", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "applicable", "ot-hybrid": "limited", managed: "limited" },
+    profileNotes: {},
+    scenarioBoost: { "apt": 3, "ransomware-pre": 1 },
+    tags: ["identity"],
+    tagWeights: ["identity"]
+  },
+  {
+    id: "disable-service-account",
+    label: "Disable service account / API key",
+    category: "Identity",
+    tier: "expanded",
+    desc: "Disable a specific service account credential. Watch for service breakage.",
+    dimensions: { effectiveness: 4, speed: 4, reversibility: 4, business: 2, collateral: 2, forensic: 5, authority: 3 },
+    profileApplicability: { flat: "applicable", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "applicable", "ot-hybrid": "limited", managed: "applicable" },
+    profileNotes: {},
+    scenarioBoost: { "cloud-takeover": 2, "supply-chain": 2 },
+    tags: ["identity", "cloud"],
+    tagWeights: ["identity", "secret_rotate"]
+  },
+  {
+    id: "block-internal-fw",
+    label: "Block via internal firewall / micro-segmentation",
+    category: "Network",
+    tier: "expanded",
+    desc: "Apply east-west firewall rules to bound the affected zone.",
+    dimensions: { effectiveness: 4, speed: 3, reversibility: 4, business: 4, collateral: 4, forensic: 4, authority: 3 },
+    profileApplicability: { flat: "limited", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "limited", "ot-hybrid": "applicable", managed: "limited" },
+    profileNotes: {
+      "flat": "Limited — flat networks rarely have meaningful east-west firewalling."
+    },
+    scenarioBoost: { "ransomware-active": 2, "apt": 2 },
+    tags: ["network"],
+    tagWeights: ["precision"]
+  },
+  {
+    id: "disable-vpn",
+    label: "Disable site-to-site VPN / WAN link",
+    category: "Network",
+    tier: "expanded",
+    desc: "Cut a specific inter-site link. Useful for hub-and-spoke and federated estates.",
+    dimensions: { effectiveness: 4, speed: 4, reversibility: 4, business: 2, collateral: 2, forensic: 4, authority: 2 },
+    profileApplicability: { flat: "limited", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "limited", "ot-hybrid": "applicable", managed: "limited" },
+    profileNotes: {
+      "huband-spoke": "Direct lever for site isolation — but cuts the site off from central services entirely.",
+      "federated": "Useful for severing affected subsidiary from parent network."
+    },
+    scenarioBoost: { "ransomware-active": 2, "supply-chain": 3 },
+    tags: ["network"],
+    tagWeights: ["broad"]
+  },
+  {
+    id: "sinkhole-dns",
+    label: "Sinkhole DNS for known-bad domains",
+    category: "Network",
+    tier: "expanded",
+    desc: "Redirect DNS resolution for malicious domains to a controlled IP.",
+    dimensions: { effectiveness: 4, speed: 5, reversibility: 5, business: 5, collateral: 5, forensic: 5, authority: 4 },
+    profileApplicability: { flat: "applicable", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "limited", "ot-hybrid": "applicable", managed: "applicable" },
+    profileNotes: {},
+    scenarioBoost: { "exfil": 2, "ransomware-pre": 2, "apt": 2 },
+    tags: ["network"],
+    tagWeights: ["egress_block", "precision"]
+  },
+  {
+    id: "quarantine-cloud-workload",
+    label: "Quarantine cloud workload (NSG / Security Group)",
+    category: "Cloud",
+    tier: "expanded",
+    desc: "Apply restrictive network rules at the cloud control plane to isolate a workload.",
+    dimensions: { effectiveness: 4, speed: 4, reversibility: 5, business: 3, collateral: 3, forensic: 4, authority: 3 },
+    profileApplicability: { flat: "limited", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "applicable", "ot-hybrid": "limited", managed: "applicable" },
+    profileNotes: {},
+    scenarioBoost: { "cloud-takeover": 2, "webapp": 2 },
+    tags: ["cloud", "network"],
+    tagWeights: ["precision"]
+  },
+  {
+    id: "disable-management-plane",
+    label: "Lock down cloud management plane",
+    category: "Cloud",
+    tier: "expanded",
+    desc: "Restrict console / API access to the cloud platform to a small allow-list.",
+    dimensions: { effectiveness: 5, speed: 3, reversibility: 4, business: 2, collateral: 2, forensic: 5, authority: 1 },
+    profileApplicability: { flat: "limited", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "applicable", "ot-hybrid": "limited", managed: "limited" },
+    profileNotes: {},
+    scenarioBoost: { "cloud-takeover": 3, "apt": 2 },
+    tags: ["cloud", "drastic"],
+    tagWeights: ["broad", "identity"]
+  },
+  {
+    id: "revoke-sas-tokens",
+    label: "Revoke SAS tokens / pre-signed URLs",
+    category: "Cloud",
+    tier: "expanded",
+    desc: "Invalidate any time-limited storage access tokens.",
+    dimensions: { effectiveness: 4, speed: 4, reversibility: 4, business: 3, collateral: 3, forensic: 5, authority: 3 },
+    profileApplicability: { flat: "limited", segmented: "limited", "huband-spoke": "limited", federated: "limited", "cloud-first": "applicable", "ot-hybrid": "limited", managed: "applicable" },
+    profileNotes: {},
+    scenarioBoost: { "exfil": 2, "cloud-takeover": 2 },
+    tags: ["cloud", "data"],
+    tagWeights: ["data_protect", "token_revoke"]
+  },
+  {
+    id: "disable-storage-public",
+    label: "Disable public access on storage",
+    category: "Cloud",
+    tier: "expanded",
+    desc: "Remove public/anonymous access from cloud storage accounts.",
+    dimensions: { effectiveness: 5, speed: 4, reversibility: 5, business: 3, collateral: 3, forensic: 5, authority: 3 },
+    profileApplicability: { flat: "limited", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "applicable", "ot-hybrid": "limited", managed: "applicable" },
+    profileNotes: {},
+    scenarioBoost: { "insider-accidental": 3, "exfil": 2 },
+    tags: ["cloud", "data"],
+    tagWeights: ["data_protect"]
+  },
+  {
+    id: "recall-email",
+    label: "Recall sent email / quarantine in transit",
+    category: "Comms",
+    tier: "expanded",
+    desc: "Use mail platform tools to recall or quarantine messages.",
+    dimensions: { effectiveness: 3, speed: 4, reversibility: 5, business: 5, collateral: 5, forensic: 5, authority: 4 },
+    profileApplicability: { flat: "applicable", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "applicable", "ot-hybrid": "applicable", managed: "applicable" },
+    profileNotes: {},
+    scenarioBoost: { "bec": 2, "insider-accidental": 3 },
+    tags: ["comms"],
+    tagWeights: ["comms", "recall"]
+  },
+  {
+    id: "disable-external-mail",
+    label: "Block external email send / receive (scoped)",
+    category: "Comms",
+    tier: "expanded",
+    desc: "Prevent affected users sending/receiving externally without disabling the whole account.",
+    dimensions: { effectiveness: 4, speed: 4, reversibility: 5, business: 3, collateral: 3, forensic: 5, authority: 4 },
+    profileApplicability: { flat: "applicable", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "applicable", "ot-hybrid": "applicable", managed: "applicable" },
+    profileNotes: {},
+    scenarioBoost: { "bec": 3, "insider-malicious": 2 },
+    tags: ["comms", "identity"],
+    tagWeights: ["comms"]
+  },
+  {
+    id: "device-lock",
+    label: "Remote lock / wipe of device",
+    category: "Endpoint",
+    tier: "expanded",
+    desc: "Lock or wipe a lost / compromised endpoint via MDM.",
+    dimensions: { effectiveness: 5, speed: 4, reversibility: 1, business: 4, collateral: 5, forensic: 1, authority: 4 },
+    profileApplicability: { flat: "applicable", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "applicable", "ot-hybrid": "limited", managed: "applicable" },
+    profileNotes: {},
+    scenarioBoost: { "insider-accidental": 4, "insider-malicious": 2 },
+    tags: ["endpoint", "data"],
+    tagWeights: ["device_lock"]
+  },
+  {
+    id: "ot-isolate-bridge",
+    label: "Isolate IT-OT bridge / DMZ",
+    category: "OT",
+    tier: "expanded",
+    desc: "Cut the link between IT and OT networks. OT engineer must lead this.",
+    dimensions: { effectiveness: 5, speed: 3, reversibility: 4, business: 1, collateral: 1, forensic: 4, authority: 1 },
+    profileApplicability: { flat: "na", segmented: "limited", "huband-spoke": "limited", federated: "limited", "cloud-first": "na", "ot-hybrid": "applicable", managed: "limited" },
+    profileNotes: {
+      "ot-hybrid": "Decision must include OT engineer and consider safety dependencies (telemetry, vendor remote access, time sync)."
+    },
+    scenarioBoost: { "ot": 4, "ransomware-pre": 2, "ransomware-active": 2 },
+    tags: ["network", "ot"],
+    tagWeights: ["ot_isolate", "speed", "broad"]
+  },
+  {
+    id: "freeze-pipelines",
+    label: "Freeze CI/CD pipelines and scheduled jobs",
+    category: "Application",
+    tier: "expanded",
+    desc: "Stop automated deployment and scheduled tasks that may carry compromise.",
+    dimensions: { effectiveness: 4, speed: 4, reversibility: 5, business: 3, collateral: 4, forensic: 5, authority: 3 },
+    profileApplicability: { flat: "limited", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "applicable", "ot-hybrid": "limited", managed: "applicable" },
+    profileNotes: {},
+    scenarioBoost: { "supply-chain": 3, "webapp": 2, "apt": 1 },
+    tags: ["application"],
+    tagWeights: []
+  },
+  {
+    id: "restrict-saas-sharing",
+    label: "Restrict external sharing in SaaS",
+    category: "Cloud",
+    tier: "expanded",
+    desc: "Tenant-wide block on new external file sharing while investigating.",
+    dimensions: { effectiveness: 4, speed: 4, reversibility: 5, business: 2, collateral: 3, forensic: 5, authority: 3 },
+    profileApplicability: { flat: "limited", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "applicable", "ot-hybrid": "limited", managed: "applicable" },
+    profileNotes: {},
+    scenarioBoost: { "insider-accidental": 3, "insider-malicious": 3, "exfil": 2 },
+    tags: ["cloud", "data"],
+    tagWeights: ["data_protect"]
+  },
+  {
+    id: "rotate-ad-krbtgt",
+    label: "Rotate AD krbtgt (twice)",
+    category: "Identity",
+    tier: "expanded",
+    desc: "Invalidate Kerberos golden tickets. Required for confirmed AD compromise.",
+    dimensions: { effectiveness: 5, speed: 1, reversibility: 4, business: 3, collateral: 3, forensic: 5, authority: 1 },
+    profileApplicability: { flat: "applicable", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "limited", "ot-hybrid": "applicable", managed: "limited" },
+    profileNotes: {
+      "managed": "Coordinate with AD-management partner — rotation is intrusive."
+    },
+    scenarioBoost: { "apt": 3, "ransomware-pre": 2 },
+    tags: ["identity", "drastic"],
+    tagWeights: ["identity"]
+  },
+  {
+    id: "wan-disconnect",
+    label: "Site-wide WAN disconnect",
+    category: "Network",
+    tier: "expanded",
+    desc: "Disconnect a whole site from the corporate WAN. Wartime.",
+    dimensions: { effectiveness: 5, speed: 5, reversibility: 4, business: 1, collateral: 1, forensic: 4, authority: 1 },
+    profileApplicability: { flat: "limited", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "limited", "ot-hybrid": "limited", managed: "limited" },
+    profileNotes: {
+      "huband-spoke": "Effective at protecting unaffected sites or HQ if a single site is compromised."
+    },
+    scenarioBoost: { "ransomware-active": 3, "supply-chain": 2 },
+    tags: ["network", "drastic"],
+    tagWeights: ["broad", "speed"]
+  },
+  {
+    id: "idp-lockdown",
+    label: "Identity provider full lockdown (admin-only)",
+    category: "Identity",
+    tier: "expanded",
+    desc: "Restrict IdP to break-glass admin access only. Halts all sign-in estate-wide.",
+    dimensions: { effectiveness: 5, speed: 4, reversibility: 4, business: 1, collateral: 1, forensic: 5, authority: 1 },
+    profileApplicability: { flat: "applicable", segmented: "applicable", "huband-spoke": "applicable", federated: "applicable", "cloud-first": "applicable", "ot-hybrid": "applicable", managed: "limited" },
+    profileNotes: {
+      "federated": "Decision affects all subsidiaries on the shared IdP — confirm authority."
+    },
+    scenarioBoost: { "cloud-takeover": 3, "apt": 2 },
+    tags: ["identity", "drastic"],
+    tagWeights: ["identity", "broad"]
+  }
+];
+
+// ============================================================
+// DIMENSION DEFINITIONS (for UI display)
+// ============================================================
+const DIMENSIONS = [
+  { id: "effectiveness", label: "Effectiveness",     short: "Effect.",   desc: "How effective at containing the threat (5 = very effective)." },
+  { id: "speed",         label: "Time to effect",    short: "Speed",     desc: "How fast it takes effect (5 = seconds, 1 = days)." },
+  { id: "reversibility", label: "Reversibility",     short: "Revers.",   desc: "How cleanly you can undo it (5 = trivially reversible)." },
+  { id: "business",      label: "Business impact",   short: "Business",  desc: "Impact on business operations (5 = minimal impact, 1 = major outage)." },
+  { id: "collateral",    label: "Collateral",        short: "Collat.",   desc: "Unintended side-effects on other systems (5 = none, 1 = wide blast radius)." },
+  { id: "forensic",      label: "Forensic cost",     short: "Forensic",  desc: "Impact on evidence preservation (5 = preserves evidence, 1 = destroys it)." },
+  { id: "authority",     label: "Authority needed",  short: "Authority", desc: "Decision authority required (5 = IC alone, 1 = CEO/board sign-off)." }
+];
+
+// ============================================================
+// FRAMEWORKS
+// ============================================================
+const FRAMEWORKS = [
+  {
+    id: "nist-800-61r2",
+    name: "NIST SP 800-61r2 — Computer Security Incident Handling Guide",
+    publisher: "NIST, USA",
+    role: "Containment phase reference",
+    desc: "Section 3.3.1 covers containment strategy choice — the trade-offs between potential damage, evidence preservation, service availability, time and resources, and effectiveness. This tool operationalises those trade-offs as the seven dimensions.",
+    url: "https://csrc.nist.gov/pubs/sp/800/61/r2/final",
+    pdf: "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-61r2.pdf",
+    badge: "PRIMARY"
+  },
+  {
+    id: "ncsc-incident",
+    name: "NCSC Incident Management — Containment guidance",
+    publisher: "NCSC, UK",
+    role: "Practitioner reference (UK)",
+    desc: "NCSC's incident management collection includes specific guidance on containment trade-offs, evidence preservation, and the importance of architectural understanding before action.",
+    url: "https://www.ncsc.gov.uk/collection/incident-management",
+    badge: "UK REFERENCE"
+  },
+  {
+    id: "sans-picerl",
+    name: "SANS PICERL — Containment phase",
+    publisher: "SANS Institute",
+    role: "Practitioner phase model",
+    desc: "PICERL splits containment into short-term (immediate disruption) and long-term (environmental hardening). The dimensions in this tool reflect that split — speed-favouring options serve short-term needs, precision-favouring options serve long-term goals.",
+    url: "https://www.sans.org/white-papers/33901/",
+    badge: "PRACTITIONER"
+  }
+];
+
+
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  stage: 'orient',                    // 'orient' | 'narrow' | 'recommend'
+  profile: null,                      // profile id
+  scenario: null,                     // scenario id
+  narrowing: {},                      // { questionId: optionId }
+  marks: {},                          // { optionId: 'selected' | 'deferred' | 'rejected' }
+  rationales: {},                     // { optionId: text }
+  showExpanded: false                 // toggle for ~20 expanded options
+};
+
+// ============================================================
+// THEME
+// ============================================================
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('dh-theme', t); } catch(e) {}
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  setTheme(cur === 'light' ? 'dark' : 'light');
+}
+(function initTheme(){
+  let saved = null;
+  try { saved = localStorage.getItem('dh-theme'); } catch(e){}
+  if (saved && saved !== 'console') setTheme(saved);
+  else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) setTheme('dark');
+  else setTheme('light');
+})();
+
+// ============================================================
+// HELPERS
+// ============================================================
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function escapeAttr(s) {
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/'/g,"&#39;").replace(/"/g,"&quot;");
+}
+function getProfile(id) { return PROFILES.find(p => p.id === id); }
+function getScenario(id) { return SCENARIOS.find(s => s.id === id); }
+function getOption(id) { return OPTIONS.find(o => o.id === id); }
+function getDimension(id) { return DIMENSIONS.find(d => d.id === id); }
+
+function isNarrowingComplete() {
+  if (!state.scenario) return false;
+  const qs = NARROWING[state.scenario] || [];
+  return qs.every(q => state.narrowing[q.id]);
+}
+
+// ============================================================
+// STAGE NAV
+// ============================================================
+function setStage(stageId) {
+  // Gate transitions
+  if (stageId === 'narrow' && (!state.profile || !state.scenario)) {
+    showToast('Pick a profile and scenario first');
+    return;
+  }
+  if (stageId === 'recommend' && !isNarrowingComplete()) {
+    showToast('Answer all narrowing questions first');
+    return;
+  }
+  state.stage = stageId;
+  renderStageNav();
+  renderStage();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderStageNav() {
+  const orient = document.getElementById('tab-orient');
+  const narrow = document.getElementById('tab-narrow');
+  const recommend = document.getElementById('tab-recommend');
+  // Active
+  [orient, narrow, recommend].forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + state.stage).classList.add('active');
+  // Done states
+  if (state.profile && state.scenario) orient.classList.add('done');
+  else orient.classList.remove('done');
+  if (isNarrowingComplete()) narrow.classList.add('done');
+  else narrow.classList.remove('done');
+  // Disabled states
+  if (state.profile && state.scenario) narrow.classList.remove('disabled');
+  else narrow.classList.add('disabled');
+  if (isNarrowingComplete()) recommend.classList.remove('disabled');
+  else recommend.classList.add('disabled');
+}
+
+function renderStage() {
+  switch(state.stage) {
+    case 'orient':    renderOrient(); break;
+    case 'narrow':    renderNarrow(); break;
+    case 'recommend': renderRecommend(); break;
+  }
+}
+
+// ============================================================
+// STAGE 1: ORIENT
+// ============================================================
+function renderOrient() {
+  const html = `
+    <div class="panel">
+      <h2>Pick your <span class="accent">architecture</span> profile</h2>
+      <p class="lead">Choose the profile that best fits the affected estate. The recommendations weight every option by how it behaves in your environment.</p>
+      <div class="choice-grid">
+        ${PROFILES.map(p => `
+          <button class="choice-card ${state.profile === p.id ? 'selected' : ''}" onclick="setProfile('${p.id}')">
+            <div class="choice-head">
+              <span class="choice-icon">${p.icon}</span>
+              <span>${escapeHtml(p.label)}</span>
+            </div>
+            <div class="choice-desc">${escapeHtml(p.desc)}</div>
+            <div class="choice-keypoint">${escapeHtml(p.keyPoint)}</div>
+          </button>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Pick your <span class="accent">threat</span> scenario</h2>
+      <p class="lead">Choose the scenario that best matches what you're containing. The narrowing questions and recommendations adapt to your choice.</p>
+      <div class="choice-grid">
+        ${SCENARIOS.map(s => `
+          <button class="choice-card scenario ${state.scenario === s.id ? 'selected' : ''}" onclick="setScenario('${s.id}')">
+            <div class="choice-head">
+              <span class="choice-icon">${s.icon}</span>
+              <span style="flex:1;">${escapeHtml(s.label)}</span>
+              <span class="scenario-sev ${s.severity}">${escapeHtml(s.severity)}</span>
+            </div>
+            <div class="choice-desc">${escapeHtml(s.desc)}</div>
+            <div class="choice-keypoint"><strong>Primary goal:</strong> ${escapeHtml(s.primaryGoal)}</div>
+          </button>
+        `).join('')}
+      </div>
+
+      <div class="continue-bar">
+        <div class="summary">
+          ${state.profile ? `<strong>${escapeHtml(getProfile(state.profile).short)}</strong>` : '<em>No profile</em>'}
+           &nbsp;·&nbsp;
+          ${state.scenario ? `<strong>${escapeHtml(getScenario(state.scenario).short)}</strong>` : '<em>No scenario</em>'}
+        </div>
+        <button class="btn primary lg" onclick="setStage('narrow')" ${(!state.profile || !state.scenario) ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>
+          Continue → Narrow
+        </button>
+      </div>
+    </div>
+  `;
+  document.getElementById('stageContent').innerHTML = html;
+}
+
+function setProfile(id) {
+  state.profile = id;
+  renderStageNav();
+  renderOrient();
+}
+function setScenario(id) {
+  state.scenario = id;
+  // Clear narrowing answers when scenario changes (since questions are different)
+  state.narrowing = {};
+  renderStageNav();
+  renderOrient();
+}
+
+// ============================================================
+// STAGE 2: NARROW
+// ============================================================
+function renderNarrow() {
+  const scenario = getScenario(state.scenario);
+  const qs = NARROWING[state.scenario] || [];
+
+  const html = `
+    <div class="panel">
+      <h2>Narrowing <span class="accent">questions</span></h2>
+      <p class="lead">Answer ${qs.length} scenario-specific questions. Your answers shift the weighting on each containment option — you'll see the result on the next screen.</p>
+
+      <div class="context-summary">
+        <div class="ctx-block"><div class="ctx-label">Profile</div><div class="ctx-value">${escapeHtml(getProfile(state.profile).label)}</div></div>
+        <div class="ctx-block"><div class="ctx-label">Scenario</div><div class="ctx-value">${escapeHtml(scenario.label)}</div></div>
+      </div>
+
+      ${qs.map((q, i) => `
+        <div class="narrow-q">
+          <div class="narrow-q-num">Question ${i+1} of ${qs.length}</div>
+          <div class="narrow-q-text">${escapeHtml(q.text)}</div>
+          <div class="narrow-options">
+            ${q.options.map(opt => `
+              <button class="narrow-option ${state.narrowing[q.id] === opt.id ? 'selected' : ''}" onclick="setNarrowing('${q.id}', '${opt.id}')">
+                <div class="marker"></div>
+                <div>${escapeHtml(opt.label)}</div>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `).join('')}
+
+      <div class="continue-bar">
+        <div class="summary">
+          ${Object.keys(state.narrowing).length} of ${qs.length} answered
+        </div>
+        <button class="btn" onclick="setStage('orient')">← Back to Orient</button>
+        <button class="btn primary lg" onclick="setStage('recommend')" ${!isNarrowingComplete() ? 'disabled style="opacity:0.4;cursor:not-allowed;"' : ''}>
+          See recommendations →
+        </button>
+      </div>
+    </div>
+  `;
+  document.getElementById('stageContent').innerHTML = html;
+}
+
+function setNarrowing(questionId, optionId) {
+  state.narrowing[questionId] = optionId;
+  renderStageNav();
+  renderNarrow();
+}
+
+// ============================================================
+// SCORING ENGINE
+// ============================================================
+// For each option:
+//   1. Start with sum of dimensions (effectiveness, speed, etc.)
+//   2. Apply scenarioBoost for current scenario
+//   3. Apply tagWeights based on accumulated narrowing weights
+//   4. Profile applicability gates: 'na' → tier "na", 'limited' → small penalty
+//   5. Tier assignment based on final score + applicability
+// ============================================================
+
+function getNarrowingWeights() {
+  const weights = {};
+  if (!state.scenario) return weights;
+  const qs = NARROWING[state.scenario] || [];
+  qs.forEach(q => {
+    const ans = state.narrowing[q.id];
+    if (!ans) return;
+    const opt = q.options.find(o => o.id === ans);
+    if (!opt || !opt.weight) return;
+    Object.entries(opt.weight).forEach(([k, v]) => {
+      weights[k] = (weights[k] || 0) + v;
+    });
+  });
+  return weights;
+}
+
+function scoreOption(option) {
+  // Base: effectiveness * 2 (most important) + speed + reversibility + (5 - business inverse) etc.
+  // We want options that are: high effectiveness, fast, reversible, low business impact, low collateral, low forensic cost, easy authority
+  const d = option.dimensions;
+  let base = d.effectiveness * 2 + d.speed + d.reversibility * 0.5 +
+             d.business * 0.7 + d.collateral * 0.7 + d.forensic * 0.5 + d.authority * 0.3;
+
+  // Scenario boost (option's relevance for this scenario)
+  const scenarioBoost = (option.scenarioBoost && option.scenarioBoost[state.scenario]) || 0;
+  let score = base + scenarioBoost * 2;
+
+  // Narrowing tag weights — if option's tagWeights match active narrowing weight keys, boost
+  const weights = getNarrowingWeights();
+  if (option.tagWeights) {
+    option.tagWeights.forEach(tag => {
+      if (weights[tag]) score += weights[tag] * 0.6;
+    });
+  }
+
+  // Profile applicability adjustment
+  const appl = option.profileApplicability[state.profile];
+  if (appl === 'limited') score -= 3;
+
+  return { score, base, scenarioBoost, applicability: appl };
+}
+
+function categoriseOption(option) {
+  const { score, applicability } = scoreOption(option);
+
+  // Hard gate: if not applicable, tier = "na"
+  if (applicability === 'na') return { tier: 'na', score, applicability };
+
+  // Determine band by score thresholds
+  // Typical score range with all dims at 5 = 5*2 + 5 + 5*0.5 + 5*0.7*3 + 5*0.5 + 5*0.3 = 10+5+2.5+10.5+2.5+1.5 = 32
+  // Plus scenario boost (max ~6) and tag weights (max ~10) → realistic top ~45
+  // Realistic floor with limited profile and zero boost ~10
+  if (score >= 28) return { tier: 'first', score, applicability };
+  if (score >= 20) return { tier: 'care', score, applicability };
+  return { tier: 'avoid', score, applicability };
+}
+
+function getRankedOptions() {
+  const visibleOptions = state.showExpanded ? OPTIONS : OPTIONS.filter(o => o.tier === 'core');
+  const ranked = visibleOptions.map(o => ({
+    option: o,
+    ...categoriseOption(o)
+  }));
+  ranked.sort((a, b) => b.score - a.score);
+  return ranked;
+}
+
+// ============================================================
+// STAGE 3: RECOMMEND
+// ============================================================
+function renderRecommend() {
+  const profile = getProfile(state.profile);
+  const scenario = getScenario(state.scenario);
+  const ranked = getRankedOptions();
+
+  // Group by tier
+  const tiers = {
+    first: { label: "Consider first", desc: "High-effectiveness, low-collateral options that fit your context.", items: [] },
+    care:  { label: "Consider with care", desc: "Effective but with significant trade-offs — read the warnings.", items: [] },
+    avoid: { label: "Avoid", desc: "Low effectiveness or excessive cost for this context.", items: [] },
+    na:    { label: "Not applicable to your architecture", desc: "These options don't fit your profile.", items: [] }
+  };
+  ranked.forEach(r => tiers[r.tier].items.push(r));
+
+  const expandedCount = OPTIONS.filter(o => o.tier === 'expanded').length;
+
+  let html = `
+    <div class="panel">
+      <h2>Containment <span class="accent">options</span></h2>
+      <p class="lead">Ranked by relevance to your context. Each option shows seven trade-off dimensions, profile-specific warnings, and a one-line "what this means". Mark options as Selected, Deferred, or Rejected with a rationale — the JSON export captures everything for the IR record.</p>
+
+      <div class="context-summary">
+        <div class="ctx-block"><div class="ctx-label">Profile</div><div class="ctx-value">${escapeHtml(profile.label)}</div></div>
+        <div class="ctx-block"><div class="ctx-label">Scenario</div><div class="ctx-value">${escapeHtml(scenario.label)}</div></div>
+        <div class="ctx-block"><div class="ctx-label">Narrowing</div><div class="ctx-value">${Object.keys(state.narrowing).length} answered</div></div>
+        <div class="ctx-block"><div class="ctx-label">Options shown</div><div class="ctx-value">${ranked.length}${state.showExpanded ? ' (all)' : ` (core only)`}</div></div>
+      </div>
+
+      <button class="expand-toggle" onclick="toggleExpanded()">
+        <span class="icon">${state.showExpanded ? '−' : '+'}</span>
+        <span class="label">${state.showExpanded ? 'Hide expanded options' : `Show expanded options (${expandedCount} more)`}</span>
+        <span class="count">${state.showExpanded ? `${OPTIONS.length} of ${OPTIONS.length} visible` : `${OPTIONS.filter(o=>o.tier==='core').length} of ${OPTIONS.length} visible`}</span>
+      </button>
+
+      ${['first', 'care', 'avoid', 'na'].map(tierId => {
+        const tier = tiers[tierId];
+        if (tier.items.length === 0) return '';
+        return `
+          <div class="tier-band ${tierId}">
+            <div class="tier-band-head">
+              <h3>${escapeHtml(tier.label)}</h3>
+              <span class="count">${tier.items.length}</span>
+              <span class="meta">${escapeHtml(tier.desc)}</span>
+            </div>
+            <div class="option-list">
+              ${tier.items.map(r => renderOption(r)).join('')}
+            </div>
+          </div>
+        `;
+      }).join('')}
+
+      <h3 style="margin-top:24px;">Frameworks referenced</h3>
+      <div class="frameworks-grid">
+        ${FRAMEWORKS.map(fw => `
+          <div class="fw-card">
+            <h4><span class="fw-badge">${escapeHtml(fw.badge)}</span><span>${escapeHtml(fw.name)}</span></h4>
+            <div class="fw-meta">${escapeHtml(fw.publisher)}</div>
+            <div class="fw-desc">${escapeHtml(fw.desc)}</div>
+            <div class="fw-links">
+              ${fw.url ? `<a href="${escapeAttr(fw.url)}" target="_blank" rel="noopener">Official ↗</a>` : ''}
+              ${fw.pdf ? `<a href="${escapeAttr(fw.pdf)}" target="_blank" rel="noopener">PDF ↗</a>` : ''}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+  document.getElementById('stageContent').innerHTML = html;
+}
+
+function renderOption(r) {
+  const o = r.option;
+  const profileNote = o.profileNotes && o.profileNotes[state.profile];
+  const mark = state.marks[o.id] || null;
+  const rationale = state.rationales[o.id] || '';
+
+  return `
+    <div class="option" id="opt-${o.id}">
+      <div>
+        <div class="option-head">
+          <span class="option-cat">${escapeHtml(o.category)}</span>
+          <span class="option-title">${escapeHtml(o.label)}</span>
+        </div>
+        <div class="option-desc">${escapeHtml(o.desc)}</div>
+        ${renderDimensionGrid(o.dimensions)}
+        ${profileNote ? `<div class="option-note">${escapeHtml(profileNote)}</div>` : ''}
+      </div>
+      <div class="option-actions">
+        <button class="mark-btn ${mark === 'selected' ? 'selected selected-mark' : ''}" onclick="setMark('${o.id}', 'selected')">✓ Selected</button>
+        <button class="mark-btn ${mark === 'deferred' ? 'selected deferred-mark' : ''}" onclick="setMark('${o.id}', 'deferred')">↺ Deferred</button>
+        <button class="mark-btn ${mark === 'rejected' ? 'selected rejected-mark' : ''}" onclick="setMark('${o.id}', 'rejected')">✕ Rejected</button>
+        ${mark ? `<textarea class="rationale-input" placeholder="Rationale for IR record..." oninput="setRationale('${o.id}', this.value)">${escapeHtml(rationale)}</textarea>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function renderDimensionGrid(dims) {
+  return `<div class="dim-grid">
+    ${DIMENSIONS.map(d => {
+      const val = dims[d.id];
+      const cls = val >= 4 ? 'high' : val >= 3 ? 'med' : 'low';
+      return `<div class="dim-cell" title="${escapeAttr(d.desc)}">
+        <div class="dim-label">${escapeHtml(d.short)}</div>
+        <div class="dim-bar">
+          ${[1,2,3,4,5].map(i => `<div class="dim-bar-seg ${i <= val ? 'filled ' + cls : ''}"></div>`).join('')}
+        </div>
+        <div class="dim-value">${val}/5</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function toggleExpanded() {
+  state.showExpanded = !state.showExpanded;
+  renderRecommend();
+}
+
+function setMark(optionId, mark) {
+  // Toggle off if clicking the same mark again
+  if (state.marks[optionId] === mark) {
+    delete state.marks[optionId];
+    delete state.rationales[optionId];
+  } else {
+    state.marks[optionId] = mark;
+  }
+  renderRecommend();
+}
+
+function setRationale(optionId, text) {
+  state.rationales[optionId] = text;
+  // Don't re-render — keeps focus in the textarea
+}
+
+// ============================================================
+// EXPORTS
+// ============================================================
+function buildExportPayload() {
+  const profile = getProfile(state.profile);
+  const scenario = getScenario(state.scenario);
+  const ranked = getRankedOptions();
+
+  // Capture all option scores for forward compatibility
+  const optionScores = {};
+  OPTIONS.forEach(o => {
+    const r = categoriseOption(o);
+    optionScores[o.id] = {
+      tier: r.tier,
+      score: Math.round(r.score * 10) / 10,
+      applicability: r.applicability
+    };
+  });
+
+  // Capture decisions made
+  const decisions = Object.entries(state.marks).map(([optionId, mark]) => {
+    const opt = getOption(optionId);
+    return {
+      optionId,
+      label: opt ? opt.label : optionId,
+      category: opt ? opt.category : '',
+      mark,
+      rationale: state.rationales[optionId] || ''
+    };
+  });
+
+  // Narrowing answers in human-readable form
+  const narrowingAnswers = [];
+  if (state.scenario) {
+    const qs = NARROWING[state.scenario] || [];
+    qs.forEach(q => {
+      const ans = state.narrowing[q.id];
+      if (ans) {
+        const opt = q.options.find(o => o.id === ans);
+        narrowingAnswers.push({
+          questionId: q.id,
+          question: q.text,
+          answer: opt ? opt.label : ans
+        });
+      }
+    });
+  }
+
+  return {
+    schema: "dh-containment-decisions",
+    schemaVersion: 1,
+    framework: "NIST SP 800-61r2 + NCSC + SANS PICERL",
+    exported: new Date().toISOString(),
+    context: {
+      profile: profile ? { id: profile.id, label: profile.label } : null,
+      scenario: scenario ? { id: scenario.id, label: scenario.label, severity: scenario.severity } : null,
+      narrowing: narrowingAnswers
+    },
+    decisions,
+    optionScores,
+    notes: "Schema 'dh-containment-decisions' is forward-compatible for ingestion by the Incident Command Console (ICCC). The 'decisions' array captures the IC's marked options and rationale; 'optionScores' captures the tool's full ranking for context."
+  };
+}
+
+function exportJSON() {
+  const payload = buildExportPayload();
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const slug = state.scenario || 'containment';
+  a.href = url;
+  a.download = `cdm-${slug}-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast('JSON exported');
+}
+
+function loadJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const payload = JSON.parse(e.target.result);
+      if (payload.schema !== 'dh-containment-decisions') {
+        showToast('File schema not recognised');
+        return;
+      }
+      // Restore context
+      const ctx = payload.context || {};
+      if (ctx.profile && ctx.profile.id) state.profile = ctx.profile.id;
+      if (ctx.scenario && ctx.scenario.id) state.scenario = ctx.scenario.id;
+      // Restore narrowing
+      state.narrowing = {};
+      (ctx.narrowing || []).forEach(item => {
+        if (state.scenario) {
+          const qs = NARROWING[state.scenario] || [];
+          const q = qs.find(qq => qq.id === item.questionId);
+          if (q) {
+            const opt = q.options.find(o => o.label === item.answer);
+            if (opt) state.narrowing[q.id] = opt.id;
+          }
+        }
+      });
+      // Restore decisions
+      state.marks = {};
+      state.rationales = {};
+      (payload.decisions || []).forEach(d => {
+        state.marks[d.optionId] = d.mark;
+        if (d.rationale) state.rationales[d.optionId] = d.rationale;
+      });
+      // Go to recommend view if all complete
+      if (isNarrowingComplete()) state.stage = 'recommend';
+      else if (state.profile && state.scenario) state.stage = 'narrow';
+      else state.stage = 'orient';
+      renderStageNav();
+      renderStage();
+      showToast('Loaded successfully');
+    } catch (err) {
+      showToast('Could not parse file');
+      console.error(err);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function exportMarkdown() {
+  const profile = getProfile(state.profile);
+  const scenario = getScenario(state.scenario);
+  const lines = [];
+
+  lines.push(`# Containment Decision Record`);
+  lines.push('');
+  lines.push(`**Generated:** ${new Date().toLocaleString('en-GB')}`);
+  lines.push(`**Profile:** ${profile ? profile.label : '(not set)'}`);
+  lines.push(`**Scenario:** ${scenario ? scenario.label : '(not set)'}`);
+  lines.push('');
+
+  if (state.scenario && Object.keys(state.narrowing).length > 0) {
+    lines.push('## Narrowing context');
+    const qs = NARROWING[state.scenario] || [];
+    qs.forEach(q => {
+      const ans = state.narrowing[q.id];
+      if (ans) {
+        const opt = q.options.find(o => o.id === ans);
+        lines.push(`- **${q.text}** ${opt ? opt.label : ans}`);
+      }
+    });
+    lines.push('');
+  }
+
+  // Group decisions
+  const selected = [];
+  const deferred = [];
+  const rejected = [];
+  Object.entries(state.marks).forEach(([oid, mark]) => {
+    const opt = getOption(oid);
+    if (!opt) return;
+    const item = { opt, rationale: state.rationales[oid] || '' };
+    if (mark === 'selected') selected.push(item);
+    else if (mark === 'deferred') deferred.push(item);
+    else if (mark === 'rejected') rejected.push(item);
+  });
+
+  if (selected.length > 0) {
+    lines.push(`## Selected (${selected.length})`);
+    selected.forEach(({ opt, rationale }) => {
+      lines.push(`### ${opt.label}`);
+      lines.push(`_${opt.category} — ${opt.desc}_`);
+      if (rationale) lines.push(`**Rationale:** ${rationale}`);
+      lines.push('');
+    });
+  }
+
+  if (deferred.length > 0) {
+    lines.push(`## Deferred (${deferred.length})`);
+    deferred.forEach(({ opt, rationale }) => {
+      lines.push(`### ${opt.label}`);
+      lines.push(`_${opt.category} — ${opt.desc}_`);
+      if (rationale) lines.push(`**Rationale:** ${rationale}`);
+      lines.push('');
+    });
+  }
+
+  if (rejected.length > 0) {
+    lines.push(`## Rejected (${rejected.length})`);
+    rejected.forEach(({ opt, rationale }) => {
+      lines.push(`### ${opt.label}`);
+      lines.push(`_${opt.category} — ${opt.desc}_`);
+      if (rationale) lines.push(`**Rationale:** ${rationale}`);
+      lines.push('');
+    });
+  }
+
+  if (selected.length + deferred.length + rejected.length === 0) {
+    lines.push('## No decisions marked');
+    lines.push('_No options have been marked as Selected, Deferred, or Rejected._');
+  }
+
+  lines.push('---');
+  lines.push('_Exported from Containment Decision Matrix — decision support, not advice. NIST SP 800-61r2 / NCSC / SANS PICERL aligned._');
+
+  const md = lines.join('\n');
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `cdm-decisions-${new Date().toISOString().slice(0, 10)}.md`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast('Markdown exported');
+}
+
+// ============================================================
+// RESET
+// ============================================================
+function resetAll() {
+  if ((state.profile || state.scenario || Object.keys(state.marks).length > 0) &&
+      !confirm('Reset everything? Profile, scenario, narrowing answers, and marked decisions will be cleared.')) return;
+  state.stage = 'orient';
+  state.profile = null;
+  state.scenario = null;
+  state.narrowing = {};
+  state.marks = {};
+  state.rationales = {};
+  state.showExpanded = false;
+  renderStageNav();
+  renderStage();
+  showToast('Reset');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  renderStageNav();
+  renderStage();
+});
+
+</script>
+</body>
+</html>
