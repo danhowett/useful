@@ -1,0 +1,1828 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Quiet Quarter — A cyber incident simulation</title>
+<script>
+// Pre-paint theme init — set data-theme before stylesheet evaluates to avoid FOUC.
+// Uses the same 'dh-theme' key as the rest of the suite so the preference carries across tools.
+(function(){
+  let saved = null;
+  try { saved = localStorage.getItem('dh-theme'); } catch(e){}
+  let t;
+  if (saved === 'light' || saved === 'dark') t = saved;
+  else if (saved === 'console') t = 'dark'; // game has no console mode; fall back to dark
+  else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) t = 'dark';
+  else t = 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* ===== LIGHT (default) — matches CIRA/PPMA suite convention ===== */
+  --bg: #fafaf7;
+  --bg-elev: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f7f6f1;
+  --bg-muted: #f3f3ee;
+  --border: #e5e3dc;
+  --border-strong: #d4d1c7;
+  --text: #1a1a1a;
+  --text-2: #3a3a37;
+  --text-muted: #6a6a64;
+  --text-dim: #8a8a82;
+  --accent: #2d5a4f;
+  --accent-soft: #e6efeb;
+  --accent-bright: #3b7a6a;
+  --warn: #b35a1e;
+  --warn-soft: #fbeede;
+  --danger: #a8331f;
+  --danger-soft: #f7e0db;
+  --ok: #4a7a3f;
+  --ok-soft: #e6efe1;
+  /* Gauge colours — slightly desaturated/darkened for readability on light bg */
+  --gauge-time: #3b7a6a;
+  --gauge-budget: #c97a1c;
+  --gauge-analyst: #5566c9;
+  --gauge-business: #c14070;
+  --gauge-trust: #8b56d6;
+  --gauge-forensic: #2d8a82;
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+}
+
+/* ===== DARK ===== */
+[data-theme="dark"] {
+  --bg: #0e1217;
+  --bg-elev: #161b22;
+  --bg-card: #1c222c;
+  --bg-card-hover: #232a35;
+  --bg-muted: #232a35;
+  --border: #2a323d;
+  --border-strong: #3a4452;
+  --text: #e8ebef;
+  --text-2: #c5cad2;
+  --text-muted: #8b95a2;
+  --text-dim: #6b7280;
+  --accent: #4ade9f;
+  --accent-soft: #1f3329;
+  --accent-bright: #6efbb6;
+  --warn: #f5a524;
+  --warn-soft: #3a2a10;
+  --danger: #ef6155;
+  --danger-soft: #3a1c1a;
+  --ok: #4ade9f;
+  --ok-soft: #1f3329;
+  --gauge-time: #4ade9f;
+  --gauge-budget: #f5a524;
+  --gauge-analyst: #8b9bf5;
+  --gauge-business: #f06292;
+  --gauge-trust: #c084fc;
+  --gauge-forensic: #5eead4;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg); color: var(--text);
+  font-family: var(--font-body); font-size: 14px; line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+body {
+  background-attachment: fixed;
+}
+[data-theme="dark"] body {
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(74, 222, 159, 0.06), transparent),
+    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(192, 132, 252, 0.04), transparent);
+}
+
+/* ===== HEADER ===== */
+.app-header {
+  padding: 20px 36px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 18px;
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(250, 250, 247, 0.85);
+  backdrop-filter: blur(10px);
+}
+[data-theme="dark"] .app-header {
+  background: rgba(14, 18, 23, 0.85);
+}
+.brand {
+  font-family: var(--font-display);
+  font-size: 17px; font-weight: 600;
+  letter-spacing: -0.01em;
+  display: flex; align-items: center; gap: 12px;
+}
+.brand .glyph {
+  color: var(--accent); font-size: 18px;
+}
+.brand .pipe { color: var(--text-dim); font-weight: 400; }
+.brand .sub {
+  font-family: var(--font-body); font-size: 12px;
+  font-weight: 500; color: var(--text-muted);
+}
+.header-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+.theme-toggle {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.theme-toggle:hover {
+  background: var(--bg-muted); color: var(--text);
+}
+.theme-toggle svg { width: 16px; height: 16px; }
+.sun-icon { display: none; }
+.moon-icon { display: block; }
+[data-theme="dark"] .sun-icon { display: block; }
+[data-theme="dark"] .moon-icon { display: none; }
+.btn {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text); padding: 7px 14px;
+  border-radius: 6px; font-size: 12px; font-weight: 500;
+  cursor: pointer; font-family: var(--font-body);
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: all 0.15s;
+}
+.btn:hover { background: var(--bg-card); border-color: var(--text-muted); }
+.btn.primary { background: var(--accent); color: #ffffff; border-color: var(--accent); font-weight: 600; }
+.btn.primary:hover { background: var(--accent-bright); border-color: var(--accent-bright); color: #ffffff; }
+[data-theme="dark"] .btn.primary { color: #0a1410; }
+[data-theme="dark"] .btn.primary:hover { color: #0a1410; }
+.btn.ghost { border-color: var(--border); }
+.btn.sm { padding: 5px 10px; font-size: 11px; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ===== LAYOUT ===== */
+.main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 36px 36px 80px;
+}
+
+/* ===== TITLE SCREEN ===== */
+.title-screen {
+  text-align: left;
+  padding: 60px 0 40px;
+  max-width: 760px;
+}
+.title-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+.title-screen h1 {
+  font-family: var(--font-display);
+  font-size: 64px; font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.02;
+  margin-bottom: 10px;
+}
+.title-screen h1 em {
+  font-style: italic;
+  color: var(--accent);
+}
+.title-screen .tagline {
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 400;
+  font-style: italic;
+  color: var(--text-2);
+  margin-bottom: 36px;
+  line-height: 1.4;
+}
+.title-screen .lead {
+  font-size: 16px; line-height: 1.7;
+  color: var(--text-2);
+  margin-bottom: 18px;
+  max-width: 680px;
+}
+.title-screen .meta-row {
+  display: flex; gap: 28px;
+  margin: 32px 0 36px;
+  padding: 16px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.meta-item {
+  font-size: 12px;
+}
+.meta-item .meta-label {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+.meta-item .meta-value {
+  font-family: var(--font-body);
+  font-size: 13px; font-weight: 500;
+  color: var(--text);
+}
+.briefing {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  padding: 22px 26px;
+  margin-bottom: 28px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-2);
+}
+.briefing h3 {
+  font-family: var(--font-display);
+  font-size: 16px; font-weight: 600;
+  color: var(--text); margin-bottom: 8px;
+}
+.start-actions { display: flex; gap: 12px; align-items: center; }
+
+/* ===== GAUGE PANEL ===== */
+.gauge-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 28px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+}
+.gauge {
+  display: flex; flex-direction: column;
+  gap: 6px;
+}
+.gauge-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 11px;
+}
+.gauge-label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.gauge-value {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+}
+.gauge-track {
+  height: 4px;
+  background: var(--bg-muted);
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+.gauge-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background 0.6s;
+}
+.gauge[data-id="time"]     .gauge-fill { background: var(--gauge-time); }
+.gauge[data-id="budget"]   .gauge-fill { background: var(--gauge-budget); }
+.gauge[data-id="analyst"]  .gauge-fill { background: var(--gauge-analyst); }
+.gauge[data-id="business"] .gauge-fill { background: var(--gauge-business); }
+.gauge[data-id="trust"]    .gauge-fill { background: var(--gauge-trust); }
+.gauge[data-id="forensic"] .gauge-fill { background: var(--gauge-forensic); }
+.gauge-fill.low { background: var(--danger) !important; }
+.gauge-fill.crit { background: var(--danger) !important; animation: pulse-crit 1.2s ease-in-out infinite; }
+@keyframes pulse-crit {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+/* ===== TURN ===== */
+.turn-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 32px 36px;
+  margin-bottom: 24px;
+  position: relative;
+}
+.turn-header {
+  display: flex; gap: 12px; align-items: baseline;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.turn-id {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+  padding: 3px 9px;
+  background: var(--accent-soft);
+  border-radius: 4px;
+}
+.turn-clock {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.turn-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 6px 0 14px;
+  line-height: 1.15;
+}
+.situation {
+  font-size: 15.5px;
+  line-height: 1.7;
+  color: var(--text-2);
+  margin-bottom: 12px;
+}
+.situation-extra {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-2);
+  padding: 14px 18px;
+  background: var(--bg-elev);
+  border-left: 2px solid var(--warn);
+  border-radius: 4px;
+  margin-bottom: 14px;
+  font-style: italic;
+}
+.situation code, .situation-extra code, .beat code, .review-section code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--accent-soft);
+  color: var(--accent);
+  padding: 1px 5px; border-radius: 3px;
+}
+[data-theme="dark"] .situation code,
+[data-theme="dark"] .situation-extra code,
+[data-theme="dark"] .beat code,
+[data-theme="dark"] .review-section code {
+  color: var(--accent-bright);
+}
+
+/* ===== CHOICES ===== */
+.choices-prompt {
+  font-family: var(--font-mono);
+  font-size: 10.5px; letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 22px 0 12px;
+  font-weight: 600;
+}
+.choice-list {
+  display: grid; gap: 10px;
+}
+.choice {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+  font-family: var(--font-body);
+  color: var(--text);
+  position: relative;
+}
+.choice:hover {
+  border-color: var(--accent);
+  background: var(--bg-card-hover);
+  transform: translateX(2px);
+}
+.choice-label {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+  margin-bottom: 5px;
+  display: flex; gap: 10px; align-items: center;
+}
+.choice-key {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 2px 6px;
+  border-radius: 3px;
+  letter-spacing: 0.1em;
+}
+.choice-brief {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+.choice-cost {
+  margin-top: 10px;
+  display: flex; flex-wrap: wrap; gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+}
+.cost-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--bg-muted);
+  color: var(--text-muted);
+  border: 1px solid transparent;
+}
+.cost-pill.negative { color: var(--danger); background: var(--danger-soft); }
+.cost-pill.positive { color: var(--ok); background: var(--ok-soft); }
+
+/* ===== BEAT (post-choice) ===== */
+.beat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px 32px;
+  margin-bottom: 24px;
+  border-left: 3px solid var(--accent);
+}
+.beat-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.beat-text {
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--text-2);
+  margin-bottom: 20px;
+}
+.beat-actions {
+  display: flex; gap: 10px; align-items: center;
+}
+
+/* ===== ENDING ===== */
+.ending-screen {
+  padding-top: 12px;
+}
+.ending-headline {
+  margin-bottom: 36px;
+  padding: 40px 0 32px;
+  border-bottom: 1px solid var(--border);
+}
+.ending-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+.ending-title {
+  font-family: var(--font-display);
+  font-size: 72px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin-bottom: 14px;
+}
+.ending-subtitle {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--text-2);
+  line-height: 1.4;
+  max-width: 720px;
+}
+.ending-section {
+  margin-bottom: 44px;
+}
+.ending-section h2 {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  margin-bottom: 18px;
+}
+.ending-section .section-help {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  margin-bottom: 18px;
+  max-width: 680px;
+  line-height: 1.6;
+}
+
+/* outcome bars */
+.outcome-bars {
+  display: grid; gap: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 24px;
+}
+.outcome-row {
+  display: grid;
+  grid-template-columns: 200px 1fr 50px;
+  gap: 14px;
+  align-items: center;
+  font-size: 13px;
+}
+.outcome-label { color: var(--text-2); font-weight: 500; }
+.outcome-track {
+  height: 8px;
+  background: var(--bg-muted);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.outcome-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.outcome-fill.tier-high   { background: var(--ok); }
+.outcome-fill.tier-mid    { background: var(--warn); }
+.outcome-fill.tier-low    { background: var(--danger); }
+.outcome-score {
+  font-family: var(--font-mono);
+  font-size: 12px; font-weight: 600;
+  color: var(--text);
+  text-align: right;
+}
+
+/* attacker truth */
+.truth-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-left: 3px solid var(--danger);
+  border-radius: 10px;
+  padding: 22px 26px;
+}
+.truth-card h3 {
+  font-family: var(--font-display);
+  font-size: 18px; font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.truth-card .truth-tagline {
+  font-size: 12.5px; color: var(--text-muted);
+  margin-bottom: 18px;
+  font-style: italic;
+}
+.truth-grid {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 8px 18px;
+  font-size: 13px;
+}
+.truth-grid dt {
+  font-family: var(--font-mono);
+  font-size: 10.5px; letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding-top: 1px;
+}
+.truth-grid dd { color: var(--text-2); }
+
+/* review of turns */
+.review-turn {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.review-head {
+  display: grid;
+  grid-template-columns: 50px 1fr auto auto;
+  gap: 14px;
+  align-items: center;
+  padding: 16px 22px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+.review-head:hover { background: var(--bg-card-hover); }
+.review-head .review-id {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-align: center;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+.review-head .review-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+}
+.review-head .review-verdict {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+.review-verdict.v-good { background: var(--ok-soft); color: var(--ok); }
+.review-verdict.v-mid  { background: var(--warn-soft); color: var(--warn); }
+.review-verdict.v-bad  { background: var(--danger-soft); color: var(--danger); }
+.review-head .review-chev {
+  color: var(--text-muted);
+  font-size: 14px;
+  transition: transform 0.2s;
+}
+.review-turn[data-open="true"] .review-chev { transform: rotate(90deg); }
+.review-body {
+  display: none;
+  padding: 4px 22px 22px;
+  border-top: 1px solid var(--border);
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--text-2);
+}
+.review-turn[data-open="true"] .review-body { display: block; }
+.review-section {
+  margin-top: 14px;
+}
+.review-section .label {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.review-section .body { color: var(--text-2); }
+.review-section.hidden-truth {
+  padding: 14px 16px;
+  border-left: 2px solid var(--warn);
+  background: var(--bg-elev);
+  border-radius: 4px;
+}
+.review-section.verdict {
+  padding: 14px 16px;
+  border-left: 2px solid var(--accent);
+  background: var(--bg-elev);
+  border-radius: 4px;
+}
+
+/* progress strip */
+.progress-strip {
+  display: flex; align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+}
+.progress-dots { display: flex; gap: 4px; }
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--border-strong);
+}
+.dot.done { background: var(--accent); }
+.dot.active {
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* keyboard hint */
+.kb-hint {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 10px;
+  letter-spacing: 0.06em;
+}
+.kb-key {
+  background: var(--bg-muted);
+  border: 1px solid var(--border-strong);
+  border-bottom-width: 2px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+/* footer */
+.app-footer {
+  padding: 30px 36px;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--text-dim);
+  border-top: 1px solid var(--border);
+  margin-top: 60px;
+}
+
+@media (max-width: 800px) {
+  .gauge-panel { grid-template-columns: repeat(3, 1fr); }
+  .title-screen h1 { font-size: 44px; }
+  .ending-title { font-size: 48px; }
+  .outcome-row { grid-template-columns: 130px 1fr 40px; }
+  .truth-grid { grid-template-columns: 1fr; }
+  .turn-card, .beat-card { padding: 22px; }
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <span class="glyph">◆</span>
+    <span>The Quiet Quarter</span>
+    <span class="pipe">/</span>
+    <span class="sub">A cyber incident simulation</span>
+  </div>
+  <div class="header-actions">
+    <span id="progressStrip" class="progress-strip" style="display:none">
+      <span>TURN</span>
+      <span class="progress-dots" id="progressDots"></span>
+    </span>
+    <button class="btn ghost sm" id="restartBtn" onclick="confirmRestart()" style="display:none">Restart</button>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- TITLE SCREEN -->
+  <section id="screen-title">
+    <div class="title-screen">
+      <div class="title-eyebrow">Cyber Tabletop</div>
+      <h1>The Quiet <em>Quarter</em></h1>
+      <div class="tagline">A patient adversary. A narrow window. Eight decisions that don't have right answers.</div>
+
+      <p class="lead">
+        You are the Incident Commander. At 03:14 last night your SOC flagged a single
+        suspicious sign-in. By Friday evening you'll know what kind of organisation
+        yours is — not because the threat will tell you, but because the choices you
+        make in the next eight turns will.
+      </p>
+
+      <p class="lead">
+        Every choice spends from a budget you can see. Every choice also sets
+        consequences you can't — yet. There are multiple paths to a good outcome, and
+        more paths to bad ones. At the end, you'll see what was actually happening
+        behind the alerts.
+      </p>
+
+      <div class="meta-row">
+        <div class="meta-item">
+          <div class="meta-label">Format</div>
+          <div class="meta-value">8 turns · ~25 min</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Role</div>
+          <div class="meta-value">Incident Commander</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Scenario</div>
+          <div class="meta-value">Ransomware · Double extortion</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Replayable</div>
+          <div class="meta-value">Branched outcomes</div>
+        </div>
+      </div>
+
+      <div class="briefing">
+        <h3>Pre-game briefing</h3>
+        <p>
+          Your organisation is mid-sized (~1,500 staff), UK-based, regulated under
+          UK GDPR. You hold significant customer PII and some sensitive HR records.
+          You have a competent SOC, a Veeam backup estate, an EDR rollout that's
+          ~85% complete, a managed service provider for infrastructure, and a cyber
+          insurance policy with a £25M limit. Today is Tuesday morning.
+        </p>
+      </div>
+
+      <div class="start-actions">
+        <button class="btn primary" onclick="startGame()">Begin Tuesday →</button>
+        <button class="btn ghost" onclick="resumeGame()" id="resumeBtn" style="display:none">Resume saved game</button>
+      </div>
+      <div class="kb-hint">
+        Tip: use <span class="kb-key">1</span> <span class="kb-key">2</span> <span class="kb-key">3</span> <span class="kb-key">4</span> to pick choices, <span class="kb-key">Space</span> to continue.
+      </div>
+    </div>
+  </section>
+
+  <!-- GAME SCREEN -->
+  <section id="screen-game" style="display:none">
+    <div class="gauge-panel" id="gaugePanel"></div>
+    <div id="turnContainer"></div>
+  </section>
+
+  <!-- ENDING SCREEN -->
+  <section id="screen-ending" style="display:none">
+    <div class="ending-screen" id="endingContainer"></div>
+  </section>
+
+</main>
+
+<footer class="app-footer">
+  Cyber tabletop · Replay for different outcomes · No data leaves your browser
+</footer>
+
+<script>
+// ============================================================
+// SCENARIO: THE QUIET QUARTER
+// ============================================================
+
+const ATTACKER_PROFILE = {
+  name: 'STORM-2418 — Conti-derived double-extortion crew',
+  tagline: 'What the attacker was actually doing while you were investigating.',
+  truth: {
+    'Initial access': 'Compromised MSP service account 6 weeks ago via supply-chain compromise',
+    'Persistence mechanisms': 'Three — scheduled task on JUMP-03, legitimate RMM agent on FILE-NA-02, Golden Ticket forged 18 days ago',
+    'Exfiltration': '340GB to Wasabi S3 storage — completed 13 days before detection',
+    'Data classes taken': 'Customer PII (~180k records), HR data inc. grievance correspondence, finance ledgers, M&A correspondence',
+    'C2 channel': 'Domain-fronted through a major CDN, low-and-slow beaconing',
+    'Detonation plan': 'Friday 21:00 encryption deadline (pre-month-end), double-extortion playbook',
+    'Acceleration behaviour': 'Will accelerate if alerted — typically detonating 30-50% earlier than planned',
+    'Actual goal ranking': 'Payment > reputational humiliation > re-entry persistence',
+  },
+};
+
+const TURNS = [
+  {
+    id: 'T1',
+    clock: 'Tuesday 08:42',
+    title: 'The 03:14 alert',
+    situation: `Your morning briefing flags one item. At 03:14 last night a Veeam service account signed in from an internal jump host you don't recognise, ran a single command — <code>Get-ADComputer -Filter * -Properties OperatingSystem</code> — and signed out. The SOC analyst has marked it "anomalous but inconclusive". Service accounts run scripts at night; this could be nothing. Or it could be the first useful thing your SOC has caught all year.`,
+    choices: [
+      {
+        id: 'T1A', label: 'Quiet hunt',
+        brief: `Don't touch anything. Have a senior analyst pull EDR telemetry and AD logs in read-only mode. No tickets, no chatter. Maintain operational silence.`,
+        direct: { time: -4, analyst: -8 },
+        setFlags: { investigationPosture: 'quiet', attacker_alerted: false, evidence_track: 'good' },
+        beat: `Your senior analyst quietly pulls 30 days of telemetry on the service account. By lunchtime they've found something — the same account also ran an LDAP query from a <em>different</em> host last Thursday. Two hosts. No tickets raised. You've bought yourself the chance to look before being looked at.`,
+        verdict: 'good',
+        hiddenTruth: `STORM-2418 was at this point still in reconnaissance phase, completely unaware they were under observation. Your quiet posture preserved that asymmetry.`,
+      },
+      {
+        id: 'T1B', label: 'Escalate immediately',
+        brief: `Wake up the IT Director. Open a P2 incident. Disable the service account as a precaution. Get the team in early.`,
+        direct: { time: -2, analyst: -15, business: -5, trust: -3 },
+        setFlags: { investigationPosture: 'overt', attacker_alerted: true, evidence_track: 'partial', backup_jobs_failing: true },
+        beat: `Account disabled by 09:30. Within an hour, your backup operations team is paging: overnight Veeam jobs have failed across three sites because the service account they depend on is locked out. The CFO emails asking what's happening. The IT Director wants a sit-down at 11. You have momentum, but you've made noise — and you've broken something on the way.`,
+        verdict: 'mid',
+        hiddenTruth: `Disabling the account at 09:30 was the moment STORM-2418 knew. Their playbook calls for acceleration when discovered — they began compressing their timeline immediately.`,
+      },
+      {
+        id: 'T1C', label: 'Dismiss as service-account drift',
+        brief: `It's a service account running a discovery command at 3am — probably a forgotten scheduled job. Note it, monitor, move on.`,
+        direct: { time: -8, analyst: -2 },
+        setFlags: { investigationPosture: 'missed', attacker_alerted: false, evidence_track: 'cold', missed_t1: true },
+        beat: `You note it in the daily log. Your team gets on with the day. The attacker, watching their reconnaissance go un-investigated, takes this as confirmation they're invisible. By Wednesday morning they'll have completed Phase 4 of their playbook — privilege escalation to a Tier-0 asset. You won't know this for another 18 hours.`,
+        verdict: 'bad',
+        hiddenTruth: `The 03:14 alert was the only outright detection you got. Dismissing it gave STORM-2418 a full 18-hour head start on the next phase of their plan.`,
+      },
+      {
+        id: 'T1D', label: 'Ask the MSP',
+        brief: `Forward the alert to your MSP — they manage the Veeam infrastructure and own that service account. Get their explanation before doing anything.`,
+        direct: { time: -6, trust: -2 },
+        setFlags: { investigationPosture: 'msp_lean', attacker_alerted: false, evidence_track: 'partial', msp_involved_early: true, msp_compromised_unknown: true },
+        beat: `You forward the alert to your MSP. Their L1 responds at 11:47: "We don't have any scheduled jobs running at that time. We'll investigate." You wait. At 14:30 they reply: "Looks fine our end, possibly a misconfiguration." You've burned half a day and learned nothing — and you've just given the attacker (who came in through your MSP) confirmation that someone is asking questions.`,
+        verdict: 'bad',
+        hiddenTruth: `Your MSP was the entry point. The attacker had been monitoring the MSP's ticket queue for any mention of compromised credentials. Your forwarded email was, from their perspective, an early-warning system you'd helpfully installed for them.`,
+      },
+    ],
+  },
+
+  {
+    id: 'T2',
+    clock: 'Tuesday 14:30',
+    title: `What's the scope?`,
+    situation: `You now have a suspicious endpoint — call it <code>JUMP-03</code>. EDR shows the service account session, but also two short-lived child processes you don't recognise: a renamed copy of <code>rundll32</code> and something calling itself <code>updater.exe</code> from <code>%APPDATA%</code>. The host is in your HQ data centre. It hosts seven other service accounts. Pulling it offline will affect things. What now?`,
+    situationIf: {
+      'investigationPosture==overt': `<code>JUMP-03</code> is offline — your morning lockout took the host with it. The processes you might have caught are gone. You can still triage the disk, but live memory is dead. You also have an irritated platform team trying to get backup jobs running again.`,
+      'investigationPosture==missed': `Routine telemetry from <code>JUMP-03</code> is now showing the same <code>updater.exe</code> running from a <em>second</em> host — <code>FILE-NA-02</code>, your North America file server. The attacker has used the extra day. The scope has doubled.`,
+    },
+    choices: [
+      {
+        id: 'T2A', label: 'Image and isolate, deep forensics',
+        brief: `Pull JUMP-03 from the network, image RAM and disk, send to internal DFIR. Slow but defensible.`,
+        direct: { time: -8, analyst: -20, business: -8, budget: -5 },
+        setFlags: { forensic_quality: 'high', containment_scope: 'narrow', attacker_alerted_partial: true },
+        beat: `By 22:00 you have a 1.2TB disk image and a 64GB RAM capture sitting in your evidence locker. Your DFIR analyst is starting triage. The host is gone from the network — and so is your visibility into what the attacker does next on it.`,
+        verdict: 'good',
+        hiddenTruth: `STORM-2418's playbook says: if a host goes dark mid-operation, fall back to the most-recent persistence mechanism that's farthest from the dark host. They did exactly this — pivoting silently to the RMM agent on FILE-NA-02. Your evidence is high quality but your visibility narrowed.`,
+      },
+      {
+        id: 'T2B', label: 'Live response, watch and learn',
+        brief: `Use EDR live response to investigate JUMP-03 without isolating it. Watch what the attacker does. Plant a tripwire if they touch sensitive shares.`,
+        direct: { time: -6, analyst: -25 },
+        setFlags: { forensic_quality: 'medium', containment_scope: 'observation', attacker_alerted: false, deeper_intel_gained: true },
+        beat: `Over the next six hours your analysts watch a quiet but methodical operator at work. They see commands hitting <code>adfind</code>, <code>netscan</code>, and queries against tier-0 administrative groups. They also see something more useful: the attacker briefly authenticated using a <code>krbtgt</code> ticket your AD team didn't issue. You may be staring at a Golden Ticket.`,
+        verdict: 'good',
+        hiddenTruth: `Watching them work was the single most valuable decision available to you this turn. You uncovered the Golden Ticket — the most dangerous of the three persistence mechanisms — that no other decision path would have surfaced this early.`,
+      },
+      {
+        id: 'T2C', label: 'Kill it fast',
+        brief: `Terminate the suspicious processes, kill the session, lock the service account, rotate its password. Stop the bleeding now.`,
+        direct: { time: -2, analyst: -10, business: -10 },
+        setFlags: { forensic_quality: 'low', containment_scope: 'partial', attacker_alerted: true, persistence_missed: true },
+        beat: `The processes die at 15:08. The session is killed. The account is rotated. You feel fast and decisive. What you don't see: the attacker had already established a <em>second</em> persistence mechanism through a legitimate RMM agent two weeks ago. That mechanism is untouched. They've also just been told, loudly, that you've noticed them.`,
+        verdict: 'bad',
+        hiddenTruth: `This is the exact decision the Conti playbook anticipates — defenders kill what they can see, miss what they can't. STORM-2418 lost JUMP-03 but kept the RMM agent and the Golden Ticket. Their net capability dropped by ~10%.`,
+      },
+      {
+        id: 'T2D', label: 'Hunt broader before containing',
+        brief: `Don't touch JUMP-03 yet. Hunt the IOCs (updater.exe hash, the LDAP queries) across the rest of the estate first. Find scope before acting.`,
+        direct: { time: -12, analyst: -22, budget: -3 },
+        setFlags: { forensic_quality: 'medium', containment_scope: 'mapped', scope_known: true, dwell_reduced: true },
+        beat: `By Wednesday lunchtime your hunt has found the same IOCs on three hosts: JUMP-03, the North America file server, and — concerningly — a domain controller in your London site. You're now staring at the actual scope of the intrusion. Containment will be harder now, but it'll be <em>complete</em> — and you've not yet tipped your hand.`,
+        verdict: 'good',
+        hiddenTruth: `You found two of the three persistence mechanisms before acting. STORM-2418 was not aware they'd been mapped — they continued operations on the assumption you were still in single-host triage. This is the most valuable position you can be in at this stage of an intrusion.`,
+      },
+    ],
+  },
+
+  {
+    id: 'T3',
+    clock: 'Wednesday 09:00',
+    title: `Who needs to know?`,
+    situation: `It's not nothing. Your DFIR analyst is now confident this is an active intrusion. Scope is unclear; intent is unclear; data exposure is unclear. The IT Director has been briefed. The wider exec team has not. You need to decide who else gets a phone call — and in what order. Each one buys capability or buys trouble.`,
+    choices: [
+      {
+        id: 'T3A', label: 'Lawyer first, then DFIR retainer, then insurer',
+        brief: `External counsel engaged on privilege grounds. They appoint the DFIR firm as their agent. Insurer notified through counsel for protection.`,
+        direct: { time: -4, budget: -25, trust: 5 },
+        setFlags: { legal_privilege_intact: true, insurer_engaged: true, dfir_engaged: 'via_counsel' },
+        beat: `Counsel are on a call by 11:00. By 14:00 they've appointed a top-tier DFIR firm. The insurer is notified through counsel — privilege intact. The DFIR retainer is expensive but the lawyer's letter shields your work product. Your CEO doesn't know yet. The clock is ticking on that conversation.`,
+        verdict: 'good',
+        hiddenTruth: `Engaging counsel first preserved attorney-client privilege over the DFIR firm's investigative work. If a class action follows the breach disclosure (and one will), this single decision could prevent the most damaging documents from being discoverable.`,
+      },
+      {
+        id: 'T3B', label: 'CEO and exec team first',
+        brief: `The CEO needs to know. Brief the exec team, get authority to spend, then sort lawyers and DFIR with their backing.`,
+        direct: { time: -3, analyst: -3, trust: -8 },
+        setFlags: { exec_aware: true, legal_privilege_intact: false, narrative_set_by_ic: true, ceo_in_loop_early: true },
+        beat: `Your CEO is calm. They authorise spend, ask the right questions, and tell you to get whatever help you need. They also ask the question you can't yet answer: "Has data left?" You have the executive cover you need. You also have a CEO who is now expecting answers faster than you can give them honestly — and you've done the early work without counsel, so privilege is uncertain.`,
+        verdict: 'mid',
+        hiddenTruth: `Defensible but expensive — you've made the executive layer your ally, which will save you in T6. The cost is that every email you've sent to the exec team is now discoverable in any subsequent litigation, since counsel weren't engaged early enough to bring them under privilege.`,
+      },
+      {
+        id: 'T3C', label: 'Just the technical chain — keep it tight',
+        brief: `IT Director and your own team only. No lawyer, no DFIR, no insurer, no exec — yet. Investigate first; escalate when you have facts.`,
+        direct: { time: -2, analyst: -10, trust: -3 },
+        setFlags: { legal_privilege_intact: false, insurer_engaged: false, exec_aware: false, going_alone: true },
+        beat: `You and the IT Director work the problem with internal resources only. You move fast, decisively, and entirely in the dark. Whatever you do today is being done without insurer oversight (which can affect claim) and without legal privilege (which means your team's emails could be discoverable). It feels efficient. It is not necessarily wise.`,
+        verdict: 'bad',
+        hiddenTruth: `Most cyber insurance policies require notification within 72 hours of suspected incident, and many require approval before engaging vendors. By not calling the insurer, you may have already voided your claim. You won't discover this until you try to claim.`,
+      },
+      {
+        id: 'T3D', label: 'Full transparency — exec, legal, DFIR, insurer, simultaneously',
+        brief: `Run a war-room dial. Get everyone in the same call. Move as one.`,
+        direct: { time: -5, analyst: -15, budget: -20, trust: -2 },
+        setFlags: { legal_privilege_intact: 'partial', insurer_engaged: true, exec_aware: true, dfir_engaged: 'concurrent', war_room_convened: true },
+        beat: `By 16:00 you have 11 people on a call — your exec team, GC, an external counsel firm, two partners from a DFIR firm, and the insurer's incident manager. It is loud, it is expensive, and it gets everyone aligned. The trade-off: counsel were not engaged <em>before</em> DFIR, which means privilege is murky. The DFIR firm starts work; the lawyer chases the paperwork afterwards.`,
+        verdict: 'mid',
+        hiddenTruth: `The 11-person call cost you ~£18k in vendor hourly rates and ~3 hours of investigative time as everyone got up to speed. Coordination wins; privilege is half-protected; insurer is happy. This is the option most CISOs reach for, and it's neither the best nor the worst.`,
+      },
+    ],
+  },
+
+  {
+    id: 'T4',
+    clock: 'Wednesday 19:00',
+    title: 'The first hard discovery',
+    situation: `Forensics has surfaced something. Depending on how the day went, it's either exfil evidence on JUMP-03 (a 7zip archive being staged), or your AD team flagging a Golden Ticket event, or a phone call from a partner organisation saying <em>their</em> SOC has spotted suspicious activity from one of your IP ranges. Whatever it is, you can't pretend this is small anymore.`,
+    situationIf: {
+      'forensic_quality==high': `The disk image is paying off. Your analyst has reconstructed a 7zip archive in slack space — partial, but readable. File listings inside the archive include HR exports, finance ledgers, and what looks like a copy of your customer database. The archive metadata says created 13 days ago. This isn't a current threat. The data has already left.`,
+      'deeper_intel_gained==true': `Your AD team has confirmed it. The krbtgt activity from yesterday wasn't an artifact. There's a Golden Ticket in the wild. Whoever has it has had domain-admin-equivalent access for at least two weeks. The clock on this just changed.`,
+      'persistence_missed==true': `A partner organisation calls. Their SOC has spotted attempted connections from <em>your</em> network to a Wasabi S3 bucket. Wasabi is not a service you use. The connection attempts are still happening — from a host you haven't touched. You have a second implant you didn't know about.`,
+    },
+    choices: [
+      {
+        id: 'T4A', label: 'Hard contain: sever and rebuild from gold',
+        brief: `Disconnect the affected sites from corporate AD. Force password reset on every privileged account. Begin rebuilding domain trust from offline backup. Painful but decisive.`,
+        direct: { time: -6, analyst: -30, business: -35, budget: -40 },
+        setFlags: { containment_action: 'hard', persistence_addressed: 'mostly', business_disruption: 'severe', insurer_event_triggered: true },
+        beat: `By Thursday morning your London and HQ sites are operating on isolated AD instances. Three branch offices can't authenticate. Your finance team can't access SAP. Your service desk is overwhelmed. You have probably evicted the attacker — but the business is bleeding £180k/day in degraded operations.`,
+        verdict: 'mid',
+        hiddenTruth: `STORM-2418 lost two of three persistence mechanisms in the rebuild. They retained the dormant RMM agent on FILE-NA-02 because it was authenticated via a different trust path. They could re-enter in 3-6 months when scrutiny relaxed — but they didn't, because by then the data they exfiltrated had monetised.`,
+      },
+      {
+        id: 'T4B', label: 'Surgical contain: rotate krbtgt, isolate known hosts',
+        brief: `Double-rotate the krbtgt account (invalidates Golden Tickets). Isolate the three known affected hosts. Continue hunting in parallel.`,
+        direct: { time: -4, analyst: -25, business: -10, budget: -15 },
+        setFlags: { containment_action: 'surgical', krbtgt_rotated: true, persistence_addressed: 'partial', forensic_quality_preserved: true },
+        beat: `The krbtgt double-rotation hits production at 23:30. Every Kerberos ticket in the estate is invalidated and re-issued. Some users see a single re-authentication; the help desk fields a few calls. The Golden Ticket is now useless. Your three isolated hosts are imaged and in evidence. You've struck a balance — but you don't know yet whether the third persistence mechanism is on one of the hosts you've isolated, or somewhere else entirely.`,
+        verdict: 'good',
+        hiddenTruth: `The krbtgt rotation neutralised the Golden Ticket — the most dangerous of the three mechanisms. STORM-2418's response: "this team is competent, withdraw to the dormant RMM and reassess." They went silent.`,
+      },
+      {
+        id: 'T4C', label: 'Keep watching, keep hunting',
+        brief: `Don't contain yet. Let the attacker keep operating while you find every persistence mechanism. Resource-intensive and brave.`,
+        direct: { time: -8, analyst: -35, budget: -10 },
+        setFlags: { containment_action: 'delayed', dwell_reduced: true, deeper_intel_gained_2: true, attacker_acceleration_risk: true },
+        beat: `Over the next 12 hours your DFIR team watches the attacker move through your network. They see all three persistence mechanisms: the scheduled task, the legitimate RMM, and — yes — the Golden Ticket. They see the C2 channel (a domain fronted through a major CDN). They see what the attacker actually cares about (HR data, finance, and the M&A folder you didn't think to lock down). It is the most valuable threat intelligence your organisation has ever produced. It is also terrifying, because you're letting it happen.`,
+        verdict: 'good',
+        hiddenTruth: `You bought the gold standard of intelligence — full mapping of all three mechanisms, C2 infrastructure, and threat-actor priorities. The risk you took: STORM-2418 could have detonated during the watch period. They didn't, because their playbook required completion of exfiltration before detonation, and that was already done.`,
+      },
+      {
+        id: 'T4D', label: 'Negotiate from strength — pay a ransom proactively',
+        brief: `Engage a ransomware negotiation firm. Offer a payment in exchange for a clean exit — no encryption, deletion of stolen data attested. Pre-empt the worst.`,
+        direct: { time: -2, budget: -80, trust: -25 },
+        setFlags: { ransom_paid_proactively: true, attacker_alerted: true, regulatory_risk_severe: true, ofac_risk: true, persistence_unaddressed: true },
+        beat: `You authorise a negotiation firm to make contact. By Thursday afternoon they're talking to STORM-2418's representative. A $2.4M payment is agreed. The attacker provides a "proof of deletion" — which is unverifiable. They withdraw. You believe you have bought a quiet exit. You have actually: (a) marked yourself to the criminal ecosystem as a payer, (b) created an OFAC exposure that your insurer will not cover, (c) left every persistence mechanism in place for next time.`,
+        verdict: 'bad',
+        hiddenTruth: `STORM-2418's affiliate model means the $2.4M was split between the operator and the ransomware-as-a-service developer. The "proof of deletion" was a screenshot of a different victim's data being deleted. Your 340GB is now part of the affiliate's reputation portfolio, used to demonstrate "successful" engagements to future ransom-pays.`,
+      },
+    ],
+  },
+
+  {
+    id: 'T5',
+    clock: 'Thursday 11:00',
+    title: 'The escalation moment',
+    situation: `Something has changed. Either the attacker has accelerated, or you've discovered the exfiltration is bigger than you thought, or your containment has held but you're realising the regulator clock has started ticking.`,
+    situationIf: {
+      'attacker_alerted==true': `The attacker has accelerated. Your EDR is now lighting up across four new hosts. They're moving fast — they know they've been seen and are trying to detonate before you can finish containing. You have hours, not days.`,
+      'forensic_quality_preserved==true': `Your DFIR firm has reconstructed the exfiltration. 340GB. Customer PII for ~180,000 people. Some HR data including grievance correspondence. Finance ledgers for the last 4 years. Some M&A correspondence. The data left 13 days ago. You are now squarely in GDPR Article 33 territory.`,
+      'ransom_paid_proactively==true': `The negotiation firm reports the attacker has "honoured" the agreement. No detonation. No further activity. You have no way of verifying this. The persistence mechanisms remain in place. You are paying the negotiation firm $30k/week to monitor.`,
+    },
+    choices: [
+      {
+        id: 'T5A', label: 'Notify the ICO within 24 hours',
+        brief: `Prepare and submit a GDPR Article 33 notification to the ICO. Be honest about what you know and what you don't.`,
+        direct: { time: -4, budget: -8, trust: 8 },
+        setFlags: { regulator_notified: true, regulator_clock_managed: true, narrative_set: true, ico_notification_quality: 'good' },
+        beat: `Your DPO drafts the notification with counsel. It goes in at hour 22 of the 72-hour window — early, but with everything you currently know. The ICO acknowledges and asks for a follow-up in 7 days. You've been transparent; you'll be judged on what happens next, not on what you knew at hour 22.`,
+        verdict: 'good',
+        hiddenTruth: `ICO enforcement guidance heavily favours organisations that notify with incomplete information and update later, over organisations that wait for completeness. This notification will become a key positive factor in any subsequent regulatory decision.`,
+      },
+      {
+        id: 'T5B', label: 'Delay notification until full scope is known',
+        brief: `You don't have the full picture yet. Wait until forensics is complete before triggering the regulator. Document the reasoning.`,
+        direct: { time: -2 },
+        setFlags: { regulator_notified: false, regulator_clock_breached_risk: true, ico_notification_quality: 'late' },
+        beat: `Your DPO documents the rationale for delay. The 72-hour clock continues to tick. This is technically defensible if you genuinely don't have the awareness yet — but the ICO's recent guidance is unsympathetic to organisations that "investigate first and notify second." You're betting on the quality of your eventual notification.`,
+        verdict: 'bad',
+        hiddenTruth: `The ICO's enforcement framework explicitly treats delayed notification as an aggravating factor. Recent comparable cases have seen 20-40% fine uplifts purely on the notification delay element, independent of the breach itself.`,
+      },
+      {
+        id: 'T5C', label: 'Notify partners and affected customers proactively',
+        brief: `Even ahead of the regulator. Reach out to enterprise customers, partners, and the most-affected individuals first. Get ahead of the story.`,
+        direct: { time: -8, budget: -15, trust: 12, business: -8 },
+        setFlags: { customers_notified_early: true, narrative_set: true, comms_proactive: true, regulator_notified: true },
+        beat: `Your comms lead drafts customer notifications for enterprise accounts. Your CEO personally calls the three largest customers. Two thank you for the heads-up; one terminates a £4M annual contract on the spot. Trade press gets hold of the story by Friday morning, but the narrative is <em>yours</em> — "we found it, we acted, we told you" — not the regulator's, not the attacker's.`,
+        verdict: 'good',
+        hiddenTruth: `The terminated contract hurts in the quarter. The retained contracts — two of which were up for renewal in three months — were saved by exactly this transparency. Net 12-month revenue impact: positive, by approximately £2.1M.`,
+      },
+      {
+        id: 'T5D', label: 'Lock the message down — minimise external comms',
+        brief: `Counsel-approved holding statement only. No proactive notifications until the picture is complete and legally vetted.`,
+        direct: { time: -2, trust: -5 },
+        setFlags: { comms_locked: true, narrative_set: false, story_will_break_externally: true, regulator_notified: false },
+        beat: `Counsel drafts a four-line holding statement. Nothing goes out beyond it. Internally, the messaging is "we are investigating a potential incident." This bought you control today. It also means whoever breaks the story externally — a journalist, a customer, the attacker themselves on their leak site — gets to frame it before you do.`,
+        verdict: 'bad',
+        hiddenTruth: `STORM-2418's standard playbook includes contacting key customers of victims to pressure payment. Within 48 hours, your three largest customers will receive emails claiming to have their data. The story is going to break — your only question was whether you got to set the frame.`,
+      },
+    ],
+  },
+
+  {
+    id: 'T6',
+    clock: 'Thursday 22:00',
+    title: 'The comms fork',
+    situation: `The story is now starting to move beyond your direct control. Either the board has called an emergency meeting, or a journalist is asking questions, or your largest customer's CISO has called your CEO directly. You're at the moment where communication can either become your greatest asset or your worst liability.`,
+    situationIf: {
+      'narrative_set==true': `The narrative is on your terms. Trade press has the story but is quoting <em>your</em> statement. Your customer calls are mostly supportive. The board is meeting at 10am Friday to receive a full briefing.`,
+      'story_will_break_externally==true': `A journalist from a security industry publication has emailed your CEO directly, citing "sources familiar with the matter." They have specifics — including the Wasabi destination. Someone has leaked. You have 6 hours to respond or they publish without you.`,
+      'ransom_paid_proactively==true': `Your negotiation firm has reported that STORM-2418 has posted <em>another</em> victim to their leak site. There's a chance — they wouldn't confirm — that the post includes data from your environment too. They claim it doesn't. You cannot verify.`,
+    },
+    choices: [
+      {
+        id: 'T6A', label: 'CEO leads with full transparency to the board',
+        brief: `A complete briefing — what happened, what we know, what we don't, what we're doing, what it will cost. Recommend appointing a board sub-committee.`,
+        direct: { time: -3, trust: 15 },
+        setFlags: { board_aligned: true, ceo_credible: true, narrative_set: true },
+        beat: `The board meeting runs three hours. The CEO is calm and accurate. The Chair asks three sharp questions and gets three sharp answers. A sub-committee is appointed. The board allocates an additional £750k of incident-response budget. The Chair calls the CEO afterwards and says "thank you for not being defensive." This is the moment the organisation pulled together.`,
+        verdict: 'good',
+        hiddenTruth: `The sub-committee oversight will continue for six months. Two of its outputs — a re-tendered MSP contract and a £4M increase to the cyber programme — will materially reduce the organisation's risk of re-occurrence over the following three years.`,
+      },
+      {
+        id: 'T6B', label: 'Brief the board minimally, optimistic framing',
+        brief: `Keep it at "incident under control" level. Reassure. Avoid alarming detail. Don't volunteer the worst-case figures yet.`,
+        direct: { time: -2, trust: 5 },
+        setFlags: { board_aligned: 'partial', truth_compression: true, narrative_will_unravel: true },
+        beat: `The board nods along. The CEO sounds confident. The IC sounds in control. The next day, when the ICO's full notification triggers press coverage, the board reads more in the FT than they were told in the room. The Chair calls the CEO. This is the conversation no executive ever wants to have. The framing is no longer recoverable.`,
+        verdict: 'bad',
+        hiddenTruth: `Boards forgive incidents. They do not forgive being managed. The Chair's loss of trust in the CEO and IC will become apparent in the Annual Report's risk section and the next round of insurance underwriting questions.`,
+      },
+      {
+        id: 'T6C', label: 'Pre-empt the press with a public statement',
+        brief: `Get out ahead. Publish a transparent statement on your own site before the journalist does. Coordinated with the regulator and major customers.`,
+        direct: { time: -6, budget: -10, trust: 10 },
+        setFlags: { public_statement_first: true, narrative_set: true, press_neutral: true },
+        beat: `Your statement goes up at 07:00 Friday. The journalist publishes their piece at 10:00, quoting your statement extensively. The headline is factual, not lurid. Your share price takes a hit but recovers within three weeks. Your customers are calling to <em>thank</em> you for the honesty. This is rare. It is also the right call.`,
+        verdict: 'good',
+        hiddenTruth: `Two competitors of yours suffered similar incidents in the prior 18 months. One stayed silent (share price still 22% below pre-incident); one was transparent (recovered within 5 months). The data on this is unambiguous, and most organisations still pick silence.`,
+      },
+      {
+        id: 'T6D', label: 'No comment to the journalist; await counsel-approved statement',
+        brief: `Don't engage with the press until counsel has a fully-vetted statement, even if it takes 24 hours.`,
+        direct: { time: -4, trust: -5 },
+        setFlags: { comms_silent: true, journalist_writes_anyway: true, story_speculative: true },
+        beat: `The journalist publishes at noon. The piece is heavy on speculation, light on sourcing, but it has the Wasabi detail and the volume estimate. The headline is "Company silent as breach reports emerge." Your share price drops 7%. By the time your counsel-approved statement goes up at 18:00, the story has been re-reported by three other outlets without your framing in any of them.`,
+        verdict: 'bad',
+        hiddenTruth: `The "no comment" period gave the journalist a hook (silence) that was more interesting than the story (breach). Lesson generalised by media trainers for years: silence is not a neutral position; it is an active editorial decision the reader interprets unfavourably.`,
+      },
+    ],
+  },
+
+  {
+    id: 'T7',
+    clock: 'Friday 14:00',
+    title: 'Ground truth from forensics',
+    situation: `The DFIR firm delivers its preliminary findings. The picture is finally coming into focus — partially. You now have an honest assessment of what you know and what you still don't.`,
+    situationIf: {
+      'forensic_quality==high': `Three persistence mechanisms identified: the scheduled task on JUMP-03, a legitimate RMM agent on FILE-NA-02, and the Golden Ticket. Two of three are confirmed remediated. The RMM agent is in a grey zone — your DFIR firm is "85% confident" it's neutralised but cannot rule out a dormant variant.`,
+      'forensic_quality==low': `DFIR firm is candid: they cannot give you a clean assessment. The evidence was disturbed too early. They've identified two persistence mechanisms with confidence and "suspect, but cannot confirm" a third. Their formal recommendation: assume re-entry is possible and rebuild Tier-0 from offline backups.`,
+      'persistence_unaddressed==true': `Your ransomware negotiation gave the attacker a graceful exit but left every implant in place. DFIR has just discovered a fourth persistence mechanism your negotiator never asked about. This is what paying buys you.`,
+    },
+    choices: [
+      {
+        id: 'T7A', label: 'Declare contained, begin recovery',
+        brief: `You've done enough. Issue the all-clear, transition to recovery, lessons-learned phase.`,
+        direct: { time: 0, trust: 5 },
+        setFlags: { declared_contained: true, recovery_quality: 'normal' },
+        beat: `The IC declares containment at 17:00 Friday. The team are exhausted but proud. Recovery begins. You're at the moment where everyone wants to believe it's over. Whether that belief is justified depends on whether you actually found everything.`,
+        verdict: 'mid',
+        hiddenTruth: `Defensible only if forensic_quality was 'high' or all persistence was addressed in earlier turns. If not, you'll be hearing from STORM-2418's affiliate in approximately 4-7 months when the dormant implant is reactivated by a different criminal group who purchased access.`,
+      },
+      {
+        id: 'T7B', label: 'Extend the hunt: 30 more days of focused threat hunting',
+        brief: `Don't declare contained yet. Bring in additional hunting capacity for a focused 30-day extended hunt across the estate.`,
+        direct: { time: 0, budget: -45, analyst: -15, trust: 3 },
+        setFlags: { extended_hunt: true, persistence_addressed: 'full', dwell_reduced: true },
+        beat: `Your extended hunt runs through July. It finds two things you missed: a second RMM-style implant on a dormant developer workstation, and signs the attacker had also briefly accessed your AWS root account 9 days ago. Both are remediated. You can now declare containment with confidence.`,
+        verdict: 'good',
+        hiddenTruth: `The dormant workstation implant was the same RMM-style mechanism the first DFIR firm "suspected but couldn't confirm." Without the extended hunt, this would have been your re-entry vector within 6 months.`,
+      },
+      {
+        id: 'T7C', label: 'Engage a second DFIR firm for independent assessment',
+        brief: `Bring in a different firm for a parallel review. Expensive, slow, but defensible — and may catch what the first firm missed.`,
+        direct: { time: 0, budget: -55, trust: 8 },
+        setFlags: { second_dfir_engaged: true, persistence_addressed: 'full', defensibility: 'high' },
+        beat: `The second firm spends two weeks. They find one additional dormant implant the first firm missed, and confirm everything else. Their report becomes the artefact your insurer, the ICO, and your board all rely on. It cost you £180k. It saved you incalculably more.`,
+        verdict: 'good',
+        hiddenTruth: `The second firm found the implant precisely because they had no prior commitments or reputation invested in the first firm's conclusions. This is why "second opinion" is built into every major IR programme post-2023. Few organisations have learned this yet.`,
+      },
+      {
+        id: 'T7D', label: 'Rebuild Tier-0 from scratch regardless',
+        brief: `Doesn't matter what was found or missed. Rebuild domain controllers, certificate authority, and privileged access infrastructure from offline media. Slow, expensive, decisive.`,
+        direct: { time: 0, budget: -120, analyst: -30, business: -15, trust: 8 },
+        setFlags: { tier0_rebuilt: true, persistence_addressed: 'full', business_disruption: 'extended', defensibility: 'maximum' },
+        beat: `A four-week project. New domain controllers, new CA hierarchy, new PAM platform. Every privileged credential rotated. Every service account audited. It is the most expensive single project your IT function has ever run. It is also the only credible response to "we cannot rule out persistence." When this is over, the attacker is gone — completely, verifiably.`,
+        verdict: 'good',
+        hiddenTruth: `Tier-0 rebuild is the only response that defeats supply-chain attacks at their root. The £120k cost is dwarfed by what it prevents — typically a single re-entry incident costs 4-6x this in direct damages alone.`,
+      },
+    ],
+  },
+
+  {
+    id: 'T8',
+    clock: 'Friday 21:00 — detonation window',
+    title: 'The detonation window',
+    situation: `21:00 Friday. The attacker's original detonation deadline. If you've contained well, this hour passes uneventfully. If you've alerted them and not contained, they may try to detonate now. If you paid them to leave quietly, you'll never know if they meant it. Whatever happens in this hour will define the final shape of the incident.`,
+    situationIf: {
+      'persistence_addressed==full': `21:00 passes. 22:00 passes. Nothing. The DFIR firm continues monitoring on a war-room footing through Saturday. By Sunday it becomes clear: STORM-2418 has bailed. The question is whether you scared them off, or whether they got what they came for and exited cleanly. The data exfiltration suggests the latter — but the encryption you all feared isn't happening.`,
+      'attacker_acceleration_risk==true': `At 19:45 your EDR begins alerting in a fan-pattern that anyone who's seen ransomware recognises. The attacker has triggered detonation early — they knew you were closing in and wanted to lock in damage before you could finish. The next hour is the most consequential of the incident.`,
+      'ransom_paid_proactively==true': `21:00 passes quietly. STORM-2418 has held to the deal — this time. Your data is on their leak site, marked "private/withheld." It will remain there until either they need to make an example of you, or a competitor of theirs publishes it for them.`,
+    },
+    choices: [
+      {
+        id: 'T8A', label: 'Stand down the war room, transition to recovery',
+        brief: `Whatever happens now is recoverable. Move the team into structured recovery mode. Don't burn them further.`,
+        direct: { analyst: 20, trust: 5 },
+        setFlags: { stood_down: true, recovery_started: true },
+        beat: `The war room dials reduce from 14 people to 4. The team begins to sleep. Recovery becomes a programme rather than a sprint. This is the moment that determines whether your IR team will still be at the organisation in six months — and whether you'll have learned anything from this.`,
+        verdict: 'good',
+        hiddenTruth: `Burnout-driven team turnover is the most-cited cause of repeat-incident vulnerability. Organisations that stand down sensibly retain their institutional learning; those that grind their team into the ground lose it within 18 months and re-learn at full cost.`,
+      },
+      {
+        id: 'T8B', label: 'Maintain war room for full 72 hours past deadline',
+        brief: `You're not standing down until the attacker is provably gone. Keep the room hot through Monday.`,
+        direct: { budget: -25, analyst: -25, trust: 3 },
+        setFlags: { extended_war_room: true, vigilance_high: true },
+        beat: `The team carries the war room through to Monday morning. They are tired but unified. Nothing further happens — partly because of you, partly because the attacker had already finished what they came to do. You will never know which.`,
+        verdict: 'mid',
+        hiddenTruth: `Extended vigilance is defensible but rarely productive past 48 hours post-deadline. The marginal value of the third day's vigilance is approximately zero; the cost to the team's morale and capacity is significant.`,
+      },
+      {
+        id: 'T8C', label: 'Activate full incident DR — pre-emptive failover',
+        brief: `If detonation is happening, you don't want to be discovering it. Cut over to DR and operate from there until further notice.`,
+        direct: { time: 0, budget: -60, business: -25 },
+        setFlags: { dr_activated: true, business_disruption: 'severe', defensibility: 'maximum' },
+        beat: `DR cutover begins at 21:30. Core services move to your DR site by 03:00 Saturday. You operate at reduced capacity for the next 10 days. Whatever happens in the primary environment is now a forensic problem, not an operational one. The cost is severe. The certainty is high.`,
+        verdict: 'mid',
+        hiddenTruth: `DR cutover is the right call only if attacker_acceleration is in evidence — otherwise it's an enormously expensive precaution. Many organisations have DR plans that have never been live-tested; this would have been the test, conducted under maximum stress.`,
+      },
+    ],
+  },
+];
+
+// Initial state
+const INITIAL_GAUGES = {
+  time:     { label: 'Time',          value: 100 },
+  budget:   { label: 'Budget',        value: 100 },
+  analyst:  { label: 'Analyst',       value: 100 },
+  business: { label: 'Business',      value: 100 },
+  trust:    { label: 'Stakeholder',   value: 100 },
+  forensic: { label: 'Forensic',      value: 100 },
+};
+
+// Choice 'direct' fields map to gauges. forensic is derived from forensic_quality flag at end.
+const DIRECT_TO_GAUGE = {
+  time: 'time', budget: 'budget', analyst: 'analyst',
+  business: 'business', trust: 'trust',
+};
+
+// ============================================================
+// STATE
+// ============================================================
+
+const STORAGE_KEY = 'dh-quiet-quarter-v1';
+
+let state = null;
+
+function freshState() {
+  return {
+    turnIdx: 0,
+    phase: 'choice', // 'choice' | 'beat' | 'ended'
+    gauges: JSON.parse(JSON.stringify(INITIAL_GAUGES)),
+    flags: {},
+    history: [], // {turnId, choiceId, choiceLabel, situationShown, gaugesBefore, gaugesAfter}
+  };
+}
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return null;
+}
+
+// ============================================================
+// FLAG EVALUATION
+// Supports "key==value" and "key==a|key==b" (OR).
+// ============================================================
+
+function evalFlagExpr(expr, flags) {
+  return expr.split('|').some(clause => {
+    const [k, v] = clause.split('==');
+    return String(flags[k.trim()]) === v.trim();
+  });
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+
+function $(sel) { return document.querySelector(sel); }
+
+function renderGauges() {
+  const c = $('#gaugePanel');
+  c.innerHTML = Object.entries(state.gauges).map(([id, g]) => {
+    const v = Math.max(0, Math.min(100, g.value));
+    let cls = '';
+    if (v <= 15) cls = 'crit';
+    else if (v <= 35) cls = 'low';
+    return `<div class="gauge" data-id="${id}">
+      <div class="gauge-head">
+        <span class="gauge-label">${g.label}</span>
+        <span class="gauge-value">${Math.round(v)}</span>
+      </div>
+      <div class="gauge-track"><div class="gauge-fill ${cls}" style="width:${v}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderProgress() {
+  const p = $('#progressStrip');
+  p.style.display = 'flex';
+  const dots = TURNS.map((_, i) => {
+    let cls = '';
+    if (i < state.turnIdx) cls = 'done';
+    else if (i === state.turnIdx) cls = 'active';
+    return `<span class="dot ${cls}"></span>`;
+  }).join('');
+  $('#progressDots').innerHTML = dots;
+}
+
+function renderTurn() {
+  const turn = TURNS[state.turnIdx];
+  const c = $('#turnContainer');
+  // Apply situationIf overlays (later matches override)
+  let situationExtra = '';
+  if (turn.situationIf) {
+    for (const [expr, text] of Object.entries(turn.situationIf)) {
+      if (evalFlagExpr(expr, state.flags)) {
+        situationExtra = text;
+      }
+    }
+  }
+  c.innerHTML = `<div class="turn-card">
+    <div class="turn-header">
+      <span class="turn-id">${turn.id}</span>
+      <span class="turn-clock">${turn.clock}</span>
+    </div>
+    <h2 class="turn-title">${turn.title}</h2>
+    <p class="situation">${turn.situation}</p>
+    ${situationExtra ? `<p class="situation-extra">${situationExtra}</p>` : ''}
+    <div class="choices-prompt">Choose your move</div>
+    <div class="choice-list">
+      ${turn.choices.map((ch, i) => `
+        <button class="choice" onclick="pickChoice('${ch.id}')" data-idx="${i}">
+          <div class="choice-label">
+            <span class="choice-key">${i + 1}</span>
+            <span>${ch.label}</span>
+          </div>
+          <div class="choice-brief">${ch.brief}</div>
+          <div class="choice-cost">${renderCostPills(ch.direct)}</div>
+        </button>
+      `).join('')}
+    </div>
+  </div>`;
+  renderGauges();
+  renderProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderCostPills(direct) {
+  if (!direct) return '';
+  const labels = { time: 'Time', budget: 'Budget', analyst: 'Analyst', business: 'Business', trust: 'Trust' };
+  return Object.entries(direct).map(([k, v]) => {
+    if (!labels[k] || v === 0) return '';
+    const sign = v > 0 ? '+' : '';
+    const cls = v < 0 ? 'negative' : 'positive';
+    return `<span class="cost-pill ${cls}">${labels[k]} ${sign}${v}</span>`;
+  }).filter(Boolean).join('');
+}
+
+function pickChoice(choiceId) {
+  const turn = TURNS[state.turnIdx];
+  const choice = turn.choices.find(c => c.id === choiceId);
+  if (!choice) return;
+
+  // Snapshot before
+  const gaugesBefore = JSON.parse(JSON.stringify(state.gauges));
+
+  // Apply direct gauge effects
+  if (choice.direct) {
+    for (const [k, v] of Object.entries(choice.direct)) {
+      const gaugeKey = DIRECT_TO_GAUGE[k];
+      if (gaugeKey && state.gauges[gaugeKey]) {
+        state.gauges[gaugeKey].value = Math.max(0, Math.min(100, state.gauges[gaugeKey].value + v));
+      }
+    }
+  }
+
+  // Apply flag changes
+  if (choice.setFlags) {
+    Object.assign(state.flags, choice.setFlags);
+  }
+
+  // Compute situation extra that was actually shown so review reflects what player saw
+  let situationShown = turn.situation;
+  if (turn.situationIf) {
+    for (const [expr, text] of Object.entries(turn.situationIf)) {
+      if (evalFlagExpr(expr, gaugesBefore && state.flags)) {
+        situationShown = turn.situation + ' [' + text.replace(/<[^>]+>/g, '') + ']';
+      }
+    }
+  }
+
+  state.history.push({
+    turnId: turn.id,
+    turnTitle: turn.title,
+    turnClock: turn.clock,
+    choiceId: choice.id,
+    choiceLabel: choice.label,
+    choiceBrief: choice.brief,
+    beat: choice.beat,
+    verdict: choice.verdict,
+    hiddenTruth: choice.hiddenTruth,
+    direct: choice.direct,
+    gaugesBefore,
+  });
+
+  state.phase = 'beat';
+  saveState();
+  renderBeat(choice);
+}
+
+function renderBeat(choice) {
+  const c = $('#turnContainer');
+  const turn = TURNS[state.turnIdx];
+  const isLast = state.turnIdx === TURNS.length - 1;
+  c.innerHTML = `<div class="beat-card">
+    <div class="beat-eyebrow">${turn.id} · What happened</div>
+    <div class="beat-text">${choice.beat}</div>
+    <div class="beat-actions">
+      <button class="btn primary" onclick="advance()" id="advanceBtn">${isLast ? 'See outcome →' : 'Continue →'}</button>
+      <span class="kb-hint" style="margin: 0 0 0 8px"><span class="kb-key">Space</span> to continue</span>
+    </div>
+  </div>`;
+  renderGauges();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function advance() {
+  if (state.turnIdx >= TURNS.length - 1) {
+    state.phase = 'ended';
+    saveState();
+    renderEnding();
+    return;
+  }
+  state.turnIdx++;
+  state.phase = 'choice';
+  saveState();
+  renderTurn();
+}
+
+// ============================================================
+// OUTCOME COMPUTATION
+// ============================================================
+
+function computeOutcomes() {
+  const f = state.flags;
+  const g = state.gauges;
+
+  // 1) Containment quality
+  let containment = 30;
+  if (f.persistence_addressed === 'full') containment = 92;
+  else if (f.persistence_addressed === 'mostly') containment = 70;
+  else if (f.persistence_addressed === 'partial') containment = 55;
+  else if (f.persistence_unaddressed) containment = 20;
+  if (f.tier0_rebuilt) containment = Math.max(containment, 95);
+  if (f.second_dfir_engaged) containment += 4;
+  if (f.krbtgt_rotated) containment += 3;
+  containment = Math.min(100, Math.max(0, containment));
+
+  // 2) Evidence preserved
+  let evidence = 50;
+  if (f.evidence_track === 'good') evidence += 25;
+  else if (f.evidence_track === 'cold') evidence -= 30;
+  if (f.forensic_quality === 'high') evidence += 18;
+  else if (f.forensic_quality === 'low') evidence -= 25;
+  if (f.legal_privilege_intact === true) evidence += 8;
+  else if (f.legal_privilege_intact === 'partial') evidence += 3;
+  if (f.scope_known) evidence += 6;
+  evidence = Math.min(100, Math.max(0, evidence));
+
+  // 3) Business continuity
+  let business = g.business.value;
+  if (f.business_disruption === 'severe') business -= 5;
+  if (f.business_disruption === 'extended') business -= 8;
+  if (f.dr_activated) business -= 5;
+  business = Math.min(100, Math.max(0, business));
+
+  // 4) Stakeholder trust
+  let trust = g.trust.value;
+  if (f.narrative_set) trust += 8;
+  if (f.ceo_credible) trust += 6;
+  if (f.board_aligned === true) trust += 7;
+  else if (f.board_aligned === 'partial') trust -= 5;
+  if (f.public_statement_first) trust += 5;
+  if (f.story_will_break_externally && !f.public_statement_first) trust -= 15;
+  if (f.truth_compression) trust -= 12;
+  if (f.journalist_writes_anyway) trust -= 8;
+  if (f.customers_notified_early) trust += 6;
+  trust = Math.min(100, Math.max(0, trust));
+
+  // 5) Regulatory posture
+  let regulatory = 50;
+  if (f.regulator_notified) regulatory += 25;
+  if (f.ico_notification_quality === 'good') regulatory += 15;
+  else if (f.ico_notification_quality === 'late') regulatory -= 20;
+  if (f.regulator_clock_breached_risk) regulatory -= 15;
+  if (f.legal_privilege_intact === true) regulatory += 7;
+  if (f.regulatory_risk_severe) regulatory -= 20;
+  regulatory = Math.min(100, Math.max(0, regulatory));
+
+  // 6) Insurance claim viability
+  let insurance = 60;
+  if (f.insurer_engaged) insurance += 25;
+  else insurance -= 30;
+  if (f.dfir_engaged === 'via_counsel') insurance += 10;
+  else if (f.dfir_engaged === 'concurrent') insurance += 5;
+  if (f.ofac_risk) insurance -= 35;
+  if (f.going_alone) insurance -= 15;
+  if (f.tier0_rebuilt || f.second_dfir_engaged) insurance += 8;
+  insurance = Math.min(100, Math.max(0, insurance));
+
+  return { containment, evidence, continuity: business, trust, regulatory, insurance };
+}
+
+function pickHeadline(outcomes, flags) {
+  // Order matters — most specific first.
+  if (flags.ransom_paid_proactively) {
+    return {
+      title: 'The Quiet Payment',
+      subtitle: 'You bought peace from STORM-2418. You also bought a lifetime subscription to the extortion ecosystem.',
+    };
+  }
+  const avg = Object.values(outcomes).reduce((a, b) => a + b, 0) / 6;
+  const min = Math.min(...Object.values(outcomes));
+  const max = Math.max(...Object.values(outcomes));
+
+  if (avg >= 80 && flags.narrative_set && flags.persistence_addressed === 'full') {
+    return {
+      title: 'The Quiet Win',
+      subtitle: 'The incident no-one outside the team will ever read about. The kind that gets you promoted, quietly.',
+    };
+  }
+  if (outcomes.regulatory >= 80 && outcomes.evidence >= 80 && avg >= 70) {
+    return {
+      title: 'The Defensible PIR',
+      subtitle: 'Costly, slow, but every decision will withstand scrutiny. The board called you "exemplary".',
+    };
+  }
+  if (outcomes.continuity < 35 && outcomes.containment >= 75) {
+    return {
+      title: 'Pyrrhic Containment',
+      subtitle: 'You stopped the attacker. The business may not survive the cure.',
+    };
+  }
+  if (outcomes.trust < 35 && flags.story_will_break_externally) {
+    return {
+      title: 'The Bloomberg Headline',
+      subtitle: 'The story got away from you. Recovery will take quarters, not weeks.',
+    };
+  }
+  if (avg < 40 || min < 20) {
+    return {
+      title: 'The Worst Case',
+      subtitle: 'Persistence retained, data exposed, regulator unimpressed. The board is asking different questions now.',
+    };
+  }
+  if (avg >= 60) {
+    return {
+      title: 'Difficult Call, Made Well',
+      subtitle: 'Real incident. Real damage. Defensible response. Most incidents end here at best — and that\'s fine.',
+    };
+  }
+  return {
+    title: 'Survivable, Not Defensible',
+    subtitle: 'You\'re still here. The board, the regulator, and the auditor will all have opinions.',
+  };
+}
+
+// ============================================================
+// ENDING RENDER
+// ============================================================
+
+function renderEnding() {
+  $('#screen-game').style.display = 'none';
+  $('#screen-ending').style.display = 'block';
+  $('#restartBtn').style.display = 'inline-flex';
+  $('#progressStrip').style.display = 'none';
+
+  const outcomes = computeOutcomes();
+  const headline = pickHeadline(outcomes, state.flags);
+  const c = $('#endingContainer');
+
+  const tierOf = v => v >= 70 ? 'tier-high' : v >= 45 ? 'tier-mid' : 'tier-low';
+
+  c.innerHTML = `
+    <div class="ending-headline">
+      <div class="ending-eyebrow">Final Outcome</div>
+      <h1 class="ending-title">${headline.title}</h1>
+      <p class="ending-subtitle">${headline.subtitle}</p>
+    </div>
+
+    <div class="ending-section">
+      <h2>Outcome by axis</h2>
+      <p class="section-help">Six dimensions of incident outcome. There's no composite number — different organisations weight these differently, and so should you.</p>
+      <div class="outcome-bars">
+        ${[
+          ['Containment quality', outcomes.containment],
+          ['Evidence preserved', outcomes.evidence],
+          ['Business continuity', outcomes.continuity],
+          ['Stakeholder trust', outcomes.trust],
+          ['Regulatory posture', outcomes.regulatory],
+          ['Insurer claim viability', outcomes.insurance],
+        ].map(([label, val]) => `
+          <div class="outcome-row">
+            <div class="outcome-label">${label}</div>
+            <div class="outcome-track">
+              <div class="outcome-fill ${tierOf(val)}" style="width:${val}%"></div>
+            </div>
+            <div class="outcome-score">${Math.round(val)}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="ending-section">
+      <h2>What was actually happening</h2>
+      <p class="section-help">The ground truth about your adversary — only visible now that the incident is over. Few defenders ever get to see this clearly.</p>
+      <div class="truth-card">
+        <h3>${ATTACKER_PROFILE.name}</h3>
+        <p class="truth-tagline">${ATTACKER_PROFILE.tagline}</p>
+        <dl class="truth-grid">
+          ${Object.entries(ATTACKER_PROFILE.truth).map(([k, v]) => `
+            <dt>${k}</dt>
+            <dd>${v}</dd>
+          `).join('')}
+        </dl>
+      </div>
+    </div>
+
+    <div class="ending-section">
+      <h2>Decision review</h2>
+      <p class="section-help">Every turn, every choice, the hidden state you didn't see at the time, and a brief verdict. Click any turn to expand.</p>
+      ${state.history.map((h, i) => `
+        <div class="review-turn" data-open="${i === 0 ? 'true' : 'false'}">
+          <div class="review-head" onclick="toggleReview(${i})">
+            <span class="review-id">${h.turnId}</span>
+            <span class="review-title">${h.turnTitle}</span>
+            <span class="review-verdict v-${h.verdict}">${
+              h.verdict === 'good' ? 'Strong call' : h.verdict === 'mid' ? 'Mixed call' : 'Risky call'
+            }</span>
+            <span class="review-chev">▸</span>
+          </div>
+          <div class="review-body">
+            <div class="review-section">
+              <div class="label">Clock</div>
+              <div class="body">${h.turnClock}</div>
+            </div>
+            <div class="review-section">
+              <div class="label">What you chose</div>
+              <div class="body"><strong>${h.choiceLabel}</strong> — ${h.choiceBrief}</div>
+            </div>
+            <div class="review-section hidden-truth">
+              <div class="label">What you didn't know</div>
+              <div class="body">${h.hiddenTruth}</div>
+            </div>
+            <div class="review-section">
+              <div class="label">Immediate aftermath</div>
+              <div class="body">${h.beat}</div>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="ending-section">
+      <h2>What now?</h2>
+      <p class="section-help">Most paths lead to different outcomes. Some are luck-of-context; most are luck of <em>sequence</em>. Try again — the next run will surface a different version of the same incident.</p>
+      <div class="start-actions">
+        <button class="btn primary" onclick="confirmRestart()">Play again</button>
+        <button class="btn ghost" onclick="copyShareLink()">Copy summary</button>
+      </div>
+    </div>
+  `;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleReview(idx) {
+  const el = document.querySelectorAll('.review-turn')[idx];
+  const open = el.getAttribute('data-open') === 'true';
+  el.setAttribute('data-open', open ? 'false' : 'true');
+}
+
+function copyShareLink() {
+  const outcomes = computeOutcomes();
+  const headline = pickHeadline(outcomes, state.flags);
+  const txt = `The Quiet Quarter — ${headline.title}\n\n` +
+    `${headline.subtitle}\n\n` +
+    Object.entries({
+      'Containment': outcomes.containment,
+      'Evidence': outcomes.evidence,
+      'Continuity': outcomes.continuity,
+      'Trust': outcomes.trust,
+      'Regulatory': outcomes.regulatory,
+      'Insurance': outcomes.insurance,
+    }).map(([k, v]) => `${k.padEnd(13)} ${Math.round(v)}/100`).join('\n');
+  navigator.clipboard?.writeText(txt);
+  alert('Summary copied to clipboard.');
+}
+
+// ============================================================
+// CONTROL
+// ============================================================
+
+function startGame() {
+  state = freshState();
+  saveState();
+  $('#screen-title').style.display = 'none';
+  $('#screen-game').style.display = 'block';
+  $('#restartBtn').style.display = 'inline-flex';
+  renderTurn();
+}
+
+function resumeGame() {
+  const loaded = loadState();
+  if (!loaded) return;
+  state = loaded;
+  $('#screen-title').style.display = 'none';
+  if (state.phase === 'ended') {
+    renderEnding();
+  } else {
+    $('#screen-game').style.display = 'block';
+    $('#restartBtn').style.display = 'inline-flex';
+    if (state.phase === 'beat') {
+      const lastTurn = TURNS[state.turnIdx];
+      const lastChoice = lastTurn.choices.find(c => c.id === state.history[state.history.length - 1]?.choiceId);
+      if (lastChoice) renderBeat(lastChoice);
+      else renderTurn();
+    } else {
+      renderTurn();
+    }
+  }
+}
+
+function confirmRestart() {
+  if (!confirm('Restart? Your current playthrough will be lost.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  $('#screen-game').style.display = 'none';
+  $('#screen-ending').style.display = 'none';
+  $('#screen-title').style.display = 'block';
+  $('#restartBtn').style.display = 'none';
+  $('#progressStrip').style.display = 'none';
+  state = null;
+  initSaveBanner();
+}
+
+function initSaveBanner() {
+  const loaded = loadState();
+  if (loaded && loaded.phase !== 'ended') {
+    $('#resumeBtn').style.display = 'inline-flex';
+  } else {
+    $('#resumeBtn').style.display = 'none';
+  }
+}
+
+// ============================================================
+// KEYBOARD
+// ============================================================
+
+document.addEventListener('keydown', (e) => {
+  if (!state) return;
+  if (state.phase === 'choice') {
+    const num = parseInt(e.key);
+    if (num >= 1 && num <= 4) {
+      const turn = TURNS[state.turnIdx];
+      const ch = turn.choices[num - 1];
+      if (ch) pickChoice(ch.id);
+    }
+  } else if (state.phase === 'beat') {
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      advance();
+    }
+  }
+});
+
+// ============================================================
+// THEME
+// ============================================================
+
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = cur === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem('dh-theme', next); } catch(e) {}
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+
+initSaveBanner();
+</script>
+
+</body>
+</html>
