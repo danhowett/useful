@@ -1,0 +1,1933 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phishing Programme Maturity Assessment</title>
+<style>
+/* =========================================================
+   PPMA — Phishing Programme Maturity Assessment
+   Single-file tool. Light theme. Matches suite conventions.
+   ========================================================= */
+
+:root {
+  --bg: #fafaf7;
+  --bg-elev: #ffffff;
+  --bg-muted: #f3f3ee;
+  --border: #e5e3dc;
+  --border-strong: #d4d1c7;
+  --text: #1a1a1a;
+  --text-2: #3a3a37;
+  --text-muted: #6a6a64;
+  --text-dim: #8a8a82;
+
+  --accent: #2d5a4f;          /* deep teal */
+  --accent-soft: #e6efeb;
+  --accent-bright: #3b7a6a;
+  --warn: #b35a1e;
+  --warn-soft: #fbeede;
+  --danger: #a8331f;
+  --danger-soft: #f7e0db;
+  --ok: #4a7a3f;
+  --ok-soft: #e6efe1;
+
+  --l1: #c4604a;     /* initial */
+  --l2: #d99750;     /* developing */
+  --l3: #7ba365;     /* defined */
+  --l4: #3b7a6a;     /* optimised */
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04), 0 1px 1px rgba(0,0,0,0.02);
+  --shadow: 0 2px 8px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 14px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+
+/* ===== HEADER ===== */
+.app-header {
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 28px;
+  display: flex; align-items: center; gap: 18px;
+  position: sticky; top: 0; z-index: 100;
+}
+.brand {
+  font-family: var(--font-display);
+  font-size: 18px; font-weight: 600;
+  color: var(--text);
+  display: flex; align-items: center; gap: 10px;
+}
+.brand .glyph {
+  font-size: 18px; color: var(--accent);
+}
+.brand .pipe { color: var(--text-dim); font-weight: 400; }
+.brand .sub { font-family: var(--font-body); font-size: 12px; font-weight: 500; color: var(--text-muted); }
+
+.header-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.btn {
+  background: var(--bg-elev); border: 1px solid var(--border-strong);
+  color: var(--text); padding: 7px 14px;
+  border-radius: 5px; font-size: 12px; font-weight: 500;
+  cursor: pointer; font-family: var(--font-body);
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: all 0.12s;
+}
+.btn:hover { background: var(--bg-muted); border-color: var(--text-dim); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary:hover { background: var(--accent-bright); border-color: var(--accent-bright); }
+.btn.ghost { background: transparent; border-color: var(--border); }
+.btn.sm { padding: 5px 10px; font-size: 11px; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ===== STAGE NAV ===== */
+.stage-nav {
+  background: var(--bg-muted);
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+  display: flex; gap: 0;
+}
+.stage-btn {
+  background: transparent; border: 0; border-bottom: 2px solid transparent;
+  padding: 14px 18px; font-size: 12px; font-weight: 500;
+  color: var(--text-muted); cursor: pointer;
+  font-family: var(--font-body);
+  display: flex; align-items: center; gap: 8px;
+  transition: all 0.12s;
+}
+.stage-btn:hover:not(:disabled) { color: var(--text); }
+.stage-btn.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--bg-elev); }
+.stage-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.stage-num {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--bg-elev); border: 1px solid var(--border-strong);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 600; font-family: var(--font-mono);
+}
+.stage-btn.active .stage-num { background: var(--accent); border-color: var(--accent); color: #fff; }
+.stage-btn.complete .stage-num { background: var(--ok); border-color: var(--ok); color: #fff; }
+.stage-btn.complete { color: var(--text); }
+
+/* ===== MAIN LAYOUT ===== */
+.main {
+  max-width: 1280px; margin: 0 auto;
+  padding: 28px 28px 80px;
+}
+.stage { display: none; }
+.stage.active { display: block; }
+
+/* ===== STAGE 1: ORIENT ===== */
+.stage-intro {
+  margin-bottom: 28px;
+}
+.stage-intro h1 {
+  font-family: var(--font-display);
+  font-size: 32px; font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.stage-intro .stage-tag {
+  display: inline-block;
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--accent); font-weight: 600;
+  margin-bottom: 8px;
+}
+.stage-intro .lead {
+  font-size: 15px; color: var(--text-2); max-width: 720px;
+  line-height: 1.6;
+}
+
+.orient-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 24px; margin-top: 24px;
+}
+.orient-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+}
+.orient-card h3 {
+  font-family: var(--font-display);
+  font-size: 18px; font-weight: 600;
+  margin-bottom: 4px;
+}
+.orient-card .help {
+  font-size: 12px; color: var(--text-muted); margin-bottom: 16px;
+}
+
+.field { margin-bottom: 16px; }
+.field label {
+  display: block; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 6px;
+  font-family: var(--font-mono);
+}
+.field input[type="text"], .field textarea, .field select {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  padding: 9px 12px;
+  font-family: var(--font-body); font-size: 13px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.12s;
+}
+.field input[type="text"]:focus, .field textarea:focus, .field select:focus {
+  border-color: var(--accent);
+}
+.field textarea { min-height: 70px; resize: vertical; }
+
+.chip-group { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.12s;
+  font-family: var(--font-body);
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.chip:hover { border-color: var(--accent); }
+.chip.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+.chip .chip-meta { font-size: 10px; opacity: 0.7; font-family: var(--font-mono); }
+
+.sector-overlay-note {
+  margin-top: 14px;
+  padding: 10px 12px;
+  background: var(--accent-soft);
+  border: 1px solid #c8dcd4;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+.sector-overlay-note strong { color: var(--accent); }
+
+.start-row {
+  margin-top: 24px;
+  display: flex; align-items: center; gap: 14px;
+}
+.start-row .meta {
+  font-size: 12px; color: var(--text-muted);
+}
+
+/* ===== STAGE 2: ASSESS ===== */
+.assess-layout {
+  display: grid; grid-template-columns: 240px 1fr;
+  gap: 28px;
+}
+.dim-nav {
+  position: sticky; top: 110px;
+  align-self: start;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px;
+}
+.dim-nav-item {
+  display: block; width: 100%;
+  background: transparent; border: 0;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: var(--font-body); font-size: 13px;
+  color: var(--text-2);
+  transition: all 0.12s;
+  margin-bottom: 2px;
+}
+.dim-nav-item:hover { background: var(--bg-muted); }
+.dim-nav-item.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.dim-nav-item .dim-id {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-dim); display: block; margin-bottom: 2px;
+  letter-spacing: 0.08em;
+}
+.dim-nav-item .dim-prog {
+  font-size: 11px; color: var(--text-muted); margin-top: 3px;
+  font-family: var(--font-mono);
+}
+.dim-nav-item.active .dim-prog { color: var(--accent); }
+
+.dim-content {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 28px;
+}
+.dim-header {
+  margin-bottom: 20px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.dim-header .dim-tag {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--accent); font-weight: 600;
+}
+.dim-header h2 {
+  font-family: var(--font-display);
+  font-size: 24px; font-weight: 600;
+  margin: 4px 0 8px;
+}
+.dim-header .dim-desc {
+  font-size: 13px; color: var(--text-2);
+  max-width: 720px; line-height: 1.6;
+}
+
+.control-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.control-head {
+  display: flex; align-items: flex-start; gap: 10px;
+  margin-bottom: 10px;
+}
+.control-id {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-dim); background: var(--bg-muted);
+  padding: 2px 6px; border-radius: 3px;
+  flex-shrink: 0; margin-top: 2px;
+  letter-spacing: 0.05em;
+}
+.control-title {
+  font-weight: 600; font-size: 14px; color: var(--text);
+  margin-bottom: 3px;
+}
+.control-desc {
+  font-size: 12.5px; color: var(--text-muted);
+  line-height: 1.5;
+}
+.control-ref {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 6px;
+}
+
+.tier-row {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 6px; margin-top: 12px;
+}
+.tier-opt {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 9px 10px;
+  cursor: pointer;
+  transition: all 0.12s;
+  text-align: left;
+  font-family: var(--font-body);
+}
+.tier-opt:hover { border-color: var(--text-dim); }
+.tier-opt .t-id {
+  font-family: var(--font-mono); font-size: 9.5px;
+  font-weight: 600; letter-spacing: 0.08em;
+  margin-bottom: 3px;
+}
+.tier-opt[data-tier="L1"] .t-id { color: var(--l1); }
+.tier-opt[data-tier="L2"] .t-id { color: var(--l2); }
+.tier-opt[data-tier="L3"] .t-id { color: var(--l3); }
+.tier-opt[data-tier="L4"] .t-id { color: var(--l4); }
+.tier-opt .t-label {
+  font-size: 11.5px; color: var(--text-2); line-height: 1.4;
+}
+.tier-opt.selected {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.tier-opt.selected .t-label { color: var(--text); font-weight: 500; }
+
+.evidence-block {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: var(--bg-elev);
+  border: 1px dashed var(--border-strong);
+  border-radius: 6px;
+}
+.evidence-block label {
+  display: block;
+  font-family: var(--font-mono); font-size: 9.5px;
+  font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-dim); margin-bottom: 6px;
+}
+.evidence-block .prompt {
+  font-size: 12px; color: var(--text-muted); margin-bottom: 8px;
+  font-style: italic;
+}
+.evidence-status {
+  display: flex; gap: 4px; margin-bottom: 8px;
+}
+.ev-pill {
+  font-size: 10.5px; padding: 3px 9px;
+  border-radius: 12px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg);
+  cursor: pointer;
+  transition: all 0.12s;
+  font-family: var(--font-body);
+}
+.ev-pill:hover { border-color: var(--text-dim); }
+.ev-pill.selected[data-ev="documented"] { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); font-weight: 600; }
+.ev-pill.selected[data-ev="partial"] { background: var(--warn-soft); border-color: var(--warn); color: var(--warn); font-weight: 600; }
+.ev-pill.selected[data-ev="missing"] { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); font-weight: 600; }
+.ev-pill.selected[data-ev="na"] { background: var(--bg-muted); border-color: var(--text-dim); color: var(--text-muted); font-weight: 600; }
+
+.evidence-block textarea {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 10px;
+  font-family: var(--font-body); font-size: 12px;
+  resize: vertical; min-height: 50px;
+  color: var(--text);
+}
+.evidence-block textarea:focus { outline: none; border-color: var(--accent); }
+
+.dim-foot {
+  display: flex; justify-content: space-between;
+  margin-top: 20px; padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* ===== STAGE 3: INSIGHTS ===== */
+.insight-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.insight-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+}
+.insight-card.full { grid-column: 1 / -1; }
+.insight-card h3 {
+  font-family: var(--font-display);
+  font-size: 18px; font-weight: 600;
+  margin-bottom: 4px;
+}
+.insight-card .help {
+  font-size: 12px; color: var(--text-muted); margin-bottom: 16px;
+}
+
+.score-summary {
+  display: grid; grid-template-columns: auto 1fr; gap: 24px;
+  align-items: center;
+}
+.overall-score {
+  font-family: var(--font-display);
+  font-size: 72px; font-weight: 600;
+  line-height: 1; letter-spacing: -0.03em;
+  color: var(--accent);
+}
+.overall-score .of {
+  font-size: 24px; color: var(--text-muted); font-weight: 400;
+}
+.overall-tier {
+  font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-muted); margin-top: 6px;
+}
+.overall-tier .lvl { font-weight: 700; color: var(--text); }
+.score-breakdown { display: flex; flex-direction: column; gap: 6px; }
+.dim-bar-row {
+  display: grid; grid-template-columns: 110px 1fr 30px;
+  gap: 8px; align-items: center; font-size: 12px;
+}
+.dim-bar-label { color: var(--text-2); font-weight: 500; }
+.dim-bar-track {
+  height: 8px; background: var(--bg-muted); border-radius: 4px;
+  position: relative; overflow: hidden;
+}
+.dim-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s; }
+.dim-bar-score { font-family: var(--font-mono); color: var(--text); font-weight: 500; text-align: right; }
+
+#radarCanvas { display: block; max-width: 100%; height: auto; }
+.heatmap {
+  display: grid; gap: 4px;
+}
+.hm-row { display: grid; grid-template-columns: 200px 1fr; gap: 8px; align-items: center; }
+.hm-label { font-size: 11.5px; color: var(--text-2); }
+.hm-cells { display: flex; gap: 3px; }
+.hm-cell {
+  width: 32px; height: 24px; border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-family: var(--font-mono); font-weight: 600;
+  color: #fff;
+}
+.hm-cell.empty { background: var(--bg-muted); color: var(--text-dim); }
+
+.flag-list { display: flex; flex-direction: column; gap: 8px; }
+.flag {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid;
+}
+.flag.severity-high { background: var(--danger-soft); border-color: var(--danger); }
+.flag.severity-med { background: var(--warn-soft); border-color: var(--warn); }
+.flag.severity-low { background: var(--accent-soft); border-color: var(--accent); }
+.flag-icon { font-size: 14px; line-height: 1; flex-shrink: 0; margin-top: 1px; }
+.flag-body { font-size: 12.5px; line-height: 1.5; }
+.flag-title { font-weight: 600; color: var(--text); }
+.flag-detail { color: var(--text-2); margin-top: 2px; }
+
+.ratio-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.ratio-card {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 14px;
+}
+.ratio-name {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-dim); margin-bottom: 4px;
+}
+.ratio-status {
+  font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px;
+}
+.ratio-help {
+  font-size: 11.5px; color: var(--text-muted); line-height: 1.45;
+}
+
+/* ===== STAGE 4: PLAN ===== */
+.plan-intro {
+  padding: 14px 16px;
+  background: var(--accent-soft);
+  border: 1px solid #c8dcd4;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 13px; color: var(--text-2);
+  line-height: 1.6;
+}
+.action-list { display: flex; flex-direction: column; gap: 10px; }
+.action {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: grid; grid-template-columns: 1fr auto;
+  gap: 14px; align-items: start;
+}
+.action-meta {
+  display: flex; gap: 8px; align-items: center;
+  margin-bottom: 6px; font-size: 11px;
+}
+.action-tag {
+  font-family: var(--font-mono); font-size: 9.5px;
+  font-weight: 600; letter-spacing: 0.08em;
+  padding: 2px 6px; border-radius: 3px;
+}
+.action-tag.priority-high { background: var(--danger-soft); color: var(--danger); }
+.action-tag.priority-med { background: var(--warn-soft); color: var(--warn); }
+.action-tag.priority-low { background: var(--accent-soft); color: var(--accent); }
+.action-ref {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-dim);
+}
+.action-title { font-weight: 600; font-size: 13.5px; color: var(--text); margin-bottom: 4px; }
+.action-detail { font-size: 12.5px; color: var(--text-2); line-height: 1.5; margin-bottom: 10px; }
+.action-fields { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.action-fields input {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 4px; padding: 6px 9px;
+  font-size: 12px; font-family: var(--font-body);
+  color: var(--text);
+}
+.action-fields input:focus { outline: none; border-color: var(--accent); }
+.action-status {
+  display: flex; flex-direction: column; gap: 4px;
+  min-width: 110px;
+}
+.action-status select {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 4px; padding: 5px 8px;
+  font-size: 11.5px; font-family: var(--font-body);
+}
+
+/* ===== STAGE 5: EXPORT ===== */
+.export-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 16px; margin-top: 12px;
+}
+.export-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 22px;
+  text-align: left;
+  display: flex; flex-direction: column;
+}
+.export-card .ex-icon { font-size: 28px; margin-bottom: 12px; }
+.export-card h4 {
+  font-family: var(--font-display);
+  font-size: 18px; font-weight: 600;
+  margin-bottom: 6px;
+}
+.export-card p {
+  font-size: 12.5px; color: var(--text-muted);
+  line-height: 1.5; margin-bottom: 16px;
+  flex: 1;
+}
+
+/* ===== PRINTABLE SNAPSHOT (one-page) ===== */
+@media print {
+  .app-header, .stage-nav, .dim-nav, .stage-intro .stage-tag,
+  .export-grid, .stage:not(#stage-insights), .dim-foot,
+  .start-row { display: none !important; }
+  body { background: #fff !important; }
+  .stage#stage-insights { display: block !important; }
+  .insight-card { break-inside: avoid; box-shadow: none; border: 1px solid #999; }
+  .main { padding: 12px; max-width: none; }
+  .insight-grid { gap: 12px; }
+  .overall-score { color: #2d5a4f !important; }
+  @page { size: A4; margin: 12mm; }
+}
+
+.empty-hint {
+  padding: 24px; background: var(--bg);
+  border: 1px dashed var(--border-strong); border-radius: 8px;
+  text-align: center; color: var(--text-muted); font-size: 13px;
+}
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--text); color: #fff;
+  padding: 10px 16px; border-radius: 6px; font-size: 12.5px;
+  box-shadow: var(--shadow);
+  opacity: 0; pointer-events: none;
+  transition: all 0.2s;
+  font-family: var(--font-body);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="brand">
+    <span class="glyph">⌖</span>
+    <span>Phishing Programme</span>
+    <span class="pipe">/</span>
+    <span class="sub">Maturity Assessment</span>
+  </div>
+  <div class="header-actions">
+    <button class="btn ghost sm" onclick="resetAll()">Reset</button>
+    <button class="btn ghost sm" onclick="loadJson()">Load</button>
+    <button class="btn primary sm" onclick="goToStage(4)">Export</button>
+  </div>
+</header>
+
+<nav class="stage-nav">
+  <button class="stage-btn active" data-stage="0" onclick="goToStage(0)"><span class="stage-num">1</span>Orient</button>
+  <button class="stage-btn" data-stage="1" onclick="goToStage(1)" disabled><span class="stage-num">2</span>Assess</button>
+  <button class="stage-btn" data-stage="2" onclick="goToStage(2)" disabled><span class="stage-num">3</span>Insights</button>
+  <button class="stage-btn" data-stage="3" onclick="goToStage(3)" disabled><span class="stage-num">4</span>Plan</button>
+  <button class="stage-btn" data-stage="4" onclick="goToStage(4)" disabled><span class="stage-num">5</span>Export</button>
+</nav>
+
+<main class="main">
+
+  <!-- ========== STAGE 1: ORIENT ========== -->
+  <section class="stage active" id="stage-orient">
+    <div class="stage-intro">
+      <div class="stage-tag">Stage 01 / Orient</div>
+      <h1>Set the assessment context</h1>
+      <p class="lead">A phishing programme's expectations depend on what kind of organisation you are. Pick your sector and rough size — this will tailor controls, sector-specific anti-patterns, and the depth of expected practice across the five dimensions.</p>
+    </div>
+
+    <div class="orient-grid">
+      <div class="orient-card">
+        <h3>Programme details</h3>
+        <div class="help">Used in exports and the board report header.</div>
+
+        <div class="field">
+          <label>Organisation name</label>
+          <input type="text" id="orgName" placeholder="e.g. Acme Holdings" oninput="updateState()">
+        </div>
+        <div class="field">
+          <label>Programme owner</label>
+          <input type="text" id="ownerName" placeholder="e.g. Security Awareness Lead — J. Patel" oninput="updateState()">
+        </div>
+        <div class="field">
+          <label>Assessment date</label>
+          <input type="text" id="assessDate" placeholder="auto" oninput="updateState()">
+        </div>
+        <div class="field">
+          <label>Notes / scope</label>
+          <textarea id="scopeNotes" placeholder="Optional. e.g. UK entities only, excludes Asia-Pacific subsidiary." oninput="updateState()"></textarea>
+        </div>
+      </div>
+
+      <div class="orient-card">
+        <h3>Sector & size overlay</h3>
+        <div class="help">Sector adjusts expected controls (e.g. regulated industries face higher bar for board reporting and exec programmes). Size adjusts what's reasonable (charity of 50 doesn't need a separate VIP programme).</div>
+
+        <div class="field">
+          <label>Sector</label>
+          <div class="chip-group" id="sectorChips"></div>
+        </div>
+        <div class="field">
+          <label>Size band</label>
+          <div class="chip-group" id="sizeChips"></div>
+        </div>
+
+        <div id="overlayNote" class="sector-overlay-note" style="display:none"></div>
+      </div>
+    </div>
+
+    <div class="start-row">
+      <button class="btn primary" onclick="goToStage(1)" id="startBtn" disabled>Begin assessment →</button>
+      <span class="meta" id="orientMeta">Select sector and size to begin</span>
+    </div>
+  </section>
+
+  <!-- ========== STAGE 2: ASSESS ========== -->
+  <section class="stage" id="stage-assess">
+    <div class="stage-intro">
+      <div class="stage-tag">Stage 02 / Assess</div>
+      <h1>Score programme maturity across five dimensions</h1>
+      <p class="lead">For each control, pick the tier that best matches your current state. Tag evidence status and capture a short note — this powers the exports and improvement plan. There's no penalty for honest L1s; an accurate picture beats an aspirational one.</p>
+    </div>
+
+    <div class="assess-layout">
+      <aside class="dim-nav" id="dimNav"></aside>
+      <div class="dim-content" id="dimContent"></div>
+    </div>
+  </section>
+
+  <!-- ========== STAGE 3: INSIGHTS ========== -->
+  <section class="stage" id="stage-insights">
+    <div class="stage-intro">
+      <div class="stage-tag">Stage 03 / Insights</div>
+      <h1>Where the programme stands</h1>
+      <p class="lead">Maturity by dimension, control heatmap, and the patterns that matter. Anti-pattern flags surface practices that may be doing harm — addressing these often delivers more value than chasing a higher tier.</p>
+    </div>
+
+    <div class="insight-grid">
+      <div class="insight-card">
+        <h3>Overall maturity</h3>
+        <div class="help">Weighted across the five dimensions. Tier reflects the lowest-scoring dimension — a chain is as strong as its weakest link.</div>
+        <div class="score-summary">
+          <div>
+            <div class="overall-score" id="overallScore">—<span class="of">/4.0</span></div>
+            <div class="overall-tier" id="overallTier">Tier: <span class="lvl">—</span></div>
+          </div>
+          <div class="score-breakdown" id="dimBars"></div>
+        </div>
+      </div>
+
+      <div class="insight-card">
+        <h3>Dimension radar</h3>
+        <div class="help">Balance across the five dimensions. Watch for spikes where simulations dominate other areas — a common imbalance.</div>
+        <svg id="radarCanvas" viewBox="0 0 360 340"></svg>
+      </div>
+
+      <div class="insight-card full">
+        <h3>Control heatmap</h3>
+        <div class="help">Every control, colour-coded by tier. Reds and ambers cluster in dimensions needing investment.</div>
+        <div class="heatmap" id="heatmap"></div>
+      </div>
+
+      <div class="insight-card">
+        <h3>Anti-pattern flags</h3>
+        <div class="help">Practices that may be making the programme less effective, not more. These take priority over tier improvements.</div>
+        <div class="flag-list" id="flagList"></div>
+      </div>
+
+      <div class="insight-card">
+        <h3>Metric maturity check</h3>
+        <div class="help">Programmes mature when they shift from click-rate vanity metrics toward behaviour metrics. Where are you on each?</div>
+        <div class="ratio-grid" id="ratioGrid"></div>
+      </div>
+    </div>
+
+    <div class="start-row" style="margin-top:24px">
+      <button class="btn primary" onclick="goToStage(3)">Generate improvement plan →</button>
+      <span class="meta">Auto-suggests actions from L1/L2 controls and flagged anti-patterns.</span>
+    </div>
+  </section>
+
+  <!-- ========== STAGE 4: PLAN ========== -->
+  <section class="stage" id="stage-plan">
+    <div class="stage-intro">
+      <div class="stage-tag">Stage 04 / Plan</div>
+      <h1>Improvement actions</h1>
+      <p class="lead">Auto-generated from L1/L2 controls and flagged anti-patterns, weighted by impact-vs-effort. Assign owners and due dates — these will export with your assessment for the next review cycle.</p>
+    </div>
+
+    <div class="plan-intro" id="planIntroBox">
+      <strong>Tip:</strong> Address red anti-pattern flags first regardless of tier. A programme with high simulation maturity but a punitive response culture is worse than no programme at all.
+    </div>
+
+    <div class="action-list" id="actionList"></div>
+
+    <div class="start-row" style="margin-top:24px">
+      <button class="btn primary" onclick="goToStage(4)">Export →</button>
+      <span class="meta" id="planMeta"></span>
+    </div>
+  </section>
+
+  <!-- ========== STAGE 5: EXPORT ========== -->
+  <section class="stage" id="stage-export">
+    <div class="stage-intro">
+      <div class="stage-tag">Stage 05 / Export</div>
+      <h1>Take it with you</h1>
+      <p class="lead">Three output formats. JSON for ingestion by CIRA / ICCC. PDF for the board pack. Printable snapshot for the wall, the team briefing, or the slide deck.</p>
+    </div>
+
+    <div class="export-grid">
+      <div class="export-card">
+        <div class="ex-icon">⎔</div>
+        <h4>JSON</h4>
+        <p>Schema: <code>dh-phishing-maturity</code> v1. Compatible with CIRA and ICCC import. Includes all controls, evidence status, scores, flags, and action plan.</p>
+        <button class="btn primary" onclick="exportJson()">Download JSON</button>
+      </div>
+
+      <div class="export-card">
+        <div class="ex-icon">▤</div>
+        <h4>Printable snapshot</h4>
+        <p>One-page summary — overall score, radar, heatmap and top flags. A4 portrait. Suitable for the team briefing wall or appendix to a board pack.</p>
+        <button class="btn primary" onclick="printSnapshot()">Print snapshot</button>
+      </div>
+
+      <div class="export-card">
+        <div class="ex-icon">◫</div>
+        <h4>Board PDF</h4>
+        <p>Full narrative report — programme summary, dimension breakdowns, anti-pattern findings, improvement plan with owners and due dates. Print to PDF from your browser.</p>
+        <button class="btn primary" onclick="printBoardReport()">Generate report</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// REFERENCE DATA
+// ============================================================
+
+const SECTORS = [
+  { id: 'fs',     name: 'Financial services',      note: 'Higher bar on board reporting, exec programmes, and regulatory expectations (FCA/PRA, DORA). Anti-fraud overlap.' },
+  { id: 'health', name: 'Healthcare',              note: 'NHS DSPT and CQC overlap. Clinical staff exemptions need care; high impact of legitimate-looking medical-record-themed lures.' },
+  { id: 'public', name: 'Public sector / gov',     note: 'NCSC GovAssure / CAF expectations. Higher visibility, mandatory reporting. FOI risk for any heavy-handed comms.' },
+  { id: 'crit',   name: 'CNI / utilities',         note: 'NIS2 / NIS Regulations apply. OT staff often outside mainstream programme — bespoke approach needed.' },
+  { id: 'edu',    name: 'Education',               note: 'Student/staff dual population. JISC guidance. Lure realism limited by safeguarding considerations.' },
+  { id: 'charity', name: 'Charity / NFP',          note: 'Constrained budget. Volunteer populations. Charity Commission expectations on fraud and donor data.' },
+  { id: 'legal',  name: 'Legal / professional',    note: 'High-value BEC targets. Client confidentiality changes how data is handled in simulations.' },
+  { id: 'tech',   name: 'Technology / SaaS',       note: 'Higher technical literacy baseline, but credential-theft simulations need sophistication to land.' },
+  { id: 'retail', name: 'Retail / consumer',       note: 'Seasonal peaks affect cadence. PCI-DSS overlap for payment-handling staff.' },
+  { id: 'other',  name: 'Other / general',         note: 'Generic baseline expectations apply.' },
+];
+
+const SIZES = [
+  { id: 'sm', name: '< 250 staff',           note: 'Small: full exec programme not expected. Programme owner often shared role.' },
+  { id: 'md', name: '250 – 2,000 staff',     note: 'Mid: discrete programme owner expected. Role-based targeting begins to matter.' },
+  { id: 'lg', name: '2,000 – 10,000 staff',  note: 'Large: full programme expected. Multi-stakeholder governance. Mature metrics.' },
+  { id: 'xl', name: '10,000+ staff',         note: 'Enterprise: federated programme. Exec programme separate. Board reporting cadence regular.' },
+];
+
+const DIMENSIONS = [
+  {
+    id: 'D1', code: 'GOV',
+    name: 'Programme design & governance',
+    desc: 'How the phishing programme is defined, owned, sponsored, and measured at the organisation level. Without this, the rest is activity without direction.',
+    icon: '◇',
+    controls: [
+      {
+        id: 'D1.1', title: 'Stated objectives',
+        desc: 'Programme has documented objectives that go beyond click-rate reduction.',
+        ref: 'NCSC Phishing Guidance · ISO 27002:2022 6.3',
+        tiers: {
+          L1: 'No documented objectives. Programme exists to "do phishing".',
+          L2: 'Objectives exist but framed solely around click-rate reduction.',
+          L3: 'Documented multi-metric objectives covering reporting, time-to-report, and culture.',
+          L4: 'Behavioural outcomes tied to organisational risk reduction. Reviewed annually against threat landscape.',
+        },
+        evidence: 'Is there a written programme charter or strategy document?',
+      },
+      {
+        id: 'D1.2', title: 'Executive sponsorship',
+        desc: 'Visible C-suite or board-level sponsorship of the programme.',
+        ref: 'NCSC Board Toolkit',
+        tiers: {
+          L1: 'No identifiable sponsor.',
+          L2: 'Sponsor named but not actively engaged.',
+          L3: 'Active sponsor at CISO / CIO level with regular engagement.',
+          L4: 'Board-level oversight with periodic review. Exec participation in own simulations.',
+        },
+        evidence: 'Who signs off the annual plan? When did the sponsor last review programme outcomes?',
+      },
+      {
+        id: 'D1.3', title: 'Defined ownership',
+        desc: 'Clear single accountable owner with appropriate authority, ideally distinct from training delivery.',
+        ref: 'NIST SP 800-50r1',
+        tiers: {
+          L1: 'No identified owner. Run ad hoc by whoever has time.',
+          L2: 'Owner identified but role is collateral duty without budget.',
+          L3: 'Named owner with defined responsibilities, time allocation, and budget.',
+          L4: 'Owner has cross-functional authority spanning security, HR/L&D, and communications.',
+        },
+        evidence: 'Who owns the programme in the RACI? What is their time allocation?',
+      },
+      {
+        id: 'D1.4', title: 'Policy alignment',
+        desc: 'Programme is grounded in policy that staff have signed up to.',
+        ref: 'ISO 27002:2022 6.3 · NCSC Cyber Aware',
+        tiers: {
+          L1: 'No policy reference. Programme runs outside formal governance.',
+          L2: 'Acceptable use policy mentions phishing in passing.',
+          L3: 'Dedicated awareness / phishing policy referenced in induction and renewal.',
+          L4: 'Policy reviewed annually with board sign-off; reflected in performance management framework.',
+        },
+        evidence: 'Where is the programme cited in policy documents?',
+      },
+      {
+        id: 'D1.5', title: 'Cadence rationale',
+        desc: 'Frequency of simulations and training has a defensible logic, not just "every quarter".',
+        ref: 'NCSC Phishing Guidance Layer 2',
+        tiers: {
+          L1: 'No simulations, or sent at random.',
+          L2: 'Fixed quarterly or monthly cadence with no rationale.',
+          L3: 'Cadence varies by population, role risk, and individual history.',
+          L4: 'Adaptive cadence driven by behaviour data and current threat intelligence.',
+        },
+        evidence: 'What drives the timing and frequency of simulations? Is it documented?',
+      },
+      {
+        id: 'D1.6', title: 'Board / exec reporting',
+        desc: 'Programme outcomes reach the audit committee or board on a defined cadence.',
+        ref: 'NCSC Board Toolkit · NACD Principles',
+        tiers: {
+          L1: 'No reporting beyond informal updates.',
+          L2: 'Operational reporting only (click rates, training completion).',
+          L3: 'Quarterly summary covering behaviour metrics, threat context, and improvement actions.',
+          L4: 'Board-level KRI tied to programme outcomes, reviewed against agreed appetite.',
+        },
+        evidence: 'When does the programme last appear in board minutes?',
+      },
+    ],
+  },
+  {
+    id: 'D2', code: 'SIM',
+    name: 'Simulation quality',
+    desc: 'The realism, targeting and craft of simulated phishing. A bad simulation is worse than none — it trains staff to spot tells that real attackers don\'t leave.',
+    icon: '◈',
+    controls: [
+      {
+        id: 'D2.1', title: 'Targeting realism',
+        desc: 'Simulations are targeted with the same craft a real attacker would use.',
+        ref: 'NCSC Phishing Guidance Layer 1-2',
+        tiers: {
+          L1: 'Identical generic lure sent to everyone.',
+          L2: 'Some role-based variation (HR, finance, IT).',
+          L3: 'Spear-phishing variants for high-risk roles with realistic pretexts.',
+          L4: 'Threat-intel-driven; lures mirror current campaigns observed against the sector.',
+        },
+        evidence: 'How was the last simulation\'s targeting decided? What data informed it?',
+      },
+      {
+        id: 'D2.2', title: 'Lure design quality',
+        desc: 'Lures use techniques real attackers use: spoofed domains, urgency cues, plausible context.',
+        ref: 'MITRE ATT&CK T1566',
+        tiers: {
+          L1: 'Off-the-shelf vendor templates with obvious tells (spelling, generic greetings).',
+          L2: 'Vendor templates with some localisation.',
+          L3: 'In-house designed lures using current threat-intel TTPs (domain typosquats, plausible senders).',
+          L4: 'Lure design is informed by real reported phish and SOC observed campaigns; difficulty progression built in.',
+        },
+        evidence: 'Sample a recent lure: what real attacker TTPs does it use?',
+      },
+      {
+        id: 'D2.3', title: 'Difficulty progression',
+        desc: 'Programme escalates difficulty as the workforce matures, rather than running at fixed challenge level.',
+        ref: 'NCSC Phishing Guidance',
+        tiers: {
+          L1: 'No concept of difficulty.',
+          L2: 'Difficulty same across all simulations.',
+          L3: 'Difficulty escalates over the year for the general population.',
+          L4: 'Individualised — harder lures for repeat-reporters; baseline lures continue for new joiners.',
+        },
+        evidence: 'How does this quarter\'s lure differ from the same one a year ago?',
+      },
+      {
+        id: 'D2.4', title: 'Exemption & ethics handling',
+        desc: 'Programme has thought-through exemptions and ethical guardrails (no exploitation of grief, redundancy, charity, etc.).',
+        ref: 'NCSC Phishing Guidance (ethical considerations)',
+        tiers: {
+          L1: 'No exemption process. No ethical review of lure themes.',
+          L2: 'Ad-hoc exemptions on request.',
+          L3: 'Documented exemption process; lure themes reviewed before deployment.',
+          L4: 'Standing ethical review including HR/legal sign-off for sensitive themes; ANTI-PATTERN themes (redundancy, salary, family) explicitly excluded.',
+        },
+        evidence: 'What themes are off-limits? Who reviewed the last simulation\'s wording?',
+      },
+      {
+        id: 'D2.5', title: 'Exec / high-value target programme',
+        desc: 'Senior leadership and high-value targets (CFO, payroll, IT admins) receive a distinct, more sophisticated programme.',
+        ref: 'NCSC BEC Guidance',
+        tiers: {
+          L1: 'Execs and HVTs receive the same simulations as everyone else, or are quietly exempted.',
+          L2: 'Some role-based variation but no dedicated stream.',
+          L3: 'Defined HVT list with separate cadence and lure design.',
+          L4: 'HVT programme integrated with BEC controls, exec coaching, and threat-intel feeds.',
+        },
+        evidence: 'How does the CFO\'s phishing experience differ from a junior staffer\'s?',
+      },
+    ],
+  },
+  {
+    id: 'D3', code: 'MET',
+    name: 'Metrics & measurement',
+    desc: 'What you measure shapes what the programme becomes. Most programmes measure clicks because clicks are easy — the metrics that correlate with resilience take more work.',
+    icon: '◉',
+    controls: [
+      {
+        id: 'D3.1', title: 'Beyond click rate',
+        desc: 'Programme measures behaviour metrics (report rate, time-to-report) not just click rate.',
+        ref: 'NCSC Phishing Guidance Layer 3',
+        tiers: {
+          L1: 'Click rate only.',
+          L2: 'Click rate plus completion rate of training.',
+          L3: 'Click rate, report rate, time-to-first-report tracked and trended.',
+          L4: 'Full behaviour set: report-to-click ratio, dwell time, near-miss capture, repeat-clicker concentration.',
+        },
+        evidence: 'List every metric from the last quarterly report.',
+      },
+      {
+        id: 'D3.2', title: 'Report-to-click ratio',
+        desc: 'Report rate is tracked alongside click rate; this ratio matters more than either alone.',
+        ref: 'NCSC Phishing Guidance',
+        tiers: {
+          L1: 'Reporting not measured.',
+          L2: 'Report count tracked but not as a ratio.',
+          L3: 'Report-to-click ratio tracked over time.',
+          L4: 'Report-to-click ratio is the headline metric; click rate is secondary.',
+        },
+        evidence: 'What is the report-to-click ratio for the most recent simulation?',
+      },
+      {
+        id: 'D3.3', title: 'Time-to-report',
+        desc: 'Programme tracks how quickly users report suspicious mail, not just whether they do.',
+        ref: 'NCSC Phishing Guidance Layer 4',
+        tiers: {
+          L1: 'Not measured.',
+          L2: 'Aggregate average reported quarterly.',
+          L3: 'Distribution tracked; median and p90 monitored against targets.',
+          L4: 'Real-time monitoring of report wave; SOC alerts when wave begins.',
+        },
+        evidence: 'What was the median time-to-report on the last simulation?',
+      },
+      {
+        id: 'D3.4', title: 'Repeat-clicker identification',
+        desc: 'Programme identifies repeat clickers and treats them as a population needing different intervention, not punishment.',
+        ref: 'NCSC Phishing Guidance · NIST 800-50r1',
+        tiers: {
+          L1: 'Not tracked.',
+          L2: 'Tracked but no action.',
+          L3: 'Repeat clickers receive targeted training; HR informed in line with policy.',
+          L4: 'Pattern analysis identifies why (role, stress, language, accessibility) and adjusts intervention; never punitive.',
+        },
+        evidence: 'What happens to someone who clicks three simulations in a row?',
+      },
+      {
+        id: 'D3.5', title: 'Segmentation & trending',
+        desc: 'Metrics broken down by department, role, tenure and geography; trended over time.',
+        ref: 'NIST 800-50r1',
+        tiers: {
+          L1: 'Single aggregate number.',
+          L2: 'Department-level breakdown.',
+          L3: 'Multi-dimensional segmentation, trended quarterly.',
+          L4: 'Segmentation drives targeted interventions; new-joiner and tenure-bend curves understood.',
+        },
+        evidence: 'Can you produce a click-rate trend by department for the last 12 months?',
+      },
+    ],
+  },
+  {
+    id: 'D4', code: 'RSP',
+    name: 'Learning & response',
+    desc: 'What happens after a click, a report, or a near-miss. This is where most programmes fail — and where culture is actually shaped.',
+    icon: '◆',
+    controls: [
+      {
+        id: 'D4.1', title: 'Just-in-time training',
+        desc: 'Click on a simulation triggers immediate, contextual, short training — not a calendar invite to a quarterly module.',
+        ref: 'NCSC Phishing Guidance Layer 3',
+        tiers: {
+          L1: 'No immediate intervention. Click logged silently.',
+          L2: 'Generic post-click landing page.',
+          L3: 'Contextual just-in-time micro-module showing the specific tells of the lure clicked.',
+          L4: 'Adaptive content based on prior history and the user\'s role; available in multiple formats and languages.',
+        },
+        evidence: 'Click your own simulation: what happens in the next 60 seconds?',
+      },
+      {
+        id: 'D4.2', title: 'Reporting button & friction',
+        desc: 'A "report phish" button exists in the mail client, is well-placed, and reporting is one click.',
+        ref: 'NCSC Phishing Guidance Layer 4',
+        tiers: {
+          L1: 'No button. Staff told to forward to an inbox.',
+          L2: 'Button present but rarely used; multi-step process.',
+          L3: 'Single-click reporting from mail client; immediate acknowledgement.',
+          L4: 'Button works across all clients (mobile, OWA, desktop); reports feed directly into SOC triage.',
+        },
+        evidence: 'Can you report a phish from your phone\'s Outlook app in one tap?',
+      },
+      {
+        id: 'D4.3', title: 'Reporter acknowledgement',
+        desc: 'Reporters get rapid acknowledgement and (where appropriate) outcome feedback.',
+        ref: 'NCSC Phishing Guidance Layer 4',
+        tiers: {
+          L1: 'No acknowledgement.',
+          L2: 'Automated "thank you" only.',
+          L3: 'Auto-ack plus periodic outcome feedback ("you reported a real campaign").',
+          L4: 'Visible recognition — gamified leaderboards or recognition feeds — without naming-and-shaming non-reporters.',
+        },
+        evidence: 'What does a reporter see in the 24 hours after submitting?',
+      },
+      {
+        id: 'D4.4', title: 'Reporting culture & psychological safety',
+        desc: '"I clicked" is safe to say. Reporting is praised; clicking is not punished.',
+        ref: 'NCSC Phishing Guidance · NIST 800-50r1',
+        tiers: {
+          L1: 'Clickers named publicly or sent to HR.',
+          L2: 'No public shaming but clicking visibly affects performance ratings.',
+          L3: 'Documented blameless approach. Reporting visibly rewarded.',
+          L4: 'Programme team measures psychological safety directly; staff surveys show reporting is psychologically safe.',
+        },
+        evidence: 'Ask three random staff what happens when you click. What do they say?',
+      },
+      {
+        id: 'D4.5', title: 'Repeat-clicker support',
+        desc: 'Repeat clickers receive coaching, not punishment; root cause investigated (accessibility, language, role exposure).',
+        ref: 'NCSC Phishing Guidance',
+        tiers: {
+          L1: 'Repeat clickers ignored or escalated to HR for discipline.',
+          L2: 'Forced retraining for repeat clickers.',
+          L3: 'One-to-one conversation explores why; supportive interventions offered.',
+          L4: 'Pattern analysis; accessibility adjustments; technical compensation (extra filtering for high-risk users); cultural support.',
+        },
+        evidence: 'How were the last three repeat clickers supported?',
+      },
+    ],
+  },
+  {
+    id: 'D5', code: 'INT',
+    name: 'Resilience & integration',
+    desc: 'How the programme connects to the wider security operation — feeding the SOC, informing controls, integrating with IR and threat intel. Without this, the programme is an island.',
+    icon: '◐',
+    controls: [
+      {
+        id: 'D5.1', title: 'SOC integration',
+        desc: 'Real phish reports feed directly into SOC triage and tuning, not parallel inboxes.',
+        ref: 'NIST SP 800-61r2 · NCSC SOC Guidance',
+        tiers: {
+          L1: 'Reports go to an unmanaged inbox.',
+          L2: 'Reports triaged by awareness team, occasionally forwarded to SOC.',
+          L3: 'Reports integrated into SOC queue with SLA; outcomes fed back to awareness team.',
+          L4: 'Bi-directional: SOC tunes mail controls from report data; awareness programme adjusts content from SOC trends.',
+        },
+        evidence: 'When did a reported phish last drive a SOC detection improvement?',
+      },
+      {
+        id: 'D5.2', title: 'Threat intel feedback loop',
+        desc: 'CTI informs simulations and content; programme telemetry informs CTI.',
+        ref: 'CREST CTI Code of Practice',
+        tiers: {
+          L1: 'No connection between CTI and programme.',
+          L2: 'Occasional ad hoc CTI input.',
+          L3: 'CTI briefs inform quarterly content updates; programme stats reviewed in TI sync.',
+          L4: 'Real-time loop — emerging campaigns trigger simulation adjustments; user reports feed CTI processing.',
+        },
+        evidence: 'Was the last sector-specific campaign reflected in awareness content?',
+      },
+      {
+        id: 'D5.3', title: 'IR integration',
+        desc: 'Phish reports trigger IR processes when warranted; programme is part of the incident response plan.',
+        ref: 'NIST SP 800-61r2',
+        tiers: {
+          L1: 'No documented integration.',
+          L2: 'Major reports escalate but ad hoc.',
+          L3: 'Defined triggers and handoffs from reporting to IR; tested in tabletop.',
+          L4: 'Programme outputs shape IR runbooks; report wave is a recognised IR trigger.',
+        },
+        evidence: 'In your IR plan, where does "user phish report" appear?',
+      },
+      {
+        id: 'D5.4', title: 'Technical control alignment',
+        desc: 'Programme insights drive technical control investment (filtering, MFA, link rewriting, etc.) — not just user training.',
+        ref: 'NCSC Phishing Guidance Layer 1',
+        tiers: {
+          L1: 'No connection between programme data and technical investments.',
+          L2: 'Occasional anecdotal influence.',
+          L3: 'Programme data cited in business cases for technical controls.',
+          L4: 'Programme data is a primary input to email security strategy and roadmap.',
+        },
+        evidence: 'When did the programme last influence a technical control change?',
+      },
+      {
+        id: 'D5.5', title: 'Programme maturity review',
+        desc: 'The programme itself is reviewed against an external standard or peer benchmark on a defined cadence.',
+        ref: 'NCSC Phishing Guidance · ISO 27001 8.1',
+        tiers: {
+          L1: 'Never reviewed.',
+          L2: 'Internal review only, ad hoc.',
+          L3: 'Annual self-assessment against NCSC guidance.',
+          L4: 'Annual review against framework plus peer benchmark; outputs feed strategy.',
+        },
+        evidence: 'When did the programme last receive an external review or maturity self-assessment?',
+      },
+    ],
+  },
+];
+
+const TIER_SCORES = { L1: 1, L2: 2, L3: 3, L4: 4 };
+const TIER_NAMES = { L1: 'Initial', L2: 'Developing', L3: 'Defined', L4: 'Optimised' };
+const TIER_COLOURS = { L1: '#c4604a', L2: '#d99750', L3: '#7ba365', L4: '#3b7a6a' };
+
+// Anti-patterns: triggered by combinations of low scores or specific evidence states
+const ANTI_PATTERNS = [
+  {
+    id: 'AP1', severity: 'high',
+    title: 'High simulation activity, weak response culture',
+    detail: 'Simulations score ≥3 but response/culture (D4) scores ≤2. Programme may be doing harm — staff clicking are punished or shamed without proportional support. Address response side urgently.',
+    check: (scores) => scores.D2 >= 3 && scores.D4 <= 2,
+  },
+  {
+    id: 'AP2', severity: 'high',
+    title: 'Punitive repeat-clicker handling',
+    detail: 'D4.5 (repeat-clicker support) is at L1. Repeat clickers escalated to HR for discipline rather than supported with coaching. This destroys reporting culture.',
+    check: (_scores, controls) => controls['D4.5'] === 'L1',
+  },
+  {
+    id: 'AP3', severity: 'med',
+    title: 'Click-rate vanity metric dominance',
+    detail: 'Metrics dimension (D3) at L1/L2 — click rate likely the only meaningful measure. The programme cannot tell if it\'s building real resilience or just surface compliance.',
+    check: (scores) => scores.D3 <= 2,
+  },
+  {
+    id: 'AP4', severity: 'med',
+    title: 'No just-in-time learning',
+    detail: 'D4.1 at L1/L2. Click moment is wasted — learning value of immediate, contextual intervention is far higher than a quarterly module.',
+    check: (_scores, controls) => ['L1', 'L2'].includes(controls['D4.1']),
+  },
+  {
+    id: 'AP5', severity: 'med',
+    title: 'No exec / HVT programme',
+    detail: 'D2.5 at L1. CFO and IT admins are the actual BEC targets. Generic programme cannot defend against attacks shaped specifically for them.',
+    check: (_scores, controls) => controls['D2.5'] === 'L1',
+    sectorAdjust: (sector) => ['fs', 'legal', 'public', 'crit'].includes(sector),
+  },
+  {
+    id: 'AP6', severity: 'med',
+    title: 'No reporting button',
+    detail: 'D4.2 at L1. Reporting friction is the biggest blocker to a reporting culture. A one-click button is the single highest-ROI intervention.',
+    check: (_scores, controls) => controls['D4.2'] === 'L1',
+  },
+  {
+    id: 'AP7', severity: 'low',
+    title: 'Programme isolated from SOC',
+    detail: 'D5.1 at L1. Phish reports are not flowing into operational defence — losing detection value and missing the chance to tune controls.',
+    check: (_scores, controls) => controls['D5.1'] === 'L1',
+  },
+  {
+    id: 'AP8', severity: 'low',
+    title: 'No ethical guardrails on lures',
+    detail: 'D2.4 at L1. Risk of using lures that exploit grief, redundancy fears, or financial stress. Even if effective, these damage trust permanently when discovered.',
+    check: (_scores, controls) => controls['D2.4'] === 'L1',
+  },
+  {
+    id: 'AP9', severity: 'low',
+    title: 'No governance — programme without direction',
+    detail: 'D1 dimension at L1/L2. Activity without strategic objectives produces metrics without meaning. Owner and objectives should be the first investment.',
+    check: (scores) => scores.D1 <= 2,
+  },
+];
+
+// ============================================================
+// STATE
+// ============================================================
+
+const STORAGE_KEY = 'dh-phishing-maturity-v1';
+
+const state = {
+  org: { name: '', owner: '', date: '', notes: '' },
+  sector: null,
+  size: null,
+  scores: {},   // { 'D1.1': 'L1' | 'L2' | ... }
+  evidence: {}, // { 'D1.1': 'documented'|'partial'|'missing'|'na' }
+  notes: {},    // { 'D1.1': 'free text' }
+  actions: {},  // { actionId: { owner, due, dep, status } }
+  currentDim: 'D1',
+  currentStage: 0,
+};
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const loaded = JSON.parse(raw);
+      Object.assign(state, loaded);
+    }
+  } catch (e) {}
+}
+
+function updateState() {
+  state.org.name = document.getElementById('orgName').value;
+  state.org.owner = document.getElementById('ownerName').value;
+  state.org.date = document.getElementById('assessDate').value;
+  state.org.notes = document.getElementById('scopeNotes').value;
+  refreshOrient();
+  saveState();
+}
+
+// ============================================================
+// STAGE 1: ORIENT
+// ============================================================
+
+function renderSectors() {
+  const c = document.getElementById('sectorChips');
+  c.innerHTML = SECTORS.map(s =>
+    `<button class="chip ${state.sector === s.id ? 'selected' : ''}" data-sector="${s.id}" onclick="pickSector('${s.id}')">${escapeHtml(s.name)}</button>`
+  ).join('');
+}
+function renderSizes() {
+  const c = document.getElementById('sizeChips');
+  c.innerHTML = SIZES.map(s =>
+    `<button class="chip ${state.size === s.id ? 'selected' : ''}" data-size="${s.id}" onclick="pickSize('${s.id}')">${escapeHtml(s.name)}</button>`
+  ).join('');
+}
+function pickSector(id) { state.sector = id; renderSectors(); refreshOrient(); saveState(); }
+function pickSize(id)   { state.size = id;   renderSizes();   refreshOrient(); saveState(); }
+
+function refreshOrient() {
+  const sector = SECTORS.find(s => s.id === state.sector);
+  const size = SIZES.find(s => s.id === state.size);
+  const noteEl = document.getElementById('overlayNote');
+  if (sector || size) {
+    const parts = [];
+    if (sector) parts.push(`<strong>${escapeHtml(sector.name)}:</strong> ${escapeHtml(sector.note)}`);
+    if (size) parts.push(`<strong>${escapeHtml(size.name)}:</strong> ${escapeHtml(size.note)}`);
+    noteEl.innerHTML = parts.join('<br><br>');
+    noteEl.style.display = 'block';
+  } else {
+    noteEl.style.display = 'none';
+  }
+  const ready = state.sector && state.size;
+  document.getElementById('startBtn').disabled = !ready;
+  document.getElementById('orientMeta').textContent = ready ? 'Ready to begin assessment' : 'Select sector and size to begin';
+  document.querySelector('[data-stage="1"]').disabled = !ready;
+}
+
+// ============================================================
+// STAGE 2: ASSESS
+// ============================================================
+
+function renderDimNav() {
+  const c = document.getElementById('dimNav');
+  c.innerHTML = DIMENSIONS.map(d => {
+    const total = d.controls.length;
+    const done = d.controls.filter(ctrl => state.scores[ctrl.id]).length;
+    return `<button class="dim-nav-item ${state.currentDim === d.id ? 'active' : ''}" onclick="pickDim('${d.id}')">
+      <span class="dim-id">${d.id} · ${d.code}</span>
+      ${escapeHtml(d.name)}
+      <span class="dim-prog">${done}/${total} scored</span>
+    </button>`;
+  }).join('');
+}
+
+function pickDim(id) { state.currentDim = id; renderDimNav(); renderDimContent(); saveState(); }
+
+function renderDimContent() {
+  const dim = DIMENSIONS.find(d => d.id === state.currentDim);
+  if (!dim) return;
+  const c = document.getElementById('dimContent');
+  c.innerHTML = `
+    <div class="dim-header">
+      <div class="dim-tag">${dim.id} · ${dim.code}</div>
+      <h2>${dim.icon} ${escapeHtml(dim.name)}</h2>
+      <div class="dim-desc">${escapeHtml(dim.desc)}</div>
+    </div>
+    ${dim.controls.map(ctrl => renderControlCard(ctrl)).join('')}
+    <div class="dim-foot">
+      ${getPrevDim() ? `<button class="btn ghost" onclick="pickDim('${getPrevDim().id}')">← ${getPrevDim().name}</button>` : '<span></span>'}
+      ${getNextDim()
+        ? `<button class="btn primary" onclick="pickDim('${getNextDim().id}')">${getNextDim().name} →</button>`
+        : `<button class="btn primary" onclick="goToStage(2)">View insights →</button>`
+      }
+    </div>
+  `;
+}
+
+function getPrevDim() {
+  const idx = DIMENSIONS.findIndex(d => d.id === state.currentDim);
+  return idx > 0 ? DIMENSIONS[idx - 1] : null;
+}
+function getNextDim() {
+  const idx = DIMENSIONS.findIndex(d => d.id === state.currentDim);
+  return idx < DIMENSIONS.length - 1 ? DIMENSIONS[idx + 1] : null;
+}
+
+function renderControlCard(ctrl) {
+  const tier = state.scores[ctrl.id];
+  const ev = state.evidence[ctrl.id] || '';
+  const note = state.notes[ctrl.id] || '';
+  return `<div class="control-card">
+    <div class="control-head">
+      <span class="control-id">${ctrl.id}</span>
+      <div>
+        <div class="control-title">${escapeHtml(ctrl.title)}</div>
+        <div class="control-desc">${escapeHtml(ctrl.desc)}</div>
+        <div class="control-ref">Ref: ${escapeHtml(ctrl.ref)}</div>
+      </div>
+    </div>
+    <div class="tier-row">
+      ${['L1','L2','L3','L4'].map(t => `
+        <button class="tier-opt ${tier === t ? 'selected' : ''}" data-tier="${t}" onclick="setTier('${ctrl.id}', '${t}')">
+          <div class="t-id">${t} · ${TIER_NAMES[t]}</div>
+          <div class="t-label">${escapeHtml(ctrl.tiers[t])}</div>
+        </button>
+      `).join('')}
+    </div>
+    <div class="evidence-block">
+      <label>Evidence prompt</label>
+      <div class="prompt">${escapeHtml(ctrl.evidence)}</div>
+      <div class="evidence-status">
+        ${['documented','partial','missing','na'].map(e => `
+          <button class="ev-pill ${ev === e ? 'selected' : ''}" data-ev="${e}" onclick="setEvidence('${ctrl.id}', '${e}')">${e === 'na' ? 'N/A' : e.charAt(0).toUpperCase() + e.slice(1)}</button>
+        `).join('')}
+      </div>
+      <textarea placeholder="Notes — evidence references, who answered, sticking points..." oninput="setNote('${ctrl.id}', this.value)">${escapeHtml(note)}</textarea>
+    </div>
+  </div>`;
+}
+
+function setTier(controlId, tier) {
+  state.scores[controlId] = tier;
+  renderDimContent();
+  renderDimNav();
+  saveState();
+  // Auto-enable next stages once each dimension has at least one score
+  if (anyScores()) {
+    document.querySelector('[data-stage="2"]').disabled = false;
+  }
+}
+function setEvidence(controlId, ev) {
+  state.evidence[controlId] = ev;
+  renderDimContent();
+  saveState();
+}
+function setNote(controlId, text) {
+  state.notes[controlId] = text;
+  saveState();
+}
+
+function anyScores() { return Object.keys(state.scores).length > 0; }
+
+// ============================================================
+// STAGE 3: INSIGHTS
+// ============================================================
+
+function computeDimScores() {
+  const dimScores = {};
+  DIMENSIONS.forEach(dim => {
+    const tiered = dim.controls.map(c => state.scores[c.id]).filter(Boolean);
+    if (tiered.length === 0) { dimScores[dim.id] = 0; return; }
+    const total = tiered.reduce((acc, t) => acc + TIER_SCORES[t], 0);
+    dimScores[dim.id] = total / tiered.length;
+  });
+  return dimScores;
+}
+
+function renderInsights() {
+  const dimScores = computeDimScores();
+  const validScores = Object.values(dimScores).filter(s => s > 0);
+  const overall = validScores.length > 0 ? validScores.reduce((a, b) => a + b, 0) / validScores.length : 0;
+  const worst = validScores.length > 0 ? Math.min(...validScores) : 0;
+  const overallTier = scoreToTier(worst);
+
+  document.getElementById('overallScore').innerHTML = (overall > 0 ? overall.toFixed(2) : '—') + '<span class="of">/4.0</span>';
+  document.getElementById('overallTier').innerHTML = `Tier: <span class="lvl">${overallTier} — ${TIER_NAMES[overallTier] || '—'}</span>`;
+
+  renderDimBars(dimScores);
+  renderRadar(dimScores);
+  renderHeatmap();
+  renderFlags(dimScores);
+  renderRatios();
+
+  document.querySelector('[data-stage="3"]').disabled = false;
+}
+
+function scoreToTier(score) {
+  if (score <= 0) return '—';
+  if (score < 1.75) return 'L1';
+  if (score < 2.75) return 'L2';
+  if (score < 3.75) return 'L3';
+  return 'L4';
+}
+
+function renderDimBars(dimScores) {
+  const c = document.getElementById('dimBars');
+  c.innerHTML = DIMENSIONS.map(dim => {
+    const score = dimScores[dim.id] || 0;
+    const pct = (score / 4) * 100;
+    const tier = scoreToTier(score);
+    const colour = TIER_COLOURS[tier] || '#ccc';
+    return `<div class="dim-bar-row">
+      <div class="dim-bar-label">${escapeHtml(dim.code)} · ${escapeHtml(dim.name.split(' & ')[0])}</div>
+      <div class="dim-bar-track"><div class="dim-bar-fill" style="width:${pct}%; background:${colour};"></div></div>
+      <div class="dim-bar-score">${score > 0 ? score.toFixed(1) : '—'}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderRadar(dimScores) {
+  const svg = document.getElementById('radarCanvas');
+  const cx = 180, cy = 165, max = 4, rings = 4;
+  const n = DIMENSIONS.length;
+  const angle = (i) => (i / n) * Math.PI * 2 - Math.PI / 2;
+  const radius = 110;
+
+  let html = '';
+  // grid rings
+  for (let r = 1; r <= rings; r++) {
+    const points = [];
+    for (let i = 0; i < n; i++) {
+      const rad = (radius * r) / rings;
+      const x = cx + Math.cos(angle(i)) * rad;
+      const y = cy + Math.sin(angle(i)) * rad;
+      points.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+    }
+    html += `<polygon points="${points.join(' ')}" fill="none" stroke="#e5e3dc" stroke-width="0.7"/>`;
+  }
+  // axes
+  for (let i = 0; i < n; i++) {
+    const x = cx + Math.cos(angle(i)) * radius;
+    const y = cy + Math.sin(angle(i)) * radius;
+    html += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#e5e3dc" stroke-width="0.7"/>`;
+  }
+  // data polygon
+  const dataPoints = [];
+  for (let i = 0; i < n; i++) {
+    const score = dimScores[DIMENSIONS[i].id] || 0;
+    const rad = (radius * score) / max;
+    const x = cx + Math.cos(angle(i)) * rad;
+    const y = cy + Math.sin(angle(i)) * rad;
+    dataPoints.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+  }
+  html += `<polygon points="${dataPoints.join(' ')}" fill="#2d5a4f" fill-opacity="0.18" stroke="#2d5a4f" stroke-width="1.5"/>`;
+  // dim labels
+  for (let i = 0; i < n; i++) {
+    const labelRad = radius + 28;
+    const x = cx + Math.cos(angle(i)) * labelRad;
+    const y = cy + Math.sin(angle(i)) * labelRad;
+    const score = dimScores[DIMENSIONS[i].id] || 0;
+    html += `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" alignment-baseline="middle" font-size="11" font-family="JetBrains Mono, monospace" fill="#3a3a37" font-weight="600">${DIMENSIONS[i].code}</text>`;
+    html += `<text x="${x.toFixed(1)}" y="${(y + 12).toFixed(1)}" text-anchor="middle" alignment-baseline="middle" font-size="10" font-family="Inter, sans-serif" fill="#6a6a64">${score > 0 ? score.toFixed(1) : '—'}</text>`;
+  }
+  // ring labels
+  for (let r = 1; r <= rings; r++) {
+    html += `<text x="${cx + 3}" y="${cy - (radius * r) / rings + 3}" font-size="8.5" font-family="JetBrains Mono, monospace" fill="#8a8a82">L${r}</text>`;
+  }
+  svg.innerHTML = html;
+}
+
+function renderHeatmap() {
+  const c = document.getElementById('heatmap');
+  c.innerHTML = DIMENSIONS.map(dim => `
+    <div class="hm-row">
+      <div class="hm-label"><strong>${dim.code}</strong> · ${escapeHtml(dim.name)}</div>
+      <div class="hm-cells">
+        ${dim.controls.map(ctrl => {
+          const tier = state.scores[ctrl.id];
+          if (!tier) return `<div class="hm-cell empty" title="${escapeHtml(ctrl.id)} — not scored">${ctrl.id.split('.')[1]}</div>`;
+          return `<div class="hm-cell" style="background:${TIER_COLOURS[tier]}" title="${escapeHtml(ctrl.id)}: ${tier}">${tier}</div>`;
+        }).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderFlags(dimScores) {
+  const c = document.getElementById('flagList');
+  const triggered = ANTI_PATTERNS.filter(p => {
+    if (p.sectorAdjust && !p.sectorAdjust(state.sector)) return false;
+    return p.check(dimScores, state.scores);
+  });
+  if (triggered.length === 0) {
+    c.innerHTML = `<div class="empty-hint">No anti-patterns detected from current scores. As assessment fills in, watch this space — patterns emerge from combinations of scores, not single weak controls.</div>`;
+    return;
+  }
+  c.innerHTML = triggered.map(p => `
+    <div class="flag severity-${p.severity}">
+      <div class="flag-icon">${p.severity === 'high' ? '◉' : p.severity === 'med' ? '◎' : '○'}</div>
+      <div class="flag-body">
+        <div class="flag-title">${escapeHtml(p.title)}</div>
+        <div class="flag-detail">${escapeHtml(p.detail)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderRatios() {
+  const c = document.getElementById('ratioGrid');
+  const m = (id) => state.scores[id];
+  const checks = [
+    { name: 'Report-to-click ratio tracked', controlId: 'D3.2',
+      maturity: m('D3.2') === 'L4' ? 'Optimised' : m('D3.2') === 'L3' ? 'Tracked' : m('D3.2') === 'L2' ? 'Counted' : m('D3.2') === 'L1' ? 'Not measured' : '—',
+      help: 'The single most useful metric. Rising ratio = building resilience.' },
+    { name: 'Time-to-report monitored', controlId: 'D3.3',
+      maturity: m('D3.3') === 'L4' ? 'Real-time' : m('D3.3') === 'L3' ? 'Distribution' : m('D3.3') === 'L2' ? 'Aggregate' : m('D3.3') === 'L1' ? 'Not measured' : '—',
+      help: 'Median time-to-report matters. Programmes good at culture see it fall.' },
+    { name: 'Repeat-clickers handled supportively', controlId: 'D3.4',
+      maturity: m('D3.4') === 'L4' ? 'Pattern-aware' : m('D3.4') === 'L3' ? 'Targeted' : m('D3.4') === 'L2' ? 'Tracked, no action' : m('D3.4') === 'L1' ? 'Not tracked' : '—',
+      help: 'Concentration matters more than count — typically <5% account for >60% of clicks.' },
+    { name: 'Segmentation maturity', controlId: 'D3.5',
+      maturity: m('D3.5') === 'L4' ? 'Drives interventions' : m('D3.5') === 'L3' ? 'Multi-dimensional' : m('D3.5') === 'L2' ? 'Departmental' : m('D3.5') === 'L1' ? 'Single number' : '—',
+      help: 'Aggregate metrics hide the variance that matters for action.' },
+  ];
+  c.innerHTML = checks.map(ch => `
+    <div class="ratio-card">
+      <div class="ratio-name">${escapeHtml(ch.controlId)}</div>
+      <div class="ratio-status">${escapeHtml(ch.maturity)}</div>
+      <div class="ratio-help">${escapeHtml(ch.help)}</div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// STAGE 4: PLAN
+// ============================================================
+
+function generateActions() {
+  const actions = [];
+  const dimScores = computeDimScores();
+
+  // From anti-patterns (highest priority)
+  ANTI_PATTERNS.forEach(p => {
+    if (p.sectorAdjust && !p.sectorAdjust(state.sector)) return;
+    if (!p.check(dimScores, state.scores)) return;
+    actions.push({
+      id: `flag-${p.id}`,
+      priority: p.severity === 'high' ? 'high' : p.severity === 'med' ? 'med' : 'low',
+      title: `Address: ${p.title}`,
+      detail: p.detail,
+      ref: p.id,
+      source: 'anti-pattern',
+    });
+  });
+
+  // From L1 controls (high priority)
+  DIMENSIONS.forEach(dim => {
+    dim.controls.forEach(ctrl => {
+      if (state.scores[ctrl.id] === 'L1') {
+        actions.push({
+          id: `lift-${ctrl.id}`,
+          priority: 'high',
+          title: `Lift ${ctrl.id}: ${ctrl.title} (L1 → L2+)`,
+          detail: `Move from "${ctrl.tiers.L1}" toward "${ctrl.tiers.L2}". ${ctrl.desc}`,
+          ref: ctrl.ref,
+          source: 'tier-lift',
+        });
+      }
+    });
+  });
+
+  // From L2 controls (med priority)
+  DIMENSIONS.forEach(dim => {
+    dim.controls.forEach(ctrl => {
+      if (state.scores[ctrl.id] === 'L2') {
+        actions.push({
+          id: `lift-${ctrl.id}`,
+          priority: 'med',
+          title: `Develop ${ctrl.id}: ${ctrl.title} (L2 → L3)`,
+          detail: `Move from "${ctrl.tiers.L2}" toward "${ctrl.tiers.L3}". ${ctrl.desc}`,
+          ref: ctrl.ref,
+          source: 'tier-lift',
+        });
+      }
+    });
+  });
+
+  // De-dupe (anti-pattern actions may overlap with tier-lift actions)
+  const seen = new Set();
+  return actions.filter(a => {
+    if (seen.has(a.id)) return false;
+    seen.add(a.id);
+    return true;
+  });
+}
+
+function renderPlan() {
+  const actions = generateActions();
+  const c = document.getElementById('actionList');
+  document.getElementById('planMeta').textContent = `${actions.length} action${actions.length === 1 ? '' : 's'} suggested`;
+
+  if (actions.length === 0) {
+    c.innerHTML = `<div class="empty-hint">No improvement actions auto-generated. Either the assessment is incomplete, or the programme scores L3+ everywhere — in which case, focus on optimising rather than lifting.</div>`;
+    return;
+  }
+
+  // sort: high, med, low
+  const order = { high: 0, med: 1, low: 2 };
+  actions.sort((a, b) => order[a.priority] - order[b.priority]);
+
+  c.innerHTML = actions.map(a => {
+    const saved = state.actions[a.id] || {};
+    return `<div class="action">
+      <div>
+        <div class="action-meta">
+          <span class="action-tag priority-${a.priority}">${a.priority.toUpperCase()}</span>
+          <span class="action-ref">${escapeHtml(a.ref)}</span>
+        </div>
+        <div class="action-title">${escapeHtml(a.title)}</div>
+        <div class="action-detail">${escapeHtml(a.detail)}</div>
+        <div class="action-fields">
+          <input type="text" placeholder="Owner" value="${escapeHtml(saved.owner || '')}" oninput="setActionField('${a.id}', 'owner', this.value)">
+          <input type="text" placeholder="Due date" value="${escapeHtml(saved.due || '')}" oninput="setActionField('${a.id}', 'due', this.value)">
+          <input type="text" placeholder="Dependency" value="${escapeHtml(saved.dep || '')}" oninput="setActionField('${a.id}', 'dep', this.value)">
+        </div>
+      </div>
+      <div class="action-status">
+        <select onchange="setActionField('${a.id}', 'status', this.value)">
+          <option value="open"     ${saved.status === 'open' || !saved.status ? 'selected' : ''}>Open</option>
+          <option value="planned"  ${saved.status === 'planned' ? 'selected' : ''}>Planned</option>
+          <option value="progress" ${saved.status === 'progress' ? 'selected' : ''}>In progress</option>
+          <option value="done"     ${saved.status === 'done' ? 'selected' : ''}>Done</option>
+          <option value="accepted" ${saved.status === 'accepted' ? 'selected' : ''}>Risk accepted</option>
+        </select>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.querySelector('[data-stage="4"]').disabled = false;
+}
+
+function setActionField(id, field, value) {
+  if (!state.actions[id]) state.actions[id] = {};
+  state.actions[id][field] = value;
+  saveState();
+}
+
+// ============================================================
+// STAGE 5: EXPORT
+// ============================================================
+
+function exportJson() {
+  const dimScores = computeDimScores();
+  const validScores = Object.values(dimScores).filter(s => s > 0);
+  const overall = validScores.length > 0 ? validScores.reduce((a,b)=>a+b,0) / validScores.length : 0;
+  const flags = ANTI_PATTERNS.filter(p => {
+    if (p.sectorAdjust && !p.sectorAdjust(state.sector)) return false;
+    return p.check(dimScores, state.scores);
+  }).map(p => ({ id: p.id, severity: p.severity, title: p.title, detail: p.detail }));
+
+  const payload = {
+    schema: 'dh-phishing-maturity',
+    version: '1.0',
+    generatedAt: new Date().toISOString(),
+    organisation: state.org,
+    sector: SECTORS.find(s => s.id === state.sector) || null,
+    size: SIZES.find(s => s.id === state.size) || null,
+    overall: { score: Number(overall.toFixed(2)), tier: scoreToTier(Math.min(...validScores)) },
+    dimensions: DIMENSIONS.map(d => ({
+      id: d.id, code: d.code, name: d.name,
+      score: Number((dimScores[d.id] || 0).toFixed(2)),
+      tier: scoreToTier(dimScores[d.id] || 0),
+      controls: d.controls.map(c => ({
+        id: c.id, title: c.title,
+        tier: state.scores[c.id] || null,
+        evidence: state.evidence[c.id] || null,
+        notes: state.notes[c.id] || null,
+      })),
+    })),
+    antiPatterns: flags,
+    actions: generateActions().map(a => {
+      const saved = state.actions[a.id] || {};
+      return {
+        id: a.id,
+        priority: a.priority,
+        title: a.title,
+        detail: a.detail,
+        ref: a.ref,
+        source: a.source,
+        owner: saved.owner || null,
+        due: saved.due || null,
+        dependency: saved.dep || null,
+        status: saved.status || 'open',
+      };
+    }),
+  };
+
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const slug = (state.org.name || 'phishing-maturity').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
+  a.href = url;
+  a.download = `ppma-${slug}-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('JSON exported');
+}
+
+function loadJson() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'application/json';
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if (data.schema !== 'dh-phishing-maturity') {
+        showToast('Wrong schema — expected dh-phishing-maturity');
+        return;
+      }
+      // restore
+      if (data.organisation) state.org = data.organisation;
+      if (data.sector) state.sector = data.sector.id;
+      if (data.size) state.size = data.size.id;
+      state.scores = {};
+      state.evidence = {};
+      state.notes = {};
+      (data.dimensions || []).forEach(d => {
+        (d.controls || []).forEach(c => {
+          if (c.tier) state.scores[c.id] = c.tier;
+          if (c.evidence) state.evidence[c.id] = c.evidence;
+          if (c.notes) state.notes[c.id] = c.notes;
+        });
+      });
+      state.actions = {};
+      (data.actions || []).forEach(a => { state.actions[a.id] = a; });
+      saveState();
+      hydrateOrient();
+      renderSectors(); renderSizes(); refreshOrient();
+      renderDimNav(); renderDimContent();
+      showToast('Loaded');
+    } catch (err) {
+      showToast('Load failed: ' + err.message);
+    }
+  };
+  input.click();
+}
+
+function printSnapshot() { goToStage(2); setTimeout(() => window.print(), 200); }
+function printBoardReport() { goToStage(2); setTimeout(() => window.print(), 200); }
+
+// ============================================================
+// STAGE MANAGEMENT
+// ============================================================
+
+function goToStage(idx) {
+  state.currentStage = idx;
+  document.querySelectorAll('.stage').forEach((el, i) => el.classList.toggle('active', i === idx));
+  document.querySelectorAll('.stage-btn').forEach((el, i) => {
+    el.classList.toggle('active', i === idx);
+    el.classList.toggle('complete', i < idx);
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (idx === 1) { renderDimNav(); renderDimContent(); }
+  if (idx === 2) renderInsights();
+  if (idx === 3) renderPlan();
+  saveState();
+}
+
+// ============================================================
+// HYDRATE & INIT
+// ============================================================
+
+function hydrateOrient() {
+  document.getElementById('orgName').value = state.org.name || '';
+  document.getElementById('ownerName').value = state.org.owner || '';
+  document.getElementById('assessDate').value = state.org.date || todayShort();
+  document.getElementById('scopeNotes').value = state.org.notes || '';
+}
+
+function todayShort() {
+  const d = new Date();
+  return d.toLocaleDateString('en-GB');
+}
+
+function resetAll() {
+  if (!confirm('Reset assessment? This will clear all scores, evidence, notes and actions.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  Object.assign(state, {
+    org: { name: '', owner: '', date: '', notes: '' },
+    sector: null, size: null,
+    scores: {}, evidence: {}, notes: {}, actions: {},
+    currentDim: 'D1', currentStage: 0,
+  });
+  hydrateOrient();
+  renderSectors(); renderSizes(); refreshOrient();
+  document.querySelectorAll('.stage-btn').forEach((el, i) => {
+    el.disabled = i !== 0;
+    el.classList.remove('complete');
+  });
+  goToStage(0);
+  showToast('Reset complete');
+}
+
+// ============================================================
+// UTIL
+// ============================================================
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+
+loadState();
+hydrateOrient();
+renderSectors();
+renderSizes();
+refreshOrient();
+if (anyScores()) {
+  document.querySelector('[data-stage="1"]').disabled = false;
+  document.querySelector('[data-stage="2"]').disabled = false;
+}
+</script>
+
+</body>
+</html>
