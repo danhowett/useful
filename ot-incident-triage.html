@@ -1,0 +1,2122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OT Incident Triage · Dan Howett</title>
+<style>
+:root {
+  --bg: #f7f7f4;
+  --bg-card: #ffffff;
+  --bg-subtle: #f1f1ec;
+  --ink: #18181b;
+  --ink-soft: #52525b;
+  --ink-faint: #a1a1aa;
+  --line: #e4e4e7;
+  --line-strong: #d4d4d8;
+  --accent: #1d4ed8;
+  --accent-soft: #eff6ff;
+  --warn: #b45309;
+  --warn-soft: #fef3c7;
+  --danger: #b91c1c;
+  --danger-soft: #fee2e2;
+  --ok: #15803d;
+  --ok-soft: #dcfce7;
+  --safety: #c2410c;
+  --safety-soft: #ffedd5;
+  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --serif: 'Source Serif Pro', Georgia, serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* TOP NAV */
+.topnav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(247, 247, 244, 0.92);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.topnav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 14px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.topnav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink);
+}
+.topnav-brand-mark {
+  width: 24px;
+  height: 24px;
+  background: var(--ink);
+  color: var(--bg-card);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 12px;
+  border-radius: 4px;
+}
+.topnav-brand-sep { color: var(--ink-faint); }
+.topnav-brand-section { color: var(--ink-soft); }
+.topnav-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.topnav-actions button {
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  color: var(--ink-soft);
+  padding: 6px 12px;
+  font-family: var(--mono);
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+.topnav-actions button:hover {
+  background: var(--ink);
+  color: var(--bg-card);
+  border-color: var(--ink);
+}
+
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 28px 120px;
+}
+
+/* HERO */
+.hero { margin-bottom: 48px; }
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 16px;
+}
+.hero-title {
+  font-family: var(--serif);
+  font-size: 56px;
+  line-height: 1.05;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+  color: var(--ink);
+}
+.hero-title em { font-style: italic; color: var(--safety); }
+.hero-lede {
+  font-size: 17px;
+  color: var(--ink-soft);
+  max-width: 760px;
+  line-height: 1.6;
+}
+.hero-lede strong { color: var(--ink); font-weight: 600; }
+.hero-meta {
+  margin-top: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+.hero-meta span strong { color: var(--ink); font-weight: 600; }
+
+/* DISCLAIMER — heavier than other tools because this is safety-adjacent */
+.disclaimer {
+  background: var(--safety-soft);
+  border: 1px solid #fdba74;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 40px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.disclaimer-mark {
+  font-family: var(--mono);
+  font-size: 20px;
+  color: var(--safety);
+  font-weight: 700;
+  line-height: 1;
+}
+.disclaimer-body {
+  font-size: 13px;
+  color: #7c2d12;
+  line-height: 1.55;
+}
+.disclaimer-body strong { color: #431407; }
+
+/* STAGE NAV */
+.stage-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-bottom: 40px;
+  border-bottom: 1px solid var(--line);
+}
+.stage-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border: none;
+  background: transparent;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  margin-bottom: -1px;
+}
+.stage-nav-item:hover { color: var(--ink-soft); }
+.stage-nav-item.active {
+  color: var(--ink);
+  border-bottom-color: var(--safety);
+}
+.stage-nav-item.complete { color: var(--ink-soft); }
+.stage-nav-item .stage-num { font-weight: 600; color: var(--ink-faint); }
+.stage-nav-item.active .stage-num { color: var(--safety); }
+.stage-nav-item.complete .stage-num { color: var(--ok); }
+
+/* STAGE BODY */
+.stage { display: none; }
+.stage.active { display: block; }
+.stage-header { margin-bottom: 28px; }
+.stage-tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 8px;
+}
+.stage-title {
+  font-family: var(--serif);
+  font-size: 34px;
+  line-height: 1.15;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+.stage-lede {
+  font-size: 15px;
+  color: var(--ink-soft);
+  max-width: 720px;
+}
+
+/* CARDS */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.card-sub {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-bottom: 16px;
+}
+
+/* FORM ELEMENTS */
+label.field { display: block; margin-bottom: 16px; }
+.field-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+  display: block;
+}
+input[type="text"], input[type="date"], textarea, select {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--ink);
+  transition: border-color 0.15s;
+}
+input[type="text"]:focus, input[type="date"]:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--safety);
+}
+textarea { min-height: 64px; resize: vertical; }
+
+/* CHOICE GRID */
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+.choice-tile {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+  font-family: var(--sans);
+}
+.choice-tile:hover { border-color: var(--ink-soft); }
+.choice-tile.selected {
+  border-color: var(--safety);
+  background: var(--safety-soft);
+}
+.choice-tile-code {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: 0.04em;
+}
+.choice-tile.selected .choice-tile-code { color: var(--safety); }
+.choice-tile-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 4px 0;
+}
+.choice-tile-desc {
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+/* CRITICALITY PILLS */
+.crit-options { display: flex; flex-wrap: wrap; gap: 6px; }
+.crit-pill {
+  background: var(--bg-card);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--ink-soft);
+  transition: all 0.15s;
+  font-family: var(--sans);
+}
+.crit-pill:hover { border-color: var(--ink-soft); color: var(--ink); }
+.crit-pill.selected {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg-card);
+}
+.crit-pill[data-code="C1"].selected {
+  background: var(--safety);
+  border-color: var(--safety);
+}
+
+/* OBSERVATIONS - multi-select */
+.obs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 10px;
+}
+.obs-tile {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+  font-family: var(--sans);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.obs-tile:hover { border-color: var(--ink-soft); }
+.obs-tile.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.obs-checkbox {
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 3px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: transparent;
+}
+.obs-tile.selected .obs-checkbox {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+.obs-tile.selected .obs-checkbox::before { content: '✓'; }
+.obs-body { flex: 1; }
+.obs-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.obs-desc {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+
+/* SAFETY GATE QUESTIONS */
+.gate {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line-strong);
+  border-radius: 6px;
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  transition: border-left-color 0.15s;
+}
+.gate.answered-yes { border-left-color: var(--ok); }
+.gate.answered-no { border-left-color: var(--danger); }
+.gate.answered-unknown { border-left-color: var(--warn); }
+.gate-question {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.gate-help {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+.gate-options { display: flex; gap: 8px; }
+.gate-btn {
+  flex: 1;
+  padding: 9px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  color: var(--ink-soft);
+  transition: all 0.15s;
+}
+.gate-btn:hover { border-color: var(--ink-soft); color: var(--ink); }
+.gate-btn.selected[data-val="yes"] {
+  background: var(--ok);
+  border-color: var(--ok);
+  color: white;
+}
+.gate-btn.selected[data-val="no"] {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: white;
+}
+.gate-btn.selected[data-val="unknown"] {
+  background: var(--warn);
+  border-color: var(--warn);
+  color: white;
+}
+
+/* BUTTONS */
+.btn-primary {
+  background: var(--ink);
+  color: var(--bg-card);
+  border: 1px solid var(--ink);
+  padding: 11px 22px;
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+.btn-primary:hover { background: var(--safety); border-color: var(--safety); }
+.btn-primary:disabled {
+  background: var(--line-strong);
+  border-color: var(--line-strong);
+  color: var(--ink-faint);
+  cursor: not-allowed;
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  padding: 10px 18px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+.btn-secondary:hover { border-color: var(--ink); }
+
+.stage-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  gap: 16px;
+}
+.stage-foot-status {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-soft);
+  flex: 1;
+}
+
+/* TRIAGE DECISION CARD */
+.decision-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 28px;
+  margin-bottom: 24px;
+}
+.decision-banner {
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+}
+.decision-banner.proceed { background: var(--ok-soft); border: 1px solid #86efac; }
+.decision-banner.hold { background: var(--warn-soft); border: 1px solid #fcd34d; }
+.decision-banner.fullstop { background: var(--danger-soft); border: 1px solid #fca5a5; }
+
+.decision-code {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.decision-card.proceed-cls .decision-code, .decision-banner.proceed .decision-code { color: var(--ok); }
+.decision-card.hold-cls .decision-code, .decision-banner.hold .decision-code { color: var(--warn); }
+.decision-card.fullstop-cls .decision-code, .decision-banner.fullstop .decision-code { color: var(--danger); }
+
+.decision-headline {
+  font-family: var(--serif);
+  font-size: 26px;
+  line-height: 1.15;
+  font-weight: 400;
+  margin-bottom: 8px;
+}
+.decision-banner.proceed .decision-headline { color: #14532d; }
+.decision-banner.hold .decision-headline { color: #78350f; }
+.decision-banner.fullstop .decision-headline { color: #7f1d1d; }
+
+.decision-rationale {
+  font-size: 14px;
+  line-height: 1.6;
+}
+.decision-banner.proceed .decision-rationale { color: #14532d; }
+.decision-banner.hold .decision-rationale { color: #78350f; }
+.decision-banner.fullstop .decision-rationale { color: #7f1d1d; }
+
+/* ACTION LISTS */
+.action-block { margin-bottom: 20px; }
+.action-block-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.action-block.allowed .action-block-title { color: var(--ok); }
+.action-block.prohibited .action-block-title { color: var(--danger); }
+.action-block.calls .action-block-title { color: var(--accent); }
+.action-block.evidence .action-block-title { color: var(--ink-soft); }
+.action-list {
+  list-style: none;
+  padding: 0;
+}
+.action-list li {
+  padding: 8px 0 8px 22px;
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.55;
+  position: relative;
+  border-bottom: 1px dashed var(--line);
+}
+.action-list li:last-child { border-bottom: none; }
+.action-list li::before {
+  position: absolute;
+  left: 0;
+  top: 8px;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+}
+.action-block.allowed .action-list li::before { content: '✓'; color: var(--ok); }
+.action-block.prohibited .action-list li::before { content: '✕'; color: var(--danger); }
+.action-block.calls .action-list li::before { content: '☎'; color: var(--accent); font-size: 14px; }
+.action-block.evidence .action-list li::before { content: '◆'; color: var(--ink-soft); font-size: 10px; top: 10px; }
+
+/* CONTEXT BANNER */
+.context-banner {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+}
+.context-item {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.context-item strong {
+  display: block;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+  font-weight: 500;
+}
+.context-item span { font-size: 13px; color: var(--ink); }
+
+/* HANDOVER NOTES */
+.handover-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.handover-card textarea {
+  font-size: 13px;
+  min-height: 100px;
+  margin-top: 8px;
+}
+.handover-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+/* EXPORT TILES */
+.export-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+.export-tile {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 24px;
+}
+.export-tile-icon {
+  font-family: var(--mono);
+  font-size: 22px;
+  color: var(--ink-soft);
+  margin-bottom: 12px;
+}
+.export-tile-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.export-tile-desc {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-bottom: 14px;
+  line-height: 1.55;
+}
+
+/* WHY-WRONG CALLOUT inside decision card */
+.instinct-callout {
+  background: var(--bg-subtle);
+  border-left: 3px solid var(--ink-faint);
+  border-radius: 0 6px 6px 0;
+  padding: 14px 18px;
+  margin: 16px 0;
+}
+.instinct-row {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 12px;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+.instinct-row:last-child { margin-bottom: 0; }
+.instinct-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+.instinct-text {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.55;
+}
+
+/* TIMESTAMPS section */
+.timestamps {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.timestamps-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--line);
+  color: var(--ink-soft);
+}
+.timestamps-row:last-child { border-bottom: none; }
+.timestamps-row strong { color: var(--ink); }
+
+/* PRINT */
+@media print {
+  .topnav, .stage-nav, .stage-foot, .hero-meta, .disclaimer { display: none !important; }
+  .stage { display: block !important; }
+  .stage:not(.print-current) { display: none !important; }
+  body { background: white; font-size: 11pt; }
+  .page { padding: 0; max-width: none; }
+  .hero-title { font-size: 28pt; }
+}
+
+@media (max-width: 720px) {
+  .hero-title { font-size: 40px; }
+  .stage-title { font-size: 26px; }
+  .topnav-inner { flex-direction: column; align-items: flex-start; gap: 10px; }
+}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-inner">
+    <a href="https://danhowett.github.io/useful/" class="topnav-brand">
+      <span class="topnav-brand-mark">DH</span>
+      <span>Dan Howett</span>
+      <span class="topnav-brand-sep">/</span>
+      <span class="topnav-brand-section">OT Incident Triage</span>
+    </a>
+    <div class="topnav-actions">
+      <button onclick="saveJSON()">SAVE</button>
+      <button onclick="document.getElementById('loadFile').click()">LOAD</button>
+      <input type="file" id="loadFile" accept=".json" style="display:none" onchange="loadJSON(event)">
+      <button onclick="resetAll()">RESET</button>
+    </div>
+  </div>
+</nav>
+
+<main class="page">
+
+  <header class="hero">
+    <div class="hero-eyebrow">OT Incident Triage · Safety-first decision support</div>
+    <h1 class="hero-title">Slow down. <em>Then act.</em></h1>
+    <p class="hero-lede">
+      An IT-trained responder facing an OT alert. The instinct is to <strong>isolate, image, investigate</strong> — and in OT
+      that instinct can trip safety systems, halt production, or worse. This tool walks you through asset-type triage,
+      safety gates, and produces a decision artefact with explicit allowed and prohibited actions, the calls to make first,
+      and a handover pack for the OT engineering authority.
+    </p>
+    <div class="hero-meta">
+      <span><strong>8</strong> asset types</span>
+      <span><strong>4</strong> criticality levels</span>
+      <span><strong>5</strong> safety gates</span>
+      <span><strong>NIST SP 800-82r3 · IEC 62443 · NCSC OT</strong></span>
+      <span><strong>JSON · MD · Print</strong> exports</span>
+    </div>
+  </header>
+
+  <div class="disclaimer">
+    <span class="disclaimer-mark">!</span>
+    <div class="disclaimer-body">
+      <strong>Decision support — not engineering authority. Not advice.</strong> This tool helps an IT responder think through
+      an OT incident before acting; it does not replace engineering judgement, operations authority, or safety system
+      assessment. <strong>You must not rely on this tool's output</strong> as a substitute for involving qualified OT
+      engineering, operations, and safety personnel. Decisions about OT assets — especially those connected to safety
+      instrumented systems — have consequences for people and equipment that only your engineering and operations teams
+      can weigh. The author accepts no liability whatsoever for any loss, damage, injury, or consequence arising from
+      use of, or reliance on, this tool or its outputs. Use entirely at your own risk.
+    </div>
+  </div>
+
+  <nav class="stage-nav" id="stageNav">
+    <button class="stage-nav-item active" data-stage="1"><span class="stage-num">01</span> Orient</button>
+    <button class="stage-nav-item" data-stage="2"><span class="stage-num">02</span> Safety gates</button>
+    <button class="stage-nav-item" data-stage="3"><span class="stage-num">03</span> Triage decision</button>
+    <button class="stage-nav-item" data-stage="4"><span class="stage-num">04</span> Actions &amp; evidence</button>
+    <button class="stage-nav-item" data-stage="5"><span class="stage-num">05</span> Handover &amp; export</button>
+  </nav>
+
+  <!-- STAGE 1: Orient -->
+  <section class="stage active" id="stage-1">
+    <div class="stage-header">
+      <div class="stage-tag">Stage 01 / Orient</div>
+      <h2 class="stage-title">What are you looking at?</h2>
+      <p class="stage-lede">
+        OT triage starts with the asset, not the threat. The asset type determines what's safe to do next. Then layer
+        criticality on top — same asset means different things on a refinery safety loop vs a brewery historian.
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Incident details</div>
+      <div class="card-sub">Used in the triage pack and exports. Optional — skip if you're just exploring.</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
+        <label class="field">
+          <span class="field-label">Site / location</span>
+          <input type="text" id="siteName" placeholder="e.g. Plant 3, Section B">
+        </label>
+        <label class="field">
+          <span class="field-label">Alert / incident ID</span>
+          <input type="text" id="alertId" placeholder="e.g. ALT-2026-0042">
+        </label>
+        <label class="field">
+          <span class="field-label">Responder</span>
+          <input type="text" id="responder" placeholder="Your name + role">
+        </label>
+        <label class="field">
+          <span class="field-label">Date / time observed</span>
+          <input type="text" id="alertTime" placeholder="YYYY-MM-DD HH:MM">
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Asset type</div>
+      <div class="card-sub">Pick the OT asset that the alert is about. If unsure, pick "Unknown" — that's a valid answer and it changes the triage.</div>
+      <div class="choice-grid" id="assetGrid"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Asset criticality</div>
+      <div class="card-sub">How critical is this asset's function? Safety-critical changes the triage decision significantly.</div>
+      <div class="crit-options" id="critOptions"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">What's been observed</div>
+      <div class="card-sub">Pick all that apply. Each observation refines the guidance.</div>
+      <div class="obs-grid" id="obsGrid"></div>
+    </div>
+
+    <div class="stage-foot">
+      <span class="stage-foot-status" id="stage1Status">Select asset type and criticality to continue</span>
+      <button class="btn-primary" id="toStage2" onclick="goToStage(2)" disabled>Safety gates →</button>
+    </div>
+  </section>
+
+  <!-- STAGE 2: Safety gates -->
+  <section class="stage" id="stage-2">
+    <div class="stage-header">
+      <div class="stage-tag">Stage 02 / Safety gates</div>
+      <h2 class="stage-title">Before you touch anything</h2>
+      <p class="stage-lede">
+        Five binary gates. Answer honestly — these aren't ceremony, they determine whether the triage decision is
+        proceed, hold, or full-stop. If you can't answer Yes to all, that's information, not failure.
+      </p>
+    </div>
+
+    <div id="contextBanner1"></div>
+
+    <div class="card">
+      <div class="card-title">Safety gates</div>
+      <div class="card-sub">Answer each as truthfully as your current information allows. "Unknown" is valid and changes the path.</div>
+      <div id="gatesContainer"></div>
+    </div>
+
+    <div class="stage-foot">
+      <button class="btn-secondary" onclick="goToStage(1)">← Back</button>
+      <span class="stage-foot-status" id="stage2Status"></span>
+      <button class="btn-primary" id="toStage3" onclick="goToStage(3)" disabled>See triage decision →</button>
+    </div>
+  </section>
+
+  <!-- STAGE 3: Triage decision -->
+  <section class="stage" id="stage-3">
+    <div class="stage-header">
+      <div class="stage-tag">Stage 03 / Triage decision</div>
+      <h2 class="stage-title">What the picture says</h2>
+      <p class="stage-lede">
+        Based on asset type, criticality, observations, and safety gate answers. Read the rationale — the decision
+        is only as good as the reasoning underneath it.
+      </p>
+    </div>
+
+    <div id="contextBanner2"></div>
+    <div id="decisionOutput"></div>
+
+    <div class="stage-foot">
+      <button class="btn-secondary" onclick="goToStage(2)">← Adjust gates</button>
+      <button class="btn-primary" onclick="goToStage(4)">See allowed actions →</button>
+    </div>
+  </section>
+
+  <!-- STAGE 4: Actions & evidence -->
+  <section class="stage" id="stage-4">
+    <div class="stage-header">
+      <div class="stage-tag">Stage 04 / Actions &amp; evidence</div>
+      <h2 class="stage-title">What you can do, what you must not</h2>
+      <p class="stage-lede">
+        Asset-specific allowed actions, the explicit do-not list, evidence collection that's safe to attempt without
+        OT engineering present, and the call list. Read all four before acting.
+      </p>
+    </div>
+
+    <div id="contextBanner3"></div>
+    <div id="actionsOutput"></div>
+
+    <div class="stage-foot">
+      <button class="btn-secondary" onclick="goToStage(3)">← Back to decision</button>
+      <button class="btn-primary" onclick="goToStage(5)">Handover &amp; export →</button>
+    </div>
+  </section>
+
+  <!-- STAGE 5: Handover & export -->
+  <section class="stage" id="stage-5">
+    <div class="stage-header">
+      <div class="stage-tag">Stage 05 / Handover &amp; export</div>
+      <h2 class="stage-title">Hand over cleanly</h2>
+      <p class="stage-lede">
+        The triage pack is what you give the OT engineering lead when they pick up. Capture timestamps, who you've
+        called, what you've done, what you've not done. Then export.
+      </p>
+    </div>
+
+    <div id="handoverOutput"></div>
+
+    <div class="card">
+      <div class="card-title">Export the triage pack</div>
+      <div class="card-sub">Four formats. JSON for ingestion by ICCC and other tools in the suite. Markdown for the handover note. Printable for the OT lead. Architecture snapshot is portable across the suite.</div>
+      <div class="export-grid">
+        <div class="export-tile">
+          <div class="export-tile-icon">⎔</div>
+          <div class="export-tile-title">JSON</div>
+          <div class="export-tile-desc">
+            Schema <code>dh-ot-triage</code> v1. Includes all context, gate answers, the decision, allowed and prohibited
+            actions, calls, evidence, and timestamps. ICCC-compatible.
+          </div>
+          <button class="btn-secondary" onclick="exportJSON()">Download JSON</button>
+        </div>
+        <div class="export-tile">
+          <div class="export-tile-icon">≡</div>
+          <div class="export-tile-title">Markdown handover</div>
+          <div class="export-tile-desc">
+            Clean handover note for the OT engineering lead. Decision, rationale, what's been done, what's outstanding,
+            what to be careful of.
+          </div>
+          <button class="btn-secondary" onclick="exportMarkdown()">Download Markdown</button>
+        </div>
+        <div class="export-tile">
+          <div class="export-tile-icon">▤</div>
+          <div class="export-tile-title">Printable triage pack</div>
+          <div class="export-tile-desc">
+            One-page summary for the OT lead, the control room, or the IR binder. A4 portrait. Print as PDF from
+            your browser print dialogue.
+          </div>
+          <button class="btn-secondary" onclick="printPack()">Open print view</button>
+        </div>
+        <div class="export-tile">
+          <div class="export-tile-icon">⤓</div>
+          <div class="export-tile-title">Decision-only snapshot</div>
+          <div class="export-tile-desc">
+            Just the decision + rationale + allowed/prohibited summary — for fast comms to leadership or to attach to
+            an incident ticket.
+          </div>
+          <button class="btn-secondary" onclick="exportSnapshot()">Download snapshot</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage-foot">
+      <button class="btn-secondary" onclick="goToStage(4)">← Back</button>
+      <span class="stage-foot-status">Aligned with NIST SP 800-82r3 · IEC 62443 · NCSC OT guidance</span>
+    </div>
+  </section>
+
+</main>
+
+<script>
+// === ASSET TYPES ===
+const ASSETS = [
+  {
+    code: 'A1',
+    name: 'Engineering Workstation',
+    short: 'EWS',
+    desc: 'Programming station for PLCs, RTUs, or SIS. Holds engineering software, project files, and direct write access to controllers. High-value attacker target.',
+    itInstinct: 'Isolate immediately via EDR, image the disk, hunt for IoCs across other endpoints.',
+    whyWrong: 'EWS may have active connections to live controllers. Isolating mid-session can interrupt running engineering operations or in-progress logic downloads. EDR isolation may also disrupt management of safety devices. The engineering project files are evidence — overwriting them with image-restore later destroys forensic value.',
+    saferPath: 'Identify which controllers it talks to and their current state before any containment. Engage the engineering authority responsible for this EWS first. Treat the EWS as both incident asset AND engineering artefact — preservation matters in both dimensions.',
+    allowedActions: [
+      'Network monitoring of traffic to/from the EWS (passive, off-switch SPAN or TAP)',
+      'Identity audit — who logged on, from where, when',
+      'Endpoint log collection (event log export) if EDR isolation NOT triggered',
+      'Verify which controllers are reachable from this EWS via documentation, not live probing',
+      'Capture screen photos of any current engineering session BEFORE any action'
+    ],
+    prohibitedActions: [
+      'EDR isolation without engineering sign-off — may sever live engineering session',
+      'Forced reboot or shutdown — in-progress logic download could leave controllers in inconsistent state',
+      'Password reset on engineering accounts — may lock out the only person who can safely shut down running operations',
+      'Disk imaging while EWS is actively engineering a controller',
+      'Removing the EWS from the network until controllers it manages are confirmed stable'
+    ],
+    evidence: [
+      'Photograph the screen (any open project, recent file list, last commands)',
+      'Export Windows Event Logs to removable media if approved by OT lead',
+      'Capture netstat output to local file (not exfil) — record listening ports and active connections',
+      'Note timestamps of last logon, last project save, last download to controller',
+      'Preserve engineering project files via copy to OT-approved evidence location'
+    ],
+    callsBeforeAction: [
+      'OT engineer responsible for this EWS — by name if known, else through operations',
+      'Operations control room — confirm current process state and any in-progress engineering activity',
+      'Vendor support contact (Siemens, Rockwell, ABB, etc.) if engineering session was active'
+    ],
+    references: ['IEC 62443-2-1 §4.3.3.5', 'NIST SP 800-82r3 §6.4', 'NCSC OT Guidance']
+  },
+
+  {
+    code: 'A2',
+    name: 'HMI / Operator Workstation',
+    short: 'HMI',
+    desc: 'The screen operators use to monitor and control the process. Loss of HMI means loss of operator visibility — a safety concern in many environments.',
+    itInstinct: 'Lock the user out, reset credentials, isolate the workstation.',
+    whyWrong: 'Operators rely on the HMI to see process state in real time. Locking them out or removing the HMI without warning can leave them blind during an active process — a serious safety issue. In some environments, regulators require continuous operator visibility. The HMI is also often shared (multiple operators, one session) — a forced logoff affects the shift, not just an individual.',
+    saferPath: 'Contact the control room before any action. Operations leads when an HMI changes — full stop. If the HMI is compromised, fallback may be physical panel operation, paper logs, or shift change — operations decides which.',
+    allowedActions: [
+      'Passive network monitoring',
+      'Read-only audit log collection (HMI software audit log if accessible without disrupting the session)',
+      'Photograph the HMI screen to capture current process display',
+      'Identity audit for any privileged HMI accounts',
+      'Cross-check with operator log (paper or shift log) for unusual events'
+    ],
+    prohibitedActions: [
+      'Forced logout of an active operator session',
+      'Reboot or shutdown without operator and control room sign-off',
+      'Password reset on operator accounts during a shift',
+      'Network isolation that would remove operator view of the process',
+      'Modification of HMI software or configuration'
+    ],
+    evidence: [
+      'Photograph HMI screens showing current process state and any alarms',
+      'Note operator on shift, time of any anomaly, any operator-reported observations',
+      'Capture HMI audit log (read-only export if supported by HMI software)',
+      'Document time, alarms displayed, process values at the time of anomaly',
+      'Operator interview notes — what they saw, what changed, what they did'
+    ],
+    callsBeforeAction: [
+      'Control room supervisor / shift manager — they own operator continuity',
+      'Operations lead — fallback plan if HMI must be taken offline',
+      'HMI software vendor support if anomaly is in HMI behaviour itself'
+    ],
+    references: ['IEC 62443-3-3 SR 2.10', 'NIST SP 800-82r3 §6.2.5', 'IEC 61511 (functional safety, HMI role)']
+  },
+
+  {
+    code: 'A3',
+    name: 'Historian / Data Server',
+    short: 'Historian',
+    desc: 'Records process data over time for reporting, optimisation, and compliance. Often bridges OT and IT — frequently the first OT asset compromised because it spans both worlds.',
+    itInstinct: 'Isolate, image, restore from backup.',
+    whyWrong: 'The historian is often the IT/OT bridge — it pulls data from OT systems and serves it to IT/business systems. Isolating it may break compliance reporting, regulatory data feeds, and downstream IT systems that aren\'t obvious from the OT side. Restore from backup may overwrite live data the regulator expects to see. Historian compromise often indicates the attacker is mapping OT — escalation matters more than immediate isolation.',
+    saferPath: 'Treat the historian as the IT/OT boundary asset it is. Inventory both sides — what OT does it pull from, what IT does it feed. Containment on the IT side first (block egress, restrict accounts) is usually safer than containment on the OT side. Engage data owners and compliance before any restore.',
+    allowedActions: [
+      'Block historian outbound to IT business systems (DMZ-side containment) without affecting OT inputs',
+      'Audit accounts with read/write access to the historian',
+      'Capture authentication logs for the historian',
+      'Network-level monitoring of historian connections',
+      'Coordinate with data owners on data integrity check (read-only)'
+    ],
+    prohibitedActions: [
+      'Restore from backup without OT and compliance sign-off — overwrites regulator-relevant data',
+      'Stopping the historian service during active production — may break safety reporting and process trends',
+      'Modifying historian configuration without engineering review',
+      'Direct isolation from the OT side without considering downstream IT impact',
+      'Account password resets for service accounts without coordinating with OT, IT, and reporting teams'
+    ],
+    evidence: [
+      'Historian access log export (read-only)',
+      'Recent query history if available',
+      'Connection list — what systems are reading from and writing to the historian',
+      'Recent data integrity check (does the data look reasonable, any gaps, any spikes)',
+      'Configuration snapshot (read-only) — what the historian thinks it should be doing'
+    ],
+    callsBeforeAction: [
+      'OT engineering lead — historian is OT-adjacent but engineering owns the integrity',
+      'IT data team — historian feeds IT systems',
+      'Compliance / reporting lead if data feeds regulator-facing reports',
+      'Historian software vendor (OSIsoft/AVEVA PI, GE Proficy, Wonderware, etc.)'
+    ],
+    references: ['IEC 62443-3-3 SR 3.4', 'NIST SP 800-82r3 §6.2.3', 'IEC 62443-2-1 §4.3.4.5.6']
+  },
+
+  {
+    code: 'A4',
+    name: 'PLC / RTU / Controller',
+    short: 'PLC/RTU',
+    desc: 'The device actually controlling the physical process. Direct effect on machinery, valves, motors, drives. Often legacy with limited security capability and no logging.',
+    itInstinct: 'Power-cycle, reflash firmware, change passwords.',
+    whyWrong: 'A controller controls physical equipment. Power-cycling a PLC can drop outputs (or hold them in last state depending on configuration) — either may be unsafe. Reflashing firmware on a running controller without engineering planning is a safety event, not an IT action. Many controllers have no usable logs, so by the time you\'re looking at it, the evidence is in the surrounding systems (EWS, network, historian), not in the controller itself.',
+    saferPath: 'The IT responder should NOT take action on a controller directly. Period. The role is to support engineering with surrounding-system evidence (network traffic to the controller, EWS that programmed it, historian data showing process behaviour). Engineering decides what to do with the controller itself.',
+    allowedActions: [
+      'Passive network monitoring of traffic to/from the controller',
+      'Document the controller (make, model, firmware version, last known programming date) from EWS or asset inventory',
+      'Capture process behaviour evidence from the historian — anomalies, set-point changes, alarm history',
+      'Review EWS audit log for recent programming activity targeting this controller'
+    ],
+    prohibitedActions: [
+      'Any direct connection to the controller for any purpose without engineering authority',
+      'Power-cycle, reset, or factory reset — engineering only',
+      'Firmware update, configuration change, logic upload — engineering only',
+      'Password change or authentication change on the controller',
+      'Probing scans (Nmap, vulnerability scans) — many controllers crash on unexpected traffic',
+      'Active network testing — controller may behave unpredictably'
+    ],
+    evidence: [
+      'Surrounding evidence ONLY — EWS audit log, historian process data, network captures',
+      'Photograph any controller front-panel indicators if accessible',
+      'Document controller model and firmware via inventory (do not query the controller)',
+      'Pull alarm history from historian for the relevant time window',
+      'Note operator observations of process behaviour'
+    ],
+    callsBeforeAction: [
+      'OT engineering lead — full authority on the controller',
+      'Operations control room — current process state',
+      'Vendor support — many controller issues need vendor engagement',
+      'Safety lead if controller has any safety function'
+    ],
+    references: ['IEC 62443-3-3 SR 1.1, 1.2 (controller access)', 'NIST SP 800-82r3 §6.2.2', 'ICS-CERT advisories for controller class']
+  },
+
+  {
+    code: 'A5',
+    name: 'Safety Instrumented System (SIS)',
+    short: 'SIS',
+    desc: 'Independent safety layer that takes the process to a safe state if conditions are exceeded. ABSOLUTE highest sensitivity asset in OT. Often physically and logically segregated from the basic process control system.',
+    itInstinct: 'Same as any other endpoint — patch, monitor, audit.',
+    whyWrong: 'A SIS is not a normal endpoint. It exists specifically to protect people and equipment when other layers fail. Anything that affects SIS availability or integrity is a safety event, not a security event. Triton/Trisis (2017, Saudi Arabia) showed what happens when attackers reach SIS — the response framework for SIS compromise is closer to a major safety incident than to a normal IR.',
+    saferPath: 'STOP. The IT responder should not be making decisions about SIS without engineering, safety, and operations explicitly engaged. This is a major incident regardless of confirmed compromise — escalate to plant management, safety lead, and engineering. Many sites have specific procedures for SIS-related events; follow those.',
+    allowedActions: [
+      'Document what was observed — exact alerts, times, source',
+      'Engage the escalation chain — this is not your decision alone',
+      'Capture surrounding system evidence (network logs, EWS, historian) WITHOUT touching the SIS itself',
+      'Notify safety lead and operations leadership without delay'
+    ],
+    prohibitedActions: [
+      'Any direct interaction with the SIS — none whatsoever',
+      'Any network action that could affect SIS reachability — even monitoring traffic requires care',
+      'Independent decisions about SIS availability — operations and safety only',
+      'Delay in escalation — SIS-related events get reported up immediately'
+    ],
+    evidence: [
+      'What triggered the suspicion — alert details, source system, time',
+      'Surrounding system evidence (network, identity, EWS) preserved without touching SIS',
+      'Plant safety logs and historian for the relevant period',
+      'Any vendor or ISAC notifications received that prompted concern'
+    ],
+    callsBeforeAction: [
+      'Plant manager or site lead — SIS events are plant management territory',
+      'Functional safety lead / safety engineer',
+      'Operations control room — IMMEDIATELY',
+      'Engineering authority for the specific SIS',
+      'SIS vendor (Siemens HIMA, Honeywell, Triconex/Schneider, Emerson, etc.)',
+      'Regulator may need notification depending on jurisdiction and outcome — Legal advises'
+    ],
+    references: ['IEC 61508 (functional safety)', 'IEC 61511 (process industry safety)', 'IEC 62443-3-3 SR 7.6 (SIS)', 'NCSC OT Guidance — SIS section']
+  },
+
+  {
+    code: 'A6',
+    name: 'OT Network Device',
+    short: 'OT Net',
+    desc: 'Switches, firewalls, gateways, protocol converters within OT or between IT/OT. Often configured by IT but governed by OT.',
+    itInstinct: 'Treat like any switch or firewall — patch, restart, change config.',
+    whyWrong: 'OT network devices often have explicit configuration tied to deterministic timing and protocol conversion. Restarting a switch in a control network can drop packets that affect process control. A firewall ACL change without coordination can block protocol traffic the process relies on. OT networks are typically not redundant in the same way IT networks are — there\'s often no path-failover, so a "quick restart" causes outage.',
+    saferPath: 'Treat OT network changes as engineering changes — change control, planned downtime windows, coordination with operations. The IT responder can analyse and recommend; the change goes through OT engineering and ops.',
+    allowedActions: [
+      'Read-only configuration export (running config, ACLs, VLAN tables) via approved access',
+      'Log collection (syslog, SNMP) without changing device state',
+      'Passive network captures from monitoring ports',
+      'Identity audit for accounts with management access',
+      'Map the device\'s role in the OT topology (what does it connect, what depends on it)'
+    ],
+    prohibitedActions: [
+      'Restart or reboot during production',
+      'ACL changes without engineering and ops sign-off',
+      'Firmware update without change control',
+      'Adding or removing VLANs',
+      'Active scanning — many OT-specific devices and protocol converters crash on unexpected traffic'
+    ],
+    evidence: [
+      'Read-only config export',
+      'Recent syslog (export to evidence location)',
+      'Interface statistics, ARP/MAC tables (read-only)',
+      'Authentication logs',
+      'Topology map showing device role'
+    ],
+    callsBeforeAction: [
+      'OT network engineer / OT network architect',
+      'Operations — change control authority for the network segment',
+      'Vendor support for the device class'
+    ],
+    references: ['IEC 62443-3-3 SR 5.1', 'NIST SP 800-82r3 §6.3', 'Network device class advisories']
+  },
+
+  {
+    code: 'A7',
+    name: 'Vendor Jump Host / Remote Access',
+    short: 'Vendor Access',
+    desc: 'The gateway vendors use to support OT systems remotely. Highest-risk attack vector in many OT environments — third-party access with elevated privileges.',
+    itInstinct: 'Cut the connection, disable the vendor account, investigate later.',
+    whyWrong: 'Cutting a vendor connection mid-session can leave the OT system in a partial state — a vendor might be applying a firmware update, running a calibration, or commissioning a new instrument. Sudden disconnect can cause hardware in inconsistent state, partial config writes, or process disruption. Disabling the vendor account before understanding what they\'re doing risks worse outcomes than leaving them connected for another 5 minutes while engineering joins the call.',
+    saferPath: 'Before any action, identify which vendor, what they\'re supposed to be doing, who at the plant is hosting them, and what the agreed scope is. If anomaly is confirmed, coordinate the disconnect with the host engineer so the OT side is stabilised first. Then disable accounts.',
+    allowedActions: [
+      'Monitor the vendor session — capture network traffic, screen if possible',
+      'Identify the vendor, the engineer hosting them, the scope of work',
+      'Verify against the change ticket or pre-agreed support window',
+      'Audit vendor account history — when else has it been used, from where',
+      'Prepare to disconnect — but coordinate timing with host engineer'
+    ],
+    prohibitedActions: [
+      'Immediate disconnect without host engineer coordination if they may be in the middle of OT work',
+      'Disable vendor account before understanding active session state',
+      'Reset vendor credentials before vendor has been informed (they may try to reconnect through a less safe path)',
+      'Block the vendor jump host network range without operations sign-off'
+    ],
+    evidence: [
+      'Session recording / screen capture if available',
+      'Network traffic during the session (export pcap)',
+      'Vendor account authentication logs',
+      'Change ticket or support contract context',
+      'Host engineer\'s account of what was supposed to happen'
+    ],
+    callsBeforeAction: [
+      'The engineer at the plant who is hosting the vendor — IMMEDIATELY',
+      'Vendor support hotline — using a separate channel from the jump host',
+      'Operations — process state during the vendor session',
+      'Contract / procurement lead — vendor relationship and notification obligations'
+    ],
+    references: ['NCSC Supply Chain Principles', 'IEC 62443-3-3 SR 1.13 (remote access)', 'NIST SP 800-82r3 §6.2.4']
+  },
+
+  {
+    code: 'A8',
+    name: 'Unknown OT Asset',
+    short: 'Unknown',
+    desc: 'The alert is OT-adjacent but the specific asset can\'t be identified yet. Common when monitoring covers a network range that includes assets the IT team doesn\'t have inventory for.',
+    itInstinct: 'Investigate the network address, run discovery scans, look it up.',
+    whyWrong: 'Active discovery on OT networks (Nmap, port scans, banner grabs) can crash legacy controllers, trip protective relays, or cause protocol converters to halt. The fact that you don\'t know what an asset is means you especially must not probe it. Many real-world OT incidents started with a well-intentioned scan.',
+    saferPath: 'Inventory check — ask OT engineering and operations what\'s at that address. Use existing passive sources (historian connections, network device ARP tables, asset management database) before any active query. The unknown is itself information — it means there\'s an inventory gap to fix later, but right now the answer is "ask, don\'t scan."',
+    allowedActions: [
+      'Passive identification — network captures, switch port mapping, ARP tables',
+      'Cross-reference with OT asset inventory and engineering documentation',
+      'Ask OT engineering and operations directly — they may know',
+      'Check change-control records for recent additions to that segment',
+      'Vendor or integrator records if asset was installed by a known party'
+    ],
+    prohibitedActions: [
+      'Active scanning of any kind — port scan, vulnerability scan, banner grab',
+      'Direct connection attempts to identify the device',
+      'Authentication probing',
+      'ICMP sweeps on OT segments',
+      'Any action that sends unexpected traffic to the unknown asset'
+    ],
+    evidence: [
+      'Network traffic involving the unknown address (passive capture)',
+      'Switch port mapping showing physical location',
+      'ARP / MAC tables (read-only)',
+      'Asset inventory cross-reference',
+      'Engineering and operations responses to "what\'s at that address"'
+    ],
+    callsBeforeAction: [
+      'OT engineering lead — they may know what it is',
+      'Operations control room — they may have visibility from the process side',
+      'OT network engineer for physical port mapping',
+      'Asset management / configuration management if the organisation has one for OT'
+    ],
+    references: ['NIST SP 800-82r3 §5.4 (asset management)', 'IEC 62443-2-1 §4.2.3.1', 'NCSC OT Guidance — asset visibility']
+  }
+];
+
+// === CRITICALITY ===
+const CRITICALITY = [
+  {
+    code: 'C1',
+    name: 'Safety-critical',
+    desc: 'Failure could harm people or the environment. SIS, primary safety functions, or any asset on a safety-critical loop.',
+    triageWeight: 3
+  },
+  {
+    code: 'C2',
+    name: 'Production-critical',
+    desc: 'Failure stops or significantly degrades production. Loss has material commercial impact.',
+    triageWeight: 2
+  },
+  {
+    code: 'C3',
+    name: 'Production-supporting',
+    desc: 'Failure is inconvenient but production continues. Reporting, optimisation, non-critical visibility.',
+    triageWeight: 1
+  },
+  {
+    code: 'C4',
+    name: 'Non-production',
+    desc: 'Test, dev, lab, or historical asset. No live process impact.',
+    triageWeight: 0
+  }
+];
+
+// === SAFETY GATES ===
+const GATES = [
+  {
+    id: 'G1',
+    question: 'Have operations been notified that you are investigating an alert on this asset?',
+    help: 'Operations needs to know before you touch anything. Even a notification call gives them context for process anomalies that may show up in the next few minutes. If no — pause and call now.'
+  },
+  {
+    id: 'G2',
+    question: 'Has an OT engineering authority been identified and contacted?',
+    help: 'You need a named engineer (or named on-call rota holder) for this asset, not just "OT team." If the engineering authority is on the line, the triage runs faster and safer.'
+  },
+  {
+    id: 'G3',
+    question: 'Is the process state currently stable and not in any unusual condition?',
+    help: 'If the process is in startup, shutdown, abnormal operation, or has any active alarm, even small disruptions can cascade. Stable state means your actions have less potential for harm.'
+  },
+  {
+    id: 'G4',
+    question: 'Is any action you are considering free of impact on a safety system?',
+    help: 'If your action — network change, isolation, restart — could affect a safety system (directly or by interrupting its monitoring), the answer is No until proven otherwise. This is a higher bar than "I don\'t think so."'
+  },
+  {
+    id: 'G5',
+    question: 'Is the asset confirmed identified — you know exactly what it is?',
+    help: 'Unknown asset = no active investigation. Passive identification only. If the asset type is "Unknown OT Asset," this gate is automatically No.'
+  }
+];
+
+// === OBSERVATIONS ===
+const OBSERVATIONS = [
+  { code: 'O1', name: 'Suspicious network traffic to/from OT', desc: 'Unexpected protocol, unexpected source/destination, unusual volume.' },
+  { code: 'O2', name: 'Authentication anomaly on OT asset', desc: 'Failed logon spike, unexpected logon time, unusual source.' },
+  { code: 'O3', name: 'Endpoint detection / malware alert', desc: 'EDR/AV fired on an OT-adjacent host (EWS, HMI, historian).' },
+  { code: 'O4', name: 'Unexplained config or logic change', desc: 'Engineering change without ticket, unexpected version increment, integrity check failure.' },
+  { code: 'O5', name: 'Vendor remote session anomaly', desc: 'Outside agreed window, unexpected vendor, scope outside change ticket.' },
+  { code: 'O6', name: 'Loss of visibility / monitoring gap', desc: 'Historian gap, lost connection to a control segment, monitoring tool offline.' },
+  { code: 'O7', name: 'Physical or environmental indicator', desc: 'Door alarm, unusual access, environmental sensor anomaly, equipment behaviour reported by operations.' },
+  { code: 'O8', name: 'External notification', desc: 'Vendor advisory, ISAC notification, partner organisation reported related compromise.' }
+];
+
+// === DECISION LOGIC ===
+// Inputs: assetCode, critCode, gateAnswers {G1..G5: 'yes'|'no'|'unknown'|null}, observations[]
+// Outputs: decision code + headline + rationale
+
+function computeDecision(assetCode, critCode, gateAnswers, observations) {
+  const asset = ASSETS.find(a => a.code === assetCode);
+  const crit = CRITICALITY.find(c => c.code === critCode);
+  if (!asset || !crit) return null;
+
+  const reasons = [];
+  let decision = 'D-PROCEED-LIMITED';
+
+  // SIS always triggers full-stop
+  if (assetCode === 'A5') {
+    decision = 'D-FULL-STOP';
+    reasons.push('Asset is a Safety Instrumented System — SIS-related events are always treated as major incidents regardless of confirmed compromise.');
+  }
+
+  // Safety-critical criticality with controller/SIS bumps to full-stop or hold
+  if (critCode === 'C1' && (assetCode === 'A4' || assetCode === 'A5')) {
+    decision = 'D-FULL-STOP';
+    if (!reasons.find(r => r.includes('SIS'))) {
+      reasons.push('Safety-critical controller — actions have direct safety implications.');
+    }
+  }
+
+  // Unknown asset always at minimum holds
+  if (assetCode === 'A8') {
+    if (decision !== 'D-FULL-STOP') decision = 'D-HOLD-FOR-OT';
+    reasons.push('Asset is unidentified — no active investigation is safe until identification is confirmed.');
+  }
+
+  // Controllers always hold-at-minimum
+  if (assetCode === 'A4' && decision === 'D-PROCEED-LIMITED') {
+    decision = 'D-HOLD-FOR-OT';
+    reasons.push('Direct controller actions are engineering authority only — IT responder role is surrounding-system evidence support.');
+  }
+
+  // Gate analysis
+  const gateValues = Object.values(gateAnswers);
+  const noCount = gateValues.filter(v => v === 'no').length;
+  const unknownCount = gateValues.filter(v => v === 'unknown').length;
+  const yesCount = gateValues.filter(v => v === 'yes').length;
+
+  // If any safety gate is No → at minimum hold
+  if (noCount > 0) {
+    if (decision === 'D-PROCEED-LIMITED') decision = 'D-HOLD-FOR-OT';
+    reasons.push(`${noCount} safety gate(s) answered No — preconditions for technical action are not all met.`);
+  }
+
+  // Two or more unknowns → hold
+  if (unknownCount >= 2 && decision === 'D-PROCEED-LIMITED') {
+    decision = 'D-HOLD-FOR-OT';
+    reasons.push(`${unknownCount} safety gates answered Unknown — too much uncertainty for limited action.`);
+  }
+
+  // G1 or G2 No specifically (notification / authority) — minimum hold
+  if ((gateAnswers.G1 === 'no' || gateAnswers.G2 === 'no') && decision === 'D-PROCEED-LIMITED') {
+    decision = 'D-HOLD-FOR-OT';
+    if (gateAnswers.G1 === 'no') reasons.push('Operations not yet notified — no technical action should precede notification.');
+    if (gateAnswers.G2 === 'no') reasons.push('OT engineering authority not yet contacted — technical action without engineering context is unsafe.');
+  }
+
+  // G4 No (action could affect safety) — escalate to full-stop if it isn't already
+  if (gateAnswers.G4 === 'no') {
+    decision = 'D-FULL-STOP';
+    reasons.push('A considered action could affect a safety system — escalate before any action.');
+  }
+
+  // Process state unstable — hold
+  if (gateAnswers.G3 === 'no') {
+    if (decision === 'D-PROCEED-LIMITED') decision = 'D-HOLD-FOR-OT';
+    reasons.push('Process state is not currently stable — disruption potential is elevated, hold for engineering.');
+  }
+
+  // Observations that escalate
+  if (observations.includes('O7')) {
+    // Physical / environmental indicator combined with anything else → escalate
+    if (decision === 'D-PROCEED-LIMITED') decision = 'D-HOLD-FOR-OT';
+    reasons.push('Physical or environmental indicator reported — operations and safety should be on the line before any cyber-side action.');
+  }
+
+  if (observations.includes('O5') && assetCode === 'A7') {
+    // Vendor anomaly on vendor host — important not to disconnect mid-session
+    reasons.push('Vendor session anomaly on vendor host — coordinate disconnect timing with host engineer to avoid leaving OT systems in inconsistent state.');
+  }
+
+  if (observations.includes('O4') && assetCode === 'A4') {
+    // Unexplained config change on controller
+    decision = 'D-FULL-STOP';
+    reasons.push('Unexplained config or logic change on a controller is a major event — engineering and operations escalation required.');
+  }
+
+  // If no specific reasons, add a baseline rationale
+  if (reasons.length === 0) {
+    reasons.push(`Asset type (${asset.name}) and criticality (${crit.name}) permit limited IT-side actions with the safety gates satisfied.`);
+  }
+
+  // Headline by decision
+  let headline;
+  if (decision === 'D-PROCEED-LIMITED') {
+    headline = 'Proceed with limited IT-side actions';
+  } else if (decision === 'D-HOLD-FOR-OT') {
+    headline = 'Hold — OT engineering must attend before further action';
+  } else {
+    headline = 'Full stop — escalate as major incident';
+  }
+
+  return {
+    code: decision,
+    headline,
+    reasons,
+    asset,
+    crit
+  };
+}
+
+// === DECISION KIND MAPPING (for CSS) ===
+const DECISION_KIND = {
+  'D-PROCEED-LIMITED': 'proceed',
+  'D-HOLD-FOR-OT': 'hold',
+  'D-FULL-STOP': 'fullstop'
+};
+
+
+// ============================================
+// STATE
+// ============================================
+const state = {
+  site: '',
+  alertId: '',
+  responder: '',
+  alertTime: '',
+  asset: null,
+  criticality: null,
+  observations: [],
+  gates: { G1: null, G2: null, G3: null, G4: null, G5: null },
+  handover: {
+    callsMade: '',
+    actionsTaken: '',
+    actionsNotTaken: '',
+    evidenceCaptured: '',
+    notes: '',
+    declaredTime: '',
+    handoverTime: ''
+  },
+  currentStage: 1
+};
+
+// ============================================
+// INIT
+// ============================================
+function init() {
+  // Default alert time to now
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const defaultTime = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  document.getElementById('alertTime').value = defaultTime;
+  state.alertTime = defaultTime;
+
+  // Wire detail inputs
+  ['siteName', 'alertId', 'responder', 'alertTime'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('input', e => {
+      const key = id === 'siteName' ? 'site' : id === 'alertId' ? 'alertId' : id;
+      state[key] = e.target.value;
+    });
+  });
+
+  renderAssetGrid();
+  renderCritOptions();
+  renderObsGrid();
+  renderGates();
+  renderStageNav();
+
+  document.querySelectorAll('.stage-nav-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = parseInt(btn.dataset.stage);
+      if (canEnterStage(target)) goToStage(target);
+    });
+  });
+}
+
+function canEnterStage(n) {
+  if (n === 1) return true;
+  if (n === 2) return !!state.asset && !!state.criticality;
+  if (n === 3) return !!state.asset && !!state.criticality;
+  if (n === 4) return !!state.asset && !!state.criticality;
+  if (n === 5) return !!state.asset && !!state.criticality;
+  return false;
+}
+
+// ============================================
+// STAGE 1 — ASSET / CRIT / OBS
+// ============================================
+function renderAssetGrid() {
+  const grid = document.getElementById('assetGrid');
+  grid.innerHTML = ASSETS.map(a => `
+    <button class="choice-tile ${state.asset === a.code ? 'selected' : ''}" data-code="${a.code}">
+      <div class="choice-tile-code">${a.code} · ${escapeHtml(a.short)}</div>
+      <div class="choice-tile-name">${escapeHtml(a.name)}</div>
+      <div class="choice-tile-desc">${escapeHtml(a.desc)}</div>
+    </button>
+  `).join('');
+
+  grid.querySelectorAll('.choice-tile').forEach(tile => {
+    tile.addEventListener('click', () => {
+      state.asset = tile.dataset.code;
+      // Auto-set G5 if asset is Unknown
+      if (state.asset === 'A8') state.gates.G5 = 'no';
+      renderAssetGrid();
+      renderGates();
+      updateStage1Status();
+    });
+  });
+}
+
+function renderCritOptions() {
+  const el = document.getElementById('critOptions');
+  el.innerHTML = CRITICALITY.map(c => `
+    <button class="crit-pill ${state.criticality === c.code ? 'selected' : ''}" data-code="${c.code}" title="${escapeHtml(c.desc)}">
+      ${c.code} · ${escapeHtml(c.name)}
+    </button>
+  `).join('');
+
+  el.querySelectorAll('.crit-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      state.criticality = pill.dataset.code;
+      renderCritOptions();
+      updateStage1Status();
+    });
+  });
+}
+
+function renderObsGrid() {
+  const grid = document.getElementById('obsGrid');
+  grid.innerHTML = OBSERVATIONS.map(o => `
+    <button class="obs-tile ${state.observations.includes(o.code) ? 'selected' : ''}" data-code="${o.code}">
+      <span class="obs-checkbox"></span>
+      <div class="obs-body">
+        <div class="obs-name">${o.code} · ${escapeHtml(o.name)}</div>
+        <div class="obs-desc">${escapeHtml(o.desc)}</div>
+      </div>
+    </button>
+  `).join('');
+
+  grid.querySelectorAll('.obs-tile').forEach(tile => {
+    tile.addEventListener('click', () => {
+      const code = tile.dataset.code;
+      const idx = state.observations.indexOf(code);
+      if (idx === -1) state.observations.push(code);
+      else state.observations.splice(idx, 1);
+      renderObsGrid();
+    });
+  });
+}
+
+function updateStage1Status() {
+  const status = document.getElementById('stage1Status');
+  const btn = document.getElementById('toStage2');
+  if (state.asset && state.criticality) {
+    const a = ASSETS.find(x => x.code === state.asset);
+    const c = CRITICALITY.find(x => x.code === state.criticality);
+    status.textContent = `${a.code} ${a.name} · ${c.code} ${c.name}` + (state.observations.length ? ` · ${state.observations.length} observation${state.observations.length>1?'s':''}` : '');
+    btn.disabled = false;
+  } else {
+    status.textContent = 'Select asset type and criticality to continue';
+    btn.disabled = true;
+  }
+  renderStageNav();
+}
+
+// ============================================
+// STAGE 2 — SAFETY GATES
+// ============================================
+function renderGates() {
+  const c = document.getElementById('gatesContainer');
+  c.innerHTML = GATES.map(g => {
+    const ans = state.gates[g.id];
+    const cls = ans === 'yes' ? 'answered-yes' : ans === 'no' ? 'answered-no' : ans === 'unknown' ? 'answered-unknown' : '';
+    return `
+      <div class="gate ${cls}" data-gate="${g.id}">
+        <div class="gate-question"><span style="font-family:var(--mono);color:var(--ink-faint);font-size:12px;margin-right:8px;">${g.id}</span>${escapeHtml(g.question)}</div>
+        <div class="gate-help">${escapeHtml(g.help)}</div>
+        <div class="gate-options">
+          <button class="gate-btn ${ans==='yes'?'selected':''}" data-val="yes" data-gate="${g.id}">Yes</button>
+          <button class="gate-btn ${ans==='no'?'selected':''}" data-val="no" data-gate="${g.id}">No</button>
+          <button class="gate-btn ${ans==='unknown'?'selected':''}" data-val="unknown" data-gate="${g.id}">Unknown</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  c.querySelectorAll('.gate-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.gates[btn.dataset.gate] = btn.dataset.val;
+      renderGates();
+      updateStage2Status();
+    });
+  });
+
+  renderContextBanner('contextBanner1');
+  updateStage2Status();
+}
+
+function updateStage2Status() {
+  const status = document.getElementById('stage2Status');
+  const btn = document.getElementById('toStage3');
+  const answered = Object.values(state.gates).filter(v => v !== null).length;
+  status.textContent = `${answered} / 5 gates answered`;
+  // Allow proceeding once all gates have ANY answer
+  btn.disabled = answered < 5;
+}
+
+// ============================================
+// STAGE NAV
+// ============================================
+function renderStageNav() {
+  document.querySelectorAll('.stage-nav-item').forEach(btn => {
+    const n = parseInt(btn.dataset.stage);
+    btn.classList.toggle('active', n === state.currentStage);
+    btn.classList.toggle('complete', n < state.currentStage && canEnterStage(n));
+  });
+}
+
+function goToStage(n) {
+  if (!canEnterStage(n)) return;
+  state.currentStage = n;
+  document.querySelectorAll('.stage').forEach(s => s.classList.remove('active'));
+  document.getElementById(`stage-${n}`).classList.add('active');
+  renderStageNav();
+  // Lazy-render the dependent stages
+  if (n === 2) renderGates();
+  if (n === 3) renderDecision();
+  if (n === 4) renderActions();
+  if (n === 5) renderHandover();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ============================================
+// CONTEXT BANNER
+// ============================================
+function renderContextBanner(elId) {
+  const el = document.getElementById(elId);
+  if (!el || !state.asset || !state.criticality) { if (el) el.innerHTML = ''; return; }
+  const a = ASSETS.find(x => x.code === state.asset);
+  const c = CRITICALITY.find(x => x.code === state.criticality);
+  el.innerHTML = `
+    <div class="context-banner">
+      <div class="context-item"><strong>Asset</strong><span>${a.code} · ${escapeHtml(a.name)}</span></div>
+      <div class="context-item"><strong>Criticality</strong><span>${c.code} · ${escapeHtml(c.name)}</span></div>
+      ${state.site ? `<div class="context-item"><strong>Site</strong><span>${escapeHtml(state.site)}</span></div>` : ''}
+      ${state.alertId ? `<div class="context-item"><strong>Alert ID</strong><span>${escapeHtml(state.alertId)}</span></div>` : ''}
+      <div class="context-item"><strong>Observations</strong><span>${state.observations.length || '—'}</span></div>
+      <div class="context-item"><strong>Time observed</strong><span>${escapeHtml(state.alertTime || '—')}</span></div>
+    </div>
+  `;
+}
+
+// ============================================
+// STAGE 3 — DECISION
+// ============================================
+function renderDecision() {
+  renderContextBanner('contextBanner2');
+  const out = document.getElementById('decisionOutput');
+  const dec = computeDecision(state.asset, state.criticality, state.gates, state.observations);
+  if (!dec) { out.innerHTML = ''; return; }
+  const kind = DECISION_KIND[dec.code];
+  const asset = dec.asset;
+
+  out.innerHTML = `
+    <div class="decision-card ${kind}-cls">
+      <div class="decision-banner ${kind}">
+        <div class="decision-code">${dec.code}</div>
+        <div class="decision-headline">${escapeHtml(dec.headline)}</div>
+        <div class="decision-rationale">
+          ${dec.reasons.map(r => `<div style="margin-top:6px;">• ${escapeHtml(r)}</div>`).join('')}
+        </div>
+      </div>
+
+      <h3 style="font-family:var(--serif);font-size:22px;font-weight:400;margin-bottom:12px;color:var(--ink);">The IT-instinct trap for this asset</h3>
+      <p style="font-size:14px;color:var(--ink-soft);margin-bottom:16px;">Asset-specific. Worth reading even if the decision is Proceed.</p>
+      <div class="instinct-callout">
+        <div class="instinct-row">
+          <span class="instinct-label">IT Instinct</span>
+          <span class="instinct-text">${escapeHtml(asset.itInstinct)}</span>
+        </div>
+        <div class="instinct-row">
+          <span class="instinct-label">Why wrong</span>
+          <span class="instinct-text">${escapeHtml(asset.whyWrong)}</span>
+        </div>
+        <div class="instinct-row">
+          <span class="instinct-label">Safer path</span>
+          <span class="instinct-text">${escapeHtml(asset.saferPath)}</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ============================================
+// STAGE 4 — ACTIONS
+// ============================================
+function renderActions() {
+  renderContextBanner('contextBanner3');
+  const out = document.getElementById('actionsOutput');
+  if (!state.asset) { out.innerHTML = ''; return; }
+  const a = ASSETS.find(x => x.code === state.asset);
+  const dec = computeDecision(state.asset, state.criticality, state.gates, state.observations);
+  const kind = DECISION_KIND[dec.code];
+
+  out.innerHTML = `
+    <div class="card">
+      <div class="card-title">${a.code} · ${escapeHtml(a.name)} — action set</div>
+      <div class="card-sub">Apply these in the context of the triage decision (${dec.code}). If the decision is Hold or Full Stop, "allowed" actions only proceed once engineering authority joins. The prohibited list applies regardless of decision.</div>
+
+      <div class="action-block calls">
+        <div class="action-block-title">Calls before any action</div>
+        <ul class="action-list">
+          ${a.callsBeforeAction.map(c => `<li>${escapeHtml(c)}</li>`).join('')}
+        </ul>
+      </div>
+
+      <div class="action-block allowed">
+        <div class="action-block-title">Allowed actions ${dec.code === 'D-FULL-STOP' ? '(none until escalation acknowledged)' : '(with engineering on the line)'}</div>
+        <ul class="action-list">
+          ${dec.code === 'D-FULL-STOP'
+            ? '<li>No technical actions until major-incident escalation chain has acknowledged. Document and observe only.</li>'
+            : a.allowedActions.map(act => `<li>${escapeHtml(act)}</li>`).join('')}
+        </ul>
+      </div>
+
+      <div class="action-block prohibited">
+        <div class="action-block-title">Prohibited — do NOT do these</div>
+        <ul class="action-list">
+          ${a.prohibitedActions.map(p => `<li>${escapeHtml(p)}</li>`).join('')}
+        </ul>
+      </div>
+
+      <div class="action-block evidence">
+        <div class="action-block-title">Evidence to capture (non-invasive)</div>
+        <ul class="action-list">
+          ${a.evidence.map(e => `<li>${escapeHtml(e)}</li>`).join('')}
+        </ul>
+      </div>
+
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--ink-faint);letter-spacing:0.04em;">
+        References: ${a.references.map(escapeHtml).join(' · ')}
+      </div>
+    </div>
+  `;
+}
+
+// ============================================
+// STAGE 5 — HANDOVER
+// ============================================
+function renderHandover() {
+  const out = document.getElementById('handoverOutput');
+  if (!state.asset) { out.innerHTML = ''; return; }
+  const a = ASSETS.find(x => x.code === state.asset);
+  const c = CRITICALITY.find(x => x.code === state.criticality);
+  const dec = computeDecision(state.asset, state.criticality, state.gates, state.observations);
+
+  out.innerHTML = `
+    <div class="decision-card ${DECISION_KIND[dec.code]}-cls" style="margin-bottom:20px;">
+      <div class="decision-banner ${DECISION_KIND[dec.code]}">
+        <div class="decision-code">${dec.code}</div>
+        <div class="decision-headline">${escapeHtml(dec.headline)}</div>
+      </div>
+      <div style="font-size:14px;color:var(--ink-soft);">${a.code} · ${escapeHtml(a.name)} · ${c.code} · ${escapeHtml(c.name)}${state.site ? ' · ' + escapeHtml(state.site) : ''}</div>
+    </div>
+
+    <div class="handover-card">
+      <div class="card-title">Handover notes</div>
+      <div class="card-sub">Capture what you know, what you've done, what's outstanding. This is what the OT lead reads when they pick up.</div>
+
+      <div class="handover-row">
+        <label class="field">
+          <span class="field-label">Time triage declared</span>
+          <input type="text" id="hDeclared" placeholder="HH:MM" value="${escapeHtml(state.handover.declaredTime)}">
+        </label>
+        <label class="field">
+          <span class="field-label">Time handed over</span>
+          <input type="text" id="hHandover" placeholder="HH:MM" value="${escapeHtml(state.handover.handoverTime)}">
+        </label>
+      </div>
+
+      <label class="field">
+        <span class="field-label">Calls made (who, when)</span>
+        <textarea id="hCalls" placeholder="e.g. 14:32 J. Brown (OT engineer) — confirmed; 14:34 Control Room — operations aware">${escapeHtml(state.handover.callsMade)}</textarea>
+      </label>
+
+      <label class="field">
+        <span class="field-label">Actions taken so far</span>
+        <textarea id="hActions" placeholder="What you've done — passive captures, log exports, etc.">${escapeHtml(state.handover.actionsTaken)}</textarea>
+      </label>
+
+      <label class="field">
+        <span class="field-label">Actions explicitly NOT taken (and why)</span>
+        <textarea id="hNotTaken" placeholder="The prohibited list you held off on — important for the OT lead to know what's still open">${escapeHtml(state.handover.actionsNotTaken)}</textarea>
+      </label>
+
+      <label class="field">
+        <span class="field-label">Evidence captured (and where)</span>
+        <textarea id="hEvidence" placeholder="Files, screenshots, captures, location they're stored">${escapeHtml(state.handover.evidenceCaptured)}</textarea>
+      </label>
+
+      <label class="field">
+        <span class="field-label">Other notes for the OT lead</span>
+        <textarea id="hNotes" placeholder="Anything else they need to know">${escapeHtml(state.handover.notes)}</textarea>
+      </label>
+    </div>
+  `;
+
+  ['hDeclared', 'hHandover', 'hCalls', 'hActions', 'hNotTaken', 'hEvidence', 'hNotes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const keyMap = {
+      hDeclared: 'declaredTime', hHandover: 'handoverTime',
+      hCalls: 'callsMade', hActions: 'actionsTaken', hNotTaken: 'actionsNotTaken',
+      hEvidence: 'evidenceCaptured', hNotes: 'notes'
+    };
+    el.addEventListener('input', e => { state.handover[keyMap[id]] = e.target.value; });
+  });
+}
+
+// ============================================
+// HELPERS
+// ============================================
+function escapeHtml(s) {
+  if (s === null || s === undefined) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// ============================================
+// SAVE / LOAD
+// ============================================
+function saveJSON() {
+  const blob = new Blob([JSON.stringify(serialise(), null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ot-triage-${state.alertId || 'draft'}-${(state.alertTime || '').replace(/[: ]/g, '-')}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function serialise() {
+  return {
+    _schema: 'dh-ot-triage',
+    _version: 1,
+    _exported: new Date().toISOString(),
+    context: {
+      site: state.site,
+      alertId: state.alertId,
+      responder: state.responder,
+      alertTime: state.alertTime
+    },
+    asset: state.asset,
+    criticality: state.criticality,
+    observations: [...state.observations],
+    gates: { ...state.gates },
+    decision: state.asset && state.criticality ? computeDecision(state.asset, state.criticality, state.gates, state.observations) : null,
+    handover: { ...state.handover }
+  };
+}
+
+function loadJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data._schema !== 'dh-ot-triage') {
+        alert('This does not look like an OT Triage export.');
+        return;
+      }
+      Object.assign(state, {
+        site: data.context?.site || '',
+        alertId: data.context?.alertId || '',
+        responder: data.context?.responder || '',
+        alertTime: data.context?.alertTime || '',
+        asset: data.asset || null,
+        criticality: data.criticality || null,
+        observations: data.observations || [],
+        gates: data.gates || { G1: null, G2: null, G3: null, G4: null, G5: null },
+        handover: data.handover || state.handover
+      });
+      document.getElementById('siteName').value = state.site;
+      document.getElementById('alertId').value = state.alertId;
+      document.getElementById('responder').value = state.responder;
+      document.getElementById('alertTime').value = state.alertTime;
+      renderAssetGrid();
+      renderCritOptions();
+      renderObsGrid();
+      renderGates();
+      updateStage1Status();
+    } catch (err) {
+      alert('Failed to parse JSON: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function resetAll() {
+  if (!confirm('Reset everything? This clears asset, criticality, observations, gates, and handover notes.')) return;
+  Object.assign(state, {
+    site: '', alertId: '', responder: '', alertTime: '',
+    asset: null, criticality: null, observations: [],
+    gates: { G1: null, G2: null, G3: null, G4: null, G5: null },
+    handover: { callsMade: '', actionsTaken: '', actionsNotTaken: '', evidenceCaptured: '', notes: '', declaredTime: '', handoverTime: '' },
+    currentStage: 1
+  });
+  ['siteName','alertId','responder','alertTime'].forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('toStage2').disabled = true;
+  document.getElementById('stage1Status').textContent = 'Select asset type and criticality to continue';
+  renderAssetGrid();
+  renderCritOptions();
+  renderObsGrid();
+  renderGates();
+  goToStage(1);
+}
+
+// ============================================
+// EXPORTS
+// ============================================
+function exportJSON() { saveJSON(); }
+
+function exportMarkdown() {
+  if (!state.asset || !state.criticality) { alert('Complete the orient stage first.'); return; }
+  const a = ASSETS.find(x => x.code === state.asset);
+  const c = CRITICALITY.find(x => x.code === state.criticality);
+  const dec = computeDecision(state.asset, state.criticality, state.gates, state.observations);
+
+  let md = `# OT Triage Handover\n\n`;
+  if (state.site) md += `**Site:** ${state.site}\n\n`;
+  if (state.alertId) md += `**Alert ID:** ${state.alertId}\n\n`;
+  if (state.responder) md += `**IT Responder:** ${state.responder}\n\n`;
+  if (state.alertTime) md += `**Time observed:** ${state.alertTime}\n\n`;
+  md += `\n---\n\n`;
+
+  md += `## Triage decision: ${dec.code}\n\n`;
+  md += `**${dec.headline}**\n\n`;
+  md += `### Rationale\n\n`;
+  dec.reasons.forEach(r => md += `- ${r}\n`);
+  md += `\n---\n\n`;
+
+  md += `## Context\n\n`;
+  md += `- **Asset:** ${a.code} — ${a.name}\n`;
+  md += `- **Criticality:** ${c.code} — ${c.name}\n`;
+  md += `- **Observations:** ${state.observations.length ? state.observations.map(o => OBSERVATIONS.find(x => x.code === o).name).join(', ') : 'none'}\n\n`;
+
+  md += `## Safety gates\n\n`;
+  GATES.forEach(g => {
+    const ans = state.gates[g.id];
+    md += `- **${g.id}** — ${g.question}  \n  **${(ans || 'unanswered').toUpperCase()}**\n`;
+  });
+  md += `\n---\n\n`;
+
+  md += `## IT-instinct trap for this asset\n\n`;
+  md += `**IT Instinct:** ${a.itInstinct}\n\n`;
+  md += `**Why wrong:** ${a.whyWrong}\n\n`;
+  md += `**Safer path:** ${a.saferPath}\n\n`;
+  md += `\n---\n\n`;
+
+  md += `## Calls to make before any action\n\n`;
+  a.callsBeforeAction.forEach(x => md += `- ${x}\n`);
+  md += `\n## Allowed actions\n\n`;
+  if (dec.code === 'D-FULL-STOP') {
+    md += `No technical actions until major-incident escalation has acknowledged.\n`;
+  } else {
+    a.allowedActions.forEach(x => md += `- ${x}\n`);
+  }
+  md += `\n## Prohibited — do NOT do these\n\n`;
+  a.prohibitedActions.forEach(x => md += `- ${x}\n`);
+  md += `\n## Evidence to capture (non-invasive)\n\n`;
+  a.evidence.forEach(x => md += `- ${x}\n`);
+  md += `\n---\n\n`;
+
+  md += `## Handover notes\n\n`;
+  if (state.handover.declaredTime) md += `**Triage declared:** ${state.handover.declaredTime}\n\n`;
+  if (state.handover.handoverTime) md += `**Handed over:** ${state.handover.handoverTime}\n\n`;
+  if (state.handover.callsMade) md += `**Calls made:**\n${state.handover.callsMade}\n\n`;
+  if (state.handover.actionsTaken) md += `**Actions taken:**\n${state.handover.actionsTaken}\n\n`;
+  if (state.handover.actionsNotTaken) md += `**Actions NOT taken (and why):**\n${state.handover.actionsNotTaken}\n\n`;
+  if (state.handover.evidenceCaptured) md += `**Evidence captured:**\n${state.handover.evidenceCaptured}\n\n`;
+  if (state.handover.notes) md += `**Notes for OT lead:**\n${state.handover.notes}\n\n`;
+
+  md += `\n---\n\n`;
+  md += `**References:** ${a.references.join(' · ')}\n\n`;
+  md += `*Generated by OT Incident Triage · Dan Howett · danhowett.github.io/useful*\n`;
+
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a2 = document.createElement('a');
+  a2.href = url;
+  a2.download = `ot-triage-handover-${state.alertId || 'draft'}.md`;
+  a2.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportSnapshot() {
+  if (!state.asset || !state.criticality) { alert('Complete the orient stage first.'); return; }
+  const a = ASSETS.find(x => x.code === state.asset);
+  const c = CRITICALITY.find(x => x.code === state.criticality);
+  const dec = computeDecision(state.asset, state.criticality, state.gates, state.observations);
+
+  let md = `# OT Triage — Decision Snapshot\n\n`;
+  md += `**${dec.headline}** (${dec.code})\n\n`;
+  md += `**Asset:** ${a.code} · ${a.name}  |  **Criticality:** ${c.code} · ${c.name}\n\n`;
+  if (state.site) md += `**Site:** ${state.site}\n\n`;
+  if (state.alertId) md += `**Alert:** ${state.alertId}\n\n`;
+  md += `\n### Why\n\n`;
+  dec.reasons.forEach(r => md += `- ${r}\n`);
+  md += `\n### Top 3 allowed\n\n`;
+  (dec.code === 'D-FULL-STOP' ? ['No technical actions until major-incident escalation acknowledged'] : a.allowedActions.slice(0, 3)).forEach(x => md += `- ${x}\n`);
+  md += `\n### Top 3 prohibited\n\n`;
+  a.prohibitedActions.slice(0, 3).forEach(x => md += `- ${x}\n`);
+  md += `\n*Snapshot from OT Incident Triage*\n`;
+
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a2 = document.createElement('a');
+  a2.href = url;
+  a2.download = `ot-triage-snapshot-${state.alertId || 'draft'}.md`;
+  a2.click();
+  URL.revokeObjectURL(url);
+}
+
+function printPack() {
+  document.querySelectorAll('.stage').forEach(s => s.classList.remove('print-current'));
+  document.getElementById('stage-5').classList.add('print-current');
+  window.print();
+  document.getElementById('stage-5').classList.remove('print-current');
+}
+
+// ============================================
+// BOOT
+// ============================================
+document.addEventListener('DOMContentLoaded', init);
+
+</script>
+
+</body>
+</html>
