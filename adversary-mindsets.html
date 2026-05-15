@@ -1,0 +1,1503 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adversary Mindsets · Dan Howett</title>
+<style>
+:root {
+  --bg: #f7f7f4;
+  --bg-card: #ffffff;
+  --bg-subtle: #f1f1ec;
+  --bg-darker: #ededea;
+  --ink: #18181b;
+  --ink-soft: #52525b;
+  --ink-faint: #a1a1aa;
+  --line: #e4e4e7;
+  --line-strong: #d4d4d8;
+  --accent: #1d4ed8;
+  --accent-soft: #eff6ff;
+  --warn: #b45309;
+  --warn-soft: #fef3c7;
+  --danger: #b91c1c;
+  --danger-soft: #fee2e2;
+  --red: #dc2626;
+  --red-soft: #fee2e2;
+  --ok: #15803d;
+  --ok-soft: #dcfce7;
+  --safety: #9a3412;
+  --safety-soft: #ffedd5;
+  --purple: #6d28d9;
+  --purple-soft: #ede9fe;
+  --orange: #c2410c;
+  --orange-soft: #ffedd5;
+  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --serif: 'Source Serif Pro', Georgia, serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* TOP NAV */
+.topnav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(247, 247, 244, 0.92);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.topnav-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 14px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.topnav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink);
+  text-decoration: none;
+}
+.topnav-brand:hover { text-decoration: none; }
+.topnav-brand-mark {
+  width: 24px;
+  height: 24px;
+  background: var(--ink);
+  color: var(--bg-card);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 12px;
+  border-radius: 4px;
+}
+.topnav-brand-sep { color: var(--ink-faint); }
+.topnav-brand-section { color: var(--ink-soft); }
+.topnav-actions { display: flex; gap: 8px; align-items: center; }
+.topnav-actions a, .topnav-actions button {
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  color: var(--ink-soft);
+  padding: 6px 12px;
+  font-family: var(--mono);
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s;
+  text-decoration: none;
+}
+.topnav-actions a:hover, .topnav-actions button:hover {
+  background: var(--ink);
+  color: var(--bg-card);
+  border-color: var(--ink);
+  text-decoration: none;
+}
+
+/* PAGE */
+.page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 48px 28px 120px;
+}
+
+/* HERO */
+.hero { margin-bottom: 36px; }
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 16px;
+}
+.hero-title {
+  font-family: var(--serif);
+  font-size: 56px;
+  line-height: 1.05;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+  color: var(--ink);
+}
+.hero-title em { font-style: italic; color: var(--accent); }
+.hero-lede {
+  font-size: 17px;
+  color: var(--ink-soft);
+  max-width: 820px;
+  line-height: 1.6;
+}
+.hero-lede strong { color: var(--ink); font-weight: 600; }
+.hero-meta {
+  margin-top: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+.hero-meta span strong { color: var(--ink); font-weight: 600; }
+
+/* DISCLAIMER */
+.disclaimer {
+  background: var(--warn-soft);
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 40px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.disclaimer-mark {
+  font-family: var(--mono);
+  font-size: 20px;
+  color: var(--warn);
+  font-weight: 700;
+  line-height: 1;
+}
+.disclaimer-body { font-size: 13px; color: #78350f; line-height: 1.55; }
+.disclaimer-body strong { color: #451a03; }
+
+/* MINDSET PRIMER */
+.primer {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 28px 32px;
+  margin-bottom: 36px;
+}
+.primer-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 12px;
+}
+.primer-title {
+  font-family: var(--serif);
+  font-size: 26px;
+  line-height: 1.2;
+  font-weight: 400;
+  color: var(--ink);
+  margin-bottom: 16px;
+}
+.primer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+  margin-top: 20px;
+}
+.primer-block { }
+.primer-block h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.primer-block p { font-size: 14px; color: var(--ink-soft); line-height: 1.6; }
+.primer-block p strong { color: var(--ink); font-weight: 600; }
+.primer-intro { font-size: 15px; color: var(--ink); line-height: 1.65; max-width: 880px; }
+.primer-intro p { margin-bottom: 12px; }
+.primer-intro p:last-child { margin-bottom: 0; }
+.primer-intro strong { font-weight: 600; }
+
+/* PICKER STAGE */
+.picker-section { margin-bottom: 36px; }
+.picker-title {
+  font-family: var(--serif);
+  font-size: 28px;
+  line-height: 1.15;
+  font-weight: 400;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.picker-sub {
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin-bottom: 20px;
+  max-width: 720px;
+}
+.attacker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+.attacker-tile {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 16px 18px;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--sans);
+  transition: all 0.15s;
+  position: relative;
+}
+.attacker-tile:hover { border-color: var(--ink-soft); }
+.attacker-tile.selected { border-color: var(--accent); background: var(--accent-soft); border-left-width: 3px; }
+.attacker-tile-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--bg-subtle);
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin-right: 8px;
+  vertical-align: middle;
+}
+.attacker-tile-code {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: 0.04em;
+}
+.attacker-tile-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 6px 0 4px;
+}
+.attacker-tile-line {
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  font-style: italic;
+}
+.attacker-tile-pin {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.attacker-tile.selected .attacker-tile-pin { opacity: 1; }
+
+/* ATTACKER ACCENT COLOURS — applied when selected */
+.attacker-tile[data-accent="red"].selected { border-color: var(--red); background: var(--red-soft); }
+.attacker-tile[data-accent="purple"].selected { border-color: var(--purple); background: var(--purple-soft); }
+.attacker-tile[data-accent="safety"].selected { border-color: var(--safety); background: var(--safety-soft); }
+.attacker-tile[data-accent="orange"].selected { border-color: var(--orange); background: var(--orange-soft); }
+.attacker-tile[data-accent="danger"].selected { border-color: var(--danger); background: var(--danger-soft); }
+.attacker-tile[data-accent="warn"].selected { border-color: var(--warn); background: var(--warn-soft); }
+.attacker-tile[data-accent="ink-soft"].selected { border-color: var(--ink-soft); background: var(--bg-subtle); }
+
+/* SELECTION STATUS BAR */
+.selection-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+.selection-count { font-family: var(--mono); color: var(--ink-soft); font-size: 12px; }
+.selection-count strong { color: var(--ink); }
+.selection-clear {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  padding: 5px 10px;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+.selection-clear:hover { color: var(--ink); border-color: var(--ink); }
+
+/* COMPARISON VIEW */
+.compare-section { margin-top: 40px; }
+.compare-empty {
+  background: var(--bg-card);
+  border: 1px dashed var(--line-strong);
+  border-radius: 10px;
+  padding: 48px 28px;
+  text-align: center;
+  color: var(--ink-faint);
+}
+.compare-empty-title {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+}
+.compare-empty-sub { font-size: 13px; color: var(--ink-faint); }
+
+.compare-grid {
+  display: grid;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.compare-grid.cols-1 { grid-template-columns: 200px 1fr; }
+.compare-grid.cols-2 { grid-template-columns: 200px 1fr 1fr; }
+.compare-grid.cols-3 { grid-template-columns: 200px 1fr 1fr 1fr; }
+
+.compare-cell {
+  padding: 16px 18px;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.compare-cell:last-child { border-right: none; }
+
+/* HEADER ROW */
+.compare-header {
+  background: var(--bg-subtle);
+  border-bottom: 1px solid var(--line-strong);
+}
+.compare-header.label-cell {
+  background: var(--bg-darker);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+.compare-header-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--bg-card);
+  border-radius: 6px;
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.compare-header-code {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+  margin-bottom: 4px;
+}
+.compare-header-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.3;
+  margin-bottom: 6px;
+}
+.compare-header-line {
+  font-size: 12px;
+  color: var(--ink-soft);
+  font-style: italic;
+  line-height: 1.4;
+}
+.compare-header-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--ink-faint);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition: all 0.15s;
+}
+.compare-header-remove:hover { background: var(--line); color: var(--ink); }
+.compare-header { position: relative; }
+
+/* Per-attacker accent on header background */
+.compare-header[data-accent="red"] { background: var(--red-soft); }
+.compare-header[data-accent="purple"] { background: var(--purple-soft); }
+.compare-header[data-accent="safety"] { background: var(--safety-soft); }
+.compare-header[data-accent="orange"] { background: var(--orange-soft); }
+.compare-header[data-accent="danger"] { background: var(--danger-soft); }
+.compare-header[data-accent="warn"] { background: var(--warn-soft); }
+.compare-header[data-accent="ink-soft"] { background: var(--bg-subtle); }
+
+/* DIMENSION LABEL CELL */
+.compare-label-cell {
+  background: var(--bg-darker);
+  font-family: var(--sans);
+  border-right: 1px solid var(--line-strong);
+}
+.compare-label-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.compare-label-sub {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+  line-height: 1.4;
+}
+
+/* DATA CELLS */
+.compare-data {
+  font-size: 13.5px;
+  color: var(--ink);
+  line-height: 1.6;
+}
+.compare-data strong { font-weight: 600; }
+
+/* INCIDENT CELL */
+.compare-incident-name {
+  font-family: var(--serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.compare-incident-detail {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+
+/* IMPLICATIONS */
+.impl-section {
+  margin-top: 40px;
+  padding-top: 40px;
+  border-top: 1px solid var(--line);
+}
+.impl-title {
+  font-family: var(--serif);
+  font-size: 28px;
+  line-height: 1.15;
+  font-weight: 400;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.impl-sub {
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin-bottom: 24px;
+  max-width: 760px;
+}
+
+.sector-selector {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.sector-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.sector-selector select {
+  background: var(--bg-card);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+  flex: 1;
+  min-width: 200px;
+  max-width: 360px;
+}
+.sector-desc {
+  font-size: 12px;
+  color: var(--ink-faint);
+  font-style: italic;
+  flex: 2;
+  min-width: 200px;
+}
+
+.impl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.impl-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  padding: 16px 18px;
+}
+.impl-card-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.impl-card-area {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.impl-card-text {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+
+.sector-note {
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  padding: 14px 18px;
+  margin: 16px 0;
+  font-size: 13px;
+  color: #1e3a8a;
+  line-height: 1.6;
+}
+.sector-note-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* EXPORT SECTION */
+.export-section {
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 1px solid var(--line);
+}
+.export-title {
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+.export-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+.export-tile {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 20px;
+}
+.export-tile-icon {
+  font-family: var(--mono);
+  font-size: 20px;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+}
+.export-tile-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.export-tile-desc {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  padding: 8px 14px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: all 0.15s;
+}
+.btn-secondary:hover { border-color: var(--ink); background: var(--ink); color: var(--bg-card); }
+
+/* FOOTER REFS */
+.refs {
+  margin-top: 36px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+/* PRINT */
+@media print {
+  .topnav, .picker-section, .selection-bar, .export-section { display: none !important; }
+  body { background: white; font-size: 10pt; }
+  .page { padding: 0; max-width: none; }
+  .compare-cell { break-inside: avoid; page-break-inside: avoid; }
+}
+
+@media (max-width: 900px) {
+  .hero-title { font-size: 40px; }
+  .compare-grid.cols-3 { grid-template-columns: 140px 1fr; }
+  .compare-grid.cols-2 { grid-template-columns: 140px 1fr; }
+  .compare-grid.cols-1 { grid-template-columns: 140px 1fr; }
+  .compare-grid > div:nth-child(3),
+  .compare-grid > div:nth-child(4) { display: none; }
+  /* When responsive, we'll fall back to a per-attacker stacked view via JS */
+}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-inner">
+    <a href="https://danhowett.github.io/useful/" class="topnav-brand">
+      <span class="topnav-brand-mark">DH</span>
+      <span>Dan Howett</span>
+      <span class="topnav-brand-sep">/</span>
+      <span class="topnav-brand-section">Adversary Mindsets</span>
+    </a>
+    <div class="topnav-actions">
+      <a href="https://danhowett.github.io/useful/threat-actor-profiles.html">THREAT ACTORS</a>
+      <a href="https://danhowett.github.io/useful/">ALL TOOLS</a>
+    </div>
+  </div>
+</nav>
+
+<main class="page">
+
+  <header class="hero">
+    <div class="hero-eyebrow">Adversary Mindsets · Comparative reference</div>
+    <h1 class="hero-title">Think like <em>which adversary</em>?</h1>
+    <p class="hero-lede">
+      "Think like an attacker" is bad advice without specificity. A financially motivated criminal, a nation-state
+      espionage operator, and a hacktivist do not think the same way, want the same things, or respond to the same
+      defences. Pick up to three adversary types, compare them side by side, and surface the defensive implications
+      for the combination you face. <strong>The skill is not memorising techniques — it is matching disposition to threat.</strong>
+    </p>
+    <div class="hero-meta">
+      <span><strong>7</strong> attacker types</span>
+      <span><strong>8</strong> comparison dimensions</span>
+      <span><strong>Up to 3</strong> side by side</span>
+      <span><strong>JSON · MD · Print</strong> exports</span>
+    </div>
+  </header>
+
+  <div class="disclaimer">
+    <span class="disclaimer-mark">!</span>
+    <div class="disclaimer-body">
+      <strong>Orientation, not threat modelling.</strong> This is a thinking aid for understanding how different
+      adversary classes approach defenders — not a substitute for organisation-specific threat assessment, intelligence
+      analysis, or risk management. The implications shown are generic patterns calibrated to attacker class, not
+      to your specific environment. <strong>You should not rely on this tool's output</strong> as the basis for
+      defensive investment decisions without independent verification by qualified personnel. The author accepts
+      no liability whatsoever for any loss, damage, or consequence arising from use of, or reliance on, this tool
+      or its outputs. Use entirely at your own risk.
+    </div>
+  </div>
+
+  <!-- MINDSET PRIMER -->
+  <section class="primer">
+    <div class="primer-eyebrow">Primer · Before you pick</div>
+    <h2 class="primer-title">What "adversary mindset" actually means</h2>
+    <div class="primer-intro">
+      <p>The phrase gets used loosely. The real skill underneath it is a <strong>disposition</strong> — not a list of
+      techniques. Defenders inventory what they have; attackers ask what would let them succeed and find the cheapest
+      path to it. The three habits that distinguish the disposition are below. Useful framing for any of the seven
+      types you'll find further down.</p>
+    </div>
+    <div class="primer-grid">
+      <div class="primer-block">
+        <h4>01 Backwards from objectives</h4>
+        <p>Attackers don't start from tools. They start from the outcome they need — money, intelligence, disruption,
+        embarrassment — and work backwards to the cheapest path that produces it. Defensive thinking that starts from
+        a control inventory misses paths attackers see immediately.</p>
+      </div>
+      <div class="primer-block">
+        <h4>02 Cost calculus over capability</h4>
+        <p>Most attackers will not use a sophisticated capability when a cheap one works. Defenders consistently
+        overestimate the sophistication required to beat them. Looking for advanced TTPs while missing the off-the-shelf
+        RMM tool is the canonical failure.</p>
+      </div>
+      <div class="primer-block">
+        <h4>03 Comfort with partial knowledge</h4>
+        <p>Attackers move with what they have. They don't wait for certainty. Defenders demand a complete picture
+        before acting — a luxury attackers exploit. The asymmetry favours whoever tolerates ambiguity better; that
+        is rarely the defender.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ATTACKER PICKER -->
+  <section class="picker-section">
+    <h2 class="picker-title">Pick the adversaries to compare</h2>
+    <p class="picker-sub">
+      Click up to three. Click again to remove. The comparison and defensive implications update as you go.
+    </p>
+    <div class="attacker-grid" id="attackerGrid"></div>
+  </section>
+
+  <!-- SELECTION STATUS -->
+  <div class="selection-bar" id="selectionBar" style="display:none;">
+    <span class="selection-count" id="selectionCount"></span>
+    <button class="selection-clear" onclick="clearSelection()">Clear all</button>
+  </div>
+
+  <!-- COMPARISON VIEW -->
+  <section class="compare-section" id="compareSection"></section>
+
+  <!-- IMPLICATIONS -->
+  <section class="impl-section" id="implSection" style="display:none;">
+    <h2 class="impl-title">What this means for your defence</h2>
+    <p class="impl-sub">
+      Defensive areas that disproportionately help against the attacker types you've selected. Add a sector overlay
+      for additional context calibrated to your regulatory and threat environment.
+    </p>
+
+    <div class="sector-selector">
+      <span class="sector-label">Sector overlay</span>
+      <select id="sectorSelect"></select>
+      <span class="sector-desc" id="sectorDesc"></span>
+    </div>
+
+    <div id="sectorNote"></div>
+
+    <div class="impl-grid" id="implGrid"></div>
+  </section>
+
+  <!-- EXPORT -->
+  <section class="export-section" id="exportSection" style="display:none;">
+    <h2 class="export-title">Export the comparison</h2>
+    <div class="export-grid">
+      <div class="export-tile">
+        <div class="export-tile-icon">⎔</div>
+        <div class="export-tile-title">JSON</div>
+        <div class="export-tile-desc">Schema <code>dh-adversary-mindsets</code> v1. Includes selected attacker types, sector, dimensions, and implications.</div>
+        <button class="btn-secondary" onclick="exportJSON()">Download JSON</button>
+      </div>
+      <div class="export-tile">
+        <div class="export-tile-icon">≡</div>
+        <div class="export-tile-title">Markdown</div>
+        <div class="export-tile-desc">Comparison brief in Markdown. Suitable for sharing in chat, documentation, or briefing material.</div>
+        <button class="btn-secondary" onclick="exportMarkdown()">Download Markdown</button>
+      </div>
+      <div class="export-tile">
+        <div class="export-tile-icon">▤</div>
+        <div class="export-tile-title">Printable view</div>
+        <div class="export-tile-desc">A4 portrait, no UI chrome. Print as PDF from your browser print dialogue.</div>
+        <button class="btn-secondary" onclick="window.print()">Open print view</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="refs">
+    Aligned with MITRE ATT&amp;CK, CISA, NCSC, and standard threat intelligence frameworks · Not a replacement for organisation-specific threat modelling
+  </div>
+
+</main>
+
+<script>
+// === ATTACKER TYPES ===
+// Each type has: code, name, oneLiner, what they want, how they think,
+// tradecraft signature, tools/infra, early signal, defender blind spot,
+// what works against them, illustrative incident, attribute profile for composer
+
+const ATTACKER_TYPES = [
+  {
+    code: 'T1',
+    name: 'Financially Motivated Criminal',
+    short: 'Financial',
+    oneLiner: 'Cost-driven, pragmatic, runs the attack like a business — because it is one.',
+    accent: 'red',
+    icon: '£',
+
+    objectives: 'Money. Direct theft via fraud, business email compromise, invoice redirection. Extortion via ransomware and data theft. Reselling access. Reselling data. They don\'t care about the target specifically — they care about the conversion rate.',
+
+    howTheyThink: 'Strict cost calculus. They will not invest more effort than the expected payout justifies. If your environment costs them more than the next target on the list, they move on. They are patient enough to wait for a payment to land but impatient about anything that doesn\'t move them toward conversion. They tolerate noisy operations because attribution rarely catches them.',
+
+    tradecraft: 'Initial access via phishing, valid credentials bought from infostealer markets, or exposed remote services (RDP, VPN with weak MFA). Heavy use of legitimate admin tools (PsExec, RDP, RMM products like AnyDesk and ScreenConnect) — living off the land for cost reasons, not stealth. Affiliate model: initial access brokers sell to ransomware operators who sell to specialists. Dwell times measured in days to a few weeks, not months.',
+
+    tools: 'Off-the-shelf C2 (Cobalt Strike, Sliver, Brute Ratel — often cracked versions). Commodity loaders and stealers (RedLine, Vidar, Lumma). RMM tools repurposed for persistence and C2. Ransomware-as-a-service kits (LockBit, ALPHV/BlackCat, RansomHub, Akira). Common tools because they\'re cheap, not because they\'re sophisticated.',
+
+    earlySignal: 'Successful sign-in from an unusual location to a previously normal account — particularly to mailbox, then mailbox forwarding rules or OAuth grants. RMM tool installation on an endpoint that didn\'t previously have it. Coinminer alerts (often the first indicator of compromise — the same access is being monetised passively while the bigger play sets up). Mass file modification events as encryption begins.',
+
+    blindSpot: 'Defenders assume sophistication. Financial actors win by being cheap, fast, and high-volume — not by being clever. Defenders look for advanced TTPs and miss the off-the-shelf RMM tool that\'s been there for two weeks. The other blind spot: identity-side compromise that EDR doesn\'t catch because nothing got run on an endpoint. BEC and OAuth abuse leave no malware trail.',
+
+    whatWorks: 'Phishing-resistant MFA on every privileged account. Conditional access policies that block legacy auth and impossible-travel. Egress controls and outbound C2 detection (cheap C2 tends to have public IOCs). RMM tool inventory and detection of unauthorised installations. Immutable, tested backups — the single biggest determinant of whether a ransomware event ends with a ransom payment or a recovery. Restrict OAuth consent. Mail-flow rule monitoring.',
+
+    incident: {
+      name: 'Colonial Pipeline (2021)',
+      detail: 'DarkSide ransomware affiliate accessed the Colonial Pipeline IT environment via a legacy VPN account with valid credentials and no MFA. The credential was purchased or obtained from a stealer log. The company shut down pipeline operations themselves out of caution and because billing systems were unavailable. A $4.4M ransom was paid (most of it later recovered). The story isn\'t the sophistication of the attack — there wasn\'t much. It\'s how cheap the path was.'
+    },
+
+    attributes: { motivation: 'money', sophistication: 'low-mid', patience: 'low-mid', riskTolerance: 'high', noise: 'high' }
+  },
+
+  {
+    code: 'T2',
+    name: 'Nation-State — Espionage',
+    short: 'Nation-State Espionage',
+    oneLiner: 'Patient, well-resourced, attribution-aware — wants to be there indefinitely.',
+    accent: 'purple',
+    icon: '◈',
+
+    objectives: 'Intellectual property, government and diplomatic information, advance knowledge of policy moves, foreign technology, source code for strategic platforms. Sometimes persistent access for future use rather than immediate exfiltration. The goal is rarely a single take — it\'s long-term collection.',
+
+    howTheyThink: 'Different cost calculus from criminals — payback measured in policy or strategic outcomes, not currency. Very long time horizons. Willing to spend months on reconnaissance, weeks to develop a custom implant, and accept that the operation may produce nothing for a year. Highly attribution-aware: tradecraft is designed to be deniable, infrastructure is laundered through commercial services, custom tooling avoids forensic signatures of state ownership.',
+
+    tradecraft: 'Bespoke initial access — supply chain compromise (SolarWinds), zero-day exploitation against perimeter devices (Volt Typhoon\'s perimeter targets, MOVEit), or carefully crafted spear phishing against named individuals. Heavy investment in living off the land because forensic signatures matter. Long dwell times — months to years. Persistence designed to survive reboots, password rotations, and even partial detection. Custom backdoors that look like legitimate system components.',
+
+    tools: 'Custom backdoors developed in-house. Modified open-source frameworks. Living-off-the-land binaries (LOLBins) used in patterns that avoid signature detection. Compromised commercial infrastructure (cloud, CDNs, certificate authorities) for C2 staging. Bespoke implants tailored to the target environment. The kit is often technically excellent — but the discipline is what makes it dangerous.',
+
+    earlySignal: 'Anomalous authentication patterns at the identity layer — federation abuse, unusual service principal activity, certificate issuance anomalies. Outbound traffic to commercial infrastructure (legitimate cloud services, CDNs) that turns out to be staging. Configuration changes to perimeter devices. Often discovered only after an external party (NCSC, vendor, ally) provides the indicator — internal detection of espionage actors is rare.',
+
+    blindSpot: 'Defenders look for the loud noise of criminal attacks and don\'t tune for low-and-slow. The signal is in the absence of pattern, not the presence of one. Detection logic designed for ransomware misses espionage because espionage doesn\'t encrypt anything, doesn\'t demand anything, and doesn\'t want to be found. The other blind spot: identity-layer attacks on cloud and federated systems that don\'t touch endpoints — espionage actors in 2024-2026 increasingly live in the identity plane.',
+
+    whatWorks: 'Identity-side detection: anomalous OAuth grants, service principal abuse, federation trust changes, unusual cross-tenant access. Egress monitoring focused on data volume anomalies, not just C2 indicators. Robust perimeter device hygiene — these are increasingly the initial access vector. Threat intel integration with NCSC, CISA, and vendor advisories — these actors are often only detected because someone else found them first. Tier 0 isolation: protect AD, Entra Global Admin, certificate authorities as if your operational survival depends on them.',
+
+    incident: {
+      name: 'SolarWinds / SUNBURST (2020)',
+      detail: 'APT29 (Cozy Bear, SVR) compromised the SolarWinds build environment and inserted a backdoor into legitimate Orion software updates. Approximately 18,000 organisations downloaded the trojanised update; a much smaller number — selected for strategic value — received follow-on second-stage tooling. Dwell time measured in months before detection by FireEye finding the attackers in their own environment. The story illustrates patience, supply chain leverage, and the bespoke selection of follow-on targets.'
+    },
+
+    attributes: { motivation: 'strategic-info', sophistication: 'high', patience: 'high', riskTolerance: 'low', noise: 'low' }
+  },
+
+  {
+    code: 'T3',
+    name: 'Nation-State — Disruption / Sabotage',
+    short: 'Nation-State Disruption',
+    oneLiner: 'Different mission from espionage — pre-position, then break things on command.',
+    accent: 'safety',
+    icon: '⚡',
+
+    objectives: 'Disruption of critical national infrastructure, sabotage of physical processes, demonstrations of capability, deniable retaliation, and pre-positioning for crisis. They often want to be discovered eventually — the message only lands if the target knows. But they want to choose the timing.',
+
+    howTheyThink: 'Different from espionage despite frequent overlap. Espionage wants to stay; disruption wants to be ready to act. The cost calculus accepts attribution if the strategic outcome justifies it. Risk tolerance is calibrated to the geopolitical moment — willing to be loud during conflict, quiet during peace. Pre-positioning in CNI is a long-term investment that may be activated only in extremis.',
+
+    tradecraft: 'Initial access by similar routes to espionage (perimeter exploitation, supply chain, spear phishing) but with different post-access objectives. Reconnaissance focused on industrial control systems, safety systems, operational technology. Custom tooling for OT environments (Triton/Trisis, CrashOverride, Pipedream/Incontroller). Pre-positioning in OT may sit dormant for years. When activated, often loud — the disruption is the point.',
+
+    tools: 'OT-specific frameworks: Triton (Schneider Triconex SIS), CrashOverride/Industroyer (electricity grid), Pipedream/Incontroller (multi-vendor PLC framework). Custom wipers (NotPetya, HermeticWiper, WhisperGate). Living-off-the-land in OT environments where bespoke tools would be obvious. Hardware reconnaissance of the specific control systems present at a site — these actors do their homework on what equipment is actually deployed.',
+
+    earlySignal: 'Reconnaissance traffic to OT or OT-adjacent networks from unusual sources. Unfamiliar protocols on OT segments. Engineering workstation logon anomalies — particularly unusual access to project files. Unusual certificate activity for OT vendor signing certificates. Discovery often comes from anomalies in safety system behaviour or unexplained configuration changes on controllers — by which point pre-positioning may be advanced.',
+
+    blindSpot: 'Most defenders model "ransomware in OT" rather than "deliberate sabotage of OT." The two need different controls. Defenders also underestimate the time horizon — pre-positioning that\'s been dormant for two years is still active, still adversarial, and harder to detect than a current operation. The biggest blind spot: assuming the IT/OT boundary is real. It almost never is, in practice.',
+
+    whatWorks: 'Hard separation between IT and OT environments — real network segmentation, not just diagrams of it. Strict control of OT vendor remote access; assume compromise of vendor jump hosts as a baseline. Monitoring of OT-side configuration changes, especially to safety systems. Engineering workstation hardening — these are the high-value pivot point. Air-gapped or one-way data flows where the safety case warrants. Practised IR procedures for OT-specific scenarios; treat as safety event, not cyber event.',
+
+    incident: {
+      name: 'Triton / Trisis (2017)',
+      detail: 'Unknown actors (later attributed by FireEye and others to a Russian government research institute) targeted a Saudi petrochemical plant. They reached Schneider Triconex Safety Instrumented System controllers and attempted to modify their logic — work that could have disabled the safety systems protecting the plant from physical disaster. They were detected when the SIS tripped to safe state due to an apparent coding error in their tooling. The story is the canonical case for why disruption attackers deserve a separate threat model and why OT safety systems are a category of their own.'
+    },
+
+    attributes: { motivation: 'disruption', sophistication: 'high', patience: 'very-high', riskTolerance: 'low-mid', noise: 'low-then-high' }
+  },
+
+  {
+    code: 'T4',
+    name: 'Hacktivist',
+    short: 'Hacktivist',
+    oneLiner: 'Ideologically motivated, often noisy, often more capable than defenders assume.',
+    accent: 'orange',
+    icon: '✊',
+
+    objectives: 'Visibility for a cause. Embarrassment of a target. Data leaks that prove a point. Defacement, denial of service, social media takeover. The outcome is usually measured in attention, not access — the attack is in service of the message. Some groups (Anonymous, Killnet, Cyber Av3ngers) have evolved hybrid models that blur into nation-state-aligned activity.',
+
+    howTheyThink: 'Risk tolerance is high — attribution to a movement is sometimes the point. Skill levels vary enormously, from script kiddies to former intelligence operators. Mass-mobilisation models (DDoS as a service for activists) make low-skill operators dangerous in aggregate. They will pick targets opportunistically — a target that\'s been in the news this week is more attractive than a strategic one.',
+
+    tradecraft: 'DDoS as the dominant tactic — easy, visible, low-skill. Defacement via exploitation of known web vulnerabilities. Data leak operations often via initial access from infostealer logs or weak credentials. Increasingly, claims of compromise turn out to be re-marketed previously-leaked data — verification matters. Social media account takeover for visible impact. Coordinated activity around news cycles.',
+
+    tools: 'Booter and stresser services for DDoS. Off-the-shelf exploit kits. Stealer logs purchased or shared in communities. Common open-source web exploitation tools. Often loud, often noisy, often obvious — but volume and timing can compensate. Some groups have surprisingly sophisticated subgroups using leaked nation-state tools.',
+
+    earlySignal: 'Spike in failed authentication or scan traffic in the hours preceding an attack — hacktivists often telegraph operations on social media or forums. Increase in DDoS reconnaissance (low-volume probing of perimeter capacity). Mentions on hacktivist channels of the target organisation or its sector. For defacement: web application probing focused on known CVE patterns.',
+
+    blindSpot: 'Two opposite blind spots, depending on the defender. Some defenders dismiss hacktivists as unsophisticated; some over-react and treat every DDoS claim as an APT. The truth is in between — most hacktivist activity is noisy and limited, but the noise creates cover for more capable operators piggybacking on it. Also: defenders often miss the data-leak playbook because their controls focus on intrusion, not exfiltration via compromised contractors or third-party platforms.',
+
+    whatWorks: 'DDoS protection as a baseline (cloud-based scrubbing, CDN-fronted services). Public-facing application security — both routine patching and a meaningful WAF posture. Monitoring of hacktivist channels via threat intel for early warning. Drill the social-media takeover scenario — it\'s an easy win that creates outsized reputational damage. For data-leak risks, supply chain and contractor security matters more than perimeter — the data often leaks from a third party.',
+
+    incident: {
+      name: 'Cyber Av3ngers / Aliquippa Water (2023-2024)',
+      detail: 'Iran-linked hacktivist group Cyber Av3ngers compromised Unitronics PLCs at the Municipal Water Authority of Aliquippa, Pennsylvania and other US water utilities. The PLCs had default credentials and were exposed to the internet. The group displayed an anti-Israel message on the HMI and the attack was loud, public, and quickly attributed. Operationally limited — water supply wasn\'t disrupted — but politically significant. Illustrates the modern hacktivist-into-CNI playbook: low technical bar to entry, high visibility, geopolitical messaging.'
+    },
+
+    attributes: { motivation: 'ideology', sophistication: 'variable', patience: 'low', riskTolerance: 'high', noise: 'high' }
+  },
+
+  {
+    code: 'T5',
+    name: 'Malicious Insider',
+    short: 'Malicious Insider',
+    oneLiner: 'Already has access. Knows what matters. Knows what you\'re watching.',
+    accent: 'danger',
+    icon: '◐',
+
+    objectives: 'Money (selling data to competitors, foreign intelligence services, ransomware operators). Revenge for perceived mistreatment. Ideology (whistleblowing-adjacent activity that an organisation views as compromise). Self-interest at a new employer. Coercion by an outside party. The motive matters because it shapes the data they target — financial actors take what sells; ideologues take what damages.',
+
+    howTheyThink: 'Different from external attackers in one critical way: they already have a legitimate baseline. They know what counts as normal in their role and they tune their actions to stay inside it. They know which controls are watched and which aren\'t — and they\'re often there because of a control gap they\'ve been observing for months. Cost calculus is shaped by the value of the target and the consequences of being caught, including criminal liability.',
+
+    tradecraft: 'Use of legitimate access. Volume of data access scaled to look like normal work patterns. Exfiltration via sanctioned channels (corporate email to personal email, sanctioned cloud apps misused, USB if not blocked, print). Often a "last 30-90 days" pattern in leavers — accumulating data they\'ll take with them. Some malicious insiders work alone; others act in collusion with an external buyer who specifies what to take.',
+
+    tools: 'Native to the environment. Their corporate laptop, their normal applications, their authorised access. Sometimes a personal USB or cloud sync account. Rarely any malware — that would create evidence. The tradecraft is in the patterns: accessing files outside their normal scope, scheduling access during quiet periods, using approved channels in subtly anomalous ways.',
+
+    earlySignal: 'Behavioural rather than technical. Unusual volumes of access to sensitive data from an account that previously didn\'t touch it. Access to files outside the user\'s project scope. Mass downloads (any quantity that\'s unusual for the role). Use of cloud storage accounts that aren\'t normally used. Last 30-90 days of a leaving employee is a known high-risk window. HR signals: grievance, disciplinary, public conflict, sudden personal financial pressure.',
+
+    blindSpot: 'Defenders run EDR, SIEM, DLP tuned for external threats. Insiders are inside those tools, often appearing as the noise. DLP false-positive rates mean genuine insider events get buried. The single biggest blind spot: tight coupling between HR/people-management and security monitoring. Defenders rarely have a way to know that a high-privilege user is in dispute with their manager, has been served notice, or is in financial distress — all of which raise insider risk substantially.',
+
+    whatWorks: 'User behaviour analytics tuned for departure-window risk and access-pattern anomalies, not just policy violations. Joiners-movers-leavers process with explicit security gates — access removal on day of departure, exit interviews that check what data has been accessed in the final period. Data classification and DLP that\'s actually enforced (most isn\'t). Separation of duties for the actions that most enable damage (financial transactions, data export, repository access). Insider risk programme co-owned with HR and Legal — security teams cannot run this alone.',
+
+    incident: {
+      name: 'Edward Snowden / NSA (2013)',
+      detail: 'A systems administrator at an NSA contractor used his legitimate elevated access to copy classified documents — reportedly tens of thousands of files — and disclose them through journalists. He used sanctioned tools and his own credentials. There was no malware, no zero-day, no clever exploit. The story is canonical because it illustrates what insiders do well: legitimate access used at scale, with patience and patterning. Whatever your view of the disclosure ethics, the operational lesson is unchanged.'
+    },
+
+    attributes: { motivation: 'mixed', sophistication: 'low-mid', patience: 'mid', riskTolerance: 'mid', noise: 'low' }
+  },
+
+  {
+    code: 'T6',
+    name: 'Negligent Insider',
+    short: 'Negligent Insider',
+    oneLiner: 'No adversarial intent. Adversarial in effect. Defenders should treat it as a threat anyway.',
+    accent: 'warn',
+    icon: '◯',
+
+    objectives: 'None — they\'re not attacking you. But the outcomes look identical to a malicious insider or an external compromise: data exposed, credentials reused, sensitive systems misconfigured, malware introduced, social engineering completed. The objective is the user\'s own (convenience, getting work done, helping a colleague, being polite to a caller). The effect on the defender is the same as adversarial activity.',
+
+    howTheyThink: 'They\'re not thinking like an attacker because they\'re not one. They\'re thinking like a person trying to do their job with the constraints they have. Security controls feel like friction; workarounds feel like sensible engineering. They will store credentials in spreadsheets, share access via shared logins, copy data to personal cloud "to work on at home," forward sensitive emails "for context," and click links they shouldn\'t — because doing the secure thing was harder than doing the wrong thing.',
+
+    tradecraft: 'Not adversarial — but the patterns matter to defenders. Credential reuse across personal and corporate. Saving data in unsanctioned locations. Connecting personal devices to corporate environments. Clicking on phishing that targets their genuine motivations (an HR email, a logistics update, a customer query). Sharing accounts within a team because that\'s how the team has always worked. Configuration mistakes (S3 buckets, Entra app registrations, firewall rules) that look like attacks once exploited.',
+
+    tools: 'Whatever\'s easiest. Personal email. WhatsApp. Personal cloud storage. Their own USB. Their colleague\'s logged-in laptop. The shared "Team Admin" account that everyone uses.',
+
+    earlySignal: 'For the negligent insider as a threat category, the signals look like security-policy violations rather than attacks. Bulk email forwarding to personal accounts. New unsanctioned SaaS in corporate traffic. Default credentials left in place. Misconfigurations surfaced by security tooling. Phishing simulation click-throughs concentrated in specific teams or roles.',
+
+    blindSpot: 'Defenders treat negligent insiders as a training problem, not a controls problem. Awareness campaigns help at the margin but they don\'t change the underlying truth that people will optimise for their own job, not for security. The fix is making the secure path the easiest path — password managers, sanctioned file sharing, single sign-on, conditional access — rather than expecting people to remember security rules under time pressure.',
+
+    whatWorks: 'Reduce the surface area for negligence rather than train against it. Password managers as standard. Sanctioned file sharing with sensible defaults. SSO everywhere. Conditional access that enforces rules without user choice. MFA that\'s phishing-resistant so a fooled user can\'t hand over the codes. Configuration management with safe defaults. Anti-phishing technology that catches what users will inevitably click. Honest about the limits: you cannot train your way out of human nature. Engineering helps; expectation does not.',
+
+    incident: {
+      name: 'Capital One (2019)',
+      detail: 'A former AWS employee exploited a misconfigured firewall in a Capital One AWS environment to access data on roughly 100 million customers. The misconfiguration was operational — someone configured a web application firewall incorrectly. The defender wasn\'t adversarial; the gap was. The story matters because the breach was preventable by configuration management, not by training the person who misconfigured the WAF. Negligence as a category requires engineering controls, not awareness modules.'
+    },
+
+    attributes: { motivation: 'none', sophistication: 'n/a', patience: 'n/a', riskTolerance: 'n/a', noise: 'mid' }
+  },
+
+  {
+    code: 'T7',
+    name: 'Opportunist / Commodity',
+    short: 'Opportunist',
+    oneLiner: 'Mass-scans the internet. Will compromise anything cheap. Probably already in someone.',
+    accent: 'ink-soft',
+    icon: '⋯',
+
+    objectives: 'Whatever the access is worth. Often access itself is the product — resold to ransomware operators, espionage actors, or whoever pays. Sometimes cryptomining on the compromised host. Sometimes use as a proxy or staging point for other operations. The targeting isn\'t personal; it\'s statistical. Anyone vulnerable is fair game.',
+
+    howTheyThink: 'They don\'t think about you specifically. They think about throughput. They run mass scans, mass exploit attempts, and harvest whatever falls out. The cost calculus is extreme — if their automation costs less than 1p per compromised host, they win at any conversion rate. Patience is zero on individual targets but infinite at the portfolio level. They\'re running a numbers business.',
+
+    tradecraft: 'Internet-wide scanning for newly-disclosed CVEs, often within hours of public PoC release. Exploitation of weak credentials at scale (SSH brute force, RDP password spraying, leaked credentials from breaches). Botnets for distributed attacks. Loaders that deploy whatever the operator has been paid to deploy that week. Initial access brokers (IABs) — the commodity attacker who sells the access to a more targeted operator. Many compromises start here even if they end as nation-state operations.',
+
+    tools: 'Internet scanners (Shodan, Censys for reconnaissance; custom for exploitation). Mirai-derivative botnets. Public exploit PoCs the day they\'re released. Credential-stuffing tooling against any service with logins. Commodity loaders (SmokeLoader, GuLoader, others). Sale platforms (initial access markets, log marketplaces) that turn opportunistic access into commercial product.',
+
+    earlySignal: 'Failed authentication storms from distributed sources. Successful authentication from a previously-unseen geography or ASN. Web application exploitation attempts within hours of a major CVE drop. Cryptominer alerts (often the first sign of opportunistic compromise being passively monetised). Anomalous outbound to known IAB infrastructure. Reports from external sources (vendors, scanning services) that your perimeter is showing exploitable conditions.',
+
+    blindSpot: 'Defenders think of opportunistic compromise as low-stakes. It often isn\'t — opportunistic access is the seed for targeted operations downstream. The IAB market means today\'s mass-scan exploit can be tomorrow\'s nation-state foothold. The other blind spot: time-to-patch for internet-facing services. Most opportunistic exploitation happens in the window between a CVE being public and the average organisation having patched it. That window is often measured in days for the attacker and weeks for the defender.',
+
+    whatWorks: 'Aggressively short time-to-patch on internet-facing services. Continuous external attack surface monitoring — you should know what\'s exposed before the attackers do. MFA on every internet-facing authentication endpoint, including the ones that "don\'t matter." Hardening of default configurations — most opportunistic exploitation depends on default or weak credentials. Egress controls and outbound C2 detection. Assume opportunistic compromise as a baseline; design controls so that compromise of one host doesn\'t compromise the estate.',
+
+    incident: {
+      name: 'MOVEit Mass Exploitation (2023)',
+      detail: 'The Cl0p ransomware group exploited a zero-day in Progress MOVEit Transfer (CVE-2023-34362) at internet scale, compromising hundreds of organisations within weeks of the vulnerability becoming exploitable. Many victims learned of the compromise from Cl0p\'s public extortion site, not from internal detection. The story illustrates how opportunism at scale produces strategic impact — Cl0p didn\'t target specific organisations; they targeted everyone running MOVEit. The defender lesson: internet-facing software is a category of risk on its own, regardless of vendor reputation.'
+    },
+
+    attributes: { motivation: 'access-as-product', sophistication: 'low-mid', patience: 'low', riskTolerance: 'high', noise: 'high' }
+  }
+];
+
+// === DIMENSIONS ===
+// The eight rows of the comparison view, in display order
+const DIMENSIONS = [
+  { key: 'objectives', label: 'What they want', sub: 'Real objectives in plain English' },
+  { key: 'howTheyThink', label: 'How they think', sub: 'Cost calculus, patience, risk tolerance' },
+  { key: 'tradecraft', label: 'Tradecraft signature', sub: 'The shape of their operations' },
+  { key: 'tools', label: 'Tools &amp; infrastructure', sub: 'What you\'ll see in evidence' },
+  { key: 'earlySignal', label: 'Early signal', sub: 'What defenders see first, if they\'re looking' },
+  { key: 'blindSpot', label: 'Defender blind spot', sub: 'What this attacker class exploits in our thinking' },
+  { key: 'whatWorks', label: 'What works against them', sub: 'Disproportionately useful controls' },
+  { key: 'incident', label: 'Illustrative incident', sub: 'A canonical case study', special: 'incident' }
+];
+
+// === IMPLICATIONS ===
+// Generated based on attacker types selected
+// Surfaces controls that disproportionately help against the combination chosen
+const IMPLICATION_TEMPLATES = {
+  T1: [
+    { area: 'Identity', text: 'Phishing-resistant MFA on every privileged account; conditional access policies that block legacy auth.' },
+    { area: 'Endpoint', text: 'EDR with isolation capability and active monitoring for RMM tool installations.' },
+    { area: 'Backup', text: 'Immutable, tested backups. This single control determines whether a ransomware event ends with recovery or ransom.' },
+    { area: 'Mail', text: 'OAuth consent restrictions, mailbox rule monitoring, advanced anti-phishing.' }
+  ],
+  T2: [
+    { area: 'Identity', text: 'Tier 0 isolation (AD, Entra Global Admin, certificate authorities). Service principal and OAuth grant monitoring.' },
+    { area: 'Perimeter', text: 'Aggressive patching of perimeter devices. Threat intel integration with NCSC/CISA advisories.' },
+    { area: 'Egress', text: 'Egress monitoring focused on data volume anomalies and unusual destinations, not just known-bad C2.' },
+    { area: 'Supply chain', text: 'Software supply chain review for high-trust dependencies; bill of materials for critical platforms.' }
+  ],
+  T3: [
+    { area: 'IT/OT separation', text: 'Real network segmentation between IT and OT — verified, not assumed.' },
+    { area: 'OT remote access', text: 'Strict control of vendor remote access; jump hosts, session recording, time-bound access.' },
+    { area: 'OT monitoring', text: 'Detection of configuration changes to safety systems and engineering workstations.' },
+    { area: 'OT IR', text: 'Practised OT-specific incident response procedures; treat as safety event, not cyber event.' }
+  ],
+  T4: [
+    { area: 'DDoS', text: 'DDoS protection as a baseline (cloud-based scrubbing, CDN-fronted services).' },
+    { area: 'Public web', text: 'Aggressive WAF posture and patching on all internet-facing applications.' },
+    { area: 'Threat intel', text: 'Monitor hacktivist channels for early warning of operations targeting your sector.' },
+    { area: 'Social media', text: 'MFA and named account control for corporate social media; drill the takeover scenario.' }
+  ],
+  T5: [
+    { area: 'UEBA', text: 'User behaviour analytics tuned for departure-window risk and access-pattern anomalies.' },
+    { area: 'JML process', text: 'Joiners-movers-leavers with explicit security gates; access removal on day of departure.' },
+    { area: 'Data', text: 'Classification and DLP that\'s actually enforced; meaningful labelling on sensitive data.' },
+    { area: 'Programme', text: 'Insider risk programme co-owned with HR and Legal; security teams cannot run this alone.' }
+  ],
+  T6: [
+    { area: 'Engineering', text: 'Make the secure path the easiest path — SSO, password managers, sanctioned file sharing.' },
+    { area: 'Configuration', text: 'Configuration management with safe defaults; continuous configuration assessment.' },
+    { area: 'Anti-phishing', text: 'Technical anti-phishing that catches what users will inevitably click.' },
+    { area: 'Limits', text: 'Accept that training has limits; engineer for human reality, not for compliance.' }
+  ],
+  T7: [
+    { area: 'Patching', text: 'Aggressively short time-to-patch on internet-facing services — measured in days, not weeks.' },
+    { area: 'EASM', text: 'Continuous external attack surface monitoring; know what\'s exposed before attackers do.' },
+    { area: 'MFA', text: 'MFA on every internet-facing authentication endpoint, including the ones that "don\'t matter".' },
+    { area: 'Hardening', text: 'Eliminate default credentials and weak configurations on exposed services.' }
+  ]
+};
+
+// === SECTOR OVERLAY ===
+const SECTORS = [
+  { code: 'none', name: 'No sector overlay', desc: 'Generic implications only' },
+  { code: 'finsvc', name: 'Financial services', desc: 'Financial actors top of list; regulatory pressure from FCA/PRA/DORA' },
+  { code: 'cni-energy', name: 'CNI — Energy', desc: 'Nation-state disruption and espionage prominent; NIS / CAF / Ofgem' },
+  { code: 'cni-water', name: 'CNI — Water', desc: 'Hacktivist activity rising (Cyber Av3ngers pattern); CAF / Ofwat' },
+  { code: 'cni-transport', name: 'CNI — Transport', desc: 'Mixed threat profile; nation-state and ransomware both significant' },
+  { code: 'health', name: 'Health / NHS', desc: 'Financial actors target patient data and operational disruption; DSPT' },
+  { code: 'public', name: 'Public sector', desc: 'Nation-state and hacktivist; political alignment drives targeting' },
+  { code: 'manufacturing', name: 'Manufacturing', desc: 'IP-focused espionage; OT disruption risk; ransomware common' },
+  { code: 'retail', name: 'Retail / e-commerce', desc: 'Financial actors and opportunists dominant; PCI DSS' },
+  { code: 'other', name: 'Other / general', desc: 'Mixed; calibrate to your specific threat picture' }
+];
+
+// Sector-specific implication overrides (additive)
+const SECTOR_NOTES = {
+  finsvc: 'Financial sector: FCA / PRA notification obligations apply on most incidents. DORA major ICT incident reporting: 4h / 72h / 1 month windows. Financially motivated actors particularly active; BEC and invoice fraud disproportionate threat.',
+  'cni-energy': 'Energy CNI: NIS regulations and NCSC CAF v4 apply. Sector regulator Ofgem. Nation-state pre-positioning is a credible threat — treat as ongoing condition, not hypothetical. Coordinate with NCSC.',
+  'cni-water': 'Water CNI: NIS regulations and NCSC CAF v4 apply. Sector regulator Ofwat / DWI. Hacktivist activity has risen substantially since 2023 (Cyber Av3ngers and similar); default credentials on PLCs are a known attack vector.',
+  'cni-transport': 'Transport CNI: NIS regulations. Sector regulators ORR (rail), CAA (aviation), DfT (maritime). Nation-state disruption and financially motivated ransomware both significant.',
+  health: 'Health: NHS Data Security and Protection Toolkit. Patient safety considerations elevate any operational impact. UK GDPR special category data — heightened ICO obligations.',
+  public: 'Public sector: politically aligned targeting; Cabinet Office and sector regulator may need notification. Nation-state interest particularly high during specific policy or geopolitical moments.',
+  manufacturing: 'Manufacturing: IP-focused espionage especially in high-tech / advanced manufacturing. OT disruption risk depends on process criticality. Insurance market hardening on ransomware.',
+  retail: 'Retail / e-commerce: PCI DSS for card data. Financially motivated actors and opportunists dominant. BEC against finance and procurement teams a common pattern.',
+  other: 'Calibrate to your specific threat picture. Sector-specific regulators may apply. Consult NCSC sector guidance where available.'
+};
+
+
+// ============================================
+// STATE
+// ============================================
+const state = {
+  selected: [],      // array of attacker codes, max 3
+  sector: 'none'
+};
+
+const MAX_SELECT = 3;
+
+// ============================================
+// INIT
+// ============================================
+function init() {
+  renderAttackerGrid();
+  renderSectorSelect();
+  updateAllViews();
+}
+
+// ============================================
+// ATTACKER PICKER
+// ============================================
+function renderAttackerGrid() {
+  const grid = document.getElementById('attackerGrid');
+  grid.innerHTML = ATTACKER_TYPES.map(a => `
+    <button class="attacker-tile ${state.selected.includes(a.code) ? 'selected' : ''}"
+            data-code="${a.code}" data-accent="${a.accent}">
+      <div class="attacker-tile-pin">PINNED</div>
+      <div>
+        <span class="attacker-tile-icon">${a.icon}</span>
+        <span class="attacker-tile-code">${a.code}</span>
+      </div>
+      <div class="attacker-tile-name">${escapeHtml(a.name)}</div>
+      <div class="attacker-tile-line">${escapeHtml(a.oneLiner)}</div>
+    </button>
+  `).join('');
+
+  grid.querySelectorAll('.attacker-tile').forEach(tile => {
+    tile.addEventListener('click', () => {
+      const code = tile.dataset.code;
+      toggleSelection(code);
+    });
+  });
+}
+
+function toggleSelection(code) {
+  const idx = state.selected.indexOf(code);
+  if (idx !== -1) {
+    state.selected.splice(idx, 1);
+  } else {
+    if (state.selected.length >= MAX_SELECT) {
+      // Drop oldest to make room
+      state.selected.shift();
+    }
+    state.selected.push(code);
+  }
+  updateAllViews();
+}
+
+function clearSelection() {
+  state.selected = [];
+  updateAllViews();
+}
+
+// ============================================
+// SECTOR SELECTOR
+// ============================================
+function renderSectorSelect() {
+  const sel = document.getElementById('sectorSelect');
+  sel.innerHTML = SECTORS.map(s => `
+    <option value="${s.code}" ${state.sector === s.code ? 'selected' : ''}>${escapeHtml(s.name)}</option>
+  `).join('');
+  sel.addEventListener('change', e => {
+    state.sector = e.target.value;
+    updateAllViews();
+  });
+}
+
+function updateSectorDesc() {
+  const sectorObj = SECTORS.find(s => s.code === state.sector);
+  const desc = document.getElementById('sectorDesc');
+  if (sectorObj) desc.textContent = sectorObj.desc;
+}
+
+// ============================================
+// MAIN UPDATE
+// ============================================
+function updateAllViews() {
+  renderAttackerGrid();
+  renderSelectionBar();
+  renderComparison();
+  renderImplications();
+  updateSectorDesc();
+}
+
+function renderSelectionBar() {
+  const bar = document.getElementById('selectionBar');
+  const count = document.getElementById('selectionCount');
+  if (state.selected.length === 0) {
+    bar.style.display = 'none';
+    return;
+  }
+  bar.style.display = 'flex';
+  const names = state.selected.map(c => ATTACKER_TYPES.find(a => a.code === c).short);
+  count.innerHTML = `<strong>${state.selected.length}</strong> / ${MAX_SELECT} selected · ${names.join(' · ')}`;
+}
+
+// ============================================
+// COMPARISON GRID
+// ============================================
+function renderComparison() {
+  const section = document.getElementById('compareSection');
+
+  if (state.selected.length === 0) {
+    section.innerHTML = `
+      <div class="compare-empty">
+        <div class="compare-empty-title">Pick an adversary type to begin</div>
+        <div class="compare-empty-sub">Compare up to three side-by-side</div>
+      </div>
+    `;
+    return;
+  }
+
+  const selectedAttackers = state.selected.map(c => ATTACKER_TYPES.find(a => a.code === c));
+  const cols = selectedAttackers.length;
+
+  let html = `<div class="compare-grid cols-${cols}">`;
+
+  // Header row: dimension label cell + one per selected attacker
+  html += `<div class="compare-cell compare-header label-cell">ATTACKER →</div>`;
+  selectedAttackers.forEach(a => {
+    html += `
+      <div class="compare-cell compare-header" data-accent="${a.accent}">
+        <button class="compare-header-remove" onclick="toggleSelection('${a.code}')" title="Remove from comparison">×</button>
+        <div class="compare-header-icon">${a.icon}</div>
+        <div class="compare-header-code">${a.code}</div>
+        <div class="compare-header-name">${escapeHtml(a.name)}</div>
+        <div class="compare-header-line">${escapeHtml(a.oneLiner)}</div>
+      </div>
+    `;
+  });
+
+  // Data rows: one per dimension
+  DIMENSIONS.forEach(dim => {
+    html += `
+      <div class="compare-cell compare-label-cell">
+        <div class="compare-label-name">${dim.label}</div>
+        <div class="compare-label-sub">${dim.sub}</div>
+      </div>
+    `;
+    selectedAttackers.forEach(a => {
+      if (dim.special === 'incident') {
+        html += `
+          <div class="compare-cell compare-data">
+            <div class="compare-incident-name">${escapeHtml(a.incident.name)}</div>
+            <div class="compare-incident-detail">${escapeHtml(a.incident.detail)}</div>
+          </div>
+        `;
+      } else {
+        html += `<div class="compare-cell compare-data">${escapeHtml(a[dim.key])}</div>`;
+      }
+    });
+  });
+
+  html += `</div>`;
+  section.innerHTML = html;
+}
+
+// ============================================
+// IMPLICATIONS
+// ============================================
+function renderImplications() {
+  const section = document.getElementById('implSection');
+  const exportSection = document.getElementById('exportSection');
+
+  if (state.selected.length === 0) {
+    section.style.display = 'none';
+    exportSection.style.display = 'none';
+    return;
+  }
+  section.style.display = 'block';
+  exportSection.style.display = 'block';
+
+  // Sector note (if not 'none')
+  const sectorNoteEl = document.getElementById('sectorNote');
+  if (state.sector !== 'none' && SECTOR_NOTES[state.sector]) {
+    sectorNoteEl.innerHTML = `
+      <div class="sector-note">
+        <span class="sector-note-label">Sector context — ${escapeHtml(SECTORS.find(s => s.code === state.sector).name)}</span>
+        ${escapeHtml(SECTOR_NOTES[state.sector])}
+      </div>
+    `;
+  } else {
+    sectorNoteEl.innerHTML = '';
+  }
+
+  // Aggregate implications across selected attackers, de-duplicated by area
+  const seenAreas = new Set();
+  const aggregated = [];
+
+  state.selected.forEach(code => {
+    const items = IMPLICATION_TEMPLATES[code] || [];
+    items.forEach(item => {
+      const key = item.area + '|' + item.text;
+      if (!seenAreas.has(key)) {
+        seenAreas.add(key);
+        aggregated.push({ ...item, sourceCode: code, sourceName: ATTACKER_TYPES.find(a => a.code === code).short });
+      }
+    });
+  });
+
+  const grid = document.getElementById('implGrid');
+  grid.innerHTML = aggregated.map(item => `
+    <div class="impl-card">
+      <div class="impl-card-eyebrow">vs ${escapeHtml(item.sourceName)}</div>
+      <div class="impl-card-area">${escapeHtml(item.area)}</div>
+      <div class="impl-card-text">${escapeHtml(item.text)}</div>
+    </div>
+  `).join('');
+}
+
+// ============================================
+// HELPERS
+// ============================================
+function escapeHtml(s) {
+  if (s === null || s === undefined) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// ============================================
+// EXPORTS
+// ============================================
+function exportJSON() {
+  const data = {
+    _schema: 'dh-adversary-mindsets',
+    _version: 1,
+    _exported: new Date().toISOString(),
+    selected: state.selected.map(code => {
+      const a = ATTACKER_TYPES.find(x => x.code === code);
+      return {
+        code: a.code,
+        name: a.name,
+        oneLiner: a.oneLiner,
+        objectives: a.objectives,
+        howTheyThink: a.howTheyThink,
+        tradecraft: a.tradecraft,
+        tools: a.tools,
+        earlySignal: a.earlySignal,
+        blindSpot: a.blindSpot,
+        whatWorks: a.whatWorks,
+        incident: a.incident,
+        attributes: a.attributes
+      };
+    }),
+    sector: state.sector,
+    sectorNote: SECTOR_NOTES[state.sector] || null,
+    implications: aggregateImplications()
+  };
+  download(`adversary-mindsets-${state.selected.join('-')}.json`, JSON.stringify(data, null, 2), 'application/json');
+}
+
+function aggregateImplications() {
+  const seen = new Set();
+  const out = [];
+  state.selected.forEach(code => {
+    const items = IMPLICATION_TEMPLATES[code] || [];
+    items.forEach(item => {
+      const key = item.area + '|' + item.text;
+      if (!seen.has(key)) {
+        seen.add(key);
+        out.push({ ...item, sourceCode: code });
+      }
+    });
+  });
+  return out;
+}
+
+function exportMarkdown() {
+  if (state.selected.length === 0) { alert('Select at least one attacker type first.'); return; }
+
+  const selectedAttackers = state.selected.map(c => ATTACKER_TYPES.find(a => a.code === c));
+  let md = `# Adversary Mindsets — Comparison\n\n`;
+  md += `**Exported:** ${new Date().toISOString()}\n\n`;
+  md += `**Compared:** ${selectedAttackers.map(a => a.name).join(', ')}\n\n`;
+  if (state.sector !== 'none') {
+    const sec = SECTORS.find(s => s.code === state.sector);
+    md += `**Sector overlay:** ${sec.name}\n\n`;
+  }
+  md += `\n---\n\n`;
+
+  selectedAttackers.forEach(a => {
+    md += `## ${a.code} — ${a.name}\n\n`;
+    md += `_${a.oneLiner}_\n\n`;
+    DIMENSIONS.forEach(dim => {
+      md += `### ${dim.label.replace(/&amp;/g, '&')}\n\n`;
+      if (dim.special === 'incident') {
+        md += `**${a.incident.name}**\n\n${a.incident.detail}\n\n`;
+      } else {
+        md += `${a[dim.key]}\n\n`;
+      }
+    });
+    md += `\n---\n\n`;
+  });
+
+  md += `## Defensive implications\n\n`;
+  if (state.sector !== 'none' && SECTOR_NOTES[state.sector]) {
+    md += `**Sector context (${SECTORS.find(s => s.code === state.sector).name}):** ${SECTOR_NOTES[state.sector]}\n\n`;
+  }
+  aggregateImplications().forEach(item => {
+    const src = ATTACKER_TYPES.find(a => a.code === item.sourceCode);
+    md += `- **${item.area}** (vs ${src.short}): ${item.text}\n`;
+  });
+  md += `\n---\n\n_Generated by Adversary Mindsets · Dan Howett · danhowett.github.io/useful_\n`;
+
+  download(`adversary-mindsets-${state.selected.join('-')}.md`, md, 'text/markdown');
+}
+
+function download(filename, content, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ============================================
+// BOOT
+// ============================================
+document.addEventListener('DOMContentLoaded', init);
+
+</script>
+
+</body>
+</html>
