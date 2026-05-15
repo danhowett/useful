@@ -1,0 +1,1512 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OT Essentials · Dan Howett</title>
+<style>
+:root {
+  --bg: #f7f7f4;
+  --bg-card: #ffffff;
+  --bg-subtle: #f1f1ec;
+  --bg-warm: #f5efe6;
+  --ink: #18181b;
+  --ink-soft: #52525b;
+  --ink-faint: #a1a1aa;
+  --line: #e4e4e7;
+  --line-strong: #d4d4d8;
+  --accent: #1d4ed8;
+  --accent-soft: #eff6ff;
+  --warn: #b45309;
+  --warn-soft: #fef3c7;
+  --danger: #b91c1c;
+  --danger-soft: #fee2e2;
+  --ok: #15803d;
+  --ok-soft: #dcfce7;
+  --safety: #9a3412;
+  --safety-soft: #ffedd5;
+  --safety-deep: #7c2d12;
+  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --serif: 'Source Serif Pro', Georgia, serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+a { color: var(--safety); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* TOP NAV */
+.topnav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(247, 247, 244, 0.92);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.topnav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 14px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.topnav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink);
+}
+.topnav-brand-mark {
+  width: 24px;
+  height: 24px;
+  background: var(--ink);
+  color: var(--bg-card);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 12px;
+  border-radius: 4px;
+}
+.topnav-brand-sep { color: var(--ink-faint); }
+.topnav-brand-section { color: var(--ink-soft); }
+.topnav-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.topnav-actions a {
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  color: var(--ink-soft);
+  padding: 6px 12px;
+  font-family: var(--mono);
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s;
+  text-decoration: none;
+}
+.topnav-actions a:hover {
+  background: var(--ink);
+  color: var(--bg-card);
+  border-color: var(--ink);
+  text-decoration: none;
+}
+
+/* LAYOUT */
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 28px 120px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 56px;
+  margin-top: 56px;
+}
+
+@media (max-width: 960px) {
+  .layout { grid-template-columns: 1fr; gap: 24px; }
+  .toc-nav { position: static; max-height: none; }
+}
+
+/* HERO */
+.hero { margin-bottom: 0; }
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 16px;
+}
+.hero-title {
+  font-family: var(--serif);
+  font-size: 56px;
+  line-height: 1.05;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+  color: var(--ink);
+}
+.hero-title em { font-style: italic; color: var(--safety); }
+.hero-lede {
+  font-size: 17px;
+  color: var(--ink-soft);
+  max-width: 760px;
+  line-height: 1.65;
+}
+.hero-lede strong { color: var(--ink); font-weight: 600; }
+.hero-meta {
+  margin-top: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+.hero-meta span strong { color: var(--ink); font-weight: 600; }
+
+/* DISCLAIMER */
+.disclaimer {
+  background: var(--safety-soft);
+  border: 1px solid #fdba74;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-top: 40px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.disclaimer-mark {
+  font-family: var(--mono);
+  font-size: 20px;
+  color: var(--safety);
+  font-weight: 700;
+  line-height: 1;
+}
+.disclaimer-body {
+  font-size: 13px;
+  color: var(--safety-deep);
+  line-height: 1.55;
+}
+.disclaimer-body strong { color: #431407; }
+
+/* SIDEBAR TOC */
+.toc-nav {
+  position: sticky;
+  top: 80px;
+  align-self: start;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  padding-right: 8px;
+}
+.toc-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 12px;
+}
+.toc-list { list-style: none; padding: 0; margin: 0; }
+.toc-list li { margin-bottom: 2px; }
+.toc-list a {
+  display: block;
+  font-size: 13px;
+  color: var(--ink-soft);
+  padding: 6px 10px;
+  border-radius: 6px;
+  border-left: 2px solid transparent;
+  transition: all 0.15s;
+  line-height: 1.4;
+  text-decoration: none;
+}
+.toc-list a:hover {
+  color: var(--ink);
+  background: var(--bg-subtle);
+  text-decoration: none;
+}
+.toc-list a.active {
+  color: var(--safety);
+  border-left-color: var(--safety);
+  background: var(--safety-soft);
+  font-weight: 600;
+}
+.toc-list .toc-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  margin-right: 8px;
+}
+.toc-list a.active .toc-num { color: var(--safety); }
+
+/* CONTENT */
+.content { min-width: 0; }
+.content section { margin-bottom: 64px; scroll-margin-top: 80px; }
+.content section:last-child { margin-bottom: 0; }
+
+.section-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 8px;
+}
+.section-title {
+  font-family: var(--serif);
+  font-size: 36px;
+  line-height: 1.15;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin-bottom: 14px;
+}
+.section-lede {
+  font-size: 16px;
+  color: var(--ink-soft);
+  margin-bottom: 28px;
+  line-height: 1.65;
+}
+
+.content h3 {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-top: 36px;
+  margin-bottom: 12px;
+  letter-spacing: -0.01em;
+}
+.content h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-top: 24px;
+  margin-bottom: 8px;
+  font-family: var(--sans);
+}
+.content p {
+  margin-bottom: 14px;
+  color: var(--ink);
+}
+.content p strong { color: var(--ink); font-weight: 600; }
+.content ul, .content ol {
+  margin: 8px 0 16px 0;
+  padding-left: 24px;
+}
+.content li { margin-bottom: 6px; line-height: 1.6; }
+.content code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  background: var(--bg-subtle);
+  padding: 1px 6px;
+  border-radius: 3px;
+  color: var(--ink);
+}
+
+/* CALLOUTS */
+.callout {
+  border-radius: 8px;
+  padding: 18px 22px;
+  margin: 22px 0;
+  border-left: 3px solid var(--safety);
+  background: var(--safety-soft);
+}
+.callout.note { border-left-color: var(--accent); background: var(--accent-soft); }
+.callout.incident { border-left-color: var(--danger); background: var(--danger-soft); }
+.callout.warn { border-left-color: var(--warn); background: var(--warn-soft); }
+.callout-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 8px;
+  display: block;
+  color: var(--safety);
+}
+.callout.note .callout-label { color: var(--accent); }
+.callout.incident .callout-label { color: var(--danger); }
+.callout.warn .callout-label { color: var(--warn); }
+.callout p { font-size: 14px; line-height: 1.6; margin-bottom: 8px; color: var(--ink); }
+.callout p:last-child { margin-bottom: 0; }
+.callout p strong { color: var(--ink); }
+
+/* TABLES */
+.table-wrap { overflow-x: auto; margin: 16px 0 24px 0; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+th {
+  text-align: left;
+  padding: 12px 14px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  background: var(--bg-subtle);
+  font-weight: 600;
+  border-bottom: 1px solid var(--line-strong);
+  vertical-align: top;
+}
+td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  line-height: 1.55;
+}
+tr:last-child td { border-bottom: none; }
+td code { font-size: 0.9em; }
+td strong { font-weight: 600; color: var(--ink); }
+
+/* PURDUE DIAGRAM */
+.purdue {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 24px;
+  margin: 24px 0;
+}
+.purdue-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 1fr;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  align-items: start;
+}
+.purdue-row:last-child { border-bottom: none; }
+.purdue-level {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--safety);
+  text-transform: uppercase;
+  padding-top: 2px;
+}
+.purdue-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.purdue-name-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  display: block;
+}
+.purdue-desc {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+.purdue-boundary {
+  background: var(--safety-soft);
+  color: var(--safety-deep);
+  padding: 8px 14px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-align: center;
+  border-radius: 4px;
+  margin: 6px -10px;
+  font-weight: 600;
+}
+
+@media (max-width: 720px) {
+  .purdue-row { grid-template-columns: 60px 1fr; }
+  .purdue-row .purdue-desc { grid-column: 1 / -1; padding-left: 74px; padding-top: 4px; }
+}
+
+/* GLOSSARY */
+.glossary {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.glossary-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  gap: 16px;
+}
+.glossary-row:last-child { border-bottom: none; }
+.glossary-term {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--safety);
+}
+.glossary-def {
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.55;
+}
+.glossary-def strong { font-weight: 600; }
+
+@media (max-width: 720px) {
+  .glossary-row { grid-template-columns: 1fr; gap: 4px; }
+}
+
+/* FRAMEWORK CARDS */
+.framework-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.framework-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--safety);
+  border-radius: 8px;
+  padding: 18px 20px;
+}
+.framework-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.framework-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--safety);
+  font-weight: 600;
+  margin-bottom: 10px;
+  display: block;
+}
+.framework-desc {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  margin-bottom: 10px;
+}
+.framework-when {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.55;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+.framework-when strong { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); display: block; margin-bottom: 4px; }
+.framework-link {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  display: inline-block;
+  margin-top: 10px;
+}
+
+/* WHERE NEXT GRID */
+.next-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+.next-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px 20px;
+  text-decoration: none;
+  color: var(--ink);
+  transition: all 0.15s;
+  display: block;
+}
+.next-card:hover {
+  border-color: var(--safety);
+  text-decoration: none;
+}
+.next-card-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 6px;
+}
+.next-card:hover .next-card-tag { color: var(--safety); }
+.next-card-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.next-card-desc {
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+/* PRIORITY INVERSION FIGURE */
+.priority-inversion {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 24px;
+  margin: 20px 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.priority-col h4 {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0 0 12px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--line-strong);
+}
+.priority-col.it h4 { color: var(--accent); border-bottom-color: var(--accent); }
+.priority-col.ot h4 { color: var(--safety); border-bottom-color: var(--safety); }
+.priority-col ol {
+  list-style: none;
+  counter-reset: pri;
+  padding: 0;
+  margin: 0;
+}
+.priority-col li {
+  counter-increment: pri;
+  padding: 10px 0 10px 36px;
+  position: relative;
+  font-size: 14px;
+  border-bottom: 1px dashed var(--line);
+}
+.priority-col li:last-child { border-bottom: none; }
+.priority-col li::before {
+  content: counter(pri);
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 24px;
+  height: 24px;
+  background: var(--bg-subtle);
+  color: var(--ink-soft);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.priority-col li strong { color: var(--ink); font-weight: 600; }
+
+@media (max-width: 720px) {
+  .priority-inversion { grid-template-columns: 1fr; }
+}
+
+/* PRINT */
+@media print {
+  .topnav, .toc-nav { display: none !important; }
+  .layout { grid-template-columns: 1fr; gap: 0; }
+  body { background: white; font-size: 11pt; }
+  .page { padding: 0; max-width: none; }
+  .hero-title { font-size: 28pt; }
+  .section-title { font-size: 20pt; }
+  .content section { margin-bottom: 36px; }
+  a { color: var(--ink); }
+}
+
+@media (max-width: 720px) {
+  .hero-title { font-size: 40px; }
+  .section-title { font-size: 28px; }
+  .topnav-inner { flex-direction: column; align-items: flex-start; gap: 10px; }
+}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-inner">
+    <a href="https://danhowett.github.io/useful/" class="topnav-brand" style="text-decoration:none;color:inherit;">
+      <span class="topnav-brand-mark">DH</span>
+      <span>Dan Howett</span>
+      <span class="topnav-brand-sep">/</span>
+      <span class="topnav-brand-section">OT Essentials</span>
+    </a>
+    <div class="topnav-actions">
+      <a href="ot-incident-triage.html">OT TRIAGE TOOL</a>
+      <a href="https://danhowett.github.io/useful/">ALL TOOLS</a>
+    </div>
+  </div>
+</nav>
+
+<main class="page">
+
+  <header class="hero">
+    <div class="hero-eyebrow">OT Essentials · A practitioner's orientation</div>
+    <h1 class="hero-title">OT, for the <em>IT-trained reader</em>.</h1>
+    <p class="hero-lede">
+      Operational Technology runs on different priorities, vocabulary, and assumptions than IT. The instincts that
+      keep IT estates safe — patch fast, isolate fast, rotate fast — can cause real-world harm in OT. This is the
+      <strong>orientation document</strong> for the practitioner who knows IT security well and is getting OT exposure
+      for the first time, or working alongside OT engineers and needing to engage credibly.
+    </p>
+    <div class="hero-meta">
+      <span><strong>7</strong> sections</span>
+      <span><strong>~25 min</strong> read</span>
+      <span><strong>UK / CNI</strong> framing</span>
+      <span><strong>NIST 800-82r3 · IEC 62443 · NCSC OT · CAF v4</strong></span>
+    </div>
+  </header>
+
+  <div class="disclaimer">
+    <span class="disclaimer-mark">!</span>
+    <div class="disclaimer-body">
+      <strong>Orientation, not authority.</strong> This is a practitioner's mental-model document — not a substitute for
+      engineering authority, formal training, or vendor-specific guidance. The OT discipline rests on safety engineering,
+      regulatory compliance, and operational continuity decisions that only qualified personnel in your organisation
+      can make. <strong>You should not rely on this document</strong> as the basis for design, assessment, or incident
+      response decisions without independent verification. The author accepts no liability whatsoever for any loss,
+      damage, injury, or consequence arising from use of, or reliance on, this document. Use entirely at your own risk.
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <aside class="toc-nav">
+      <div class="toc-label">Contents</div>
+      <ul class="toc-list" id="tocList">
+        <li><a href="#different" data-target="different"><span class="toc-num">01</span>Why OT is different</a></li>
+        <li><a href="#purdue" data-target="purdue"><span class="toc-num">02</span>The Purdue model</a></li>
+        <li><a href="#vocab" data-target="vocab"><span class="toc-num">03</span>The vocabulary</a></li>
+        <li><a href="#protocols" data-target="protocols"><span class="toc-num">04</span>The protocols</a></li>
+        <li><a href="#architecture" data-target="architecture"><span class="toc-num">05</span>Architecture patterns</a></li>
+        <li><a href="#frameworks" data-target="frameworks"><span class="toc-num">06</span>Standards &amp; frameworks</a></li>
+        <li><a href="#safety" data-target="safety"><span class="toc-num">07</span>Safety &amp; where next</a></li>
+      </ul>
+    </aside>
+
+    <div class="content" id="content">
+      <section id="different">
+  <div class="section-eyebrow">Section 01</div>
+  <h2 class="section-title">Why OT is different</h2>
+  <p class="section-lede">
+    Operational Technology controls physical processes — water treatment, electricity distribution, refineries,
+    manufacturing lines, building HVAC, railway signalling. The job is to keep those processes running safely and
+    predictably for years. The job is <em>not</em> to be patched on a monthly cadence, isolated when alerts fire,
+    or rebooted to apply settings. That's the source of nearly every IT-OT misunderstanding worth knowing about.
+  </p>
+
+  <h3>The priority inversion</h3>
+  <p>
+    In IT, the unconscious priority order is some variant of confidentiality, integrity, availability. Most security
+    decisions can be reasoned about with that ordering. In OT, the priority order inverts, and one extra priority sits
+    above all of them: safety. The standard mnemonic is <strong>SAIC</strong> — Safety, Availability, Integrity, Confidentiality.
+  </p>
+
+  <div class="priority-inversion">
+    <div class="priority-col it">
+      <h4>IT priority order</h4>
+      <ol>
+        <li><strong>Confidentiality</strong> — protect data from disclosure</li>
+        <li><strong>Integrity</strong> — protect data from modification</li>
+        <li><strong>Availability</strong> — keep services running</li>
+      </ol>
+    </div>
+    <div class="priority-col ot">
+      <h4>OT priority order</h4>
+      <ol>
+        <li><strong>Safety</strong> — protect people, environment, equipment</li>
+        <li><strong>Availability</strong> — keep the process running</li>
+        <li><strong>Integrity</strong> — protect process data and logic</li>
+        <li><strong>Confidentiality</strong> — protect data from disclosure</li>
+      </ol>
+    </div>
+  </div>
+
+  <p>
+    This isn't aesthetic. It changes what counts as a successful security control. An IT control that takes a system
+    offline to prevent data exfiltration is doing its job. An OT control that takes a system offline to prevent the
+    same thing has — depending on what the system controls — potentially caused a safety event.
+  </p>
+
+  <h3>The IT instinct trap</h3>
+  <p>
+    The instincts that make a competent IT security practitioner can produce unsafe actions in OT if applied without
+    translation. Three particularly load-bearing ones:
+  </p>
+
+  <h4>"Patch it now"</h4>
+  <p>
+    In IT, "we'll patch next Tuesday" is acceptable for low-severity issues and unacceptable for high-severity ones.
+    In OT, "we'll patch in the next planned outage window" is the normal answer regardless of severity, because
+    patching a controller mid-process can crash it, change its behaviour subtly, or require revalidation work that
+    takes weeks. Many controllers haven't been patched since they were installed — sometimes a decade ago — and
+    they're working as intended. The control isn't "patch fast"; it's compensating controls and segmentation.
+  </p>
+
+  <h4>"Isolate it"</h4>
+  <p>
+    Isolation in IT means "pull it off the network so it can't spread or be reached." In OT, what looks like an
+    endpoint may be the only thing telling an operator what a process is doing, or the only path by which the operator
+    can intervene. Isolating an HMI mid-shift can leave operators blind. Isolating a controller can drop outputs.
+    Isolation in OT is something you coordinate with operations, not something you do reflexively from a SOC console.
+  </p>
+
+  <h4>"Rotate the credentials"</h4>
+  <p>
+    Credential rotation is cheap and obvious in IT. In OT, an engineering account on a controller may be hard-coded
+    into other systems, may be the only credential capable of safely shutting the process down, or may not be
+    rotatable without a vendor on the call. Some controller credentials are stored physically on the device or in
+    project files; some don't support rotation at all. Coordination first; action second.
+  </p>
+
+  <div class="callout incident">
+    <span class="callout-label">Incident — NotPetya, 2017</span>
+    <p>
+      The most cited example of IT-side action affecting OT availability is NotPetya. The wiper itself targeted IT
+      systems, but its propagation reached the corporate networks of Maersk, Merck, Mondelez, Reckitt Benckiser and
+      others, taking down systems that <em>operations</em> depended on — port logistics, manufacturing planning,
+      production scheduling. Maersk reportedly lost the ability to dispatch ships and trucks for weeks; Merck's
+      manufacturing of certain vaccines was disrupted. The lesson: OT availability often depends on IT systems
+      whose criticality isn't obvious until they're gone.
+    </p>
+  </div>
+
+  <h3>What that means in practice</h3>
+  <p>
+    For an IT-trained practitioner moving into OT or working alongside OT engineers, three habits to develop:
+  </p>
+  <ul>
+    <li><strong>Ask before acting</strong>, especially on anything connected to a control system, a historian, or an
+    engineering workstation. The engineer's day-job is to know what the process is doing right now. Yours probably
+    isn't.</li>
+    <li><strong>Assume the system is fragile</strong>, even when it looks like a familiar Windows host. The host
+    may be running engineering software that hasn't seen an OS reboot in 400 days for good reason.</li>
+    <li><strong>Treat safety as a categorical override</strong>, not a value to be weighed against others. There is
+    no efficiency, compliance, or security benefit that outweighs a credible safety risk.</li>
+  </ul>
+</section>
+
+
+<section id="purdue">
+  <div class="section-eyebrow">Section 02</div>
+  <h2 class="section-title">The Purdue model</h2>
+  <p class="section-lede">
+    The Purdue Enterprise Reference Architecture — usually just "Purdue" — is the dominant mental model for how OT
+    networks are organised. It's a layered diagram, levels 0 through 5, with rougher access controls between adjacent
+    levels and tighter controls across the IT/OT boundary that sits between levels 3 and 4. Every framework that touches
+    OT either uses Purdue or maps to it.
+  </p>
+
+  <p>
+    Two things to know up front. First, Purdue is a <strong>reference architecture</strong>, not a blueprint. Real
+    networks rarely match it cleanly — there are always shortcuts, legacy paths, and undocumented connections. Second,
+    in modern environments the boundaries between levels are increasingly blurry: cloud historians, MES platforms in
+    SaaS, IIoT sensors bypassing the hierarchy entirely. Treat Purdue as the model you start from, then verify what's
+    actually there.
+  </p>
+
+  <h3>The levels</h3>
+  <div class="purdue">
+    <div class="purdue-row">
+      <div class="purdue-level">L5</div>
+      <div>
+        <div class="purdue-name">Enterprise <span class="purdue-name-sub">Email, ERP, corporate IT</span></div>
+      </div>
+      <div class="purdue-desc">The corporate IT estate. Email, ERP, file shares, identity. This is where the IT
+        security team lives day-to-day. From OT's perspective, "the internet."</div>
+    </div>
+    <div class="purdue-row">
+      <div class="purdue-level">L4</div>
+      <div>
+        <div class="purdue-name">Business Planning &amp; Logistics <span class="purdue-name-sub">MES, planning, scheduling</span></div>
+      </div>
+      <div class="purdue-desc">Business systems that talk to OT — manufacturing execution, production scheduling,
+        supply chain planning. Still IT-administered, but with operational coupling.</div>
+    </div>
+    <div class="purdue-boundary">— IT / OT boundary — the DMZ sits here (Level 3.5) —</div>
+    <div class="purdue-row">
+      <div class="purdue-level">L3.5</div>
+      <div>
+        <div class="purdue-name">Industrial DMZ <span class="purdue-name-sub">Historians, jump hosts, AV servers</span></div>
+      </div>
+      <div class="purdue-desc">The buffer zone between IT and OT. Historians and patch servers commonly live here,
+        plus jump hosts for engineering and vendor remote access. Bidirectional traffic is brokered through this
+        layer — direct L4-to-L3 paths should not exist.</div>
+    </div>
+    <div class="purdue-row">
+      <div class="purdue-level">L3</div>
+      <div>
+        <div class="purdue-name">Site Operations <span class="purdue-name-sub">Engineering workstations, site historian</span></div>
+      </div>
+      <div class="purdue-desc">Site-wide operational systems — engineering workstations for programming controllers,
+        site-level historian, OT identity and management. Generally Windows-heavy. First level that's clearly OT-owned.</div>
+    </div>
+    <div class="purdue-row">
+      <div class="purdue-level">L2</div>
+      <div>
+        <div class="purdue-name">Area Supervisory Control <span class="purdue-name-sub">HMIs, SCADA servers, alarm systems</span></div>
+      </div>
+      <div class="purdue-desc">Operator-facing supervisory systems. HMIs (the screens operators watch), SCADA servers
+        that aggregate data from controllers, alarm management. Real-time but not deterministic.</div>
+    </div>
+    <div class="purdue-row">
+      <div class="purdue-level">L1</div>
+      <div>
+        <div class="purdue-name">Basic Control <span class="purdue-name-sub">PLCs, RTUs, controllers</span></div>
+      </div>
+      <div class="purdue-desc">The controllers themselves — PLCs, RTUs, dedicated control hardware. Deterministic
+        real-time systems making the millisecond decisions that drive the physical process. Often legacy, often
+        proprietary, often with limited logging.</div>
+    </div>
+    <div class="purdue-row">
+      <div class="purdue-level">L0</div>
+      <div>
+        <div class="purdue-name">Physical Process <span class="purdue-name-sub">Sensors, actuators, motors, valves</span></div>
+      </div>
+      <div class="purdue-desc">The actual physical equipment — sensors reading temperature, pressure, flow, level;
+        actuators opening valves, starting motors, moving robots. This is the thing the rest of the stack exists
+        to control.</div>
+    </div>
+  </div>
+
+  <h3>The Safety Instrumented System sits separately</h3>
+  <p>
+    One of the most important things about Purdue is what's <em>not</em> on the diagram in the same lane: the Safety
+    Instrumented System (SIS). The SIS is an independent layer of protection — usually with its own controllers, its
+    own network, sometimes its own physical cabinet — that exists to take the process to a safe state when basic
+    process control fails. It's not Level 1; it's a parallel safety layer with stricter requirements, separate
+    certifications, and a fundamentally different role.
+  </p>
+  <p>
+    For an IT-trained reader: think of the SIS as the airbag. The Basic Process Control System (BPCS — the Purdue
+    Level 1/2 stack) drives the car. The SIS only acts when something has already gone wrong. Confusing the two
+    leads to bad decisions.
+  </p>
+
+  <h3>Where the IT/OT boundary actually is</h3>
+  <p>
+    Officially: between Level 3 and Level 4, with the DMZ sitting at Level 3.5 mediating traffic. In practice the
+    boundary is fuzzier than that, and where exactly the line falls determines who owns what — incident response
+    authority, change control authority, patching authority. Common patterns:
+  </p>
+  <ul>
+    <li><strong>IT owns L4 and L5.</strong> Always.</li>
+    <li><strong>OT owns L0, L1, L2.</strong> Almost always — these touch physical equipment.</li>
+    <li><strong>L3 and the DMZ are contested.</strong> Engineering workstations, jump hosts, and historians sit
+    here. IT typically manages the underlying OS; OT typically owns the applications and the decisions about
+    when systems can be touched. Both sides need to be in the room for changes.</li>
+  </ul>
+
+  <div class="callout incident">
+    <span class="callout-label">Incident — Stuxnet, 2010</span>
+    <p>
+      Stuxnet is the canonical example of an attack that crossed the full Purdue stack. It propagated via removable
+      media on engineering workstations (Level 3), modified Siemens Step 7 project files (Level 3), and ultimately
+      reprogrammed the logic on PLCs controlling centrifuges (Level 1) — while sending falsified data back up to the
+      HMI (Level 2) so operators saw normal readings. It demonstrated that air-gaps are porous, that controller
+      logic itself is a target, and that visibility from the HMI cannot be assumed authentic. Most modern OT
+      architecture decisions trace back, directly or indirectly, to lessons from Stuxnet.
+    </p>
+  </div>
+</section>
+
+
+<section id="vocab">
+  <div class="section-eyebrow">Section 03</div>
+  <h2 class="section-title">The vocabulary</h2>
+  <p class="section-lede">
+    The fastest way to spot an IT person in an OT meeting is hearing them say "the SCADA" or "the PLC server." The OT
+    vocabulary is precise and unforgiving — the words mean different things and getting them right earns enough trust
+    to ask the questions you actually need to ask.
+  </p>
+
+  <div class="glossary">
+    <div class="glossary-row">
+      <div class="glossary-term">PLC</div>
+      <div class="glossary-def"><strong>Programmable Logic Controller.</strong> A specialised industrial computer
+        that executes control logic — reading sensors, driving actuators, in deterministic real-time. Typical brands:
+        Siemens (S7), Rockwell (Allen-Bradley ControlLogix), Schneider (Modicon), Mitsubishi, ABB. The dominant
+        controller type in manufacturing and continuous process industries.</div>
+    </div>
+    <div class="glossary-row">
+      <div class="glossary-term">RTU</div>
+      <div class="glossary-def"><strong>Remote Terminal Unit.</strong> A controller hardened for remote locations and
+        designed to communicate over slower or less reliable links — typical in electricity transmission, water
+        utilities, oil and gas pipelines. Functionally similar to a PLC but with telemetry and protocol differences.
+        The line between RTU and PLC has blurred over time.</div>
+    </div>
+    <div class="glossary-row">
+      <div class="glossary-term">IED</div>
+      <div class="glossary-def"><strong>Intelligent Electronic Device.</strong> Used specifically in electric power.
+        Protective relays, meters, and other devices that combine measurement, protection, and communications in one
+        unit. If someone says "IED" in a substation context they mean this, not the other thing.</div>
+    </div>
+    <div class="glossary-row">
+      <div class="glossary-term">HMI</div>
+      <div class="glossary-def"><strong>Human-Machine Interface.</strong> The screen the operator looks at to see
+        process state and the touchscreen or console they use to issue commands. Almost always a Windows machine
+        running vendor software (Wonderware/AVEVA, Rockwell FactoryTalk, Siemens WinCC, Ignition). Loss of HMI =
+        loss of operator visibility = often a safety event.</div>
+    </div>
+    <div class="glossary-row">
+      <div class="glossary-term">EWS</div>
+      <div class="glossary-def"><strong>Engineering Workstation.</strong> The machine an engineer uses to program
+        and configure PLCs and other controllers. Holds the engineering software (Siemens TIA Portal, Rockwell
+        Studio 5000, etc.) and the project files. High-value attacker target — compromise of the EWS gives access
+        to the logic running on the controllers it manages.</div>
+    </div>
+    <div class="glossary-row">
+      <div class="glossary-term">SCADA</div>
+      <div class="glossary-def"><strong>Supervisory Control and Data Acquisition.</strong> Not a thing — an architecture.
+        A SCADA system is the combination of HMI, historian, controllers, and communications that lets operators
+        supervise a geographically distributed process (a water network, an electricity grid, a pipeline). When someone
+        says "the SCADA system" they usually mean the operator-facing aggregation layer (Level 2/3 in Purdue).</div>
+    </div>
+    <div class="glossary-row">
+      <div class="glossary-term">DCS</div>
+      <div class="glossary-def"><strong>Distributed Control System.</strong> Like SCADA but for a continuous process
+        at a single site — refineries, chemical plants, power generation. Highly integrated, often single-vendor
+        (Emerson DeltaV, Honeywell Experion, Yokogawa CENTUM, Siemens PCS 7). The line between DCS and SCADA has
+        blurred over time; the words are often used loosely.</div>
+    </div>
+    <div class="glossary-row">
+      <div class="glossary-term">BPCS</div>
+      <div class="glossary-def"><strong>Basic Process Control System.</strong> The everyday control stack — controllers,
+        HMI, historian, supervisory layer — that runs the process under normal conditions. Distinguished from SIS,
+        which only intervenes when BPCS fails. Don't confuse the two.</div>
+    </div>
+    <div class="glossary-row">
+      <div class="glossary-term">SIS</div>
+      <div class="glossary-def"><strong>Safety Instrumented System.</strong> An independent layer of automated safety
+        protection. Separate controllers, often a separate network, designed and certified to take the process to a
+        safe state when defined trip conditions are exceeded. Governed by IEC 61508 (general functional safety) and
+        IEC 61511 (process industry). Highest-sensitivity asset class in OT.</div>
+    </div>
+    <div class="glossary-row">
+      <div class="glossary-term">Historian</div>
+      <div class="glossary-def"><strong>Process Historian / Data Server.</strong> A specialised time-series database
+        that records process values from controllers — temperatures, pressures, flow rates, valve positions — at high
+        resolution over long periods. Common products: AVEVA PI System (formerly OSIsoft), GE Proficy, Wonderware
+        Historian. Often the IT/OT bridge asset because it serves both control room dashboards and corporate reporting.</div>
+    </div>
+    <div class="glossary-row">
+      <div class="glossary-term">IACS</div>
+      <div class="glossary-def"><strong>Industrial Automation and Control Systems.</strong> The umbrella term used
+        by IEC 62443 to describe the whole OT estate — controllers, networks, HMIs, safety systems, the lot.
+        When a document says "IACS" it means OT, more or less.</div>
+    </div>
+    <div class="glossary-row">
+      <div class="glossary-term">MES</div>
+      <div class="glossary-def"><strong>Manufacturing Execution System.</strong> The Level-4 business application
+        that translates production orders into work for the OT layer below — recipes, batch records, scheduling,
+        traceability. Often the system that introduces IT/OT connectivity (and risk).</div>
+    </div>
+    <div class="glossary-row">
+      <div class="glossary-term">Jump host</div>
+      <div class="glossary-def"><strong>Bastion / Jump Server.</strong> A controlled gateway through which engineers
+        and vendors access OT systems. Usually sits in the DMZ (Level 3.5). Provides session control, recording, and
+        an audit trail. Vendor remote access via jump host is the highest-risk attack vector in many OT environments
+        precisely because it's an authorised path with elevated privileges.</div>
+    </div>
+    <div class="glossary-row">
+      <div class="glossary-term">Data diode</div>
+      <div class="glossary-def"><strong>Unidirectional gateway.</strong> Hardware that physically allows data to flow
+        in one direction only — typically OT to IT for monitoring data. Used to give business systems read access to
+        OT data without any return path that could be exploited. Common in nuclear, defence, and high-criticality
+        CNI deployments.</div>
+    </div>
+  </div>
+</section>
+
+
+<section id="protocols">
+  <div class="section-eyebrow">Section 04</div>
+  <h2 class="section-title">The protocols</h2>
+  <p class="section-lede">
+    OT runs on a small set of protocols designed in eras when network security wasn't a design consideration. The
+    practitioner-level point isn't deep protocol analysis — it's recognising which ones you'll see, what they're for,
+    and what their security properties are. The honest summary: most of them have none, by design.
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Protocol</th>
+          <th>Used for</th>
+          <th>Era / where seen</th>
+          <th>Security properties</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Modbus</strong> <span style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);">TCP / RTU</span></td>
+          <td>Reading/writing registers on controllers. The lingua franca of industrial automation.</td>
+          <td>Released 1979. Everywhere — manufacturing, building HVAC, water, smaller utilities. Modbus TCP rides on
+          port 502.</td>
+          <td>None. No authentication, no encryption. Anyone on the network can issue any command. Modbus Security
+          (RFC) exists but is rarely deployed.</td>
+        </tr>
+        <tr>
+          <td><strong>DNP3</strong> <span style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);">Serial / IP</span></td>
+          <td>Telemetry and supervisory control over WAN/serial. Designed for resilience over poor links.</td>
+          <td>1990s. Electric utilities and water in North America especially. UK uses are mixed; IEC 60870-5 more
+          common.</td>
+          <td>Secure Authentication (DNP3-SA) exists and is increasingly deployed. Without it: no authentication,
+          no encryption.</td>
+        </tr>
+        <tr>
+          <td><strong>IEC 60870-5-104</strong> <span style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);">IP</span></td>
+          <td>Telemetry and control between control centres and substations. The European equivalent of DNP3.</td>
+          <td>Standardised 2000. UK electricity transmission and distribution. Port 2404.</td>
+          <td>IEC 62351 defines TLS-based security overlays but adoption is uneven.</td>
+        </tr>
+        <tr>
+          <td><strong>IEC 61850</strong> <span style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);">Ethernet / IP</span></td>
+          <td>Substation automation. Bus-style communication between IEDs (protective relays etc.) within a substation.</td>
+          <td>2000s onwards. Modern electrical substations. GOOSE messages are layer-2 and time-critical (millisecond
+          latency requirements).</td>
+          <td>IEC 62351-6 defines authentication for GOOSE; deployment is uneven. Time-criticality makes adding
+          cryptographic overhead difficult.</td>
+        </tr>
+        <tr>
+          <td><strong>EtherNet/IP</strong> <span style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);">Ethernet / IP</span></td>
+          <td>Industrial Ethernet protocol used by Rockwell (Allen-Bradley) controllers. CIP (Common Industrial Protocol)
+          over Ethernet.</td>
+          <td>1990s onwards. Manufacturing, especially North America. Common in any Rockwell-heavy estate.</td>
+          <td>CIP Security exists (CIP Safety and CIP Security extensions) but adoption is limited to newer
+          equipment.</td>
+        </tr>
+        <tr>
+          <td><strong>PROFINET</strong> <span style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);">Ethernet</span></td>
+          <td>Industrial Ethernet protocol used by Siemens controllers. Real-time variants for motion control.</td>
+          <td>2000s onwards. Manufacturing, especially Europe. Common in any Siemens-heavy estate.</td>
+          <td>PROFINET Security Class 1/2/3 specifications exist but are recent and adoption is early.</td>
+        </tr>
+        <tr>
+          <td><strong>OPC UA</strong> <span style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);">IP</span></td>
+          <td>Modern protocol for exchanging data between OT systems and between OT and IT. The intended successor
+          to OPC Classic (DCOM-based and a long-standing headache).</td>
+          <td>2008 onwards. Newer integrations, IT/OT bridges, cloud historians. The protocol vendors are betting
+          on for the next decade.</td>
+          <td><strong>Designed with security as a first-class concern.</strong> Native authentication, encryption,
+          and signing. Implementation matters — many deployments run OPC UA with security disabled.</td>
+        </tr>
+        <tr>
+          <td><strong>MQTT</strong> <span style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);">IP</span></td>
+          <td>Lightweight publish-subscribe protocol. Used in IIoT and cloud-bridge scenarios more than core OT.</td>
+          <td>2010s onwards. IIoT, smart-building, edge gateways.</td>
+          <td>TLS support; payload encryption depends on implementation. Authentication via username/password or
+          certificate.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>What this means in practice</h3>
+  <p>
+    Three things to internalise from this table:
+  </p>
+  <ul>
+    <li><strong>Most OT protocols offer no native security.</strong> Authentication, encryption, integrity — all bolted
+    on, where they exist at all. The security model rests on network segmentation and physical access control, not on
+    the protocol itself.</li>
+    <li><strong>Active scanning is dangerous.</strong> Many controllers and protocol stacks crash on unexpected
+    traffic. Nmap against a legacy PLC has a non-trivial probability of dropping it. Passive observation (SPAN ports,
+    TAPs) is the standard approach for OT visibility tools precisely because of this.</li>
+    <li><strong>"Air-gapped" usually isn't.</strong> Modbus, EtherNet/IP, PROFINET, OPC UA are all IP-based and travel
+    over the same Ethernet that carries everything else. An "air-gap" between OT and IT often turns out to be one
+    firewall rule, one engineering laptop, or one vendor jump host. Assume connectivity until proven otherwise.</li>
+  </ul>
+
+  <div class="callout note">
+    <span class="callout-label">Practitioner tip — protocol identification</span>
+    <p>
+      For incident triage purposes, knowing the port number gets you most of the way. <strong>Port 502</strong> on the
+      wire = Modbus. <strong>Port 2404</strong> = IEC 60870-5-104. <strong>Port 44818 + 2222</strong> = EtherNet/IP.
+      <strong>Port 102</strong> = S7 (Siemens). <strong>Port 47808 (UDP)</strong> = BACnet (building automation).
+      Unfamiliar protocols on the OT segment are not necessarily malicious — but they're worth identifying before
+      anything else.
+    </p>
+  </div>
+</section>
+
+
+<section id="architecture">
+  <div class="section-eyebrow">Section 05</div>
+  <h2 class="section-title">Architecture patterns</h2>
+  <p class="section-lede">
+    The patterns you'll meet in nearly every OT environment, why they exist, and what tends to break them. Most OT
+    security incidents trace to one of these patterns being implemented badly or worked around informally.
+  </p>
+
+  <h3>The IT/OT DMZ</h3>
+  <p>
+    The standard pattern for separating OT from IT is a DMZ — Level 3.5 in Purdue terms — that sits between the two
+    and brokers all traffic. No direct connections between the IT estate (L4+) and the OT estate (L3 and below). Anything
+    that needs to cross does so by terminating in the DMZ first.
+  </p>
+  <p>
+    Common DMZ residents: historian replicas (so business systems can read process data without reaching into OT),
+    patch servers, anti-virus management, jump hosts, and any application that genuinely needs to span both sides
+    (often MES). The discipline is that <em>nothing</em> initiates a connection across the DMZ — connections terminate
+    on one side and a separate connection picks up on the other.
+  </p>
+  <p>
+    The way DMZs typically degrade: someone needs "just a quick" direct connection from a corporate analytics tool to
+    a historian, or from a vendor support system to a controller. Those exceptions accumulate. Within a few years the
+    DMZ exists on paper but the actual network has a dozen direct paths through it.
+  </p>
+
+  <h3>Data diodes — when the DMZ isn't enough</h3>
+  <p>
+    For higher-criticality environments, a software DMZ allowing controlled bidirectional traffic isn't enough. The
+    answer is a data diode — a hardware appliance that physically permits traffic in only one direction (typically
+    OT to IT). Light or electrical signals are designed so that no return path exists at the physical layer.
+  </p>
+  <p>
+    Common deployments: nuclear, defence, electricity transmission, some water utilities. The trade-off is real —
+    no return path means no remote management of the OT side, no patch deployment, no incident response actions
+    pushed in. That's a feature, not a bug, in environments where the cost of a return path being exploited is
+    catastrophic.
+  </p>
+
+  <h3>Jump hosts and the vendor remote access problem</h3>
+  <p>
+    Vendor remote access is the single highest-risk attack vector in many OT environments. Vendors need it (they
+    can't physically attend every site for every issue), it carries elevated privileges (vendors are often domain
+    admins on the OT side), and it sits across the IT/OT boundary by design.
+  </p>
+  <p>
+    The pattern that works: jump hosts in the DMZ, with vendor sessions terminated and brokered through them. Session
+    recording, MFA, time-windowed access tied to change tickets, named vendor engineers (not shared accounts), and
+    monitoring of what happens in the session. The pattern that doesn't work: persistent VPN tunnels into OT segments,
+    shared "vendor support" accounts with permanent credentials, and a culture of "the vendor is always allowed in."
+  </p>
+
+  <h3>The historian as IT/OT bridge</h3>
+  <p>
+    Historians are uniquely architectural because they're both an OT asset (they capture process data from controllers)
+    and an IT-serving asset (they feed dashboards, reports, BI tools, and increasingly cloud platforms). They sit on
+    the boundary by job description.
+  </p>
+  <p>
+    The healthy pattern: historian collection lives in OT; a read-only replica or aggregator lives in the DMZ; IT-side
+    systems only ever talk to the replica. The unhealthy pattern: a single historian in OT that IT systems connect to
+    directly, requiring inbound firewall holes from IT into OT. This is one of the most common ways a "segmented"
+    OT network turns out, on inspection, not to be segmented.
+  </p>
+
+  <h3>Engineering workstations and project files</h3>
+  <p>
+    The engineering workstation is where controller logic is written, compiled, and downloaded to PLCs. The project
+    files on it represent the actual control logic of the plant — high-value both as attacker targets and as engineering
+    artefacts. Compromise of an EWS gives an attacker the ability to push modified logic to controllers; loss of project
+    files makes future engineering changes much harder.
+  </p>
+  <p>
+    Healthy practice: EWS hosts are dedicated, hardened, kept off the wider corporate network, and project files are
+    version-controlled with separate authentication. In reality: many EWS are dual-purpose machines also used for
+    email, web browsing, and general engineering work — which is one reason phishing-borne malware so often ends up
+    with a foothold adjacent to OT.
+  </p>
+
+  <h3>Remote operations and the cloud question</h3>
+  <p>
+    Increasing pressure to extend OT monitoring and even control to cloud platforms — for fleet visibility across sites,
+    for predictive maintenance, for vendor-managed services. This is the next-decade question for OT architecture, and
+    different sectors are answering it differently. Water and electricity utilities are cautious; manufacturing is
+    further along; building management is essentially there already.
+  </p>
+  <p>
+    The risk pattern: cloud connectivity introduced for monitoring use cases ("read-only, no control") quietly becomes
+    a control surface as features expand. The architectural discipline — keep it strictly read-only, terminate on the
+    OT side with a data diode or equivalent — is harder to maintain over time than to define on day one.
+  </p>
+
+  <div class="callout incident">
+    <span class="callout-label">Incident — Colonial Pipeline, 2021</span>
+    <p>
+      Colonial Pipeline shut down their pipeline operations after a ransomware attack on their IT systems. The attackers
+      reached the IT estate via a compromised VPN credential; they did not, according to public reporting, reach the
+      OT systems controlling the pipeline. Operations were halted by Colonial themselves, partly because billing systems
+      (IT) were unavailable and partly out of caution about whether OT systems might also be at risk. The lesson: IT
+      compromise can force an OT shutdown even when OT itself is technically untouched, when shared dependencies span
+      both sides. Architecture that minimises those shared dependencies — billing, identity, monitoring, comms — is
+      part of OT resilience, not just IT hygiene.
+    </p>
+  </div>
+</section>
+
+
+<section id="frameworks">
+  <div class="section-eyebrow">Section 06</div>
+  <h2 class="section-title">Standards &amp; frameworks</h2>
+  <p class="section-lede">
+    Five frameworks worth knowing, in roughly the order a UK practitioner is likely to meet them. Each gets a one-paragraph
+    orientation here — for actual content, go to the official source. The point is to know which one to reach for and
+    how they relate to each other, not to summarise content that already exists in better form elsewhere.
+  </p>
+
+  <div class="framework-grid">
+
+    <div class="framework-card">
+      <span class="framework-tag">UK Regulatory</span>
+      <div class="framework-name">NCSC CAF v4</div>
+      <div class="framework-desc">
+        The Cyber Assessment Framework. The UK's regulatory assessment framework for organisations covered by NIS
+        Regulations — Operators of Essential Services and Relevant Digital Service Providers. Outcome-based: four
+        objectives, fourteen principles, forty-one contributing outcomes. Sector regulators (Ofgem, Ofwat, etc.) use
+        CAF to assess CNI compliance. <strong>If you're in UK CNI, this is the framework regulators score you against.</strong>
+      </div>
+      <div class="framework-when">
+        <strong>When to reach for it</strong>
+        Regulatory assessment, NIS reporting, board-level resilience reporting, structuring a UK CNI security programme.
+      </div>
+      <a class="framework-link" href="https://www.ncsc.gov.uk/collection/cyber-assessment-framework" target="_blank" rel="noopener">ncsc.gov.uk/cyber-assessment-framework →</a>
+    </div>
+
+    <div class="framework-card">
+      <span class="framework-tag">International Technical Standard</span>
+      <div class="framework-name">IEC 62443</div>
+      <div class="framework-desc">
+        The international standard family for the security of Industrial Automation and Control Systems (IACS).
+        Multiple parts covering programmes (62443-2-1), system requirements (62443-3-3), component requirements
+        (62443-4-2). Built around zones, conduits, and Security Levels SL-1 through SL-4. Widely adopted by industrial
+        equipment vendors and integrators. In the UK CNI context, IEC 62443 sits <em>alongside</em> CAF — it's the
+        technical standard used to implement the OT security that CAF expects in principle.
+      </div>
+      <div class="framework-when">
+        <strong>When to reach for it</strong>
+        Designing an OT security architecture, specifying requirements to vendors, formal SL assessment, working with
+        engineering teams who already use it.
+      </div>
+      <a class="framework-link" href="https://www.isa.org/standards-and-publications/isa-standards/isa-iec-62443-series-of-standards" target="_blank" rel="noopener">isa.org/standards/62443 →</a>
+    </div>
+
+    <div class="framework-card">
+      <span class="framework-tag">US Government Guidance</span>
+      <div class="framework-name">NIST SP 800-82r3</div>
+      <div class="framework-desc">
+        Guide to Operational Technology Security. The detailed, practitioner-oriented reference document for OT
+        security from the US National Institute of Standards and Technology. Revision 3, published 2023, broadened
+        scope from ICS to OT generally — now covers building automation, transportation, medical devices alongside
+        traditional industrial control. Free to download. Around 300 pages. The single best operational reference
+        if you're going to read one document end-to-end.
+      </div>
+      <div class="framework-when">
+        <strong>When to reach for it</strong>
+        Self-education, security control selection, detailed operational guidance, mapping to other frameworks.
+      </div>
+      <a class="framework-link" href="https://csrc.nist.gov/pubs/sp/800/82/r3/final" target="_blank" rel="noopener">csrc.nist.gov/pubs/sp/800/82/r3 →</a>
+    </div>
+
+    <div class="framework-card">
+      <span class="framework-tag">UK Government Guidance</span>
+      <div class="framework-name">NCSC OT Guidance</div>
+      <div class="framework-desc">
+        The NCSC's targeted guidance for OT environments — principles, sector-specific notes, and supporting material
+        that aligns with CAF. Lighter than NIST SP 800-82r3 but better calibrated to UK regulatory and sector context.
+        Includes specific guidance on secure remote access, OT-aware patching, and SIS-related considerations.
+      </div>
+      <div class="framework-when">
+        <strong>When to reach for it</strong>
+        UK-specific implementation guidance, briefing senior stakeholders, sector context for CNI conversations.
+      </div>
+      <a class="framework-link" href="https://www.ncsc.gov.uk/collection/operational-technology" target="_blank" rel="noopener">ncsc.gov.uk/operational-technology →</a>
+    </div>
+
+    <div class="framework-card">
+      <span class="framework-tag">Functional Safety</span>
+      <div class="framework-name">IEC 61508 / IEC 61511</div>
+      <div class="framework-desc">
+        Functional safety standards. <strong>IEC 61508</strong> is the general standard for safety-related systems
+        across industries. <strong>IEC 61511</strong> is the process-industry-specific application of 61508, covering
+        Safety Instrumented Systems in chemical, oil &amp; gas, and similar plants. Not security standards — but
+        anything that could affect a SIS is governed by these, and the security/safety boundary is where many OT
+        decisions live. If your environment has a SIS, these standards govern its design and any change to it.
+      </div>
+      <div class="framework-when">
+        <strong>When to reach for it</strong>
+        Anything touching a Safety Instrumented System, working with functional safety engineers, change control on
+        safety-related systems.
+      </div>
+      <a class="framework-link" href="https://www.iec.ch/functional-safety" target="_blank" rel="noopener">iec.ch/functional-safety →</a>
+    </div>
+
+  </div>
+
+  <h3>How they relate</h3>
+  <p>
+    For a UK practitioner, a useful mental model: <strong>CAF</strong> is what the regulator assesses you against;
+    <strong>IEC 62443</strong> is what your engineering teams and integrators build to; <strong>NIST 800-82r3</strong>
+    is the encyclopaedic reference you go to for depth; <strong>NCSC OT guidance</strong> is the UK-flavoured
+    practitioner material; <strong>IEC 61508/61511</strong> govern anything that touches safety. They don't conflict
+    in any meaningful way; they cover different layers of the same problem.
+  </p>
+
+  <h3>UK regulatory direction of travel</h3>
+  <p>
+    The NIS Regulations 2018 currently provide the UK regulatory framework for CNI cyber. The forthcoming
+    <strong>Cyber Security and Resilience Bill</strong> is expected to broaden coverage and align more closely with
+    the EU's NIS2 Directive. CAF v4 (August 2025) was updated in anticipation. Sector regulators continue to set
+    sector-specific expectations on top — Ofgem for energy, Ofwat for water, the ORR for rail, HSE for safety-related
+    plant. None of this changes the underlying technical standards (62443, 61508/61511), but it does change reporting
+    obligations and assessment frequency.
+  </p>
+
+  <div class="callout incident">
+    <span class="callout-label">Incident — Triton / Trisis, 2017</span>
+    <p>
+      Triton (also Trisis or HatMan) was malware that specifically targeted Schneider Electric Triconex safety
+      controllers at a petrochemical plant in Saudi Arabia. The attackers reached the safety controllers — successfully
+      — and were attempting to modify their logic when they were detected, having accidentally tripped the SIS into
+      a safe-state shutdown. Had they succeeded, the safety layer protecting the plant from physical disaster would
+      have been silently disabled. Triton is the case study for why SIS deserves separate treatment from BPCS, why
+      IEC 61508/61511 govern these systems, and why "is this connected to a safety system" is the single most
+      important question to answer when triaging an OT incident.
+    </p>
+  </div>
+</section>
+
+
+<section id="safety">
+  <div class="section-eyebrow">Section 07</div>
+  <h2 class="section-title">Safety &amp; where to go next</h2>
+  <p class="section-lede">
+    The throughline of this document has been "OT is different because safety matters in a way IT rarely has to think
+    about." This last section closes the loop on the safety side, then points at the next steps for a practitioner
+    who wants to go deeper.
+  </p>
+
+  <h3>The safety / security distinction</h3>
+  <p>
+    The traditional engineering definitions: <strong>safety</strong> is freedom from unacceptable risk of physical
+    injury or damage; <strong>security</strong> is freedom from intentional unauthorised acts. They overlap heavily
+    in OT — a security failure can cause a safety event, and a safety system failure can be exploited for security
+    impact. But the disciplines are distinct in practice: safety is governed by functional safety standards
+    (IEC 61508/61511), validated by safety engineers, and certified to specific safety integrity levels (SILs).
+    Security is governed by IEC 62443 and similar, validated by security engineers, against security levels (SLs).
+    Same acronym shape, very different things.
+  </p>
+
+  <h3>What an IT-trained responder must never do</h3>
+  <p>
+    Three categorical rules that hold regardless of how the rest of an incident is going:
+  </p>
+  <ul>
+    <li><strong>Do not take action on a Safety Instrumented System.</strong> No probing, no scanning, no isolation,
+    no patching, no credential rotation. SIS-related events are major incidents requiring engineering, operations,
+    and safety personnel by default. Even passive monitoring of SIS network traffic warrants careful coordination
+    before it starts.</li>
+    <li><strong>Do not assume "the safety system will catch it."</strong> The SIS exists to protect against
+    process-side failures, not necessarily against deliberately-engineered attacks against itself. Triton showed
+    the SIS itself is reachable. A compromised SIS protects nothing.</li>
+    <li><strong>Do not make decisions about safety-related systems without engineering authority on the line.</strong>
+    The IT chain of command does not extend to safety. Decisions about availability, isolation, or any change to a
+    safety-related system require engineering and (usually) safety sign-off — not the IR Lead alone, not the SOC,
+    not the on-call.</li>
+  </ul>
+
+  <h3>Where to go from here</h3>
+  <p>
+    If you've read this far and want to develop further, the path forks depending on whether you want operational
+    capability (responding to incidents that touch OT) or design capability (architecting OT security).
+  </p>
+
+  <h4>Tools in this suite</h4>
+  <div class="next-grid">
+    <a href="ot-incident-triage.html" class="next-card">
+      <div class="next-card-tag">OT Triage Tool</div>
+      <div class="next-card-name">OT Incident Triage</div>
+      <div class="next-card-desc">Asset-type-led decision support for IT responders facing an OT alert. Eight asset
+      types, five safety gates, three-way decision with allowed/prohibited actions.</div>
+    </a>
+    <a href="https://danhowett.github.io/useful/" class="next-card">
+      <div class="next-card-tag">All Tools</div>
+      <div class="next-card-name">Full suite</div>
+      <div class="next-card-desc">The broader suite — incident readiness, frameworks, threat intelligence, compliance,
+      DFIR. OT-relevant tools sit in section 07.</div>
+    </a>
+  </div>
+
+  <h4>Authoritative documents to read next</h4>
+  <p>
+    If you've never read NIST SP 800-82r3 end to end, that's the highest-value next step — it's free, it's the most
+    comprehensive practitioner reference, and it pays back the time. The NCSC OT collection is a shorter and more
+    UK-applicable starting point. For CNI specifically, NCSC CAF v4 plus your sector regulator's expectations frame
+    everything else.
+  </p>
+  <ul>
+    <li><a href="https://csrc.nist.gov/pubs/sp/800/82/r3/final" target="_blank" rel="noopener">NIST SP 800-82r3 — Guide to Operational Technology Security</a></li>
+    <li><a href="https://www.ncsc.gov.uk/collection/operational-technology" target="_blank" rel="noopener">NCSC — Operational Technology collection</a></li>
+    <li><a href="https://www.ncsc.gov.uk/collection/cyber-assessment-framework" target="_blank" rel="noopener">NCSC — Cyber Assessment Framework v4</a></li>
+    <li><a href="https://www.isa.org/standards-and-publications/isa-standards/isa-iec-62443-series-of-standards" target="_blank" rel="noopener">ISA / IEC 62443 series — overview and access</a></li>
+    <li><a href="https://www.cisa.gov/topics/industrial-control-systems" target="_blank" rel="noopener">CISA — Industrial Control Systems resources</a></li>
+  </ul>
+
+  <h4>Training paths worth the time</h4>
+  <p>
+    Two genuinely well-regarded training paths if you want a formal credential and the structured learning that goes
+    with it:
+  </p>
+  <ul>
+    <li><strong>SANS ICS courses</strong> (ICS410 introductory, ICS515 incident response, ICS612 advanced) — the
+    most respected practitioner training in the space. Expensive, intensive, well-taught.</li>
+    <li><strong>ISA/IEC 62443 certification path</strong> — vendor-neutral certification tied to the standard. More
+    structured than SANS, less practitioner-skills-focused. Useful for engineering-adjacent roles or where the standard
+    itself is the working framework.</li>
+  </ul>
+
+  <h3>One last thing</h3>
+  <p>
+    The most common mistake an IT-trained person makes in OT is acting confidently. The OT engineer's working assumption
+    is that the system is fragile, that changes have consequences, and that the right pace is "slow enough to be sure."
+    The faster you adopt that disposition, the faster you'll be useful. The IT instinct to move fast, fix things, and
+    apologise later doesn't work here, and the people you'll be working with already know that. Match their pace
+    and the trust follows.
+  </p>
+</section>
+
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+// Active TOC highlighting on scroll
+const sections = document.querySelectorAll('.content section');
+const tocLinks = document.querySelectorAll('.toc-list a');
+
+function updateActiveSection() {
+  let current = '';
+  const scrollPos = window.scrollY + 120;
+  sections.forEach(s => {
+    if (s.offsetTop <= scrollPos) current = s.id;
+  });
+  tocLinks.forEach(link => {
+    link.classList.toggle('active', link.dataset.target === current);
+  });
+}
+
+window.addEventListener('scroll', updateActiveSection);
+window.addEventListener('load', updateActiveSection);
+</script>
+
+</body>
+</html>
