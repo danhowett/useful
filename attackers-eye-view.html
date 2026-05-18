@@ -1,0 +1,2556 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attacker's Eye View · Dan Howett</title>
+<style>
+:root {
+  --bg: #f7f7f4;
+  --bg-card: #ffffff;
+  --bg-subtle: #f1f1ec;
+  --bg-darker: #ededea;
+  --ink: #18181b;
+  --ink-soft: #52525b;
+  --ink-faint: #a1a1aa;
+  --line: #e4e4e7;
+  --line-strong: #d4d4d8;
+  --accent: #1d4ed8;
+  --accent-soft: #eff6ff;
+  --warn: #b45309;
+  --warn-soft: #fef3c7;
+  --danger: #b91c1c;
+  --danger-soft: #fee2e2;
+  --ok: #15803d;
+  --ok-soft: #dcfce7;
+  --attacker: #7c2d12;
+  --attacker-soft: #fef2f2;
+  --defender: #1e40af;
+  --defender-soft: #dbeafe;
+  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --serif: 'Source Serif Pro', Georgia, serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.topnav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(247, 247, 244, 0.92);
+  backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.topnav-inner {
+  max-width: 1200px; margin: 0 auto;
+  padding: 14px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.topnav-brand {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--mono); font-size: 13px;
+  color: var(--ink); text-decoration: none;
+}
+.topnav-brand:hover { text-decoration: none; }
+.topnav-brand-mark {
+  width: 24px; height: 24px;
+  background: var(--ink); color: var(--bg-card);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 12px; border-radius: 4px;
+}
+.topnav-brand-sep { color: var(--ink-faint); }
+.topnav-brand-section { color: var(--ink-soft); }
+.topnav-actions { display: flex; gap: 8px; }
+.topnav-actions a, .topnav-actions button {
+  background: transparent; border: 1px solid var(--line-strong);
+  color: var(--ink-soft);
+  padding: 6px 12px;
+  font-family: var(--mono); font-size: 12px;
+  cursor: pointer; border-radius: 4px;
+  transition: all 0.15s; text-decoration: none;
+}
+.topnav-actions a:hover, .topnav-actions button:hover {
+  background: var(--ink); color: var(--bg-card); border-color: var(--ink);
+  text-decoration: none;
+}
+
+.page { max-width: 1200px; margin: 0 auto; padding: 48px 28px 120px; }
+
+/* HERO */
+.hero { margin-bottom: 36px; }
+.hero-eyebrow {
+  font-family: var(--mono); font-size: 11px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ink-soft); margin-bottom: 16px;
+}
+.hero-title {
+  font-family: var(--serif); font-size: 56px;
+  line-height: 1.05; font-weight: 400; letter-spacing: -0.02em;
+  margin-bottom: 20px;
+}
+.hero-title em { font-style: italic; color: var(--attacker); }
+.hero-lede {
+  font-size: 17px; color: var(--ink-soft);
+  max-width: 820px; line-height: 1.6;
+}
+.hero-lede strong { color: var(--ink); }
+
+/* DISCLAIMER */
+.disclaimer {
+  background: var(--warn-soft);
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  padding: 16px 20px; margin: 28px 0;
+  display: flex; gap: 16px; align-items: flex-start;
+}
+.disclaimer-mark {
+  font-family: var(--mono); font-size: 20px;
+  color: var(--warn); font-weight: 700; line-height: 1;
+}
+.disclaimer-body { font-size: 13px; color: #78350f; line-height: 1.55; }
+.disclaimer-body strong { color: #451a03; }
+
+/* SCENARIO PICKER */
+.section-title {
+  font-family: var(--serif); font-size: 28px; font-weight: 400;
+  letter-spacing: -0.01em; margin-bottom: 8px;
+}
+.section-sub { color: var(--ink-soft); margin-bottom: 24px; max-width: 720px; }
+
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 16px;
+}
+.scenario-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--attacker);
+  border-radius: 8px;
+  padding: 22px 24px;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--sans);
+  transition: all 0.15s;
+  display: block;
+  text-decoration: none;
+  color: var(--ink);
+}
+.scenario-card:hover {
+  text-decoration: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+}
+.scenario-card-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--attacker);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.scenario-card-title {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+.scenario-card-desc {
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  margin-bottom: 12px;
+}
+.scenario-card-meta {
+  display: flex; flex-wrap: wrap; gap: 6px 14px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: 0.02em;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+}
+.scenario-card-meta strong { color: var(--ink-soft); font-weight: 600; }
+
+/* RUN VIEW */
+.run-view { display: none; }
+.run-view.active { display: block; }
+
+.scenario-header {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 8px; gap: 16px; flex-wrap: wrap;
+}
+.scenario-title {
+  font-family: var(--serif); font-size: 36px; font-weight: 400;
+  letter-spacing: -0.01em;
+}
+.scenario-back {
+  font-family: var(--mono); font-size: 12px;
+  color: var(--ink-soft); cursor: pointer;
+  background: transparent; border: 1px solid var(--line-strong);
+  padding: 6px 12px; border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+.scenario-back:hover { color: var(--ink); border-color: var(--ink); }
+.scenario-anchor {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--ink-soft); margin-bottom: 24px;
+  letter-spacing: 0.02em;
+}
+.scenario-anchor strong { color: var(--ink); font-weight: 600; }
+
+.defender-profile {
+  background: var(--defender-soft);
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 18px 22px;
+  margin-bottom: 24px;
+}
+.defender-profile-label {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--defender); font-weight: 700;
+  margin-bottom: 10px;
+}
+.defender-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px 20px;
+}
+.defender-profile-item { font-size: 13px; }
+.defender-profile-item-key {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--defender); font-weight: 600;
+  margin-bottom: 2px;
+}
+.defender-profile-item-val { color: var(--ink); }
+
+.briefing {
+  background: var(--attacker-soft);
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 22px 26px;
+  margin-bottom: 32px;
+}
+.briefing-label {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--attacker); font-weight: 700;
+  margin-bottom: 10px;
+}
+.briefing-body {
+  font-family: var(--serif); font-size: 15.5px;
+  line-height: 1.7; color: var(--ink);
+}
+.briefing-body p { margin-bottom: 12px; }
+.briefing-body p:last-child { margin-bottom: 0; }
+
+/* STAGE */
+.stage {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 28px 32px;
+  margin-bottom: 20px;
+}
+.stage-header {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.stage-num {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--ink-faint); letter-spacing: 0.1em;
+}
+.stage-label {
+  font-family: var(--serif); font-size: 26px; font-weight: 600;
+  letter-spacing: -0.01em; flex: 1; margin-left: 16px;
+}
+.stage-progress {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--ink-soft); letter-spacing: 0.04em;
+}
+
+.view-block { margin-bottom: 20px; }
+.view-block-label {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  font-weight: 700; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.view-block-label::before {
+  content: ''; width: 8px; height: 8px; border-radius: 50%;
+}
+.view-block.attacker .view-block-label { color: var(--attacker); }
+.view-block.attacker .view-block-label::before { background: var(--attacker); }
+.view-block.defender .view-block-label { color: var(--defender); }
+.view-block.defender .view-block-label::before { background: var(--defender); }
+.view-block-body {
+  font-family: var(--serif); font-size: 15px;
+  line-height: 1.7; color: var(--ink);
+}
+.view-block.defender .view-block-body {
+  font-size: 14px; color: var(--ink-soft); font-style: italic;
+}
+
+.options-label {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-soft); font-weight: 700;
+  margin: 24px 0 12px 0;
+}
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+.option-card {
+  background: var(--bg);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 18px 22px;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--sans);
+  transition: all 0.15s;
+  position: relative;
+}
+.option-card:hover {
+  border-color: var(--attacker);
+  background: var(--bg-card);
+}
+.option-card-headline {
+  font-size: 15px; font-weight: 600;
+  margin-bottom: 6px; color: var(--ink);
+}
+.option-card-detail {
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  margin-bottom: 14px;
+}
+.option-meters {
+  display: flex; gap: 16px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+}
+.meter {
+  flex: 1;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.meter-label {
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-faint); font-weight: 600;
+}
+.meter-bar {
+  display: flex; gap: 2px;
+}
+.meter-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--line-strong);
+}
+.meter-dot.filled { background: var(--ink-soft); }
+.meter.effort .meter-dot.filled { background: var(--ink-soft); }
+.meter.detection .meter-dot.filled { background: var(--warn); }
+.meter.progress .meter-dot.filled { background: var(--ok); }
+
+/* OUTCOME REVEAL */
+.outcome-reveal {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--attacker);
+  border-radius: 8px;
+  padding: 24px 28px;
+  margin-bottom: 20px;
+}
+.outcome-reveal.detected { border-left-color: var(--warn); }
+.outcome-reveal.stopped { border-left-color: var(--danger); }
+.outcome-label {
+  font-family: var(--mono); font-size: 11px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--attacker); font-weight: 700;
+  margin-bottom: 10px;
+}
+.outcome-reveal.detected .outcome-label { color: var(--warn); }
+.outcome-reveal.stopped .outcome-label { color: var(--danger); }
+.outcome-narrative {
+  font-family: var(--serif); font-size: 15.5px;
+  line-height: 1.7; color: var(--ink);
+  margin-bottom: 16px;
+}
+.outcome-controls {
+  padding-top: 14px;
+  border-top: 1px dashed var(--line);
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.outcome-controls-label {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--defender); font-weight: 600;
+  margin-bottom: 6px;
+}
+.outcome-controls-list {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.outcome-control-tag {
+  background: var(--defender-soft);
+  color: var(--defender);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  letter-spacing: 0.02em;
+}
+.outcome-continue {
+  display: block;
+  width: 100%;
+  margin-top: 18px;
+  background: var(--ink);
+  color: var(--bg-card);
+  border: none;
+  padding: 12px 18px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+.outcome-continue:hover { background: var(--attacker); }
+
+/* DEBRIEF */
+.debrief {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 32px 36px;
+  margin-bottom: 24px;
+}
+.debrief-end-state {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+.debrief-end-state.compromise { color: var(--danger); }
+.debrief-end-state.held { color: var(--ok); }
+.debrief-end-state.detected-midway { color: var(--warn); }
+.debrief-title {
+  font-family: var(--serif);
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  margin-bottom: 16px;
+}
+.debrief-summary {
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--ink);
+  margin-bottom: 28px;
+}
+.debrief-section { margin-bottom: 28px; }
+.debrief-section:last-child { margin-bottom: 0; }
+.debrief-section-label {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--defender); font-weight: 700;
+  margin-bottom: 12px;
+}
+.debrief-section h4 {
+  font-size: 14px; font-weight: 600;
+  color: var(--ink); margin-bottom: 8px;
+}
+.debrief-section ul { padding-left: 20px; margin-bottom: 8px; }
+.debrief-section li { margin-bottom: 8px; line-height: 1.6; font-size: 14px; }
+.debrief-section li strong { color: var(--ink); font-weight: 600; }
+
+.controls-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.control-row {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 16px;
+  padding: 10px 14px;
+  background: var(--bg-subtle);
+  border-radius: 6px;
+  border-left: 2px solid var(--defender);
+}
+.control-row-key {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--defender);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+}
+.control-row-desc {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.55;
+}
+@media (max-width: 720px) {
+  .control-row { grid-template-columns: 1fr; gap: 4px; }
+}
+
+.path-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.path-step {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  gap: 14px;
+  padding: 10px 14px;
+  background: var(--bg-subtle);
+  border-radius: 6px;
+}
+.path-step-stage {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 600;
+  padding-top: 2px;
+}
+.path-step-choice {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.real-world-callout {
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  padding: 14px 18px;
+  margin: 16px 0;
+  font-size: 13.5px;
+  color: var(--ink);
+  line-height: 1.6;
+}
+.real-world-callout strong {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.debrief-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+.debrief-actions button {
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
+  padding: 10px 16px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: all 0.15s;
+}
+.debrief-actions button:hover {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--bg-card);
+}
+.debrief-actions button.primary {
+  background: var(--ink);
+  color: var(--bg-card);
+  border-color: var(--ink);
+}
+.debrief-actions button.primary:hover {
+  background: var(--attacker);
+  border-color: var(--attacker);
+}
+
+@media (max-width: 720px) {
+  .hero-title { font-size: 40px; }
+  .stage { padding: 20px; }
+  .stage-header { flex-direction: column; align-items: flex-start; }
+  .stage-label { margin-left: 0; }
+}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-inner">
+    <a href="https://danhowett.github.io/useful/" class="topnav-brand">
+      <span class="topnav-brand-mark">DH</span>
+      <span>Dan Howett</span>
+      <span class="topnav-brand-sep">/</span>
+      <span class="topnav-brand-section">Attacker's Eye View</span>
+    </a>
+    <div class="topnav-actions">
+      <a href="https://danhowett.github.io/useful/adversary-mindsets.html">ADVERSARY MINDSETS</a>
+      <a href="https://danhowett.github.io/useful/threat-actor-index.html">THREAT ACTORS</a>
+      <a href="https://danhowett.github.io/useful/">ALL TOOLS</a>
+    </div>
+  </div>
+</nav>
+
+<main class="page">
+
+  <!-- LANDING VIEW -->
+  <div id="landingView">
+    <header class="hero">
+      <div class="hero-eyebrow">Attacker's Eye View · Interactive narrative</div>
+      <h1 class="hero-title">See your defence through <em>attacker eyes.</em></h1>
+      <p class="hero-lede">
+        Pick a scenario. Play the attacker for a series of decisions across the kill chain. At each stage, you see what
+        the attacker observes, what the defender sees, and the options the attacker would consider. Pick one; see what
+        would happen and which control would (or wouldn't) catch it. End with a <strong>defender debrief</strong> showing
+        the controls that mattered, the blind spots exposed, and the real-world incident this most resembles.
+      </p>
+      <p class="hero-lede" style="margin-top: 12px;">
+        Five hand-built scenarios, each 5-7 stages, ~10 minutes per run. No live offensive techniques — all decisions
+        are at the category level. The defender's perspective is the point.
+      </p>
+    </header>
+
+    <div class="disclaimer">
+      <span class="disclaimer-mark">!</span>
+      <div class="disclaimer-body">
+        <strong>Orientation, not threat modelling.</strong> This is a thinking aid built to reveal defender blind spots
+        through attacker perspective — not a substitute for organisation-specific threat assessment, red teaming, or
+        intelligence analysis. Scenarios are calibrated to attacker class and defender archetype, not to your specific
+        environment. <strong>You should not rely on this tool's output</strong> as the basis for security investment
+        decisions without independent verification by qualified personnel. The author accepts no liability whatsoever
+        for any loss, damage, or consequence arising from use of, or reliance on, this tool or its outputs. Use
+        entirely at your own risk.
+      </div>
+    </div>
+
+    <h2 class="section-title">Pick a scenario</h2>
+    <p class="section-sub">
+      Each scenario covers a different attacker class and defender profile. The first time through, pick whichever
+      pattern best matches your sector. Coming back? Pick a different one to see how the disposition shifts.
+    </p>
+
+    <div class="scenario-grid" id="scenarioGrid"></div>
+  </div>
+
+  <!-- RUN VIEW -->
+  <div class="run-view" id="runView">
+    <div class="scenario-header">
+      <button class="scenario-back" onclick="returnToLanding()">← back to scenarios</button>
+    </div>
+    <h1 class="scenario-title" id="runTitle"></h1>
+    <div class="scenario-anchor" id="runAnchor"></div>
+    <div class="defender-profile" id="runDefenderProfile"></div>
+    <div class="briefing" id="runBriefing"></div>
+    <div id="stagesContainer"></div>
+  </div>
+
+</main>
+
+<script>
+// === SCENARIO 1: THE HELP DESK CALL ===
+// Scattered Spider-style social engineering against mid-market UK retail
+// Real-world anchor: M&S, Co-op, Harrods (2025)
+
+const SCENARIO_HELP_DESK = {
+  id: 'help-desk-call',
+  title: 'The Help Desk Call',
+  attackerClass: 'financial',
+  attackerClassLabel: 'Financially Motivated Criminal',
+  defenderProfile: {
+    sector: 'Retail',
+    size: 'Mid-market',
+    employees: '~3,500',
+    posture: 'Outsourced IT support, in-house security operations',
+    crownJewel: 'Customer data and operational continuity (online + retail systems)'
+  },
+  realWorldAnchor: 'Scattered Spider against UK retail (M&S, Co-op, Harrods) — Apr-May 2025',
+
+  briefing: `You are part of a loose criminal collective. You operate from English-speaking countries — UK, US, Canada — making you fluent in the cultural cues that bypass help desk verification. Your model is simple: social engineering at the human layer, ransomware deployment at the technical layer, and a ransomware-as-a-service affiliate ready to monetise the access.
+
+Your target was chosen this morning. A UK retailer, mid-market, around 3,500 employees, a recognisable high-street brand. Their IT support is outsourced to Tata Consultancy Services — a fact you discovered from a LinkedIn job posting six months old.
+
+You have a few days, maybe a week, before something forces you to move. Your goal isn't elegance. It's conversion.`,
+
+  stages: [
+    // ============================================================
+    // STAGE 1 — RECONNAISSANCE
+    // ============================================================
+    {
+      id: 's1',
+      stageNum: 1,
+      label: 'Reconnaissance',
+      attackerView: `The target's perimeter is unremarkable. Standard SaaS stack — Microsoft 365, Okta SSO, ServiceNow ticketing. Their public-facing infrastructure is patched. Their VPN sits behind a known commercial gateway. They have a SOC, judging from the LinkedIn profiles of three security analysts.
+
+The interesting thing is the supplier relationship. The retailer publishes the same case studies their IT outsourcer publishes — same project names, same architecture diagrams. The outsourcer's help desk handles password resets and MFA enrolment for the retailer's employees. That's the seam.`,
+      defenderView: `Nothing. Reconnaissance against publicly available information leaves no trace on the defender's network.`,
+      options: [
+        {
+          id: 'opt-1a',
+          headline: 'Build an impersonation profile from LinkedIn and OSINT',
+          detail: 'Spend a day building a target profile. Pick a real employee who would plausibly call IT support — middle management, recently joined, technical-adjacent. Harvest their photo, manager name, recent location moves from LinkedIn. Cross-reference against data broker aggregators for personal phone numbers.',
+          effort: 2, detection: 0, progress: 3,
+          outcome: {
+            narrative: 'A few hours of OSINT yields a usable target persona. Real name, real role, real reporting chain. The defender has no way to know they have been selected. The supplier-fronted help desk model means whoever you call has no personal relationship with the impersonation target — they verify against process, not memory.',
+            controlsReferenced: ['osint-discipline', 'employee-public-profile-policy'],
+            wasDetected: false,
+            stateChanges: { dwellDays: 1, recon: 'complete', notes: ['target persona built'] }
+          }
+        },
+        {
+          id: 'opt-1b',
+          headline: 'Buy stealer logs for the retailer\'s domain',
+          detail: 'Check infostealer marketplaces for credential dumps from anyone with @retailer.co.uk email. Stolen browser-stored credentials, session tokens, sometimes already-bypassed MFA. Costs around £200-£400 for a usable log.',
+          effort: 1, detection: 0, progress: 4,
+          outcome: {
+            narrative: 'Two stealer logs match. One is six months old and the password was rotated. The other is from a personal browser session four weeks ago — an employee logged into their corporate webmail on their home laptop, picked up an infostealer from a malicious download. The credentials are still valid. You have a starting position.',
+            controlsReferenced: ['credential-monitoring', 'unmanaged-device-controls', 'mfa-resilience'],
+            wasDetected: false,
+            stateChanges: { dwellDays: 0, recon: 'complete', credentialsObtained: true, notes: ['valid credentials from stealer log'] }
+          }
+        },
+        {
+          id: 'opt-1c',
+          headline: 'Probe the external attack surface directly',
+          detail: 'Run automated scans against the retailer\'s perimeter for unpatched services, exposed admin interfaces, misconfigured cloud storage. The fast route, but noisy.',
+          effort: 1, detection: 3, progress: 1,
+          outcome: {
+            narrative: 'The scans light up the retailer\'s WAF and a managed perimeter monitoring service. The traffic is recorded but not actioned — perimeter scanning is constant background noise on the internet and there is nothing specific to attribute. You haven\'t been caught, but you haven\'t advanced either: the perimeter is well-patched and there is no obvious technical entry.',
+            controlsReferenced: ['external-attack-surface-monitoring', 'waf-tuning'],
+            wasDetected: false,
+            stateChanges: { dwellDays: 1, recon: 'partial', notes: ['perimeter scanned, no technical entry'] }
+          }
+        }
+      ]
+    },
+
+    // ============================================================
+    // STAGE 2 — INITIAL ACCESS
+    // ============================================================
+    {
+      id: 's2',
+      stageNum: 2,
+      label: 'Initial Access',
+      attackerView: `You have what you need for the human-layer attack. The retailer's employees authenticate via Okta with phone-push MFA. The outsourced help desk handles MFA resets when an employee says they have lost or changed their phone. Reset process: caller verifies identity using employee ID, date of birth, and one other personal datum. The OSINT you have covers all three.
+
+The retailer's SOC is staffed business hours. It is currently 18:45 GMT on a Wednesday. The help desk operates 24/7.`,
+      defenderView: `The help desk operates within its documented process. No alerts are designed to fire for legitimate-looking reset requests during normal volume.`,
+      options: [
+        {
+          id: 'opt-2a',
+          headline: 'Call the help desk impersonating the target',
+          detail: 'Phone the outsourced help desk. Use the impersonation profile to verify. Request an MFA reset, explain the new device. Have the codes sent to a number you control. Total call time: under 8 minutes if it works.',
+          effort: 2, detection: 1, progress: 5,
+          outcome: {
+            narrative: 'The call goes through. The help desk operator follows process. Your verification data matches. The MFA is reset within the call. You log in within the hour. The defender\'s SOC will see this tomorrow morning as "user reset MFA from new device, then logged in from a slightly different location" — well within normal noise.',
+            controlsReferenced: ['help-desk-verification', 'mfa-reset-callback', 'identity-verification-strength', 'after-hours-helpdesk-coverage'],
+            wasDetected: false,
+            stateChanges: { privilege: 'user', initialAccess: true, notes: ['MFA reset via help desk', 'logged in successfully'] }
+          }
+        },
+        {
+          id: 'opt-2b',
+          headline: 'Use the stealer credentials directly',
+          detail: 'Try the credentials from the stealer log. They were captured before the most recent password rotation policy enforcement. The session token in the log may still be valid — bypassing the password and MFA entirely.',
+          effort: 1, detection: 2, progress: 4,
+          outcome: {
+            narrative: 'The session token is rejected — the IdP requires re-authentication for new IP addresses. The username and password work but trigger an MFA push to the legitimate employee\'s phone. They decline. The login attempt is logged but the SOC tomorrow morning treats it as a one-off failed login from an unusual location. The user does not raise it with security.',
+            controlsReferenced: ['conditional-access', 'mfa-resilience', 'user-reporting-culture', 'login-anomaly-detection'],
+            wasDetected: false,
+            stateChanges: { initialAccess: false, notes: ['credential reuse blocked by MFA', 'employee declined push, did not report'] }
+          }
+        },
+        {
+          id: 'opt-2c',
+          headline: 'Spear-phish the target with a fake Okta page',
+          detail: 'Set up a phishing site mirroring the retailer\'s Okta portal. Send a text message to the target\'s personal phone (from OSINT) about an urgent security update. Drive them to the page and harvest their session cookie via a real-time relay.',
+          effort: 3, detection: 2, progress: 4,
+          outcome: {
+            narrative: 'The target receives the SMS but does not click — they recognise the format as off, or they are simply busy. The phishing infrastructure remains live and a colleague of the target receives the same lure two hours later and does click. You harvest one set of credentials. The relayed session works briefly but is invalidated when the colleague gets a "new device" Okta email and reports it.',
+            controlsReferenced: ['mfa-phish-resistance', 'idp-device-binding', 'user-reporting-culture'],
+            wasDetected: true,
+            stateChanges: { initialAccess: 'transient', notes: ['phish succeeded transiently', 'detected and reported within hours'] }
+          }
+        }
+      ]
+    },
+
+    // ============================================================
+    // STAGE 3 — FOOTHOLD
+    // ============================================================
+    {
+      id: 's3',
+      stageNum: 3,
+      label: 'Foothold & Persistence',
+      attackerView: `You are logged into a corporate Microsoft 365 tenant as a middle manager. Their email, their OneDrive, their Teams. Not yet on the corporate network proper — the IdP is the boundary. The objective is privilege and persistence: you want access that survives password rotations and conditional access changes.`,
+      defenderView: `A successful login from the user. To the SOC this is indistinguishable from the user themselves logging in from a hotel or a new device.`,
+      options: [
+        {
+          id: 'opt-3a',
+          headline: 'Add a new MFA method to the user\'s account',
+          detail: 'Enrol an additional authenticator that you control. Now even if the user re-registers their phone, you retain a path back in. Cost: a new audit log entry that the defender may or may not look at.',
+          effort: 1, detection: 2, progress: 4,
+          outcome: {
+            narrative: 'The new authenticator enrols cleanly. You now have a path back into the account that survives a password reset. The audit log records the enrolment — a defender looking at it would see "user added second authenticator" which is normal behaviour after a device change. Detection depends entirely on whether the SOC reviews MFA enrolment events. Most don\'t, in detail.',
+            controlsReferenced: ['mfa-enrolment-monitoring', 'identity-audit-review'],
+            wasDetected: false,
+            stateChanges: { persistence: 'mfa-method-added', notes: ['secondary MFA enrolled'] }
+          }
+        },
+        {
+          id: 'opt-3b',
+          headline: 'Create mail-flow rules to harvest password resets',
+          detail: 'Set up Outlook rules that quietly forward password-reset emails and security notifications to an external address. Standard insider-threat tradecraft, but defenders rarely look for it on individual users.',
+          effort: 1, detection: 3, progress: 3,
+          outcome: {
+            narrative: 'The rules go in. The defender\'s ASR (Attack Surface Reduction) rule on auto-forwarding to external addresses is not enabled in this tenant. A few days from now, a mail-flow rule audit might surface this — but the retailer\'s SOC tooling does not currently alert on it. You will know about password resets before the user does.',
+            controlsReferenced: ['mail-flow-rule-monitoring', 'asr-external-forwarding', 'm365-audit-baselines'],
+            wasDetected: false,
+            stateChanges: { persistence: 'mail-rules', notes: ['external-forward rules in place'] }
+          }
+        },
+        {
+          id: 'opt-3c',
+          headline: 'Register an OAuth application for token-based access',
+          detail: 'Consent to an OAuth app with broad mailbox and file permissions, granted by the compromised user. The app uses tokens — surviving password changes, MFA changes, and most session revocations.',
+          effort: 2, detection: 4, progress: 5,
+          outcome: {
+            narrative: 'You register the app. The user consent screen flashes briefly — they would only see it if they were looking at their own session at that moment. They are not. The OAuth grant goes through. Token-based access now persists independently of the password. But: the retailer recently tightened admin consent policies after an industry advisory, and any new OAuth app with broad permissions raises a Tier 2 SOC ticket overnight. That ticket lands at 06:00 tomorrow.',
+            controlsReferenced: ['oauth-consent-controls', 'admin-consent-workflow', 'soc-after-hours-triage'],
+            wasDetected: true,
+            stateChanges: { persistence: 'oauth-app', alertsRaised: 1, notes: ['OAuth app registered', 'SOC ticket pending review'] }
+          }
+        }
+      ]
+    },
+
+    // ============================================================
+    // STAGE 4 — DISCOVERY
+    // ============================================================
+    {
+      id: 's4',
+      stageNum: 4,
+      label: 'Discovery',
+      attackerView: `You need to understand what you have. Where is the customer data? Where are the operational systems? Who has access to what? The user account you control has middle-management visibility but no privileged access. The interesting systems are one step away.`,
+      defenderView: `User activity is logged but at this volume any single query is invisible. Cumulative behaviour might draw attention from an analytics platform if one is running — many organisations have UEBA in name but not in tuning.`,
+      options: [
+        {
+          id: 'opt-4a',
+          headline: 'SharePoint and Teams discovery',
+          detail: 'Search SharePoint for terms like "admin", "password", "credentials", "architecture", "runbook". Search Teams chat history for IT engineers discussing access patterns. Standard discovery — slow, methodical.',
+          effort: 2, detection: 1, progress: 3,
+          outcome: {
+            narrative: 'You find a SharePoint site for IT operations with read access for "all employees". Inside: a network diagram, a list of service accounts (no passwords), and a runbook for the retailer\'s OT integration with their warehouse management system. You now have a map. The SharePoint access log records your visits but no alert is configured for unusual search patterns.',
+            controlsReferenced: ['sharepoint-permissions-hygiene', 'ueba', 'sensitive-content-classification'],
+            wasDetected: false,
+            stateChanges: { discovery: 'map-obtained', notes: ['network diagram', 'service account names', 'WMS integration runbook'] }
+          }
+        },
+        {
+          id: 'opt-4b',
+          headline: 'Query Entra ID for admin and service accounts',
+          detail: 'Use the user\'s baseline Entra read access to enumerate Global Admins, Privileged Role Administrators, and service accounts with elevated permissions. Map the privilege graph.',
+          effort: 1, detection: 2, progress: 4,
+          outcome: {
+            narrative: 'You query the directory. You find the names of seven Global Admins (three on the security team, four in IT), a dozen service accounts with various elevated roles, and the structure of the retailer\'s Privileged Identity Management groups. The queries are within the normal permissions of any user — but the cumulative query volume from this account is unusual. A UEBA platform might flag it; the retailer\'s does not have anomaly rules tuned to MS Graph API call volume.',
+            controlsReferenced: ['privileged-identity-management', 'graph-api-monitoring', 'just-in-time-access'],
+            wasDetected: false,
+            stateChanges: { discovery: 'privilege-map', notes: ['admin accounts identified', 'PIM structure mapped'] }
+          }
+        },
+        {
+          id: 'opt-4c',
+          headline: 'Skip discovery, escalate fast',
+          detail: 'Discovery takes time. The longer you stay in the user\'s account, the more chances the help desk receives a callback request from the real employee that flags the reset. Move to escalation now, work with what you have.',
+          effort: 1, detection: 0, progress: 2,
+          outcome: {
+            narrative: 'You skip the methodical phase. You know enough — a corporate Microsoft 365 environment, an outsourced IT model, an Entra-based identity boundary. You move to escalation faster, which preserves your operational window. But you will hit dead-ends later when you discover assumptions you should have verified.',
+            controlsReferenced: [],
+            wasDetected: false,
+            stateChanges: { discovery: 'shallow', notes: ['skipped detailed discovery'] }
+          }
+        }
+      ]
+    },
+
+    // ============================================================
+    // STAGE 5 — PRIVILEGE ESCALATION
+    // ============================================================
+    {
+      id: 's5',
+      stageNum: 5,
+      label: 'Privilege Escalation',
+      attackerView: `You need elevated access. The user account is too constrained — it cannot reach the customer database, the payment systems, or the warehouse management infrastructure. The privilege graph you mapped shows the routes. The question is which one is least likely to trigger a controlled response.`,
+      defenderView: `The SOC is now at the morning shift change. The OAuth app ticket (if raised) is being reviewed by a Tier 2 analyst. If you have made discovery moves, they may correlate.`,
+      options: [
+        {
+          id: 'opt-5a',
+          headline: 'Call the help desk again — target an IT engineer',
+          detail: 'Repeat the social engineering against a different employee — this time an IT engineer with privileged access. Higher reward, higher risk: they are more likely to follow up.',
+          effort: 3, detection: 3, progress: 5,
+          outcome: {
+            narrative: 'The call goes through. The verification process is the same as the first call and your OSINT covers the new target. The MFA reset succeeds. The privileged session is granted. But the IT engineer arrives at their desk fifteen minutes later, sees the MFA reset notification on their phone, and calls security directly. The countdown has started: you may have minutes before the account is locked.',
+            controlsReferenced: ['help-desk-verification', 'privileged-account-reset-controls', 'callback-policy', 'user-reporting-time'],
+            wasDetected: true,
+            stateChanges: { privilege: 'admin', alertsRaised: 2, notes: ['privileged account compromised', 'user reported within 15 minutes'] }
+          }
+        },
+        {
+          id: 'opt-5b',
+          headline: 'Exploit the OAuth app to escalate via Graph',
+          detail: 'Use the OAuth app you registered to perform actions impersonating the user via Graph API — adding the user to privileged groups, granting them roles. Quieter than calling the help desk again.',
+          effort: 2, detection: 4, progress: 5,
+          requires: 'oauth-app',
+          outcome: {
+            narrative: 'You attempt to add the compromised user to a Privileged Identity Management role. The action is logged in the audit stream. The SOC ticket from the OAuth app registration is already open — this action is the second event in a chain the analyst is now actively following. They start a containment workflow.',
+            controlsReferenced: ['pim-just-in-time', 'oauth-permissions-audit', 'soc-correlation'],
+            wasDetected: true,
+            stateChanges: { privilege: 'partial-admin', alertsRaised: 3, stoppedReason: 'soc-correlated-events', notes: ['SOC correlated OAuth + privilege escalation'] }
+          }
+        },
+        {
+          id: 'opt-5c',
+          headline: 'Pivot to a service account via legacy authentication',
+          detail: 'The discovery surfaced a service account used for the WMS integration. Test it for legacy authentication paths that bypass MFA — IMAP, POP, basic auth. If the service account has these enabled, you can authenticate without an interactive session.',
+          effort: 2, detection: 2, progress: 4,
+          requires: 'map-obtained',
+          outcome: {
+            narrative: 'You find the service account and one of its authentication endpoints does still permit basic auth — a legacy that was supposed to be turned off last quarter but is still active because the WMS integration vendor was slow to update. The authentication succeeds. You now have a non-interactive session bound to a service account with WMS integration privileges. No MFA challenge, no conditional access trigger.',
+            controlsReferenced: ['legacy-auth-block', 'service-account-hardening', 'vendor-dependency-controls'],
+            wasDetected: false,
+            stateChanges: { privilege: 'service-account', notes: ['service account access via legacy auth'] }
+          }
+        }
+      ]
+    },
+
+    // ============================================================
+    // STAGE 6 — ACTION ON OBJECTIVES
+    // ============================================================
+    {
+      id: 's6',
+      stageNum: 6,
+      label: 'Action on Objectives',
+      attackerView: `You have what you need. The question is what you take and how fast. Three paths forward: exfiltrate customer data and extort the retailer publicly, deploy ransomware across the estate to compress decision time, or both — sequenced.`,
+      defenderView: `Whatever happens next is going to be loud. Mass data egress is logged. Mass file modification is logged. Ransomware deployment produces simultaneous alerts across many systems.`,
+      options: [
+        {
+          id: 'opt-6a',
+          headline: 'Exfiltrate the customer database, extort separately',
+          detail: 'Quiet path. Pull the customer data via the privileged access. Sit on it for a day. Approach the retailer privately with a ransom demand for non-publication. No encryption, no operational impact — only reputational pressure.',
+          effort: 2, detection: 3, progress: 4,
+          outcome: {
+            narrative: 'You start the data egress. The volume — millions of records — triggers a DLP alert. The defender\'s DLP fires on the volume but not the destination, which is a commercial cloud storage service. The SOC opens an incident. The first 30% of the data egresses before the egress is throttled by the DLP system\'s automated response. You have partial data, the defender has confirmation of an active intruder, and a different negotiation begins.',
+            controlsReferenced: ['dlp-volume-alerts', 'cloud-egress-controls', 'data-classification'],
+            wasDetected: true,
+            stateChanges: { objective: 'partial-exfil', alertsRaised: 5, notes: ['data exfil triggered DLP, partial only'] }
+          }
+        },
+        {
+          id: 'opt-6b',
+          headline: 'Deploy ransomware via the affiliate channel',
+          detail: 'You hand the access off to a ransomware affiliate who specialises in deployment. They will move from your privileged foothold to mass encryption across the estate within hours. Maximum pressure on the retailer, maximum visibility, maximum revenue if it works.',
+          effort: 3, detection: 5, progress: 5,
+          outcome: {
+            narrative: 'The affiliate moves fast. The first wave hits non-critical Windows servers. The second wave hits the retail estate point-of-sale infrastructure. By the time the SOC is paging the IR lead, multiple tills are down across the high street and the online store is degraded. The retailer is now in a public incident. The retailer pays nothing immediately and announces operational disruption to the LSE within 48 hours under their disclosure obligations. Your affiliate negotiates for two weeks; recovery is partial; the eventual settlement is significant but well below the initial demand.',
+            controlsReferenced: ['edr-coverage', 'backup-immutability', 'ot-it-segmentation', 'incident-response-plan', 'tabletop-exercises'],
+            wasDetected: true,
+            stateChanges: { objective: 'ransomware-deployed', alertsRaised: 8, notes: ['ransomware deployed', 'operational disruption visible', 'public disclosure required'] }
+          }
+        },
+        {
+          id: 'opt-6c',
+          headline: 'Stop here — sell the access',
+          detail: 'You have established access. The cleanest exit is to walk: sell the access to an initial access broker market and let someone else do the noisy part. Less revenue, much less risk.',
+          effort: 1, detection: 1, progress: 2,
+          outcome: {
+            narrative: 'You list the access on an IAB market: confirmed access, mid-market UK retailer, ~3,500 employees, privileged identity, persistence in place. The listing sells within 48 hours for a modest five-figure sum. The buyer is a ransomware affiliate. Six weeks later they deploy. To the retailer it looks like an unrelated incident. To you it is a clean exit.',
+            controlsReferenced: ['threat-intel-on-iab-markets', 'access-revocation-on-suspicious-events', 'identity-baseline-monitoring'],
+            wasDetected: false,
+            stateChanges: { objective: 'sold-access', notes: ['access sold on IAB market'] }
+          }
+        }
+      ]
+    },
+
+    // ============================================================
+    // STAGE 7 — EGRESS / OUTCOME REVEAL
+    // ============================================================
+    // This is computed end-state stage, not a choice
+    {
+      id: 's7',
+      stageNum: 7,
+      label: 'Outcome',
+      isOutcomeStage: true,
+      attackerView: `The operation is over. What you walk away with is determined by what you chose at each step. What the defender walks away with is the same.`,
+      defenderView: ``
+    }
+  ],
+
+  // Controls referenced across this scenario
+  // Each control has a name and a brief description for the debrief
+  controls: {
+    'osint-discipline': 'Public-profile policy that limits identifying detail on LinkedIn for sensitive roles',
+    'employee-public-profile-policy': 'Guidance to employees on what to share publicly about their employer and projects',
+    'credential-monitoring': 'Monitoring of credential leak markets for organisation-domain credentials',
+    'unmanaged-device-controls': 'Conditional access that blocks corporate login from non-compliant devices',
+    'mfa-resilience': 'Phish-resistant MFA (hardware tokens, passkeys) rather than push-only',
+    'external-attack-surface-monitoring': 'Continuous external attack surface assessment',
+    'waf-tuning': 'Web application firewall with active tuning against scanning patterns',
+    'help-desk-verification': 'Verification process that does not rely on data attackers can OSINT',
+    'mfa-reset-callback': 'Callback to the registered phone number before completing MFA reset',
+    'identity-verification-strength': 'Strong identity proofing for high-risk help desk requests',
+    'after-hours-helpdesk-coverage': 'Heightened verification during low-SOC-coverage hours',
+    'conditional-access': 'Conditional access policies that block legacy auth and impossible-travel',
+    'user-reporting-culture': 'Employees trained and incentivised to report security anomalies promptly',
+    'login-anomaly-detection': 'Real-time alerting on logins from unusual locations or devices',
+    'mfa-phish-resistance': 'MFA methods that resist real-time phishing relay attacks',
+    'idp-device-binding': 'Identity provider binds sessions to device identity, not just credentials',
+    'mfa-enrolment-monitoring': 'Alerts on additional MFA methods being added to existing accounts',
+    'identity-audit-review': 'Regular review of identity-layer audit events by the SOC',
+    'mail-flow-rule-monitoring': 'Alerts on creation of mail-forwarding or filtering rules',
+    'asr-external-forwarding': 'Attack Surface Reduction rules that block external auto-forwarding',
+    'm365-audit-baselines': 'Documented baseline of expected M365 admin and user behaviours',
+    'oauth-consent-controls': 'Admin consent required for OAuth applications with broad permissions',
+    'admin-consent-workflow': 'Workflow for reviewing and approving OAuth app permissions',
+    'soc-after-hours-triage': 'SOC coverage or automation that handles overnight alerts',
+    'sharepoint-permissions-hygiene': 'Regular review of "all employees" access to sensitive SharePoint sites',
+    'ueba': 'User and Entity Behaviour Analytics tuned for anomaly detection',
+    'sensitive-content-classification': 'Documents containing sensitive content classified and labelled',
+    'privileged-identity-management': 'Just-in-time elevation for privileged roles',
+    'graph-api-monitoring': 'Monitoring of MS Graph API call volume and patterns per user',
+    'just-in-time-access': 'No standing privileged access — all elevation requires approval',
+    'privileged-account-reset-controls': 'Privileged account password and MFA resets require additional verification',
+    'callback-policy': 'Help desk policy to call back the registered number before completing high-risk requests',
+    'user-reporting-time': 'How long it takes a user to recognise and report a compromised account',
+    'pim-just-in-time': 'PIM activation requires a reason and approval, with audit',
+    'oauth-permissions-audit': 'Regular audit of OAuth app permissions and active grants',
+    'soc-correlation': 'SOC tooling that correlates events across identity, endpoint, and cloud',
+    'legacy-auth-block': 'Legacy authentication protocols disabled in the identity provider',
+    'service-account-hardening': 'Service accounts use modern auth, scoped permissions, password rotation',
+    'vendor-dependency-controls': 'Vendor integrations cannot prevent timely security control updates',
+    'dlp-volume-alerts': 'Data Loss Prevention rules that alert on volume anomalies',
+    'cloud-egress-controls': 'Egress controls on data transfers to non-corporate cloud destinations',
+    'data-classification': 'Customer data classified and tracked, with monitoring on movement',
+    'edr-coverage': 'Endpoint Detection and Response deployed across the estate',
+    'backup-immutability': 'Backups that cannot be deleted or encrypted by an attacker',
+    'ot-it-segmentation': 'Operational technology segmented from IT to prevent lateral movement',
+    'incident-response-plan': 'Documented and tested incident response procedures',
+    'tabletop-exercises': 'Regular tabletop exercises practising ransomware-specific scenarios',
+    'threat-intel-on-iab-markets': 'Threat intelligence monitoring for organisation mentions in IAB markets',
+    'access-revocation-on-suspicious-events': 'Automated revocation of sessions and credentials on suspicious indicators',
+    'identity-baseline-monitoring': 'Baseline behaviour profiling that flags drift over time'
+  },
+
+  // Possible debriefs by end-state
+  debrief: {
+    blindSpots: [
+      'The help desk is a security boundary as load-bearing as any firewall, but is rarely treated that way.',
+      'Mid-market organisations often have mature email and endpoint controls but weak identity-layer hygiene (OAuth, mail rules, MFA enrolment).',
+      'Outsourced IT support is a third-party trust relationship, but the security operating model often does not reflect that.',
+      'Legacy authentication and service account hygiene degrade silently — they need active maintenance to stay closed off.'
+    ],
+    keyControlsForThisProfile: [
+      'help-desk-verification',
+      'mfa-resilience',
+      'oauth-consent-controls',
+      'legacy-auth-block',
+      'soc-correlation',
+      'user-reporting-culture',
+      'backup-immutability'
+    ]
+  }
+};
+
+
+// === SCENARIO 2: THE QUIET QUARTER ===
+// APT29-style espionage against a UK pharmaceutical, cloud-heavy
+// Real-world anchor: SVR operations against COVID vaccine research, ongoing pharma IP campaigns
+
+const SCENARIO_QUIET_QUARTER = {
+  id: 'quiet-quarter',
+  title: 'The Quiet Quarter',
+  attackerClass: 'nation-state-espionage',
+  attackerClassLabel: 'Nation-State Espionage',
+  defenderProfile: {
+    sector: 'Pharmaceutical R&D',
+    size: 'Large enterprise',
+    employees: '~12,000',
+    posture: 'Mature SOC, heavy Microsoft 365, Azure-native R&D infrastructure',
+    crownJewel: 'Clinical trial data and proprietary research IP for two oncology candidates in Phase III'
+  },
+  realWorldAnchor: 'SVR operations against vaccine research (2020-2022); ongoing APT29 pharma targeting',
+
+  briefing: `You operate from a foreign intelligence service. Your tasking is patient: the customer wants visibility into the research programme, not money, not disruption. You may spend three months before you exfiltrate anything. You may spend a year inside before anyone notices, if it goes well.
+
+The target is a UK pharmaceutical with two Phase III oncology candidates worth billions to the originating state should the IP transfer. Your tools are bespoke. Your infrastructure is laundered through commercial cloud providers. Your tradecraft is built around looking ordinary on enterprise telemetry.
+
+You will not deploy ransomware. You will not exfiltrate visibly. You will sit quietly and read.`,
+
+  stages: [
+    // STAGE 1 — RECONNAISSANCE
+    {
+      id: 's1', stageNum: 1, label: 'Reconnaissance',
+      attackerView: `The target's perimeter is mature. Cloud-first architecture: Microsoft 365, Azure, GitHub Enterprise, Workday. R&D teams use Azure-hosted scientific compute and Microsoft Research's collaboration platforms. The conventional attack surface is small. The interesting surface is the supply chain — the small specialist software vendors the R&D teams depend on, and the academic partners running joint clinical analyses.`,
+      defenderView: `Reconnaissance against public profiles, conference talks, and supplier websites leaves no detectable trace.`,
+      options: [
+        {
+          id: 'opt-1a',
+          headline: 'Map the supplier ecosystem',
+          detail: 'Identify the small specialist software vendors used by the R&D teams — statistical analysis platforms, clinical trial management systems, bioinformatics pipelines. Several are sub-50-employee firms with weaker security than the target. The supply chain route is your preferred entry vector.',
+          effort: 2, detection: 0, progress: 4,
+          outcome: {
+            narrative: 'Conference talks, GitHub commits, and academic co-authorship reveal four supplier candidates. One — a bioinformatics SaaS firm with under 30 employees — supplies pipeline tooling used by both Phase III programmes. Their public security posture is thin: no SOC, no DSPT, a single shared engineering AWS account. You have your supply chain target.',
+            controlsReferenced: ['supply-chain-risk-mgmt', 'third-party-security-assessment', 'critical-supplier-segmentation'],
+            wasDetected: false,
+            stateChanges: { recon: 'supplier-mapped', notes: ['bioinformatics SaaS supplier identified as weakest link'] }
+          }
+        },
+        {
+          id: 'opt-1b',
+          headline: 'Spear-phish a named researcher via academic conference network',
+          detail: 'Identify researchers presenting at oncology conferences. Build a credible academic persona over weeks. Engage via legitimate academic correspondence before delivering a payload via a doctored paper PDF.',
+          effort: 4, detection: 1, progress: 3,
+          outcome: {
+            narrative: 'You build a persona — a postdoc at a real European university (an account quietly compromised six months ago). Over four weeks you correspond with three target researchers about a clinical methodology paper. One agrees to review a draft. The PDF carries a clean-looking payload that establishes an implant on her unmanaged laptop — which she uses on personal time, but the laptop syncs to a corporate-managed cloud workspace.',
+            controlsReferenced: ['unmanaged-device-controls', 'attachment-sandbox-detonation', 'researcher-security-awareness', 'cloud-workspace-isolation'],
+            wasDetected: false,
+            stateChanges: { recon: 'persona-built', persistence: 'implant-on-unmanaged', notes: ['compromised researcher unmanaged laptop'] }
+          }
+        },
+        {
+          id: 'opt-1c',
+          headline: 'Look for exposed M365 credentials in public breaches',
+          detail: 'Check breach corpus aggregators for any @pharma.co.uk credentials. Cross-reference against the published research staff list to identify high-value targets with credential exposure.',
+          effort: 1, detection: 0, progress: 2,
+          outcome: {
+            narrative: 'Two researchers have credentials in old breach corpuses. Both passwords have been rotated. One was last used five years ago. The target has password rotation hygiene; the breach corpus route is closed off.',
+            controlsReferenced: ['credential-monitoring', 'password-rotation', 'breach-corpus-intelligence'],
+            wasDetected: false,
+            stateChanges: { recon: 'limited', notes: ['breach corpus unproductive'] }
+          }
+        }
+      ]
+    },
+
+    // STAGE 2 — INITIAL ACCESS
+    {
+      id: 's2', stageNum: 2, label: 'Initial Access',
+      attackerView: `You have two viable routes: the supply chain SaaS, or the unmanaged researcher device. Each has different operational properties. The supply chain gives you broad latent access — code in their pipeline runs across many of their customers. The researcher device gives you proximity to the actual research data.`,
+      defenderView: `If the attacker comes via supply chain, the target's first signal will be supplier behaviour anomalies — long after the attacker has established access. If they come via the researcher device, the target may see anomalous cloud workspace activity.`,
+      options: [
+        {
+          id: 'opt-2a',
+          headline: 'Compromise the bioinformatics SaaS supplier',
+          detail: 'Move on the small SaaS firm. Use a phishing pretext targeting their lead engineer. Once you have access to their AWS account, modify their pipeline build tooling to include a small additional library that runs in customer environments. The supplier becomes the carrier.',
+          effort: 4, detection: 1, progress: 5,
+          requires: 'supplier-mapped',
+          outcome: {
+            narrative: 'Two weeks of work. The supplier\'s lead engineer falls to a phishing email referencing a real customer support ticket. Their AWS console access yields the rest. You modify the pipeline build to include a beacon library that activates only in customer environments matching specific indicators. Three weeks later, when the pharma R&D team pulls the next supplier update, your library deploys into their analysis pipeline — running inside their Azure environment as a trusted supplier component.',
+            controlsReferenced: ['supply-chain-code-integrity', 'sbom-tracking', 'supplier-update-verification', 'pipeline-isolation'],
+            wasDetected: false,
+            stateChanges: { initialAccess: 'supply-chain', privilege: 'pipeline-context', dwellDays: 21, notes: ['supplier compromised', 'pipeline backdoored', 'awaiting customer pull'] }
+          }
+        },
+        {
+          id: 'opt-2b',
+          headline: 'Exfiltrate from the researcher device, escalate to cloud',
+          detail: 'The implant on the researcher\'s unmanaged laptop is your starting point. Use her cached corporate session tokens to reach the cloud workspace. Then attempt to escalate from there into the Azure R&D environment.',
+          effort: 3, detection: 3, progress: 4,
+          requires: 'implant-on-unmanaged',
+          outcome: {
+            narrative: 'You harvest the researcher\'s cached session tokens. The corporate cloud workspace authenticates you. The first session looks legitimate but raises a UEBA flag — login from a new device fingerprint at 03:00 UK time. The flag is queued for SOC review at the morning shift. You have until 08:00 to act before an analyst sees it.',
+            controlsReferenced: ['ueba', 'token-binding', 'device-conditional-access', 'soc-after-hours-triage'],
+            wasDetected: true,
+            stateChanges: { initialAccess: 'researcher-token', privilege: 'researcher-user', alertsRaised: 1, notes: ['UEBA flag pending SOC review'] }
+          }
+        },
+        {
+          id: 'opt-2c',
+          headline: 'Wait',
+          detail: 'Neither route is fully prepared. Patience over weeks is the norm for this kind of operation. Continue reconnaissance, do not commit.',
+          effort: 1, detection: 0, progress: 0,
+          outcome: {
+            narrative: 'You delay. Three weeks pass. During that time the target organisation announces an internal initiative tightening third-party supplier reviews and reducing unmanaged-device access to corporate cloud workspaces — an unrelated policy change that closes both of your prepared routes. You return to reconnaissance.',
+            controlsReferenced: ['regular-policy-review', 'supplier-onboarding-controls', 'unmanaged-device-controls'],
+            wasDetected: false,
+            stateChanges: { initialAccess: false, stopped: true, stoppedReason: 'window-closed-by-policy-change', notes: ['policy change closed both routes'] }
+          }
+        }
+      ]
+    },
+
+    // STAGE 3 — FOOTHOLD & PERSISTENCE
+    {
+      id: 's3', stageNum: 3, label: 'Foothold & Persistence',
+      attackerView: `You are inside the target environment in some form. Your discipline now is to look like a legitimate cloud workload. No malware on disk. No persistent processes. Only OAuth tokens, service principal credentials, and scheduled tasks that look like normal CI/CD activity.`,
+      defenderView: `Identity-layer events are recorded but rarely correlated unless an explicit detection use case exists.`,
+      options: [
+        {
+          id: 'opt-3a',
+          headline: 'Create a service principal under the supplier\'s app registration',
+          detail: 'Use the existing trust relationship the target has with the SaaS supplier. Register a new service principal under the supplier\'s app, with permissions broad enough for ongoing read access to the R&D data lake.',
+          effort: 2, detection: 3, progress: 5,
+          requires: 'supply-chain',
+          outcome: {
+            narrative: 'The service principal registers cleanly within the supplier\'s existing app context. The target\'s admin consent already covers the supplier broadly. Your new principal sits among 40 others under the supplier. Detection here depends on whether the target audits service principal additions weekly. They do — quarterly. You have a window of three months minimum.',
+            controlsReferenced: ['service-principal-audit', 'app-registration-monitoring', 'least-privilege-app-permissions'],
+            wasDetected: false,
+            stateChanges: { persistence: 'service-principal', dwellDays: 90, notes: ['service principal under supplier app registration'] }
+          }
+        },
+        {
+          id: 'opt-3b',
+          headline: 'Pivot to Azure storage via the researcher token',
+          detail: 'Use the researcher\'s cloud session to mount and copy data from research storage. Direct and fast — but each access is logged with her identity.',
+          effort: 2, detection: 4, progress: 4,
+          requires: 'researcher-token',
+          outcome: {
+            narrative: 'You access the research storage. The morning SOC analyst arrives, sees the UEBA flag, and begins looking at the researcher\'s session activity from the last hour. They see storage access patterns inconsistent with the researcher\'s normal work — wrong project areas, wrong file types. The session is revoked. You lose the access. The researcher arrives at work to find her account locked and a security conversation scheduled.',
+            controlsReferenced: ['ueba', 'storage-access-baseline', 'session-revocation', 'investigation-playbook'],
+            wasDetected: true,
+            stateChanges: { stopped: true, stoppedReason: 'researcher-token-revoked', notes: ['SOC revoked researcher session within 90 minutes'] }
+          }
+        }
+      ]
+    },
+
+    // STAGE 4 — DISCOVERY
+    {
+      id: 's4', stageNum: 4, label: 'Discovery',
+      attackerView: `You have persistence in the cloud R&D environment. You can see the structure but not yet the value. Where are the clinical trial datasets? Where is the proprietary chemistry? The R&D teams use separate storage, separate compute, separate access models for the two Phase III programmes.`,
+      defenderView: `Service principal activity is voluminous in this environment. Distinguishing your reads from legitimate supplier reads is hard without per-principal baselines.`,
+      options: [
+        {
+          id: 'opt-4a',
+          headline: 'Enumerate Azure storage and SharePoint sites',
+          detail: 'List the storage accounts, containers, and SharePoint sites accessible to the service principal. Build a map of what is where.',
+          effort: 1, detection: 1, progress: 3,
+          outcome: {
+            narrative: 'The enumeration completes over three days, deliberately slow to avoid pattern detection. You map ~40 storage accounts. Two are labelled with the codenames of the Phase III programmes. The trial datasets live in one. The structural chemistry in the other. SharePoint reveals the meeting notes, the internal trial status reports, and the regulatory submission drafts.',
+            controlsReferenced: ['storage-account-discovery-detection', 'service-principal-anomaly-detection', 'sensitivity-labels'],
+            wasDetected: false,
+            stateChanges: { discovery: 'map-complete', notes: ['trial datasets located', 'chemistry storage located', 'submission drafts found'] }
+          }
+        },
+        {
+          id: 'opt-4b',
+          headline: 'Target the GitHub Enterprise repositories',
+          detail: 'The R&D bioinformatics pipelines are versioned in GitHub Enterprise. The code itself reveals the methodology — sometimes more valuable than the data. The supplier service principal may have GitHub access via the integration.',
+          effort: 1, detection: 2, progress: 3,
+          outcome: {
+            narrative: 'The supplier service principal does have GitHub read access — for pipeline integration. You clone the relevant organisation repositories. The methodology, the test datasets, the internal analysis notes. You have understanding of the science, not just the trial outputs. GitHub audit logs record the clone but the access pattern (a service principal cloning bioinformatics repos) is normal for this account.',
+            controlsReferenced: ['github-audit-monitoring', 'least-privilege-app-permissions', 'sensitive-repo-classification'],
+            wasDetected: false,
+            stateChanges: { discovery: 'methodology-obtained', notes: ['pipeline source code obtained'] }
+          }
+        }
+      ]
+    },
+
+    // STAGE 5 — COLLECTION
+    {
+      id: 's5', stageNum: 5, label: 'Collection',
+      attackerView: `You have located what you came for. The question is exfiltration discipline. Volume attracts attention. Speed attracts attention. The patient choice is small reads over a long period.`,
+      defenderView: `Egress monitoring is in place but tuned for ransomware-style volume signatures, not espionage drip-feeds.`,
+      options: [
+        {
+          id: 'opt-5a',
+          headline: 'Slow drip exfiltration via the service principal',
+          detail: 'Schedule small reads of trial data across weeks. Mix them into normal supplier pipeline activity. Egress in chunks under any volume alarm threshold. Estimated complete collection: 4-6 months.',
+          effort: 3, detection: 1, progress: 4,
+          outcome: {
+            narrative: 'The collection begins. Over the next four months you exfiltrate the complete Phase III dataset for one candidate and 60% of the other before a quarterly service principal audit surfaces your registration as anomalous. The audit triggers an investigation. Most of the data is already exfiltrated. The target now knows they have been compromised but cannot determine when, by whom, or what else was taken.',
+            controlsReferenced: ['service-principal-audit', 'egress-volume-baseline', 'dwell-time-detection'],
+            wasDetected: true,
+            stateChanges: { objective: 'data-exfiltrated', dwellDays: 120, alertsRaised: 1, notes: ['Phase III data exfiltrated over 4 months', 'quarterly audit detected service principal'] }
+          }
+        },
+        {
+          id: 'opt-5b',
+          headline: 'Single large collection, accept detection risk',
+          detail: 'Pull all the data in one push. Two days of exfiltration. Risk: cloud egress monitoring may fire. Reward: you walk away with everything before any detection can act.',
+          effort: 2, detection: 5, progress: 5,
+          outcome: {
+            narrative: 'You initiate the bulk transfer. The cloud egress monitoring fires within 90 minutes — the volume from a supplier service principal is wildly out of profile. By the time the second hour ends the principal is disabled and the storage accounts are read-locked. You have ~40% of the trial data and none of the chemistry. The target initiates a major incident response.',
+            controlsReferenced: ['egress-volume-baseline', 'automated-principal-disablement', 'cloud-storage-locks'],
+            wasDetected: true,
+            stateChanges: { objective: 'partial-exfil', alertsRaised: 4, stoppedReason: 'egress-monitoring-fired', notes: ['~40% data exfiltrated', 'egress monitoring fired in 90 minutes'] }
+          }
+        },
+        {
+          id: 'opt-5c',
+          headline: 'Sit on the access, take only what is requested',
+          detail: 'The customer behind the operation does not need everything. Take only the specific Phase III primary endpoint data and the regulatory submission drafts. The smallest possible footprint, the lowest possible detection risk.',
+          effort: 1, detection: 0, progress: 3,
+          outcome: {
+            narrative: 'You exfiltrate ~200MB over a single week — comparable to normal pipeline data movement. The trial primary endpoint data and three regulatory submission drafts. The target organisation will not detect this. The customer is satisfied. The access remains live for ongoing collection. This is the patient discipline that defines this attacker class.',
+            controlsReferenced: ['data-classification', 'egress-baseline-tuning', 'long-tail-detection'],
+            wasDetected: false,
+            stateChanges: { objective: 'targeted-collection', dwellDays: 90, notes: ['200MB exfiltrated', 'access retained for ongoing collection'] }
+          }
+        }
+      ]
+    },
+
+    // STAGE 6 — OUTCOME
+    {
+      id: 's6', stageNum: 6, label: 'Outcome', isOutcomeStage: true,
+      attackerView: `The operation continues or it does not. Either way, what you took is in your customer\'s hands.`,
+      defenderView: ``
+    }
+  ],
+
+  controls: {
+    'supply-chain-risk-mgmt': 'Risk assessment of small specialist suppliers, not just the large ones',
+    'third-party-security-assessment': 'Active security review of suppliers with access to sensitive environments',
+    'critical-supplier-segmentation': 'Suppliers granted least-privilege access to specific systems, not blanket integration',
+    'unmanaged-device-controls': 'Conditional access blocking corporate authentication from non-compliant devices',
+    'attachment-sandbox-detonation': 'Inline sandboxing of attachments before delivery to users',
+    'researcher-security-awareness': 'Targeted awareness for high-value targets like senior researchers',
+    'cloud-workspace-isolation': 'Cloud workspaces isolated from broader research compute environments',
+    'credential-monitoring': 'Monitoring of credential leak markets',
+    'password-rotation': 'Enforced password rotation aligned to breach corpus exposure',
+    'breach-corpus-intelligence': 'Active monitoring of breach corpora for organisation credentials',
+    'supply-chain-code-integrity': 'Verification of supplier code integrity before deployment to production',
+    'sbom-tracking': 'Software Bill of Materials tracking for supplier components',
+    'supplier-update-verification': 'Cryptographic verification of supplier code updates',
+    'pipeline-isolation': 'Pipeline tooling isolated from sensitive data access by default',
+    'ueba': 'User and Entity Behaviour Analytics tuned for cloud workload anomalies',
+    'token-binding': 'Tokens bound to device identity, not portable across devices',
+    'device-conditional-access': 'Authentication requires verified device posture',
+    'soc-after-hours-triage': 'After-hours SOC coverage or automated escalation',
+    'regular-policy-review': 'Regular review of identity and access policies',
+    'supplier-onboarding-controls': 'Documented onboarding process for new supplier integrations',
+    'service-principal-audit': 'Regular audit of service principal additions and permissions',
+    'app-registration-monitoring': 'Alerts on new app registrations and permission changes',
+    'least-privilege-app-permissions': 'Apps and service principals scoped to minimum required permissions',
+    'storage-access-baseline': 'Per-identity baselining of storage access patterns',
+    'session-revocation': 'Ability to rapidly revoke compromised sessions across all services',
+    'investigation-playbook': 'Documented playbook for cloud identity compromise investigation',
+    'storage-account-discovery-detection': 'Detection of enumeration patterns against storage accounts',
+    'service-principal-anomaly-detection': 'Anomaly detection specifically for service principal behaviour',
+    'sensitivity-labels': 'Microsoft Purview sensitivity labels on sensitive data',
+    'github-audit-monitoring': 'Active monitoring of GitHub Enterprise audit logs',
+    'sensitive-repo-classification': 'Repositories classified by sensitivity with access controls',
+    'egress-volume-baseline': 'Per-identity egress volume baselining and anomaly alerting',
+    'dwell-time-detection': 'Detection capability tuned to long-dwell low-volume threats, not just ransomware',
+    'automated-principal-disablement': 'Automated response to disable principals with anomalous behaviour',
+    'cloud-storage-locks': 'Storage account access locks triggered by anomaly signals',
+    'data-classification': 'Data classified so sensitive items have known footprints and monitoring',
+    'egress-baseline-tuning': 'Egress baselines tuned to detect drip-feed patterns, not just volume spikes',
+    'long-tail-detection': 'Detection capability for low-and-slow espionage patterns'
+  },
+
+  debrief: {
+    blindSpots: [
+      'Espionage attackers do not look like ransomware attackers — egress monitoring tuned for one will miss the other.',
+      'Small specialist suppliers carry trust relationships that exceed their own security posture.',
+      'Service principals are administered as infrastructure, but they have identities that need behavioural baselining.',
+      'Quarterly audit cadences leave windows of months for patient attackers.',
+      'Cloud-first organisations often have weak detection in the gap between identity provider events and data access events.'
+    ],
+    keyControlsForThisProfile: [
+      'supply-chain-risk-mgmt',
+      'service-principal-audit',
+      'least-privilege-app-permissions',
+      'egress-baseline-tuning',
+      'long-tail-detection',
+      'dwell-time-detection',
+      'token-binding'
+    ]
+  }
+};
+
+
+// === SCENARIO 3: THE PUBLIC HOLIDAY ===
+// RaaS affiliate against mid-market manufacturer with weekend coverage gap
+// Real-world anchor: any of dozens — JBS, KP Snacks, Norsk Hydro, Honda
+
+const SCENARIO_PUBLIC_HOLIDAY = {
+  id: 'public-holiday',
+  title: 'The Public Holiday',
+  attackerClass: 'financial',
+  attackerClassLabel: 'Ransomware-as-a-Service Affiliate',
+  defenderProfile: {
+    sector: 'Manufacturing',
+    size: 'Mid-market',
+    employees: '~2,200',
+    posture: 'In-house IT, no dedicated SOC, MSSP for after-hours alerts',
+    crownJewel: 'Production line uptime and customer order data'
+  },
+  realWorldAnchor: 'Weekend / public-holiday ransomware deployment pattern — JBS (2021), KP Snacks (2022), Norsk Hydro (2019)',
+
+  briefing: `You are an affiliate of a ransomware-as-a-service operation. You did not write the encryptor. You buy initial access from brokers, deploy the payload, and split the proceeds with the operator. Your edge is timing: you move on Friday evenings and bank holidays, when SOC coverage is thin and the path from detection to executive decision-making is longest.
+
+You bought access to this manufacturer last week for £12,000. It was listed as: domain admin, ~2,200 employees, no current EDR alerting, payroll runs on Wednesday. You have until the early hours of Bank Holiday Monday to deploy. The MSSP that handles their out-of-hours alerts has a documented escalation path — 30 minutes to call the on-call IT manager, who must wake up, log in, and triage.`,
+
+  stages: [
+    // STAGE 1 — VERIFY THE ACCESS
+    {
+      id: 's1', stageNum: 1, label: 'Verify the Access',
+      attackerView: `It is Friday at 14:00. You have credentials and an instruction set from the access broker. You need to confirm what you actually bought before you commit to deployment.`,
+      defenderView: `An admin account logs in from an unusual location. The MSSP receives the alert.`,
+      options: [
+        {
+          id: 'opt-1a',
+          headline: 'Log in immediately, validate the access end-to-end',
+          detail: 'Authenticate with the credentials. Confirm domain admin. Confirm reach to file servers and the backup environment. Confirm EDR status. Fast and definitive.',
+          effort: 1, detection: 3, progress: 4,
+          outcome: {
+            narrative: 'You log in. Domain admin confirmed. The MSSP receives a geolocation anomaly alert; their playbook is to email the IT manager and queue the ticket for in-hours review unless the alert is high severity. This is rated medium. The email is sent. The IT manager is at his daughter\'s sports day and does not check email until 18:00. By the time he sees it, you have completed verification.',
+            controlsReferenced: ['after-hours-soc-coverage', 'mssp-escalation-severity', 'admin-account-monitoring', 'geolocation-anomaly-detection'],
+            wasDetected: true,
+            stateChanges: { initialAccess: 'confirmed', alertsRaised: 1, notes: ['admin login alerted but not actioned', 'late-Friday timing exploited'] }
+          }
+        },
+        {
+          id: 'opt-1b',
+          headline: 'Log in via a residential proxy in the UK',
+          detail: 'Route the authentication through a residential proxy in the same region as the company\'s headquarters. The geolocation alert never fires.',
+          effort: 1, detection: 1, progress: 4,
+          outcome: {
+            narrative: 'The login from a Manchester residential IP raises no automated alert. The MSSP sees nothing. You verify domain admin, file server reach, and backup environment visibility. The EDR is deployed but its policy was changed three weeks ago to "monitor only" for a project that was never reverted. You have full operational visibility.',
+            controlsReferenced: ['residential-proxy-detection', 'edr-policy-change-monitoring', 'admin-account-monitoring'],
+            wasDetected: false,
+            stateChanges: { initialAccess: 'confirmed', notes: ['residential proxy bypassed geolocation', 'EDR in monitor mode'] }
+          }
+        },
+        {
+          id: 'opt-1c',
+          headline: 'Wait until Friday evening to log in',
+          detail: 'Hold off until 19:00. The IT manager is at home. The MSSP is on the weekend shift, which is junior staff. Alert latency increases significantly.',
+          effort: 1, detection: 2, progress: 3,
+          outcome: {
+            narrative: 'You log in at 19:30. The geolocation alert fires. The weekend MSSP analyst is handling six other customers; the ticket is acknowledged but queued. By the time they reach it, your initial reconnaissance is complete. Their playbook says to call the IT manager for a privileged account login outside the UK; the analyst tries the phone number, gets voicemail, marks the ticket "awaiting client callback".',
+            controlsReferenced: ['after-hours-soc-coverage', 'weekend-mssp-coverage-model', 'on-call-callback-process'],
+            wasDetected: true,
+            stateChanges: { initialAccess: 'confirmed', alertsRaised: 1, notes: ['alert raised, callback unanswered'] }
+          }
+        }
+      ]
+    },
+
+    // STAGE 2 — PRE-POSITIONING
+    {
+      id: 's2', stageNum: 2, label: 'Pre-positioning',
+      attackerView: `You have admin. The deployment requires staging across the estate so that the encryption hits as many systems as possible simultaneously. Your tradecraft is to look like ordinary IT activity for as long as possible — script delivery via PsExec, scheduled tasks, GPO modifications.`,
+      defenderView: `IT admin activity over a Friday evening is unusual but not impossible. Patching, maintenance, and pre-weekend changes happen.`,
+      options: [
+        {
+          id: 'opt-2a',
+          headline: 'Push the payload via Group Policy',
+          detail: 'Modify a Group Policy Object to deliver the ransomware binary to all domain-joined machines. Schedules it to execute Saturday at 23:00. Quiet, scalable, looks like a managed software deployment.',
+          effort: 2, detection: 2, progress: 4,
+          outcome: {
+            narrative: 'You add a new GPO with a startup script. The Active Directory change is logged. There is no automated alerting for GPO modifications in this environment. The IT manager would notice on Monday morning when reviewing the AD audit log; you intend the operation to be complete by then.',
+            controlsReferenced: ['gpo-change-monitoring', 'ad-audit-alerting', 'critical-change-approval'],
+            wasDetected: false,
+            stateChanges: { staged: 'gpo', dwellDays: 1, notes: ['payload staged via GPO'] }
+          }
+        },
+        {
+          id: 'opt-2b',
+          headline: 'Disable backups before deploying',
+          detail: 'Find the backup infrastructure. Delete recent restore points. Disable scheduled backup jobs. Critical preparation: a viable backup is the single biggest determinant of whether the victim pays.',
+          effort: 2, detection: 3, progress: 5,
+          outcome: {
+            narrative: 'You locate the backup infrastructure. The backup admin console is reachable from your privileged session. You delete recent restore points and disable the next four scheduled jobs. The backup vendor sends an automated email to the IT distribution list ("scheduled jobs disabled") but it is one email among hundreds in a weekend inbox and is not flagged. The defender\'s ability to recover is now severely compromised.',
+            controlsReferenced: ['backup-immutability', 'backup-admin-mfa', 'backup-change-alerting', 'air-gapped-backups'],
+            wasDetected: false,
+            stateChanges: { staged: 'backups-disabled', notes: ['backup jobs disabled', 'restore points deleted'] }
+          }
+        },
+        {
+          id: 'opt-2c',
+          headline: 'Test the encryptor on one machine first',
+          detail: 'Deploy the encryptor to a single non-critical file server to confirm it executes as expected. Reduces risk of payload failure across the estate. Slight risk of triggering EDR if it is more active than you think.',
+          effort: 1, detection: 4, progress: 2,
+          outcome: {
+            narrative: 'You deploy to a single file server. The EDR — which is in monitor mode — logs the malicious activity but does not block it. The MSSP receives a low-confidence alert ("possible malicious file modification") which sits in the queue. The test confirms the encryptor works in the environment. You proceed.',
+            controlsReferenced: ['edr-blocking-mode', 'mssp-alert-prioritisation', 'ransomware-canary-files'],
+            wasDetected: true,
+            stateChanges: { staged: 'tested', alertsRaised: 1, notes: ['encryptor tested on single server', 'EDR logged but did not block'] }
+          }
+        }
+      ]
+    },
+
+    // STAGE 3 — TIMING
+    {
+      id: 's3', stageNum: 3, label: 'Timing',
+      attackerView: `Deployment must hit when defender response is slowest. The Saturday night / Sunday morning window of a bank holiday weekend is the canonical attacker preference. You need to balance maximum impact against the risk that something goes wrong before deployment.`,
+      defenderView: `The defender\'s out-of-hours model assumes alerts will fire and someone will respond. Both assumptions can fail under coordinated pressure.`,
+      options: [
+        {
+          id: 'opt-3a',
+          headline: 'Detonate at 02:00 Sunday',
+          detail: 'Bank holiday Sunday morning. No IT on duty. MSSP on minimum staffing. The IT manager is at his wife\'s sister\'s 50th birthday in another county. Maximum gap from detection to executive decision.',
+          effort: 1, detection: 5, progress: 5,
+          outcome: {
+            narrative: 'At 02:00 the GPO startup script propagates. By 02:30, 1,400 of 2,200 machines have encrypted. The MSSP fires high-severity alerts. They call the IT manager. He is asleep, phone on silent. They call the deputy. The deputy answers at 03:15, struggles to log in remotely, calls the IT manager who finally answers at 04:00. The first response action is taken at 05:30 — by which point the encryptor has completed and the estate is dark.',
+            controlsReferenced: ['after-hours-on-call-redundancy', 'crisis-comms-cascade', 'ransomware-tabletop-rehearsal', 'estate-segmentation'],
+            wasDetected: true,
+            stateChanges: { objective: 'full-encryption', alertsRaised: 8, notes: ['full estate encrypted', 'response delay 3.5 hours'] }
+          }
+        },
+        {
+          id: 'opt-3b',
+          headline: 'Detonate at 17:00 Friday',
+          detail: 'Earlier, faster decision time on the defender side. But everyone is still working until 17:30 — full SOC, full IT, more chances for someone to spot and stop the deployment as it begins.',
+          effort: 1, detection: 5, progress: 4,
+          outcome: {
+            narrative: 'The Friday afternoon deployment lights up immediately. The MSSP sees the alerts. The IT team is still at desks. They reach the IT manager within 15 minutes. He authorises a network shutdown by 17:25. The encryptor has reached ~30% of the estate but the shutdown isolates segments before further propagation. Significant impact, but recoverable; many systems are unaffected.',
+            controlsReferenced: ['network-segmentation', 'emergency-shutdown-authority', 'in-hours-incident-response'],
+            wasDetected: true,
+            stateChanges: { objective: 'partial-encryption-30pct', alertsRaised: 6, notes: ['30% encrypted before network shutdown'] }
+          }
+        }
+      ]
+    },
+
+    // STAGE 4 — NEGOTIATION
+    {
+      id: 's4', stageNum: 4, label: 'Negotiation',
+      attackerView: `The encryption is complete or partial. Your operator handles negotiation. Your job is to maintain access until the ransom is paid (or the deal collapses), and to make sure the data leak threat is credible if extortion needs to escalate.`,
+      defenderView: `The defender is now in crisis mode. The question is what they have left to negotiate with: viable backups, regulatory leverage, time pressure from customers.`,
+      options: [
+        {
+          id: 'opt-4a',
+          headline: 'Threaten data publication immediately',
+          detail: 'You exfiltrated 80GB during pre-positioning. Threaten publication on the data leak site within 72 hours. Double extortion increases conversion rates.',
+          effort: 1, detection: 0, progress: 4,
+          outcome: {
+            narrative: 'The operator posts the threat. The retailer engages a specialist ransomware negotiator. The negotiator confirms data was taken but the volume is smaller than claimed — only ~12GB actually exfiltrated. The negotiation extends over three weeks. The eventual settlement is around 40% of the initial demand. The defender has time to begin recovery from disabled backups (some restoration is possible from older offline backups not reached by you).',
+            controlsReferenced: ['data-loss-impact-assessment', 'ransomware-negotiation-counsel', 'air-gapped-backup-redundancy', 'breach-disclosure-readiness'],
+            wasDetected: true,
+            stateChanges: { objective: 'negotiated-settlement', notes: ['~40% of demand paid', 'partial recovery from offline backups'] }
+          }
+        },
+        {
+          id: 'opt-4b',
+          headline: 'Stay silent for 48 hours, let them feel the operational pain',
+          detail: 'Make no ransom demand for two days. Let the production line being down become a Board crisis. Then deliver the demand at the moment of maximum pressure.',
+          effort: 0, detection: 0, progress: 3,
+          outcome: {
+            narrative: 'Two days pass. The defender is making LSE disclosures and customer notifications. Production halted. Insurance company engaged. When the ransom note is delivered on Tuesday morning, the defender has a fully operational crisis response in place, regulatory and insurance counsel guiding the decision, and the Board has resolved not to pay. The defender will rebuild from older backups and accept months of degraded operations.',
+            controlsReferenced: ['business-continuity-plan', 'cyber-insurance-coverage', 'board-level-cyber-readiness', 'public-disclosure-playbook'],
+            wasDetected: true,
+            stateChanges: { objective: 'no-payment', notes: ['defender rebuilt from older backups', 'no ransom paid', 'long recovery'] }
+          }
+        }
+      ]
+    },
+
+    // STAGE 5 — OUTCOME
+    {
+      id: 's5', stageNum: 5, label: 'Outcome', isOutcomeStage: true,
+      attackerView: ``, defenderView: ``
+    }
+  ],
+
+  controls: {
+    'after-hours-soc-coverage': '24/7 SOC coverage with consistent severity assessment, not tiered by time of day',
+    'mssp-escalation-severity': 'Clear severity thresholds for MSSP escalation, with override for privileged account events',
+    'admin-account-monitoring': 'High-priority alerting on all privileged account authentication events',
+    'geolocation-anomaly-detection': 'Real-time alerting on logins from unusual geographies',
+    'residential-proxy-detection': 'Threat intelligence to identify authentication from residential proxy infrastructure',
+    'edr-policy-change-monitoring': 'Alerts on changes to EDR configuration, especially from monitor-mode reversions',
+    'weekend-mssp-coverage-model': 'Weekend coverage matches weekday capability for critical accounts',
+    'on-call-callback-process': 'On-call callback that escalates rapidly when contact fails',
+    'gpo-change-monitoring': 'Active alerting on Group Policy changes, especially startup scripts and software install',
+    'ad-audit-alerting': 'Alerts on critical Active Directory audit events',
+    'critical-change-approval': 'Approval workflow for changes to privileged AD objects',
+    'backup-immutability': 'Backups cannot be deleted or encrypted by an attacker with domain credentials',
+    'backup-admin-mfa': 'Backup admin access requires separate credentials and MFA',
+    'backup-change-alerting': 'Alerts on backup job disablement or restore point deletion',
+    'air-gapped-backups': 'Offline or air-gapped backup copies that cannot be reached from the production network',
+    'edr-blocking-mode': 'EDR configured in blocking mode for known ransomware behaviour',
+    'mssp-alert-prioritisation': 'MSSP alert prioritisation that escalates ransomware-pattern indicators',
+    'ransomware-canary-files': 'Canary files distributed across file shares that trigger alerts on modification',
+    'after-hours-on-call-redundancy': 'Multiple on-call contacts with documented escalation if primary unreachable',
+    'crisis-comms-cascade': 'Documented cascade of contacts for security crises, with phone alternatives',
+    'ransomware-tabletop-rehearsal': 'Regular tabletop exercises specifically practising weekend ransomware',
+    'estate-segmentation': 'Network segmentation that limits ransomware lateral propagation',
+    'network-segmentation': 'Segmentation that allows rapid isolation of affected segments',
+    'emergency-shutdown-authority': 'Pre-authorised authority for IT to shut down network segments without exec approval',
+    'in-hours-incident-response': 'In-hours response capability with practised playbooks',
+    'data-loss-impact-assessment': 'Capability to rapidly assess what data was actually taken vs claimed',
+    'ransomware-negotiation-counsel': 'Pre-engaged specialist negotiator and legal counsel',
+    'air-gapped-backup-redundancy': 'Multiple tiers of backup including air-gapped, offline, and time-distant copies',
+    'breach-disclosure-readiness': 'Disclosure playbook covering regulatory, customer, and market obligations',
+    'business-continuity-plan': 'Tested business continuity plan covering full estate compromise',
+    'cyber-insurance-coverage': 'Cyber insurance with appropriate coverage and pre-engaged response panel',
+    'board-level-cyber-readiness': 'Board has rehearsed ransomware decision-making, including the option not to pay',
+    'public-disclosure-playbook': 'Playbook for public communications during a ransomware incident'
+  },
+
+  debrief: {
+    blindSpots: [
+      'Out-of-hours coverage gaps are not theoretical — they are an attacker scheduling consideration.',
+      'MSSP severity rating models often understate privileged account anomalies after-hours.',
+      'Backup immutability is the single biggest determinant of ransomware outcome, but is often assumed rather than tested.',
+      'Network segmentation that exists on a diagram may not exist in operational reality.',
+      'On-call processes that rely on a single person are point-of-failure systems.'
+    ],
+    keyControlsForThisProfile: [
+      'backup-immutability',
+      'air-gapped-backups',
+      'after-hours-soc-coverage',
+      'after-hours-on-call-redundancy',
+      'edr-blocking-mode',
+      'estate-segmentation',
+      'gpo-change-monitoring'
+    ]
+  }
+};
+
+
+// === SCENARIO 4: THE SUBSTATION ===
+// Sandworm-style nation-state disruption against UK electricity DNO
+// Real-world anchor: Ukraine 2015 (BlackEnergy), 2016 (CrashOverride/Industroyer), 2022 (Industroyer2)
+
+const SCENARIO_SUBSTATION = {
+  id: 'substation',
+  title: 'The Substation',
+  attackerClass: 'nation-state-disruption',
+  attackerClassLabel: 'Nation-State Disruption',
+  defenderProfile: {
+    sector: 'Electricity Distribution (CNI)',
+    size: 'Large enterprise',
+    employees: '~4,500',
+    posture: 'In-house cyber team, NIS-regulated, CAF-assessed by Ofgem, OT engineering separate from IT security',
+    crownJewel: 'Continuity of electricity supply across a UK distribution region'
+  },
+  realWorldAnchor: 'Ukraine grid attacks 2015 (BlackEnergy) and 2016 (Industroyer); Industroyer2 (2022); ongoing Sandworm CNI targeting',
+
+  briefing: `You operate from a military intelligence cyber unit. Your tasking is not collection. It is the capability to disrupt electricity distribution at a strategic moment — perhaps soon, perhaps in five years. The operation may exist in pre-positioned form for years before activation.
+
+The target is a UK distribution network operator covering a major urban region. NIS-regulated. CAF-assessed by Ofgem. They have a mature cyber posture for an electricity DNO. The IT network is well-defended. The OT network — substation automation, SCADA, the relay protection systems — is harder to assess from outside.
+
+Your edge is patience. You will not deploy anything destructive in this operation. You will get in, get oriented, establish persistence in the operational technology layer, and leave. Your customer will decide when, if ever, to activate.`,
+
+  stages: [
+    // STAGE 1 — RECONNAISSANCE
+    {
+      id: 's1', stageNum: 1, label: 'Reconnaissance',
+      attackerView: `The target operates a regulated CNI estate. Public information includes Ofgem submissions, sustainability reports, supplier announcements, and a great deal of engineering literature on UK distribution practice. The technology stack is broadly knowable: ABB and Siemens substation automation, IEC 61850 internal protocols at primary substations, a SCADA control centre using a major vendor's product. You can model the architecture from public engineering papers and supplier case studies.`,
+      defenderView: `Reconnaissance against public information leaves no trace. NCSC and CISA threat intelligence has flagged your group's interest in this sector generally.`,
+      options: [
+        {
+          id: 'opt-1a',
+          headline: 'Target the engineering services supplier',
+          detail: 'Identify the engineering services company that performs substation commissioning and patching for the DNO. A specialist firm of ~200 engineers. Their staff have remote access to the DNO\'s engineering workstations to support equipment configured at site visits.',
+          effort: 3, detection: 0, progress: 5,
+          outcome: {
+            narrative: 'You identify the firm from public case studies and LinkedIn profiles of "substation commissioning engineer" roles. Two of their engineers have published technical papers describing the integration architecture in detail. The firm holds standing remote access to DNO engineering systems for support purposes. This is the highest-value initial access path: not the DNO\'s perimeter, but their trusted operational supplier.',
+            controlsReferenced: ['ot-supplier-risk-mgmt', 'engineering-services-access-controls', 'public-info-discipline'],
+            wasDetected: false,
+            stateChanges: { recon: 'supplier-route-identified', notes: ['engineering services firm targeted'] }
+          }
+        },
+        {
+          id: 'opt-1b',
+          headline: 'Build a profile of the DNO\'s perimeter and IT estate',
+          detail: 'Conventional reconnaissance against the DNO\'s public-facing systems. Identify their VPN, their corporate IT, their CISO and security team from LinkedIn. Slower and less useful than the supplier route.',
+          effort: 2, detection: 1, progress: 2,
+          outcome: {
+            narrative: 'The DNO\'s perimeter is well-managed. Their VPN is current-generation, MFA-enforced, fronted by a recognised commercial gateway. Their CISO recently published on their CAF v4 assessment results. No quick wins here. The IT-side route is harder than the supplier route by an order of magnitude.',
+            controlsReferenced: ['perimeter-hygiene', 'caf-compliance-discipline'],
+            wasDetected: false,
+            stateChanges: { recon: 'perimeter-mapped', notes: ['IT perimeter mature, no easy route'] }
+          }
+        },
+        {
+          id: 'opt-1c',
+          headline: 'Approach via the academic research network',
+          detail: 'Universities collaborate with DNOs on grid research. A compromised academic could legitimately request site visits, technical documentation, or engineering data. Long lead time, lower yield, but very low detection risk.',
+          effort: 4, detection: 0, progress: 2,
+          outcome: {
+            narrative: 'A six-month build of an academic persona produces useful documentation but no direct access. Academics collaborate on research, not on production systems. The route yields engineering context and detail but no operational foothold.',
+            controlsReferenced: ['academic-collaboration-data-sharing', 'research-data-classification'],
+            wasDetected: false,
+            stateChanges: { recon: 'academic-context', notes: ['research-only access, no operational reach'] }
+          }
+        }
+      ]
+    },
+
+    // STAGE 2 — INITIAL ACCESS
+    {
+      id: 's2', stageNum: 2, label: 'Initial Access',
+      attackerView: `The engineering services supplier is your route. They are a small business with the contractual responsibilities of a CNI supplier but the security maturity of a small business.`,
+      defenderView: `The DNO\'s assurance reviews of the supplier are paper-based and annual. The supplier passes them. Operational behaviour between reviews is not monitored.`,
+      options: [
+        {
+          id: 'opt-2a',
+          headline: 'Spear-phish a senior engineer at the supplier',
+          detail: 'Target one of the senior commissioning engineers — the ones with the deepest access to DNO systems. A carefully crafted phishing pretext referencing real industry topics. Compromise their laptop.',
+          effort: 3, detection: 1, progress: 5,
+          requires: 'supplier-route-identified',
+          outcome: {
+            narrative: 'The engineer falls to a well-targeted lure referencing an IEC 61850 working group document. The implant on his laptop is dormant for two weeks while you observe his work patterns. He uses a separate engineering laptop for site work, configured with persistent VPN access to DNO engineering networks. Within a month you have remote control of that laptop and the standing VPN connection it carries.',
+            controlsReferenced: ['supplier-mfa-on-customer-access', 'jump-host-only-access', 'time-bound-vpn-access', 'engineering-laptop-segregation'],
+            wasDetected: false,
+            stateChanges: { initialAccess: 'engineer-laptop', dwellDays: 30, persistence: 'implant', notes: ['engineer compromised', 'persistent VPN to DNO engineering network'] }
+          }
+        },
+        {
+          id: 'opt-2b',
+          headline: 'Compromise the supplier\'s shared engineering credentials',
+          detail: 'Small firms often use shared accounts for customer systems. Phish the office manager or an admin assistant for password vault credentials. Quick but leaves you depending on shared infrastructure you cannot control.',
+          effort: 2, detection: 2, progress: 3,
+          requires: 'supplier-route-identified',
+          outcome: {
+            narrative: 'The office manager falls quickly. You access the password vault. There are shared credentials for several customer systems — but the DNO\'s engineering portal recently moved to per-user named accounts with hardware tokens. The shared password works for a different, less critical customer. The DNO route is not available through this channel.',
+            controlsReferenced: ['per-user-named-accounts', 'hardware-token-mfa', 'supplier-access-modernisation'],
+            wasDetected: false,
+            stateChanges: { initialAccess: false, notes: ['shared credentials inadequate for DNO access'] }
+          }
+        }
+      ]
+    },
+
+    // STAGE 3 — MOVING TOWARD OT
+    {
+      id: 's3', stageNum: 3, label: 'Moving Toward OT',
+      attackerView: `You are inside the DNO\'s engineering network via a trusted supplier\'s laptop. The engineering network is not OT — it is the IT-side environment where engineers work on configuration files, project documentation, and support tickets. The OT network proper is across a defined boundary. Crossing that boundary cleanly is the most consequential decision of the operation.`,
+      defenderView: `The DNO\'s IT/OT boundary is implemented with industrial-grade segmentation. Jump hosts exist at the boundary. The supplier engineer\'s access is logged but not behaviourally baselined at the OT-boundary jump host.`,
+      options: [
+        {
+          id: 'opt-3a',
+          headline: 'Use the engineer\'s jump host session to reach an engineering workstation in OT',
+          detail: 'The engineer routinely jumps to an engineering workstation in the OT network for configuration work. Wait for him to start a legitimate session, then ride alongside it from his compromised laptop.',
+          effort: 3, detection: 2, progress: 5,
+          requires: 'engineer-laptop',
+          outcome: {
+            narrative: 'The engineer initiates a normal Wednesday afternoon session through the jump host to an OT engineering workstation. You ride alongside the session from his laptop. Once inside the OT engineering workstation you have direct access to project files for substation IEDs (Intelligent Electronic Devices — protective relays, RTUs). The jump host logs the session as legitimate. No alert fires.',
+            controlsReferenced: ['jump-host-session-monitoring', 'jump-host-anomaly-detection', 'ot-engineering-workstation-hardening', 'session-recording-review'],
+            wasDetected: false,
+            stateChanges: { privilege: 'ot-engineering-workstation', notes: ['inside OT engineering workstation', 'access to IED project files'] }
+          }
+        },
+        {
+          id: 'opt-3b',
+          headline: 'Use the engineer\'s VPN session at 02:00 when he is asleep',
+          detail: 'Wait for the engineer to be offline. Initiate the connection yourself from his laptop. Connect to the engineering workstation directly. Faster and gives you a clean session, but no human cover.',
+          effort: 2, detection: 5, progress: 4,
+          requires: 'engineer-laptop',
+          outcome: {
+            narrative: 'A 02:30 VPN session in a supplier engineer\'s name connects to the OT-boundary jump host. The DNO\'s SOC has anomaly detection on jump host access at unusual hours. The alert fires. The session is terminated within 12 minutes. The DNO opens an investigation. The supplier engineer is contacted and confirms he was asleep. The supplier\'s access is suspended pending review. Your initial access route is closed.',
+            controlsReferenced: ['ot-boundary-anomaly-detection', 'jump-host-time-of-day-baselining', 'rapid-investigation-playbook', 'supplier-access-suspension-authority'],
+            wasDetected: true,
+            stateChanges: { stopped: true, stoppedReason: 'ot-boundary-anomaly-detected', notes: ['jump host anomaly detected', 'supplier access suspended'] }
+          }
+        }
+      ]
+    },
+
+    // STAGE 4 — OT RECONNAISSANCE
+    {
+      id: 's4', stageNum: 4, label: 'OT Reconnaissance',
+      attackerView: `You are on an engineering workstation in the OT network. You have project files for the IEDs at primary substations. This is where the operation becomes specifically dangerous. You can map the protection scheme — the rules that say which breakers should trip when faults occur. You can identify the safety systems. You can locate the SIS — the safety instrumented systems that exist as a separate layer of protection against catastrophic operational events.`,
+      defenderView: `Activity on an engineering workstation in normal hours, by a supplier engineer\'s identity, raises no alert. The engineer\'s work is project file editing — invisible to OT process monitoring.`,
+      options: [
+        {
+          id: 'opt-4a',
+          headline: 'Map the protection scheme across substations',
+          detail: 'Pull project files for the IEDs at primary substations. Understand the protection logic — under what fault conditions which breakers operate. This is the knowledge required to design a destructive operation in future.',
+          effort: 2, detection: 0, progress: 4,
+          outcome: {
+            narrative: 'Over two weeks you map the protection scheme for 14 primary substations. The IED configurations, the SCADA integration points, the operational state. The knowledge is now obtainable — and exfiltrable to your customer through ordinary engineering document workflows.',
+            controlsReferenced: ['project-file-access-logging', 'engineering-document-classification', 'ot-data-egress-monitoring'],
+            wasDetected: false,
+            stateChanges: { discovery: 'protection-scheme-mapped', notes: ['IED configs for 14 primary substations mapped'] }
+          }
+        },
+        {
+          id: 'opt-4b',
+          headline: 'Identify the safety instrumented systems',
+          detail: 'Locate any SIS that exists separately from the basic protection. In a DNO context these are limited compared to a refinery, but exist for catastrophic fault scenarios.',
+          effort: 2, detection: 1, progress: 3,
+          outcome: {
+            narrative: 'The DNO\'s SIS coverage is targeted — specific arrangements at sites with elevated risk profiles, not a blanket SIS across the estate. You map them. You will not touch them. Triton\'s lesson is well-learned among defenders, but also among attackers: action against an SIS is the line that triggers a different category of state response.',
+            controlsReferenced: ['sis-network-isolation', 'sis-access-logging', 'safety-cybersecurity-integration'],
+            wasDetected: false,
+            stateChanges: { discovery: 'sis-identified', notes: ['SIS locations mapped, not touched'] }
+          }
+        }
+      ]
+    },
+
+    // STAGE 5 — PERSISTENCE
+    {
+      id: 's5', stageNum: 5, label: 'Persistence',
+      attackerView: `The customer\'s tasking is pre-positioning. Persistence in the OT engineering workstations is the deliverable. Implants must be deniable — they will sit dormant for months or years and not produce ordinary telemetry. They will activate only on remote command.`,
+      defenderView: `OT engineering workstations are often under-monitored. They are not endpoints in the IT-EDR sense. Vendor restrictions, change windows, and operational sensitivity make modern endpoint protection difficult.`,
+      options: [
+        {
+          id: 'opt-5a',
+          headline: 'Install a dormant implant on the OT engineering workstation',
+          detail: 'A bespoke implant that produces no network traffic until triggered. Designed to look like part of the legitimate engineering tooling. The customer can activate at a time of their choosing.',
+          effort: 4, detection: 1, progress: 5,
+          outcome: {
+            narrative: 'The implant is installed. It generates no telemetry. It will sit for months without action. The DNO\'s detection capability on the OT engineering workstation is limited — application allow-listing exists but the implant is shaped to fall within the allowed set. Quarterly host integrity checks might catch a binary hash mismatch but the implant overwrites a legitimate tool rather than adding new files.',
+            controlsReferenced: ['ot-host-integrity-monitoring', 'ot-application-allowlist-strictness', 'engineering-workstation-baselining', 'host-integrity-attestation'],
+            wasDetected: false,
+            stateChanges: { persistence: 'dormant-implant', dwellDays: 60, notes: ['dormant implant installed', 'customer-activated'] }
+          }
+        },
+        {
+          id: 'opt-5b',
+          headline: 'Configure a back-door route via the IT-side network',
+          detail: 'Establish a recovery route that does not depend on the compromised supplier engineer. Modify the engineering workstation to permit a secondary remote access path through a legitimate-looking management tool.',
+          effort: 3, detection: 3, progress: 4,
+          outcome: {
+            narrative: 'You configure the secondary access. Within a week the DNO\'s OT change management process detects an unexpected configuration change on the engineering workstation during routine review. The change is reverted; investigation begins. The dormant implant survives the review (which examined configuration, not binaries), but the secondary route is closed and you are now operating without a backup path.',
+            controlsReferenced: ['ot-change-management', 'ot-configuration-baselining', 'configuration-drift-detection'],
+            wasDetected: true,
+            stateChanges: { persistence: 'primary-only', alertsRaised: 2, notes: ['secondary route detected and closed', 'primary implant survives'] }
+          }
+        }
+      ]
+    },
+
+    // STAGE 6 — EGRESS
+    {
+      id: 's6', stageNum: 6, label: 'Egress',
+      attackerView: `The operation is complete. You exfiltrate the protection scheme map and SIS locations to your customer. The dormant implant remains. You sever your active connection and let the engineer\'s laptop forget you ever existed.`,
+      defenderView: `Without an active anomaly, the defender will not see this until — if ever — the dormant implant activates or a forensic effort uncovers it.`,
+      options: [
+        {
+          id: 'opt-6a',
+          headline: 'Exfiltrate via the engineer\'s laptop, then withdraw cleanly',
+          detail: 'Stage exfiltration via the supplier engineer\'s laptop, encrypt the data, blend it with normal supplier file transfers. Then withdraw all active control. The dormant implant is the only remaining presence.',
+          effort: 2, detection: 1, progress: 4,
+          outcome: {
+            narrative: 'Exfiltration completes over a week, paced inside normal supplier file transfer volumes. You sever the live connection. The supplier engineer\'s laptop is cleaned of all artefacts of your presence. The dormant implant on the DNO engineering workstation remains. The operation is over for now. The customer will decide when, if ever, to activate.',
+            controlsReferenced: ['supplier-egress-baselining', 'ot-related-data-classification', 'long-tail-threat-hunting'],
+            wasDetected: false,
+            stateChanges: { objective: 'pre-positioning-complete', dwellDays: 90, notes: ['protection scheme exfiltrated', 'dormant implant remains'] }
+          }
+        }
+      ]
+    },
+
+    // STAGE 7 — OUTCOME
+    {
+      id: 's7', stageNum: 7, label: 'Outcome', isOutcomeStage: true,
+      attackerView: ``, defenderView: ``
+    }
+  ],
+
+  controls: {
+    'ot-supplier-risk-mgmt': 'Risk management specifically addressing OT-trusted suppliers, not just IT suppliers',
+    'engineering-services-access-controls': 'Granular access controls on engineering services suppliers with named users and time-bound permissions',
+    'public-info-discipline': 'Discipline around what engineering detail is published in case studies and academic papers',
+    'perimeter-hygiene': 'Continuous perimeter hygiene and exposure management',
+    'caf-compliance-discipline': 'Honest CAF compliance — not just paper-based',
+    'academic-collaboration-data-sharing': 'Controls on data shared with academic collaborators',
+    'research-data-classification': 'Classification of research data shared externally',
+    'supplier-mfa-on-customer-access': 'Suppliers required to use phish-resistant MFA for customer system access',
+    'jump-host-only-access': 'Supplier access only via jump hosts, no direct connections',
+    'time-bound-vpn-access': 'VPN access opens on-demand, not standing',
+    'engineering-laptop-segregation': 'Engineer laptops used for customer access are dedicated and hardened',
+    'per-user-named-accounts': 'No shared accounts for supplier access — per-individual identities',
+    'hardware-token-mfa': 'Hardware token MFA for supplier privileged access',
+    'supplier-access-modernisation': 'Active programme to modernise supplier authentication',
+    'jump-host-session-monitoring': 'All jump host sessions recorded and reviewed',
+    'jump-host-anomaly-detection': 'Anomaly detection on jump host session patterns',
+    'ot-engineering-workstation-hardening': 'Engineering workstations hardened with application allow-listing and integrity monitoring',
+    'session-recording-review': 'Regular review of recorded jump host sessions, not just availability for forensic use',
+    'ot-boundary-anomaly-detection': 'Behavioural anomaly detection at the IT/OT boundary',
+    'jump-host-time-of-day-baselining': 'Time-of-day baselining for jump host access patterns',
+    'rapid-investigation-playbook': 'Investigation playbook for OT boundary anomalies with rapid triage',
+    'supplier-access-suspension-authority': 'Pre-authorised authority to suspend supplier access on anomaly',
+    'project-file-access-logging': 'Access logging on engineering project files',
+    'engineering-document-classification': 'Classification of engineering documents containing protection logic',
+    'ot-data-egress-monitoring': 'Egress monitoring tuned for OT-relevant data formats and volumes',
+    'sis-network-isolation': 'SIS networks physically isolated from BPCS where possible',
+    'sis-access-logging': 'All access to SIS systems logged and reviewed',
+    'safety-cybersecurity-integration': 'Cyber and safety teams operate as integrated function, not siloed',
+    'ot-host-integrity-monitoring': 'Host integrity monitoring on OT engineering workstations',
+    'ot-application-allowlist-strictness': 'Application allow-listing with hash verification, not just path',
+    'engineering-workstation-baselining': 'Behavioural baselining of engineering workstation activity',
+    'host-integrity-attestation': 'Cryptographic attestation of host integrity at boot and periodically',
+    'ot-change-management': 'Change management process that detects unexpected configuration changes',
+    'ot-configuration-baselining': 'Configuration baseline for OT engineering workstations with drift detection',
+    'configuration-drift-detection': 'Automated configuration drift detection on critical OT hosts',
+    'supplier-egress-baselining': 'Egress baselines specific to supplier data transfer patterns',
+    'ot-related-data-classification': 'Classification of data revealing OT architecture and configuration',
+    'long-tail-threat-hunting': 'Proactive threat hunting capability tuned for low-and-slow OT compromise patterns'
+  },
+
+  debrief: {
+    blindSpots: [
+      'OT-trusted suppliers carry the trust without the security maturity. They are often the strategic attacker\'s preferred route.',
+      'IT/OT boundary controls work for prevention but often lack the behavioural baselining that detects authorised-looking abuse.',
+      'OT engineering workstations are not endpoints in the IT-EDR sense. They need different monitoring built around their specific operational constraints.',
+      'Pre-positioning is patient by design. Detection capability tuned for immediate-impact operations will miss it.',
+      'Engineering literature about your own grid architecture is reconnaissance for adversaries. The discipline around public technical detail is a security control.'
+    ],
+    keyControlsForThisProfile: [
+      'ot-supplier-risk-mgmt',
+      'engineering-services-access-controls',
+      'jump-host-anomaly-detection',
+      'ot-boundary-anomaly-detection',
+      'ot-host-integrity-monitoring',
+      'engineering-workstation-baselining',
+      'long-tail-threat-hunting'
+    ]
+  }
+};
+
+
+// === SCENARIO 5: THE PATCH WINDOW ===
+// Cl0p-style mass exploitation of internet-facing MFT
+// Real-world anchor: MOVEit (CVE-2023-34362, 2023); GoAnywhere (2023); Cleo (2024); Oracle EBS (CVE-2025-61882, 2025)
+
+const SCENARIO_PATCH_WINDOW = {
+  id: 'patch-window',
+  title: 'The Patch Window',
+  attackerClass: 'financial',
+  attackerClassLabel: 'Mass-Exploitation Crew',
+  defenderProfile: {
+    sector: 'Cross-sector — any organisation running the vulnerable software',
+    size: 'Variable — your target is the vendor\'s installed base',
+    employees: 'N/A — you target software estates, not organisations',
+    posture: 'Varies — defenders here are everyone running the product',
+    crownJewel: 'Files in transit, customer datasets, regulated information'
+  },
+  realWorldAnchor: 'MOVEit (May-July 2023) — Cl0p; Cleo Harmony (Dec 2024) — Termite; Oracle EBS (Oct 2025) — Cl0p',
+
+  briefing: `You operate a financially-motivated crew with a particular speciality: mass exploitation of newly-discovered vulnerabilities in widely-deployed internet-facing software. You do not pick targets one by one. You pick a vendor whose product runs on the perimeters of many organisations.
+
+You have a working zero-day against a managed file transfer product used by an estimated 4,000 organisations globally — banks, government agencies, professional services firms, healthcare, manufacturing. You have not disclosed it to the vendor. You have a working exploit. The question is timing: act now and harvest at scale before defenders can respond, or wait until you can refine the exploit further and risk losing the initial element of surprise.`,
+
+  stages: [
+    // STAGE 1 — VULNERABILITY POSITION
+    {
+      id: 's1', stageNum: 1, label: 'Position',
+      attackerView: `Your researchers have found an authentication bypass in a managed file transfer product. The vulnerability allows unauthenticated remote code execution. Patching will be possible once disclosed. The vendor\'s typical patch cycle from disclosure to customer deployment is 30+ days. Your operational window is from "exploit ready" to "majority patched".`,
+      defenderView: `Defenders running this product have no awareness of the vulnerability. They will not be looking for exploitation patterns specific to this CVE because the CVE does not yet exist.`,
+      options: [
+        {
+          id: 'opt-1a',
+          headline: 'Exploit immediately, mass-scan internet-wide',
+          detail: 'Burn the zero-day now. Scan the IPv4 space for the product\'s default ports. Hit every reachable instance simultaneously. Maximum yield in the first 72 hours.',
+          effort: 3, detection: 5, progress: 5,
+          outcome: {
+            narrative: 'You initiate mass scanning. Within 12 hours your scan traffic is detected by internet security telemetry providers (Shadowserver, Greynoise, others). Within 24 hours threat intel reports surface describing unusual scanning patterns against this product. The vendor\'s security team is alerted by a customer who notices unfamiliar activity in their logs. Disclosure begins on Day 2. You have a 5-day window of unconstrained exploitation against the unpatched majority. After that, response narrows the window.',
+            controlsReferenced: ['internet-scanning-telemetry', 'vendor-incident-response', 'csirt-coordination', 'rapid-cve-publication'],
+            wasDetected: true,
+            stateChanges: { exploitation: 'mass-active', alertsRaised: 'global', timeline: '5-day-window' }
+          }
+        },
+        {
+          id: 'opt-1b',
+          headline: 'Selective targeting — start with high-value victims',
+          detail: 'Pre-research the vendor\'s customer list. Identify the highest-value victims (banks, government agencies, regulated firms). Exploit a few dozen first, quietly, before moving to mass. Trades volume for first-mover advantage on prime targets.',
+          effort: 4, detection: 2, progress: 4,
+          outcome: {
+            narrative: 'You compromise 40 high-value victims over two weeks. The exfiltration pattern from each is small enough to evade automated detection but distinctive enough that one of the victims — a tier-1 bank with strong SOC capabilities — notices anomalous outbound traffic from the MFT host. They contact the vendor. The vendor begins investigating without yet announcing publicly. The CVE is finally published 16 days into your operation. Your high-value batch is complete; you transition to mass exploitation against the remaining vulnerable population.',
+            controlsReferenced: ['outbound-traffic-monitoring', 'mft-egress-baselining', 'vendor-coordinated-disclosure'],
+            wasDetected: true,
+            stateChanges: { exploitation: 'selective-then-mass', alertsRaised: 'bank-soc', timeline: '16-day-window' }
+          }
+        },
+        {
+          id: 'opt-1c',
+          headline: 'Refine the exploit further before launching',
+          detail: 'Your current exploit is reliable but noisy in its network signature. Spend two weeks reducing the signature. Risk: a different researcher might find the vulnerability and report it first.',
+          effort: 3, detection: 0, progress: 3,
+          outcome: {
+            narrative: 'Two weeks of refinement pass. The exploit is now signature-light. But during those two weeks, an independent security researcher reports a similar vulnerability to the vendor. The vendor issues a patch advisory the day before you intend to launch. Your operational window collapses from 30 days to perhaps 5 days as defenders rush to patch. You proceed but the yield is a fraction of what an earlier launch would have produced.',
+            controlsReferenced: ['vulnerability-research-ecosystem', 'coordinated-vulnerability-disclosure', 'vendor-patch-velocity'],
+            wasDetected: true,
+            stateChanges: { exploitation: 'late-launch', timeline: '5-day-window-after-patch' }
+          }
+        }
+      ]
+    },
+
+    // STAGE 2 — EXPLOITATION
+    {
+      id: 's2', stageNum: 2, label: 'Exploitation',
+      attackerView: `Your scan has identified vulnerable instances. The exploitation itself is mechanical: deploy the exploit, drop a web shell, establish a persistent foothold inside each victim\'s MFT host. The MFT is by definition handling files — many of which are sensitive — passing through the system.`,
+      defenderView: `Victims running the product have minutes to hours between the first exploit attempt and effective compromise. Detection capability against unknown patterns is highly variable.`,
+      options: [
+        {
+          id: 'opt-2a',
+          headline: 'Drop a single-stage web shell and exfiltrate immediately',
+          detail: 'No persistence beyond the web shell itself. Take what is in the MFT now (recent files in transit) and move on. Fast operational tempo, maximum coverage.',
+          effort: 1, detection: 4, progress: 4,
+          outcome: {
+            narrative: 'Across 800 successful exploitations, you pull recent files from each. Some are sensitive (financial records, employee data, customer files in transit). Some are nothing (test files, configuration files). EDR catches your web shell at perhaps 15% of victims. The rest do not see it. You have a noisy, broad collection of data from a wide range of organisations.',
+            controlsReferenced: ['edr-coverage-on-perimeter-services', 'web-shell-detection', 'perimeter-service-isolation'],
+            wasDetected: 'partially',
+            stateChanges: { yield: 'broad-shallow', victimCount: 800, notes: ['800 victims', 'recent files only'] }
+          }
+        },
+        {
+          id: 'opt-2b',
+          headline: 'Establish deeper persistence — pivot from MFT to internal network',
+          detail: 'On selected high-value targets, use the MFT compromise as a pivot into the broader internal network. Slower per-victim, but much higher yield per high-value compromise.',
+          effort: 3, detection: 4, progress: 5,
+          outcome: {
+            narrative: 'You pivot at 30 high-value targets. Internal segmentation halts you at perhaps a third — the MFT is not on a flat network in mature organisations. At another third, you reach internal systems and harvest substantial data over days. At the final third, EDR or network anomaly detection fires after a few days and the access is closed. You have a small number of deep compromises with substantial data sets.',
+            controlsReferenced: ['mft-network-segmentation', 'lateral-movement-detection', 'internal-edr-coverage', 'east-west-traffic-monitoring'],
+            wasDetected: 'partially',
+            stateChanges: { yield: 'deep-narrow', victimCount: 30, notes: ['30 high-value pivots', 'deep data sets at ~10 victims'] }
+          }
+        },
+        {
+          id: 'opt-2c',
+          headline: 'Pure data theft via the MFT itself — no pivot',
+          detail: 'The MFT is a file-handling system. You do not need to leave it. Use the exploit to enumerate and exfiltrate all files the MFT has ever processed. Many MFTs retain transferred files in staging directories — a treasure trove of historical sensitive data.',
+          effort: 1, detection: 3, progress: 5,
+          outcome: {
+            narrative: 'You enumerate the file stores. Many victims retain months or years of historical transferred files in staging directories that the operations team forgot about. The exfiltration is large. Across your 800 victims you walk away with terabytes of regulated data — financial records, HR data, customer files. The egress volume is noticed by some, ignored by most. The data is held for extortion.',
+            controlsReferenced: ['mft-staging-retention-policy', 'sensitive-data-classification', 'egress-volume-detection', 'data-minimisation'],
+            wasDetected: 'partially',
+            stateChanges: { yield: 'mass-data-theft', victimCount: 800, notes: ['historical staging directories raided', 'extortion playbook engaged'] }
+          }
+        }
+      ]
+    },
+
+    // STAGE 3 — DISCLOSURE
+    {
+      id: 's3', stageNum: 3, label: 'Disclosure',
+      attackerView: `The CVE is now public. The vendor has issued a patch. The story is in trade press. Many of your victims are patching but do not yet know they were compromised. Your operational window has compressed.`,
+      defenderView: `Defenders are now actively responding. The fast ones patch within 24 hours. The slow ones take weeks. The unprepared do not patch at all.`,
+      options: [
+        {
+          id: 'opt-3a',
+          headline: 'Continue exploiting unpatched victims',
+          detail: 'Hundreds of organisations will not patch in time. Continue scanning, continue exploiting. The long tail of unpatched victims yields significant additional revenue.',
+          effort: 1, detection: 3, progress: 3,
+          outcome: {
+            narrative: 'You continue. Over the next four weeks you compromise an additional ~600 victims who patched slowly or not at all. The yield diminishes as the population shrinks; the per-victim risk increases as defenders look specifically for your TTPs. You are now a known threat actor in security trade reporting.',
+            controlsReferenced: ['rapid-patching-discipline', 'vulnerability-management-velocity', 'threat-intel-tactical-feeds'],
+            wasDetected: true,
+            stateChanges: { yield: 'extended', victimCount: 1400, notes: ['additional 600 long-tail victims'] }
+          }
+        },
+        {
+          id: 'opt-3b',
+          headline: 'Publish victim names on your data leak site',
+          detail: 'Move to the extortion phase. List dozens of compromised organisations publicly. Use the names to pressure each one to pay. Maximum public visibility, maximum reputational impact on victims.',
+          effort: 2, detection: 0, progress: 4,
+          outcome: {
+            narrative: 'Your leak site begins publishing victim names. Each named organisation faces a separate negotiation. Press coverage frames this as one of the largest mass compromises in recent memory. Some victims pay. Most do not. Regulators across multiple jurisdictions open investigations. You become a named threat actor in NCSC and CISA advisories.',
+            controlsReferenced: ['ransomware-extortion-playbook', 'public-comms-readiness', 'regulator-coordination'],
+            wasDetected: true,
+            stateChanges: { extortion: 'public', notes: ['data leak site campaign', 'multi-jurisdiction response'] }
+          }
+        }
+      ]
+    },
+
+    // STAGE 4 — OUTCOME
+    {
+      id: 's4', stageNum: 4, label: 'Outcome', isOutcomeStage: true,
+      attackerView: ``, defenderView: ``
+    }
+  ],
+
+  controls: {
+    'internet-scanning-telemetry': 'Threat intelligence from internet-scale scanning telemetry providers',
+    'vendor-incident-response': 'Vendor IR capability for product zero-days',
+    'csirt-coordination': 'CSIRT coordination across vendor, customers, and government CERTs',
+    'rapid-cve-publication': 'Rapid CVE publication and customer notification once vulnerability confirmed',
+    'outbound-traffic-monitoring': 'Outbound traffic monitoring on perimeter services',
+    'mft-egress-baselining': 'Egress baselining specific to MFT systems\' expected traffic',
+    'vendor-coordinated-disclosure': 'Coordinated disclosure between vendors and customer SOCs',
+    'vulnerability-research-ecosystem': 'Healthy independent security research ecosystem',
+    'coordinated-vulnerability-disclosure': 'CVD process at vendors with clear reporting channels',
+    'vendor-patch-velocity': 'Vendor commitment to rapid patch development',
+    'edr-coverage-on-perimeter-services': 'EDR deployed on all perimeter-facing services, not just user endpoints',
+    'web-shell-detection': 'Detection rules specifically for web shell patterns and behaviours',
+    'perimeter-service-isolation': 'Perimeter services isolated from internal networks by default',
+    'mft-network-segmentation': 'MFT placed in segmented DMZ with limited internal connectivity',
+    'lateral-movement-detection': 'Detection capability for lateral movement from compromised perimeter',
+    'internal-edr-coverage': 'EDR coverage across internal systems, not just user endpoints',
+    'east-west-traffic-monitoring': 'Internal east-west traffic monitoring with anomaly detection',
+    'mft-staging-retention-policy': 'Retention policy that minimises historical file accumulation in MFT staging',
+    'sensitive-data-classification': 'Classification of sensitive data flowing through MFT',
+    'egress-volume-detection': 'Volume-based egress anomaly detection',
+    'data-minimisation': 'Data minimisation in transit — files not retained longer than needed',
+    'rapid-patching-discipline': 'Patch-velocity discipline measured in days, not weeks, for internet-facing services',
+    'vulnerability-management-velocity': 'Vulnerability management process that prioritises by exploitation pressure',
+    'threat-intel-tactical-feeds': 'Tactical threat intelligence feeds for emerging mass-exploitation events',
+    'ransomware-extortion-playbook': 'Playbook for handling data theft extortion (distinct from encryption ransomware)',
+    'public-comms-readiness': 'Pre-prepared public communications for breach scenarios',
+    'regulator-coordination': 'Established channels to regulators in event of breach'
+  },
+
+  debrief: {
+    blindSpots: [
+      'Internet-facing services that "just work" between major incidents accumulate risk. Patch velocity is the determining factor between victim and non-victim.',
+      'Mass exploitation events are not the rare exception. They have become a recurring annual pattern, with a new vendor each year.',
+      'Managed File Transfer products handle exactly the data attackers want to steal, by design. They deserve perimeter-class hardening.',
+      'Retention of historical files in MFT staging directories is a recurring source of breach impact magnification.',
+      'The patch window is a race. Defenders who treat it as routine maintenance will lose.'
+    ],
+    keyControlsForThisProfile: [
+      'rapid-patching-discipline',
+      'vulnerability-management-velocity',
+      'edr-coverage-on-perimeter-services',
+      'perimeter-service-isolation',
+      'mft-network-segmentation',
+      'egress-volume-detection',
+      'mft-staging-retention-policy'
+    ]
+  }
+};
+
+
+// === ALL SCENARIOS ===
+const ALL_SCENARIOS = [
+  SCENARIO_HELP_DESK,
+  SCENARIO_QUIET_QUARTER,
+  SCENARIO_PUBLIC_HOLIDAY,
+  SCENARIO_SUBSTATION,
+  SCENARIO_PATCH_WINDOW
+];
+
+// === STATE ===
+const state = {
+  view: 'landing',         // 'landing' | 'run' | 'debrief'
+  scenarioId: null,
+  stageIndex: 0,
+  choicesMade: [],
+  accumulated: {
+    detectionEvents: [],
+    cost: 0,
+    dwellDays: 0,
+    privilege: 'none',
+    persistence: null,
+    stopped: false,
+    stoppedReason: null,
+    notes: [],
+    controlsReferenced: new Set(),
+    requirementsMet: new Set(),
+    objectiveProgress: 0
+  }
+};
+
+// === HELPERS ===
+function escapeHtml(s) {
+  if (s === null || s === undefined) return '';
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function getCurrentScenario() {
+  return ALL_SCENARIOS.find(s => s.id === state.scenarioId);
+}
+
+// === LANDING ===
+function renderLanding() {
+  const grid = document.getElementById('scenarioGrid');
+  grid.innerHTML = ALL_SCENARIOS.map(s => `
+    <a class="scenario-card" onclick="startScenario('${s.id}')">
+      <div class="scenario-card-eyebrow">${escapeHtml(s.attackerClassLabel)}</div>
+      <div class="scenario-card-title">${escapeHtml(s.title)}</div>
+      <div class="scenario-card-desc">${escapeHtml(s.briefing.split('\n')[0])}</div>
+      <div class="scenario-card-meta">
+        <span><strong>Sector:</strong> ${escapeHtml(s.defenderProfile.sector)}</span>
+        <span><strong>Size:</strong> ${escapeHtml(s.defenderProfile.size)}</span>
+        <span><strong>${s.stages.length - 1} stages</strong></span>
+      </div>
+    </a>
+  `).join('');
+}
+
+// === RUN ===
+function startScenario(id) {
+  state.scenarioId = id;
+  state.stageIndex = 0;
+  state.choicesMade = [];
+  state.accumulated = {
+    detectionEvents: [],
+    cost: 0,
+    dwellDays: 0,
+    privilege: 'none',
+    persistence: null,
+    stopped: false,
+    stoppedReason: null,
+    notes: [],
+    controlsReferenced: new Set(),
+    requirementsMet: new Set(),
+    objectiveProgress: 0
+  };
+  state.view = 'run';
+
+  document.getElementById('landingView').style.display = 'none';
+  document.getElementById('runView').classList.add('active');
+
+  renderRunHeader();
+  renderCurrentStage();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function returnToLanding() {
+  state.view = 'landing';
+  document.getElementById('landingView').style.display = 'block';
+  document.getElementById('runView').classList.remove('active');
+  document.getElementById('stagesContainer').innerHTML = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderRunHeader() {
+  const s = getCurrentScenario();
+  document.getElementById('runTitle').textContent = s.title;
+  document.getElementById('runAnchor').innerHTML =
+    `<strong>Attacker class:</strong> ${escapeHtml(s.attackerClassLabel)} &nbsp;·&nbsp; <strong>Real-world anchor:</strong> ${escapeHtml(s.realWorldAnchor)}`;
+
+  const profile = s.defenderProfile;
+  document.getElementById('runDefenderProfile').innerHTML = `
+    <div class="defender-profile-label">The defender</div>
+    <div class="defender-profile-grid">
+      <div class="defender-profile-item"><div class="defender-profile-item-key">Sector</div><div class="defender-profile-item-val">${escapeHtml(profile.sector)}</div></div>
+      <div class="defender-profile-item"><div class="defender-profile-item-key">Size</div><div class="defender-profile-item-val">${escapeHtml(profile.size)} (${escapeHtml(profile.employees)})</div></div>
+      <div class="defender-profile-item"><div class="defender-profile-item-key">Posture</div><div class="defender-profile-item-val">${escapeHtml(profile.posture)}</div></div>
+      <div class="defender-profile-item"><div class="defender-profile-item-key">Crown jewel</div><div class="defender-profile-item-val">${escapeHtml(profile.crownJewel)}</div></div>
+    </div>
+  `;
+
+  document.getElementById('runBriefing').innerHTML = `
+    <div class="briefing-label">Your briefing</div>
+    <div class="briefing-body">${s.briefing.split('\n\n').map(p => `<p>${escapeHtml(p)}</p>`).join('')}</div>
+  `;
+}
+
+function renderCurrentStage() {
+  const s = getCurrentScenario();
+  const stage = s.stages[state.stageIndex];
+
+  // Check for outcome / debrief stage
+  if (stage.isOutcomeStage || state.accumulated.stopped) {
+    renderDebrief();
+    return;
+  }
+
+  const totalStages = s.stages.filter(st => !st.isOutcomeStage).length;
+  const visibleStageNum = state.stageIndex + 1;
+
+  // Filter options by 'requires' field if present
+  const availableOptions = stage.options.filter(opt => {
+    if (!opt.requires) return true;
+    return state.accumulated.requirementsMet.has(opt.requires);
+  });
+
+  // If no available options (rare), fall back to all options
+  const optionsToShow = availableOptions.length > 0 ? availableOptions : stage.options;
+
+  const container = document.getElementById('stagesContainer');
+  const stageHtml = `
+    <div class="stage" id="stage-${stage.id}">
+      <div class="stage-header">
+        <span class="stage-num">STAGE ${String(visibleStageNum).padStart(2, '0')}</span>
+        <span class="stage-label">${escapeHtml(stage.label)}</span>
+        <span class="stage-progress">${visibleStageNum} / ${totalStages}</span>
+      </div>
+
+      <div class="view-block attacker">
+        <div class="view-block-label">Attacker view</div>
+        <div class="view-block-body">${escapeHtml(stage.attackerView).replace(/\n\n/g, '</p><p>').replace(/^/, '<p>').replace(/$/, '</p>')}</div>
+      </div>
+
+      ${stage.defenderView ? `
+        <div class="view-block defender">
+          <div class="view-block-label">Defender view</div>
+          <div class="view-block-body">${escapeHtml(stage.defenderView)}</div>
+        </div>
+      ` : ''}
+
+      <div class="options-label">Choose your move</div>
+      <div class="options-grid">
+        ${optionsToShow.map(opt => `
+          <button class="option-card" onclick="chooseOption('${stage.id}', '${opt.id}')">
+            <div class="option-card-headline">${escapeHtml(opt.headline)}</div>
+            <div class="option-card-detail">${escapeHtml(opt.detail)}</div>
+            <div class="option-meters">
+              ${renderMeter('effort', opt.effort, 'Effort')}
+              ${renderMeter('detection', opt.detection, 'Detection risk')}
+              ${renderMeter('progress', opt.progress, 'Progress')}
+            </div>
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = stageHtml;
+  // Scroll the new stage into view
+  const stageEl = document.getElementById(`stage-${stage.id}`);
+  if (stageEl) stageEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderMeter(klass, value, label) {
+  const dots = Array.from({length: 5}, (_, i) =>
+    `<span class="meter-dot ${i < value ? 'filled' : ''}"></span>`).join('');
+  return `
+    <div class="meter ${klass}">
+      <div class="meter-label">${escapeHtml(label)}</div>
+      <div class="meter-bar">${dots}</div>
+    </div>
+  `;
+}
+
+function chooseOption(stageId, optionId) {
+  const s = getCurrentScenario();
+  const stage = s.stages.find(st => st.id === stageId);
+  const option = stage.options.find(o => o.id === optionId);
+
+  state.choicesMade.push({ stageId, optionId, stageLabel: stage.label, optionHeadline: option.headline });
+
+  // Apply state changes
+  const outcome = option.outcome;
+  if (outcome.controlsReferenced) {
+    outcome.controlsReferenced.forEach(c => state.accumulated.controlsReferenced.add(c));
+  }
+  if (outcome.wasDetected) {
+    state.accumulated.detectionEvents.push({ stageId, optionId });
+  }
+  const changes = outcome.stateChanges || {};
+  if (changes.dwellDays) state.accumulated.dwellDays += changes.dwellDays;
+  if (changes.privilege) state.accumulated.privilege = changes.privilege;
+  if (changes.persistence) state.accumulated.persistence = changes.persistence;
+  if (changes.stopped) {
+    state.accumulated.stopped = true;
+    state.accumulated.stoppedReason = changes.stoppedReason;
+  }
+  if (changes.notes) state.accumulated.notes = state.accumulated.notes.concat(changes.notes);
+
+  // Track requirements met by this option's outcome state
+  const allChanges = Object.values(changes);
+  allChanges.forEach(v => {
+    if (typeof v === 'string') state.accumulated.requirementsMet.add(v);
+  });
+
+  // Estimate objective progress contribution (capped at 100)
+  state.accumulated.objectiveProgress = Math.min(100, state.accumulated.objectiveProgress + (option.progress * 10));
+
+  // Render the outcome reveal
+  renderOutcomeReveal(stage, option);
+}
+
+function renderOutcomeReveal(stage, option) {
+  const container = document.getElementById('stagesContainer');
+  const outcome = option.outcome;
+
+  const klass = state.accumulated.stopped
+    ? 'stopped'
+    : outcome.wasDetected
+      ? 'detected'
+      : '';
+  const label = state.accumulated.stopped
+    ? 'Stopped'
+    : outcome.wasDetected
+      ? 'Detected'
+      : 'Outcome';
+
+  const controlsHtml = (outcome.controlsReferenced && outcome.controlsReferenced.length > 0)
+    ? `
+      <div class="outcome-controls">
+        <div class="outcome-controls-label">Controls in play</div>
+        <div class="outcome-controls-list">
+          ${outcome.controlsReferenced.map(c => `<span class="outcome-control-tag">${escapeHtml(c)}</span>`).join('')}
+        </div>
+      </div>
+    `
+    : '';
+
+  const revealHtml = `
+    <div class="outcome-reveal ${klass}">
+      <div class="outcome-label">${escapeHtml(label)}</div>
+      <div class="outcome-narrative">${escapeHtml(outcome.narrative)}</div>
+      ${controlsHtml}
+      <button class="outcome-continue" onclick="advanceStage()">${state.accumulated.stopped ? 'See debrief →' : 'Continue →'}</button>
+    </div>
+  `;
+
+  // Append to the existing stage, replacing options
+  const stageEl = container.querySelector('.stage');
+  if (stageEl) {
+    // Hide the options
+    const optionsLabel = stageEl.querySelector('.options-label');
+    const optionsGrid = stageEl.querySelector('.options-grid');
+    if (optionsLabel) optionsLabel.style.display = 'none';
+    if (optionsGrid) optionsGrid.style.display = 'none';
+    stageEl.insertAdjacentHTML('beforeend', revealHtml);
+    const reveal = stageEl.querySelector('.outcome-reveal');
+    if (reveal) reveal.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+function advanceStage() {
+  if (state.accumulated.stopped) {
+    renderDebrief();
+    return;
+  }
+  state.stageIndex += 1;
+  renderCurrentStage();
+}
+
+// === DEBRIEF ===
+function renderDebrief() {
+  const s = getCurrentScenario();
+
+  // Compute end state
+  let endState;
+  if (state.accumulated.stopped) {
+    endState = 'DEFENDER_HELD';
+  } else if (state.accumulated.objectiveProgress >= 80) {
+    endState = 'COMPROMISE';
+  } else if (state.accumulated.detectionEvents.length >= 2) {
+    endState = 'DETECTED_MIDWAY';
+  } else if (state.accumulated.objectiveProgress >= 50) {
+    endState = 'COMPROMISE';
+  } else {
+    endState = 'DETECTED_MIDWAY';
+  }
+
+  const endStateConfig = {
+    'COMPROMISE': {
+      label: 'End state · COMPROMISE',
+      title: 'The attacker reached the objective.',
+      summary: 'The defender did not stop the attacker before significant impact. The path through this scenario succeeded — not because the attacker was sophisticated, but because the controls that would have made the difference were not in place or not tuned to catch this particular pattern. The debrief below shows which controls would have changed the outcome.',
+      klass: 'compromise'
+    },
+    'DEFENDER_HELD': {
+      label: 'End state · DEFENDER HELD',
+      title: 'The defender stopped the attacker.',
+      summary: 'Controls fired, response was timely, the attack did not advance to material impact. The debrief below shows which specific controls earned their keep — and which blind spots remained that a different choice or a different attacker would have exploited.',
+      klass: 'held'
+    },
+    'DETECTED_MIDWAY': {
+      label: 'End state · DETECTED MIDWAY',
+      title: 'The attacker was detected, but only after significant advance.',
+      summary: 'Some controls fired but late. The attacker reached partial objectives before being noticed. This is the most common real-world outcome for a moderately mature defender against a determined attacker. The debrief shows the controls that mattered, the moments where the response could have been faster, and the blind spots the attacker exploited.',
+      klass: 'detected-midway'
+    }
+  };
+
+  const cfg = endStateConfig[endState];
+
+  // Controls that mattered: those referenced in chosen outcomes
+  const controlsMattered = Array.from(state.accumulated.controlsReferenced);
+  const controlsForProfile = s.debrief.keyControlsForThisProfile;
+  const allRelevantControls = Array.from(new Set([...controlsForProfile, ...controlsMattered]));
+
+  const pathHtml = state.choicesMade.map((c, i) => `
+    <div class="path-step">
+      <div class="path-step-stage">STAGE ${String(i + 1).padStart(2, '0')} · ${escapeHtml(c.stageLabel)}</div>
+      <div class="path-step-choice">${escapeHtml(c.optionHeadline)}</div>
+    </div>
+  `).join('');
+
+  const blindSpotsHtml = s.debrief.blindSpots.map(b => `<li>${escapeHtml(b)}</li>`).join('');
+
+  const controlsListHtml = allRelevantControls.map(key => {
+    const desc = s.controls[key] || '(no description)';
+    return `
+      <div class="control-row">
+        <div class="control-row-key">${escapeHtml(key)}</div>
+        <div class="control-row-desc">${escapeHtml(desc)}</div>
+      </div>
+    `;
+  }).join('');
+
+  const debriefHtml = `
+    <div class="debrief">
+      <div class="debrief-end-state ${cfg.klass}">${escapeHtml(cfg.label)}</div>
+      <h2 class="debrief-title">${escapeHtml(cfg.title)}</h2>
+      <p class="debrief-summary">${escapeHtml(cfg.summary)}</p>
+
+      <div class="real-world-callout">
+        <strong>Real-world parallel</strong>
+        ${escapeHtml(s.realWorldAnchor)}
+      </div>
+
+      <div class="debrief-section">
+        <div class="debrief-section-label">The path you took</div>
+        <div class="path-list">${pathHtml}</div>
+      </div>
+
+      <div class="debrief-section">
+        <div class="debrief-section-label">Blind spots this scenario exposes</div>
+        <ul>${blindSpotsHtml}</ul>
+      </div>
+
+      <div class="debrief-section">
+        <div class="debrief-section-label">Controls that would have mattered</div>
+        <p style="font-size:13px;color:var(--ink-soft);margin-bottom:14px;">
+          Controls referenced across the choices you made, plus the baseline set for this defender profile.
+          Not a prescription — a starting point for further investigation against your specific environment.
+        </p>
+        <div class="controls-list">${controlsListHtml}</div>
+      </div>
+
+      <div class="debrief-actions">
+        <button class="primary" onclick="restartScenario()">Run this scenario again</button>
+        <button onclick="returnToLanding()">Pick a different scenario</button>
+        <button onclick="window.print()">Print debrief</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('stagesContainer').innerHTML = debriefHtml;
+  state.view = 'debrief';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function restartScenario() {
+  startScenario(state.scenarioId);
+}
+
+// === BOOT ===
+document.addEventListener('DOMContentLoaded', () => {
+  renderLanding();
+});
+
+</script>
+
+</body>
+</html>
