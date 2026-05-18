@@ -1,0 +1,1723 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Threat Actor Index · Dan Howett</title>
+<style>
+:root {
+  --bg: #f7f7f4;
+  --bg-card: #ffffff;
+  --bg-subtle: #f1f1ec;
+  --bg-darker: #ededea;
+  --ink: #18181b;
+  --ink-soft: #52525b;
+  --ink-faint: #a1a1aa;
+  --line: #e4e4e7;
+  --line-strong: #d4d4d8;
+  --accent: #1d4ed8;
+  --accent-soft: #eff6ff;
+  --warn: #b45309;
+  --warn-soft: #fef3c7;
+  --danger: #b91c1c;
+  --danger-soft: #fee2e2;
+  --red: #dc2626;
+  --red-soft: #fee2e2;
+  --ok: #15803d;
+  --ok-soft: #dcfce7;
+  --safety: #9a3412;
+  --safety-soft: #ffedd5;
+  --purple: #6d28d9;
+  --purple-soft: #ede9fe;
+  --orange: #c2410c;
+  --orange-soft: #ffedd5;
+  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --serif: 'Source Serif Pro', Georgia, serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* TOP NAV */
+.topnav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(247, 247, 244, 0.92);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.topnav-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 14px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.topnav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink);
+  text-decoration: none;
+}
+.topnav-brand:hover { text-decoration: none; }
+.topnav-brand-mark {
+  width: 24px;
+  height: 24px;
+  background: var(--ink);
+  color: var(--bg-card);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 12px;
+  border-radius: 4px;
+}
+.topnav-brand-sep { color: var(--ink-faint); }
+.topnav-brand-section { color: var(--ink-soft); }
+.topnav-actions { display: flex; gap: 8px; align-items: center; }
+.topnav-actions a {
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  color: var(--ink-soft);
+  padding: 6px 12px;
+  font-family: var(--mono);
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s;
+  text-decoration: none;
+}
+.topnav-actions a:hover {
+  background: var(--ink);
+  color: var(--bg-card);
+  border-color: var(--ink);
+  text-decoration: none;
+}
+
+/* PAGE */
+.page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 48px 28px 120px;
+}
+
+/* HERO */
+.hero { margin-bottom: 36px; }
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 16px;
+}
+.hero-title {
+  font-family: var(--serif);
+  font-size: 56px;
+  line-height: 1.05;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+  color: var(--ink);
+}
+.hero-title em { font-style: italic; color: var(--accent); }
+.hero-lede {
+  font-size: 17px;
+  color: var(--ink-soft);
+  max-width: 820px;
+  line-height: 1.6;
+}
+.hero-lede strong { color: var(--ink); font-weight: 600; }
+.hero-meta {
+  margin-top: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+.hero-meta span strong { color: var(--ink); font-weight: 600; }
+
+/* DISCLAIMER */
+.disclaimer {
+  background: var(--warn-soft);
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 32px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.disclaimer-mark {
+  font-family: var(--mono);
+  font-size: 20px;
+  color: var(--warn);
+  font-weight: 700;
+  line-height: 1;
+}
+.disclaimer-body { font-size: 13px; color: #78350f; line-height: 1.55; }
+.disclaimer-body strong { color: #451a03; }
+
+/* SEARCH & FILTERS */
+.controls {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  position: sticky;
+  top: 60px;
+  z-index: 50;
+}
+.search-box {
+  position: relative;
+  margin-bottom: 18px;
+}
+.search-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 12px 16px 12px 44px;
+  font-family: var(--sans);
+  font-size: 15px;
+  color: var(--ink);
+  transition: border-color 0.15s;
+}
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.search-input::placeholder { color: var(--ink-faint); }
+.search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--ink-faint);
+  pointer-events: none;
+}
+
+.filter-section { margin-bottom: 12px; }
+.filter-section:last-child { margin-bottom: 0; }
+.filter-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+}
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.filter-chip {
+  background: var(--bg);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.filter-chip:hover { border-color: var(--ink-soft); color: var(--ink); }
+.filter-chip.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg-card);
+}
+.filter-chip-count {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  margin-left: 4px;
+}
+.filter-chip.active .filter-chip-count { color: rgba(255,255,255,0.6); }
+
+.controls-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+}
+.results-count {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.results-count strong { color: var(--ink); }
+.controls-clear {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  padding: 5px 10px;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+.controls-clear:hover { color: var(--ink); border-color: var(--ink); }
+.controls-clear:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* RESULTS GRID */
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 16px;
+}
+.actor-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 18px 22px;
+  transition: border-left-color 0.15s, box-shadow 0.15s;
+  position: relative;
+}
+.actor-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+}
+.actor-card[data-motivation="nation-state-espionage"] { border-left-color: var(--purple); }
+.actor-card[data-motivation="nation-state-disruption"] { border-left-color: var(--safety); }
+.actor-card[data-motivation="financial"] { border-left-color: var(--red); }
+.actor-card[data-motivation="hacktivist"] { border-left-color: var(--orange); }
+.actor-card[data-motivation="mixed"] { border-left-color: var(--ink-soft); }
+
+.actor-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.actor-name {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.actor-status-badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.actor-status-badge[data-status="active"] {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+.actor-status-badge[data-status="disrupted"] {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+.actor-status-badge[data-status="historical"] {
+  background: var(--bg-darker);
+  color: var(--ink-soft);
+}
+.actor-status-badge[data-status="dormant"] {
+  background: var(--bg-darker);
+  color: var(--ink-faint);
+}
+
+.actor-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+  letter-spacing: 0.02em;
+}
+.actor-meta-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.actor-meta-tag::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  background: var(--ink-faint);
+  border-radius: 50%;
+}
+.actor-meta-tag.attribution::before { background: var(--purple); }
+.actor-meta-tag.first-seen::before { background: var(--ink-faint); }
+.actor-meta-tag.mitre::before { background: var(--accent); }
+
+.actor-aliases {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+.actor-aliases strong {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 600;
+  margin-right: 6px;
+}
+.actor-summary {
+  font-size: 13.5px;
+  color: var(--ink);
+  line-height: 1.65;
+  margin-bottom: 12px;
+}
+.actor-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+.actor-tag {
+  background: var(--bg-subtle);
+  font-size: 10px;
+  color: var(--ink-soft);
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-family: var(--mono);
+  letter-spacing: 0.02em;
+}
+.actor-tag.motivation {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.actor-card[data-motivation="nation-state-espionage"] .actor-tag.motivation { background: var(--purple-soft); color: var(--purple); }
+.actor-card[data-motivation="nation-state-disruption"] .actor-tag.motivation { background: var(--safety-soft); color: var(--safety); }
+.actor-card[data-motivation="financial"] .actor-tag.motivation { background: var(--red-soft); color: var(--red); }
+.actor-card[data-motivation="hacktivist"] .actor-tag.motivation { background: var(--orange-soft); color: var(--orange); }
+
+/* EMPTY STATE */
+.empty-state {
+  background: var(--bg-card);
+  border: 1px dashed var(--line-strong);
+  border-radius: 10px;
+  padding: 48px 28px;
+  text-align: center;
+  color: var(--ink-faint);
+}
+.empty-state-title {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+}
+.empty-state-sub { font-size: 13px; color: var(--ink-faint); }
+
+/* PRINT */
+@media print {
+  .topnav, .controls, .disclaimer { display: none !important; }
+  body { background: white; font-size: 10pt; }
+  .page { padding: 0; max-width: none; }
+  .actor-card { break-inside: avoid; page-break-inside: avoid; box-shadow: none; }
+  .results-grid { display: block; }
+  .actor-card { margin-bottom: 12px; }
+}
+
+@media (max-width: 900px) {
+  .hero-title { font-size: 40px; }
+  .controls { position: static; }
+  .results-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-inner">
+    <a href="https://danhowett.github.io/useful/" class="topnav-brand">
+      <span class="topnav-brand-mark">DH</span>
+      <span>Dan Howett</span>
+      <span class="topnav-brand-sep">/</span>
+      <span class="topnav-brand-section">Threat Actor Index</span>
+    </a>
+    <div class="topnav-actions">
+      <a href="https://danhowett.github.io/useful/adversary-mindsets.html">ADVERSARY MINDSETS</a>
+      <a href="https://danhowett.github.io/useful/attack-technique-mapper.html">ATT&amp;CK MAPPER</a>
+      <a href="https://danhowett.github.io/useful/">ALL TOOLS</a>
+    </div>
+  </div>
+</nav>
+
+<main class="page">
+
+  <header class="hero">
+    <div class="hero-eyebrow">Threat Actor Index · Searchable reference</div>
+    <h1 class="hero-title">Who are <em>these people</em>?</h1>
+    <p class="hero-lede">
+      A searchable reference index of 68 threat actor groups — nation-state, financially motivated, hacktivist, and
+      mixed-motivation. Each entry gives a three-sentence summary covering who they are, what they're known for, and
+      current status. <strong>Search by name or alias</strong> (the same group is often known by five or more names
+      across vendors), or filter by motivation, attribution, and operational status.
+      Sits alongside the <a href="adversary-mindsets.html">Adversary Mindsets</a> tool (which works at the
+      disposition layer) and the <a href="attack-technique-mapper.html">ATT&amp;CK Mapper</a> (technique layer).
+    </p>
+    <div class="hero-meta">
+      <span><strong>68</strong> actors</span>
+      <span><strong>4</strong> motivation classes</span>
+      <span><strong>Searchable</strong> by name &amp; alias</span>
+      <span><strong>UK-relevant</strong> selection</span>
+      <span><strong>As of May 2026</strong></span>
+    </div>
+  </header>
+
+  <div class="disclaimer">
+    <span class="disclaimer-mark">!</span>
+    <div class="disclaimer-body">
+      <strong>Reference only — verify with current vendor advisories.</strong> Threat actor naming, attribution, and
+      operational status change continuously. Major groups are tracked under different names by different vendors
+      (Microsoft, Mandiant, CrowdStrike, Dragos), and operational status (Active / Disrupted / Historical) can shift
+      within weeks following law enforcement action, rebrandings, or splinter operations. <strong>You should not rely
+      on this index</strong> as a current intelligence source for live threat assessment without verification against
+      NCSC, CISA, MITRE ATT&amp;CK, and primary vendor reporting. The author accepts no liability whatsoever for any
+      loss, damage, or consequence arising from use of, or reliance on, this index. Use entirely at your own risk.
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="search-box">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="searchInput" class="search-input"
+             placeholder="Search by name or alias — e.g. APT29, Cozy Bear, Midnight Blizzard, Salt Typhoon, LockBit…"
+             autocomplete="off">
+    </div>
+
+    <div class="filter-section">
+      <span class="filter-label">Motivation</span>
+      <div class="filter-chips" id="motivationFilters"></div>
+    </div>
+
+    <div class="filter-section">
+      <span class="filter-label">Attribution</span>
+      <div class="filter-chips" id="attributionFilters"></div>
+    </div>
+
+    <div class="filter-section">
+      <span class="filter-label">Status</span>
+      <div class="filter-chips" id="statusFilters"></div>
+    </div>
+
+    <div class="controls-footer">
+      <span class="results-count" id="resultsCount"></span>
+      <button class="controls-clear" id="clearFilters">Clear filters</button>
+    </div>
+  </div>
+
+  <div id="resultsContainer"></div>
+
+</main>
+
+<script>
+// === CONSOLIDATED THREAT ACTOR DATA ===
+// 68 actors across nation-state, financial, hacktivist, and mixed categories
+// Schema documented in data-1-nation-state.js
+
+const ACTORS = [
+// ============================================================
+  // RUSSIA — Nation-state espionage
+  // ============================================================
+  {
+    id: 'apt29',
+    name: 'APT29',
+    aliases: ['Cozy Bear', 'Midnight Blizzard', 'NOBELIUM', 'The Dukes', 'Yttrium', 'BlueBravo'],
+    motivation: 'nation-state-espionage',
+    attribution: 'Russia',
+    sponsor: 'SVR (Foreign Intelligence Service)',
+    status: 'active',
+    sectors: ['Government', 'Diplomatic', 'Think Tanks', 'Defence', 'Healthcare', 'IT Services'],
+    summary: 'APT29 is the cyber-operations arm of Russia\'s SVR foreign intelligence service, known for long-running strategic espionage campaigns against governments, diplomatic targets, and the wider intelligence value chain. They are most notorious for the 2020 SolarWinds supply chain compromise that backdoored Orion software updates and reached approximately 18,000 organisations, with bespoke follow-on tooling deployed against a much smaller set of strategic targets. They remain highly active in 2025-2026 with continued focus on cloud and identity-layer compromise, particularly through OAuth abuse and service principal manipulation in Microsoft 365 environments.',
+    mitreId: 'G0016',
+    firstSeen: 2008
+  },
+  {
+    id: 'apt28',
+    name: 'APT28',
+    aliases: ['Fancy Bear', 'Forest Blizzard', 'STRONTIUM', 'Sednit', 'Sofacy', 'Pawn Storm'],
+    motivation: 'nation-state-espionage',
+    attribution: 'Russia',
+    sponsor: 'GRU Unit 26165',
+    status: 'active',
+    sectors: ['Government', 'Military', 'Defence', 'Media', 'Political organisations'],
+    summary: 'APT28 is the cyber unit of Russia\'s GRU military intelligence service, distinguished from SVR\'s APT29 by a more aggressive operational tempo and willingness to engage in information operations alongside espionage. They are known for the 2016 DNC compromise, the targeting of anti-doping organisations following Russian Olympic sanctions, and extensive operations against NATO members and Ukrainian government targets. They remain highly active, with continued focus on credential theft via brute force and password spray against Microsoft Exchange and other cloud-hosted services.',
+    mitreId: 'G0007',
+    firstSeen: 2004
+  },
+  {
+    id: 'turla',
+    name: 'Turla',
+    aliases: ['Snake', 'Venomous Bear', 'Iron Hunter', 'Krypton', 'Waterbug'],
+    motivation: 'nation-state-espionage',
+    attribution: 'Russia',
+    sponsor: 'FSB Centre 16',
+    status: 'active',
+    sectors: ['Government', 'Diplomatic', 'Military', 'Research', 'Education'],
+    summary: 'Turla is one of the longest-running and technically sophisticated cyber espionage groups, attributed to Russia\'s FSB security service and active for over two decades. Known for highly bespoke implants (the Snake/Uroburos rootkit being the canonical example), hijacking other actors\' infrastructure to launder attribution, and operations from satellite IP addresses. They were significantly disrupted by FBI Operation Medusa in 2023 which dismantled the Snake malware network, but the group has continued to operate with new tooling.',
+    mitreId: 'G0010',
+    firstSeen: 2004
+  },
+  {
+    id: 'sandworm',
+    name: 'Sandworm',
+    aliases: ['Voodoo Bear', 'Seashell Blizzard', 'IRIDIUM', 'TeleBots', 'BlackEnergy Group', 'Hades'],
+    motivation: 'nation-state-disruption',
+    attribution: 'Russia',
+    sponsor: 'GRU Unit 74455',
+    status: 'active',
+    sectors: ['Energy', 'CNI', 'Government', 'Financial', 'Media', 'Ukrainian targets broadly'],
+    summary: 'Sandworm is the most consequential nation-state disruption actor in the modern era, attributed to GRU Unit 74455 and responsible for the canonical OT-impacting attacks of the past decade. Their portfolio includes the 2015 and 2016 Ukrainian electricity grid attacks (BlackEnergy and Industroyer), the 2017 NotPetya wiper that caused billions in collateral damage to Maersk, Merck, Mondelez and others, the 2018 Olympic Destroyer attack on the PyeongChang Games, and continuous destructive operations against Ukrainian targets since the 2022 invasion. They remain the most active and most dangerous OT-capable threat group.',
+    mitreId: 'G0034',
+    firstSeen: 2009
+  },
+  {
+    id: 'gamaredon',
+    name: 'Gamaredon',
+    aliases: ['Primitive Bear', 'Aqua Blizzard', 'Armageddon', 'Shuckworm'],
+    motivation: 'nation-state-espionage',
+    attribution: 'Russia',
+    sponsor: 'FSB (Crimea-based)',
+    status: 'active',
+    sectors: ['Ukrainian government', 'Defence', 'Law enforcement'],
+    summary: 'Gamaredon is an FSB-aligned threat actor based in occupied Crimea, focused almost exclusively on Ukrainian targets across government, defence, and law enforcement. Tactically unsophisticated compared to other Russian groups — they rely on commodity tooling, spearphishing with weaponised documents, and high-volume operations — but extremely persistent, with documented continuous activity against Ukrainian targets through the war. Their operations are notable for revealing the spectrum of Russian cyber capabilities: not every state-sponsored group is APT29.',
+    mitreId: 'G0047',
+    firstSeen: 2013
+  },
+
+  // ============================================================
+  // CHINA — Nation-state espionage
+  // ============================================================
+  {
+    id: 'salt-typhoon',
+    name: 'Salt Typhoon',
+    aliases: ['GhostEmperor', 'Earth Estries', 'FamousSparrow', 'UNC2286'],
+    motivation: 'nation-state-espionage',
+    attribution: 'China',
+    sponsor: 'MSS (Ministry of State Security)',
+    status: 'active',
+    sectors: ['Telecommunications', 'Government', 'Defence', 'Hospitality', 'Transportation'],
+    summary: 'Salt Typhoon is the MSS-operated espionage group responsible for what the FBI has called one of the most significant espionage breaches in US history, comprehensively penetrating US telecommunications providers including AT&T, Verizon, T-Mobile, Lumen and others. The group exploited unpatched edge devices (Cisco routers in particular) to access lawful intercept ("CALEA") interfaces, geolocation data, and communications metadata for millions of Americans including senior officials. Confirmed active in 2026 across more than 200 organisations in 80+ countries, with telecom companies still unable to demonstrate the intruders have been evicted from their networks.',
+    mitreId: null,
+    firstSeen: 2019
+  },
+  {
+    id: 'volt-typhoon',
+    name: 'Volt Typhoon',
+    aliases: ['Vanguard Panda', 'BRONZE SILHOUETTE', 'Insidious Taurus', 'Voltzite'],
+    motivation: 'nation-state-disruption',
+    attribution: 'China',
+    sponsor: 'PLA (People\'s Liberation Army)',
+    status: 'active',
+    sectors: ['Critical Infrastructure', 'Energy', 'Water', 'Communications', 'Transportation', 'Government'],
+    summary: 'Volt Typhoon is the PLA-aligned actor focused on pre-positioning inside US and allied critical infrastructure — explicitly assessed by the US intelligence community as preparation for disruption of CNI in the event of a future conflict, rather than for espionage value. The group is distinguished by its near-exclusive reliance on living-off-the-land techniques (no custom malware, no obvious C2) and patient long-term persistence, often staying inside networks for years. CISA, NSA, FBI and allied agencies have repeatedly issued warnings; the group remains active and the assessment that they have established footholds in CNI is treated as ongoing condition rather than hypothetical.',
+    mitreId: 'G1017',
+    firstSeen: 2021
+  },
+  {
+    id: 'flax-typhoon',
+    name: 'Flax Typhoon',
+    aliases: ['Ethereal Panda', 'Storm-0919'],
+    motivation: 'nation-state-espionage',
+    attribution: 'China',
+    sponsor: 'PRC contractors (Integrity Technology Group)',
+    status: 'disrupted',
+    sectors: ['Government', 'Education', 'CNI', 'IoT (botnet operations)'],
+    summary: 'Flax Typhoon is a Chinese state-aligned group operated by contractors (specifically Integrity Technology Group, sanctioned by the US Treasury in 2025) that focuses on Taiwan and US targets, with a distinctive operational pattern: compromising large numbers of IoT devices to build a botnet ("Raptor Train") used to anonymise other operations. The botnet was disrupted by the FBI in September 2024, though the actor and its sponsoring infrastructure remain. Distinct from Salt and Volt Typhoon in being contractor-run rather than directly state-operated, illustrating the layered nature of China\'s cyber ecosystem.',
+    mitreId: null,
+    firstSeen: 2021
+  },
+  {
+    id: 'apt41',
+    name: 'APT41',
+    aliases: ['Winnti', 'Barium', 'Wicked Panda', 'Brass Typhoon', 'Double Dragon'],
+    motivation: 'mixed',
+    attribution: 'China',
+    sponsor: 'MSS-aligned contractors',
+    status: 'active',
+    sectors: ['Software', 'Healthcare', 'Telecommunications', 'Higher Education', 'Travel', 'Gaming'],
+    summary: 'APT41 is the canonical example of state-sponsored actors moonlighting for financial gain — conducting government-directed espionage operations alongside personal financially-motivated cybercrime, often using the same infrastructure and tooling. Notorious for software supply chain attacks (CCleaner 2017, ASUS Live Update 2019, multiple games industry breaches), and indicted by the US DOJ in 2020 with members named publicly. Continued operations through 2025-2026 despite indictments; members remain at large in China and the group remains active across both espionage and criminal activity.',
+    mitreId: 'G0096',
+    firstSeen: 2012
+  },
+  {
+    id: 'apt10',
+    name: 'APT10',
+    aliases: ['Stone Panda', 'menuPass', 'Potassium', 'Granite Typhoon', 'Cicada'],
+    motivation: 'nation-state-espionage',
+    attribution: 'China',
+    sponsor: 'MSS Tianjin Bureau',
+    status: 'active',
+    sectors: ['Managed Service Providers', 'Aerospace', 'Pharmaceutical', 'Government', 'Telecommunications'],
+    summary: 'APT10 is the MSS Tianjin Bureau operation responsible for Operation Cloud Hopper (2014-2017), one of the most consequential supply chain campaigns ever publicly disclosed, in which compromise of major Managed Service Providers gave the group access to thousands of downstream client organisations across more than a dozen countries. Members were indicted by the US DOJ in 2018 but the group continues to operate, having significantly evolved its tradecraft and now operating under additional cluster names. Persistent focus on IP theft from western pharmaceutical and aerospace targets.',
+    mitreId: 'G0045',
+    firstSeen: 2009
+  },
+  {
+    id: 'apt40',
+    name: 'APT40',
+    aliases: ['Leviathan', 'Kryptonite Panda', 'Gingham Typhoon', 'BRONZE MOHAWK', 'TEMP.Periscope'],
+    motivation: 'nation-state-espionage',
+    attribution: 'China',
+    sponsor: 'MSS Hainan Bureau',
+    status: 'active',
+    sectors: ['Maritime', 'Defence', 'Aerospace', 'Government', 'Research'],
+    summary: 'APT40 is the MSS Hainan Bureau operation focused on maritime industries, defence research, and any organisation involved in technologies relevant to China\'s Belt and Road Initiative. The group operates a network of front companies that the FBI publicly attributed and indicted in 2021; members remain at large. Continued active operations through 2025 with a focus on rapid exploitation of newly-disclosed perimeter device vulnerabilities (Fortinet, F5, Cisco) for initial access, often within days of public disclosure.',
+    mitreId: 'G0065',
+    firstSeen: 2009
+  },
+  {
+    id: 'mustang-panda',
+    name: 'Mustang Panda',
+    aliases: ['RedDelta', 'Bronze President', 'TA416', 'Earth Preta', 'Twill Typhoon'],
+    motivation: 'nation-state-espionage',
+    attribution: 'China',
+    sponsor: 'MSS-aligned',
+    status: 'active',
+    sectors: ['Government', 'NGOs', 'Religious organisations', 'Diplomatic', 'Defence'],
+    summary: 'Mustang Panda is a prolific MSS-aligned group with a particular focus on entities of interest to Chinese geopolitical priorities — Tibetan and Uyghur organisations, the Vatican and Catholic NGOs, ASEAN governments, and increasingly European policy targets. Tactically distinguished by aggressive use of weaponised documents and USB-borne malware (PlugX is their signature implant). Highly active across 2024-2026 with continued operations against European governments, especially around Ukraine-related policy targets.',
+    mitreId: 'G0129',
+    firstSeen: 2014
+  },
+
+  // ============================================================
+  // IRAN — Nation-state espionage and disruption
+  // ============================================================
+  {
+    id: 'apt33',
+    name: 'APT33',
+    aliases: ['Elfin', 'Refined Kitten', 'Holmium', 'Peach Sandstorm', 'MAGNALLIUM'],
+    motivation: 'nation-state-espionage',
+    attribution: 'Iran',
+    sponsor: 'IRGC (Islamic Revolutionary Guard Corps)',
+    status: 'active',
+    sectors: ['Energy', 'Petrochemical', 'Aviation', 'Defence'],
+    summary: 'APT33 is an IRGC-aligned group focused on espionage against Saudi Arabia, the United States, and South Korea, with a particular emphasis on energy and aviation sectors. Notable for password spray attacks at scale against thousands of organisations as an initial reconnaissance technique, and for being one of the Iranian groups with overlap with destructive tooling (Shamoon and successors). Continued active operations through 2025, with increased targeting of US defence contractors.',
+    mitreId: 'G0064',
+    firstSeen: 2013
+  },
+  {
+    id: 'apt34',
+    name: 'APT34',
+    aliases: ['OilRig', 'Helix Kitten', 'Earth Vetala', 'Hazel Sandstorm', 'EUROPIUM'],
+    motivation: 'nation-state-espionage',
+    attribution: 'Iran',
+    sponsor: 'MOIS (Ministry of Intelligence)',
+    status: 'active',
+    sectors: ['Government', 'Energy', 'Telecommunications', 'Financial', 'Chemical'],
+    summary: 'APT34 is a MOIS-aligned espionage group active since at least 2014, focused primarily on Middle Eastern government and energy targets with periodic operations against western governments and contractors. Notable for an unusually large leak in 2019 (the "Lab Dookhtegan" leak) that exposed extensive operational tooling and infrastructure, providing rare visibility into Iranian state cyber operations. Continued operations through 2025 with a focus on DNS hijacking, credential theft, and supply chain compromise via IT contractors.',
+    mitreId: 'G0049',
+    firstSeen: 2014
+  },
+  {
+    id: 'muddywater',
+    name: 'MuddyWater',
+    aliases: ['Mango Sandstorm', 'Static Kitten', 'Mercury', 'Seedworm', 'TEMP.Zagros'],
+    motivation: 'nation-state-espionage',
+    attribution: 'Iran',
+    sponsor: 'MOIS',
+    status: 'active',
+    sectors: ['Government', 'Defence', 'Telecommunications', 'Oil & Gas'],
+    summary: 'MuddyWater is a MOIS-aligned group, publicly attributed by US Cyber Command in 2022, with operations across the Middle East, Asia, Africa, and Europe. Tactically distinguished by heavy reliance on legitimate remote management tools (ScreenConnect, AnyDesk, Atera) for persistence rather than custom malware — a deliberate choice for cost and detection-evasion reasons. Continued highly active operations through 2025 with a focus on Israeli organisations and any entity involved in regional geopolitics from an Iranian perspective.',
+    mitreId: 'G0069',
+    firstSeen: 2017
+  },
+  {
+    id: 'cyber-avengers',
+    name: 'CyberAv3ngers',
+    aliases: ['Soldiers of Solomon', 'Cyber Avengers'],
+    motivation: 'nation-state-disruption',
+    attribution: 'Iran',
+    sponsor: 'IRGC',
+    status: 'active',
+    sectors: ['Water utilities', 'Industrial control systems', 'OT/ICS'],
+    summary: 'CyberAv3ngers is an IRGC-aligned group, US Treasury-sanctioned in 2024, operating in a hybrid hacktivist/state-disruption mode against Israeli and Israel-affiliated targets. Best known for the November 2023 campaign against US water utilities — exploiting default credentials on internet-exposed Unitronics PLCs and displaying anti-Israel messages on HMI screens — which prompted CISA advisories and elevated attention to OT exposure in CNI sectors. Continued active operations through 2025, with broader targeting of building management and OT systems globally.',
+    mitreId: null,
+    firstSeen: 2020
+  },
+
+  // ============================================================
+  // DPRK (North Korea) — Mixed motivation
+  // ============================================================
+  {
+    id: 'lazarus',
+    name: 'Lazarus Group',
+    aliases: ['HIDDEN COBRA', 'Diamond Sleet', 'Labyrinth Chollima', 'Zinc', 'Stardust Chollima'],
+    motivation: 'mixed',
+    attribution: 'DPRK',
+    sponsor: 'RGB (Reconnaissance General Bureau)',
+    status: 'active',
+    sectors: ['Financial', 'Cryptocurrency', 'Government', 'Defence', 'Healthcare', 'Media'],
+    summary: 'Lazarus is the umbrella designation for DPRK state cyber operations, encompassing multiple sub-groups conducting both intelligence collection and large-scale financial theft to fund the regime. Their portfolio includes the 2014 Sony Pictures attack, the 2016 Bangladesh Bank SWIFT heist ($81M), the 2017 WannaCry ransomware outbreak, and a continuous stream of cryptocurrency exchange and DeFi platform compromises. They are the most financially successful state-sponsored cyber actor by orders of magnitude, with documented theft exceeding $3 billion across crypto incidents alone through 2024-2025.',
+    mitreId: 'G0032',
+    firstSeen: 2009
+  },
+  {
+    id: 'kimsuky',
+    name: 'Kimsuky',
+    aliases: ['Velvet Chollima', 'Black Banshee', 'Emerald Sleet', 'THALLIUM', 'APT43'],
+    motivation: 'nation-state-espionage',
+    attribution: 'DPRK',
+    sponsor: 'RGB',
+    status: 'active',
+    sectors: ['Think Tanks', 'Academia', 'Foreign Policy', 'Cryptocurrency'],
+    summary: 'Kimsuky is a DPRK-aligned espionage group focused on foreign policy intelligence collection, with a heavy concentration on academics, journalists, think tank analysts, and government officials working on Korean Peninsula issues. Distinguished by careful, patient spear phishing campaigns that often establish trust through legitimate-seeming correspondence over weeks before delivering payloads. Continued highly active through 2025 with increasing emphasis on cryptocurrency theft alongside espionage — the boundary between the two has blurred over time.',
+    mitreId: 'G0094',
+    firstSeen: 2012
+  },
+  {
+    id: 'andariel',
+    name: 'Andariel',
+    aliases: ['Onyx Sleet', 'Silent Chollima', 'PLUTONIUM', 'Stonefly'],
+    motivation: 'mixed',
+    attribution: 'DPRK',
+    sponsor: 'RGB',
+    status: 'active',
+    sectors: ['Defence', 'Aerospace', 'Energy', 'Healthcare', 'Financial'],
+    summary: 'Andariel is a sub-cluster within the Lazarus umbrella focused initially on espionage against South Korean defence and government targets, but in recent years pivoting to ransomware operations against US and global healthcare organisations. Operated the Maui ransomware variant covered by joint CISA/FBI advisories; later operated under "Play" and other affiliations. Continues to combine state-directed espionage with financially motivated ransomware against western targets, with members publicly indicted by the US DOJ in 2024.',
+    mitreId: 'G0138',
+    firstSeen: 2014
+  },
+
+  // ============================================================
+  // OTHER NATION-STATE
+  // ============================================================
+  {
+    id: 'lazarus-bluenoroff',
+    name: 'BlueNoroff',
+    aliases: ['Sapphire Sleet', 'TA444', 'CryptoCore', 'COPERNICIUM'],
+    motivation: 'financial',
+    attribution: 'DPRK',
+    sponsor: 'RGB (Lazarus sub-group)',
+    status: 'active',
+    sectors: ['Financial', 'Cryptocurrency exchanges', 'Banks', 'DeFi'],
+    summary: 'BlueNoroff is the Lazarus sub-cluster specialising in financial theft, particularly against banks (SWIFT operations) and cryptocurrency platforms. Best known for the Bangladesh Bank SWIFT heist in 2016 and a continuous run of cryptocurrency exchange compromises and DeFi protocol exploits. Operates with a distinctive social engineering pattern — extended LinkedIn-based relationship building with finance professionals — before delivering malware via what appears to be legitimate business correspondence. Continued active through 2025 as DPRK\'s primary hard currency generation channel.',
+    mitreId: 'G0108',
+    firstSeen: 2014
+  },
+  {
+    id: 'transparent-tribe',
+    name: 'Transparent Tribe',
+    aliases: ['APT36', 'ProjectM', 'Mythic Leopard', 'C-Major'],
+    motivation: 'nation-state-espionage',
+    attribution: 'Other state',
+    sponsor: 'Pakistani state-aligned',
+    status: 'active',
+    sectors: ['Indian government', 'Military', 'Defence', 'Education'],
+    summary: 'Transparent Tribe is a Pakistan-aligned espionage actor focused almost exclusively on Indian government, military, and defence research targets, active since at least 2013. Tactically unsophisticated by major-power standards — relies on commodity malware (Crimson RAT), weaponised documents, and credential phishing — but persistent and adaptive. Worth knowing for the reminder that nation-state cyber operations are not the exclusive province of the major powers; many regional actors operate similar campaigns at smaller scale.',
+    mitreId: 'G0134',
+    firstSeen: 2013
+  },
+  {
+    id: 'machete',
+    name: 'Machete',
+    aliases: ['El Machete', 'APT-C-43'],
+    motivation: 'nation-state-espionage',
+    attribution: 'Other state',
+    sponsor: 'Suspected state-aligned',
+    status: 'active',
+    sectors: ['Government', 'Military', 'Diplomatic', 'Latin American targets primarily'],
+    summary: 'Machete is a Spanish-language-using espionage actor active since at least 2010, with operations focused on Latin American government, military, and diplomatic targets — particularly Venezuela, Ecuador, Colombia, and Nicaragua. Attribution remains debated but circumstantial evidence (Spanish operator language, target selection, working hours) points to a regional state actor. Notable as an example of non-major-power espionage that has operated for over a decade with relatively little public attention.',
+    mitreId: 'G0095',
+    firstSeen: 2010
+  },
+// ============================================================
+  // ACTIVE RANSOMWARE OPERATORS
+  // ============================================================
+  {
+    id: 'lockbit',
+    name: 'LockBit',
+    aliases: ['LockBit Black', 'LockBit Red', 'ABCD ransomware', 'Bitwise Spider'],
+    motivation: 'financial',
+    attribution: 'Russia',
+    sponsor: null,
+    status: 'active',
+    sectors: ['Healthcare', 'Manufacturing', 'Legal Services', 'Financial', 'Government'],
+    summary: 'LockBit was the dominant Ransomware-as-a-Service operation from 2019 through early 2024, responsible for 20-30% of all ransomware data-leak postings during its peak. Operation Cronos in February 2024 — a coordinated UK NCA/FBI/Europol takedown — seized infrastructure, source code, decryption keys, and indicted core members, but the group survived. LockBit 5.0 emerged in September 2025 and the group remains active and dangerous in 2026, having formed alliances with Qilin and DragonForce; alleged group leader Dmitry Khoroshev ("LockBitSupp") remains at large.',
+    mitreId: 'G1015',
+    firstSeen: 2019
+  },
+  {
+    id: 'alphv',
+    name: 'ALPHV / BlackCat',
+    aliases: ['ALPHV', 'BlackCat', 'Noberus', 'Coreid'],
+    motivation: 'financial',
+    attribution: 'Russia',
+    sponsor: null,
+    status: 'disrupted',
+    sectors: ['Healthcare', 'Energy', 'Manufacturing', 'Financial'],
+    summary: 'ALPHV/BlackCat was a major Ransomware-as-a-Service operation written in Rust (a deliberate technical choice for cross-platform targeting and detection evasion), notable for the 2023 attacks on MGM Resorts and Caesars Entertainment (executed by Scattered Spider affiliates) and the February 2024 attack on Change Healthcare that disrupted US healthcare payments for months. The group performed an "exit scam" in March 2024 after the Change Healthcare ransom was paid, stealing affiliate proceeds and shutting down. Operators are believed to have rebranded into newer operations including RansomHub.',
+    mitreId: 'G1068',
+    firstSeen: 2021
+  },
+  {
+    id: 'ransomhub',
+    name: 'RansomHub',
+    aliases: ['Cyclops', 'Knight'],
+    motivation: 'financial',
+    attribution: 'Russia',
+    sponsor: null,
+    status: 'active',
+    sectors: ['Healthcare', 'Manufacturing', 'CNI', 'Financial', 'Education'],
+    summary: 'RansomHub emerged in February 2024 as a successor RaaS operation that absorbed many former ALPHV/BlackCat and LockBit affiliates. Rapidly became one of the most active ransomware groups by victim count through 2024-2025. Notable for explicit affiliate-friendly policies (higher revenue share than competitors) and willingness to publish victim data even after partial payment. Continues highly active in 2026, with significant volume of healthcare and CNI targeting.',
+    mitreId: null,
+    firstSeen: 2024
+  },
+  {
+    id: 'qilin',
+    name: 'Qilin',
+    aliases: ['Agenda', 'Water Galura'],
+    motivation: 'financial',
+    attribution: 'Russia',
+    sponsor: null,
+    status: 'active',
+    sectors: ['Healthcare', 'Manufacturing', 'Professional Services', 'Education'],
+    summary: 'Qilin is a Russian-speaking Ransomware-as-a-Service operation that rose to prominence in 2024, particularly after the June 2024 attack on Synnovis (a pathology services provider for NHS hospitals in London) that disrupted thousands of operations and caused at least one death. Distinguished by Rust and Go variants and aggressive affiliate recruitment from disrupted competing groups. Confirmed forming an operational alliance with LockBit and DragonForce in October 2025; remains highly active and a particular concern for healthcare sector targeting.',
+    mitreId: null,
+    firstSeen: 2022
+  },
+  {
+    id: 'play',
+    name: 'Play',
+    aliases: ['PlayCrypt', 'Balloonfly'],
+    motivation: 'financial',
+    attribution: 'Russia',
+    sponsor: null,
+    status: 'active',
+    sectors: ['Government', 'Education', 'Manufacturing', 'CNI'],
+    summary: 'Play is a ransomware operation active since mid-2022, distinguished by an unusual operational model — for most of its existence Play operated as a closed group rather than a public RaaS, only recently opening to affiliates. Notable for the 2022 attack on the city of Antwerp and a long series of municipal government compromises. The group exploits known vulnerabilities aggressively (FortiOS, Exchange) and remains highly active in 2026 with continued government and CNI focus.',
+    mitreId: 'G1040',
+    firstSeen: 2022
+  },
+  {
+    id: 'akira',
+    name: 'Akira',
+    aliases: ['Howling Scorpius', 'GOLD SAHARA'],
+    motivation: 'financial',
+    attribution: 'Russia',
+    sponsor: null,
+    status: 'active',
+    sectors: ['Manufacturing', 'Education', 'Financial', 'Real Estate'],
+    summary: 'Akira emerged in March 2023 as a financially-motivated ransomware operation with stylistic and operational similarities to the disbanded Conti — likely indicating former Conti operators rebranded. Distinguished by a deliberately retro 1980s-aesthetic data leak site (green-text-on-black) and willingness to deploy both Windows and Linux/ESXi variants. Continued highly active operations through 2026, with significant focus on small and mid-market targets that competitors overlook.',
+    mitreId: 'G1024',
+    firstSeen: 2023
+  },
+  {
+    id: 'inc-ransom',
+    name: 'INC Ransom',
+    aliases: ['INC', 'Lynx (splinter)'],
+    motivation: 'financial',
+    attribution: 'Russia',
+    sponsor: null,
+    status: 'active',
+    sectors: ['Healthcare', 'Government', 'Industrial', 'Education'],
+    summary: 'INC Ransom emerged in mid-2023 and rapidly grew into a major Ransomware-as-a-Service operation, notable for the May 2024 attack on NHS Scotland which disrupted Dumfries and Galloway services. Distinguished by aggressive multi-extortion tactics and active data publication on a high-profile leak site. The source code was reportedly sold or leaked in 2024, leading to the Lynx splinter group operating on similar TTPs. Both INC and Lynx remain active in 2026.',
+    mitreId: null,
+    firstSeen: 2023
+  },
+  {
+    id: 'medusa',
+    name: 'Medusa',
+    aliases: ['Spearwing'],
+    motivation: 'financial',
+    attribution: 'Russia',
+    sponsor: null,
+    status: 'active',
+    sectors: ['Healthcare', 'Education', 'Manufacturing', 'Insurance'],
+    summary: 'Medusa is a Ransomware-as-a-Service operation active since 2021 and increasingly prominent through 2024-2025, the subject of a joint CISA/FBI advisory in March 2025 detailing extensive operations against US CNI. Distinguished by particularly aggressive extortion tactics — public live-streamed countdowns to data release, multi-stage extortion pricing — and use of legitimate remote management tools for persistence. Continues highly active in 2026.',
+    mitreId: null,
+    firstSeen: 2021
+  },
+  {
+    id: 'dragonforce',
+    name: 'DragonForce',
+    aliases: ['DragonForce Malaysia (unrelated)'],
+    motivation: 'financial',
+    attribution: 'Russia',
+    sponsor: null,
+    status: 'active',
+    sectors: ['Retail', 'Manufacturing', 'Hospitality'],
+    summary: 'DragonForce emerged in late 2023 as a ransomware operation that recruited heavily from collapsing competitor groups (notably former LockBit and ALPHV affiliates). Gained UK prominence in 2025 as the ransomware deployed by Scattered Spider affiliates in the M&S, Co-op, and Harrods attacks that disrupted UK retail. Confirmed operating alliance with LockBit and Qilin in October 2025; remains highly active with particular focus on retail and hospitality sectors.',
+    mitreId: null,
+    firstSeen: 2023
+  },
+  {
+    id: 'cl0p',
+    name: 'Cl0p',
+    aliases: ['Clop', 'TA505 (overlap)', 'FIN11 (overlap)'],
+    motivation: 'financial',
+    attribution: 'Russia',
+    sponsor: null,
+    status: 'active',
+    sectors: ['Any organisation running compromised file-transfer software'],
+    summary: 'Cl0p is a long-running financially-motivated operation distinguished by mass-exploitation of zero-day vulnerabilities in widely-deployed managed file transfer software. Notable campaigns include Accellion FTA (2020-2021), GoAnywhere MFT (early 2023), and most consequentially the MOVEit Transfer mass exploitation (May-July 2023) which compromised hundreds of organisations worldwide. Continued active through 2025-2026 with the November 2025 exploitation of Oracle E-Business Suite (CVE-2025-61882) producing another mass-victim campaign.',
+    mitreId: 'G0092',
+    firstSeen: 2019
+  },
+  {
+    id: 'rhysida',
+    name: 'Rhysida',
+    aliases: [],
+    motivation: 'financial',
+    attribution: 'Russia',
+    sponsor: null,
+    status: 'active',
+    sectors: ['Healthcare', 'Education', 'Government'],
+    summary: 'Rhysida emerged in May 2023 and became prominent after the November 2023 attack on the British Library which disrupted services for months and produced one of the longest and most public ransomware recovery efforts in UK history. Distinguished by aggressive targeting of healthcare and public-sector organisations with limited ability to absorb extended downtime. Continues active in 2026 across the same target profile.',
+    mitreId: null,
+    firstSeen: 2023
+  },
+  {
+    id: 'blackbasta',
+    name: 'Black Basta',
+    aliases: ['Storm-1811', 'UNC4393'],
+    motivation: 'financial',
+    attribution: 'Russia',
+    sponsor: null,
+    status: 'disrupted',
+    sectors: ['Healthcare', 'Manufacturing', 'Financial', 'CNI'],
+    summary: 'Black Basta emerged in April 2022, widely believed to be a rebranding of the dissolved Conti operation. Notable for sophisticated initial access tradecraft via Qakbot infections and "vishing" attacks impersonating IT helpdesks, and for the 2024 Ascension Health attack that disrupted US hospital operations across multiple states. Operations significantly disrupted in early 2025 by internal feuds and leak of operational chat logs ("BlackBastaLeaks"); remaining operators believed to have moved to BlackLock, Cactus, and other groups.',
+    mitreId: 'G1037',
+    firstSeen: 2022
+  },
+
+  // ============================================================
+  // DISRUPTED / HISTORICAL RANSOMWARE OPERATORS
+  // ============================================================
+  {
+    id: 'conti',
+    name: 'Conti',
+    aliases: ['Wizard Spider (operator)', 'TrickBot Group'],
+    motivation: 'financial',
+    attribution: 'Russia',
+    sponsor: null,
+    status: 'historical',
+    sectors: ['Healthcare', 'Government', 'Manufacturing', 'Education'],
+    summary: 'Conti was the dominant Ransomware-as-a-Service operation from 2020 to 2022 and the canonical example of large-scale organised ransomware crime. Notable for the May 2021 attack on the Irish Health Service Executive that disrupted hospitals for months, and for being one of the few major groups to explicitly side with Russia at the start of the Ukraine invasion in February 2022 — a decision that triggered an insider leak (the "Conti Leaks") exposing chat logs, source code, and operational details. The group dissolved in mid-2022 with operators dispersing into Black Basta, BlackByte, Akira, and other successor operations.',
+    mitreId: 'G0150',
+    firstSeen: 2020
+  },
+  {
+    id: 'revil',
+    name: 'REvil',
+    aliases: ['Sodinokibi', 'PINCHY SPIDER', 'GandCrab successor'],
+    motivation: 'financial',
+    attribution: 'Russia',
+    sponsor: null,
+    status: 'historical',
+    sectors: ['Healthcare', 'Manufacturing', 'Legal Services', 'Technology'],
+    summary: 'REvil was the dominant Ransomware-as-a-Service operation through 2020-2021, responsible for the May 2021 attack on JBS Foods (the world\'s largest meat producer) and the July 2021 Kaseya VSA supply chain attack that deployed ransomware to over 1,500 downstream customers in one event. The group was disrupted in October 2021 by a US-led law enforcement operation; several alleged operators including Yaroslav Vasinskyi were arrested. While briefly attempting comebacks in 2022, the operation is now considered historical.',
+    mitreId: 'G0115',
+    firstSeen: 2019
+  },
+  {
+    id: 'darkside',
+    name: 'DarkSide',
+    aliases: ['CARBON SPIDER', 'BlackMatter (successor)'],
+    motivation: 'financial',
+    attribution: 'Russia',
+    sponsor: null,
+    status: 'historical',
+    sectors: ['Energy', 'CNI', 'Financial'],
+    summary: 'DarkSide was the Ransomware-as-a-Service operation responsible for the May 2021 Colonial Pipeline attack that prompted US federal emergency declarations and led to the operation\'s rapid voluntary shutdown after the resulting political pressure. Notable for the operator-claimed "ethical" policy of avoiding hospitals and government targets (a claim violated in practice), and for triggering the modern era of US government focus on ransomware as a national security issue. Operators are believed to have rebranded into BlackMatter and subsequently other groups.',
+    mitreId: 'G0140',
+    firstSeen: 2020
+  },
+  {
+    id: 'hive',
+    name: 'Hive',
+    aliases: ['GOLD VULTURE'],
+    motivation: 'financial',
+    attribution: 'Russia',
+    sponsor: null,
+    status: 'historical',
+    sectors: ['Healthcare', 'Government', 'Financial'],
+    summary: 'Hive was a prominent Ransomware-as-a-Service operation from 2021 to early 2023, notable for aggressive healthcare sector targeting and for being the subject of one of the most significant law enforcement operations against ransomware to that point. In January 2023 the FBI announced it had been inside Hive\'s network for months, distributing decryption keys to victims and ultimately seizing the operation\'s infrastructure. Operators are believed to have dispersed into successor groups.',
+    mitreId: 'G1003',
+    firstSeen: 2021
+  },
+
+  // ============================================================
+  // INITIAL ACCESS BROKERS & PRE-RANSOMWARE OPERATIONS
+  // ============================================================
+  {
+    id: 'fin7',
+    name: 'FIN7',
+    aliases: ['Carbanak (overlap)', 'Sangria Tempest', 'GOLD NIAGARA'],
+    motivation: 'financial',
+    attribution: 'Russia',
+    sponsor: null,
+    status: 'active',
+    sectors: ['Retail', 'Hospitality', 'Restaurants', 'Increasingly: ransomware affiliate work'],
+    summary: 'FIN7 is one of the longest-running and most successful organised financial cybercrime operations, originally focused on point-of-sale malware deployment against US retail and hospitality. The group operates with surprising sophistication — including a fake security company front ("Combi Security") used to recruit unwitting penetration testers. Members were indicted by the US DOJ in 2018 and 2023; the operation continues, increasingly pivoting toward ransomware affiliate work for groups including BlackMatter, ALPHV, and Black Basta.',
+    mitreId: 'G0046',
+    firstSeen: 2013
+  },
+  {
+    id: 'ta505',
+    name: 'TA505',
+    aliases: ['Hive0065', 'Indrik Spider (related)', 'Evil Corp affiliations'],
+    motivation: 'financial',
+    attribution: 'Russia',
+    sponsor: null,
+    status: 'active',
+    sectors: ['Financial', 'Retail', 'Manufacturing'],
+    summary: 'TA505 is a long-running prolific financial cybercrime operation active since 2014, operating across the spectrum from commodity banking trojans (Dridex) through to ransomware deployment (Locky, Bart, CryptoMix, BitPaymer, Clop). The group has significant operational overlap with Evil Corp and Cl0p. Members have been sanctioned by the US Treasury but the group continues operations, with Maksim Yakubets and others remaining at large in Russia.',
+    mitreId: 'G0092',
+    firstSeen: 2014
+  },
+  {
+    id: 'wizard-spider',
+    name: 'Wizard Spider',
+    aliases: ['Grim Spider (historical)', 'UNC1878', 'TrickBot/Ryuk Group'],
+    motivation: 'financial',
+    attribution: 'Russia',
+    sponsor: null,
+    status: 'disrupted',
+    sectors: ['Healthcare', 'Financial', 'Government'],
+    summary: 'Wizard Spider was the operation behind TrickBot, BazarLoader, Ryuk ransomware, and ultimately Conti — collectively one of the most damaging cybercrime ecosystems of the 2018-2022 period. Members were sanctioned by the US and UK in 2023 in coordinated action including individual names and known aliases. The operation effectively dissolved alongside Conti in 2022, with operators dispersing into successor ransomware groups; many remain at large in Russia.',
+    mitreId: 'G0102',
+    firstSeen: 2016
+  },
+  {
+    id: 'evil-corp',
+    name: 'Evil Corp',
+    aliases: ['Indrik Spider', 'Manatee Tempest', 'DoppelPaymer / WastedLocker / Hades operators'],
+    motivation: 'financial',
+    attribution: 'Russia',
+    sponsor: null,
+    status: 'active',
+    sectors: ['Financial', 'Manufacturing', 'Healthcare'],
+    summary: 'Evil Corp is one of the most consequential financially-motivated cybercrime operations of the modern era, originally behind the Dridex banking trojan and subsequently operators of multiple ransomware brands (BitPaymer, WastedLocker, Hades, PhoenixCryptoLocker, Macaw, PayloadBIN). US-sanctioned in 2019 with extensive indictments of named members; the sanctioning has limited but not stopped operations, as the group rebrands ransomware variants and laundering routes regularly. Maksim Yakubets ("aqua") remains at large in Russia.',
+    mitreId: 'G0119',
+    firstSeen: 2009
+  },
+// ============================================================
+  // HACKTIVIST & STATE-ALIGNED HACKTIVIST
+  // ============================================================
+  {
+    id: 'anonymous',
+    name: 'Anonymous',
+    aliases: ['Anonymous Collective'],
+    motivation: 'hacktivist',
+    attribution: 'Unattributed',
+    sponsor: null,
+    status: 'active',
+    sectors: ['Politically-aligned targets globally'],
+    summary: 'Anonymous is the canonical decentralised hacktivist collective — not an organisation but a brand and identity that any operator can adopt for ideologically-motivated operations. Active since the late 2000s under the name, with notable campaigns including operations against the Church of Scientology (2008), various government targets during the Arab Spring, and the 2022 #OpRussia campaign against Russian state targets following the Ukraine invasion. Operations are episodic, tactical-level, and highly variable in capability — the brand encompasses everyone from script kiddies to genuinely capable operators.',
+    mitreId: 'G0006',
+    firstSeen: 2003
+  },
+  {
+    id: 'killnet',
+    name: 'Killnet',
+    aliases: ['KillMilk', 'Russian Cyber Army'],
+    motivation: 'hacktivist',
+    attribution: 'Russia-aligned',
+    sponsor: 'Russia-aligned (not formally state)',
+    status: 'active',
+    sectors: ['Government', 'Financial', 'Hospitals (Russia-disfavoured countries)'],
+    summary: 'Killnet is a Russia-aligned hacktivist collective that emerged around the February 2022 Ukraine invasion, focused primarily on DDoS attacks against NATO-aligned government, financial, and healthcare targets. Operates a hybrid model: claims of "hacktivism" combined with credible reporting of links to Russian state coordination, with some operators believed to have moved between Killnet and formal state-sponsored groups. Continues active in 2026 as part of the broader ecosystem of Russia-aligned threat actors providing deniability for state operations.',
+    mitreId: null,
+    firstSeen: 2022
+  },
+  {
+    id: 'noname057',
+    name: 'NoName057(16)',
+    aliases: ['NoName', 'NoName05716', 'DDoSia operators'],
+    motivation: 'hacktivist',
+    attribution: 'Russia-aligned',
+    sponsor: 'Russia-aligned',
+    status: 'active',
+    sectors: ['Government', 'Banking', 'Transport', 'European targets primarily'],
+    summary: 'NoName057(16) is a Russia-aligned hacktivist group that emerged in March 2022, focused on DDoS attacks against European government and financial targets in countries supportive of Ukraine. Operates the "DDoSia" platform — a crowdsourced DDoS tool that recruits volunteers to participate in attacks for small cryptocurrency payments. Significantly disrupted in July 2024 by Operation Endgame (European law enforcement action) but rebuilt operations and remains active in 2026.',
+    mitreId: null,
+    firstSeen: 2022
+  },
+  {
+    id: 'killmilk',
+    name: 'KillMilk Solo Project',
+    aliases: ['KillMilk'],
+    motivation: 'hacktivist',
+    attribution: 'Russia-aligned',
+    sponsor: null,
+    status: 'active',
+    sectors: ['European and US targets, varied'],
+    summary: 'KillMilk is the alleged founder of Killnet who, after publicly stepping back from the group in 2023, has continued operating under his own moniker against Western targets. Notable for high-profile DDoS attacks and for theatrical, media-aware operational style — frequent press releases, video statements, and self-mythologising. A useful example of how hacktivism in the modern era combines genuine attack capability with influence-operation theatrics.',
+    mitreId: null,
+    firstSeen: 2022
+  },
+  {
+    id: 'predatory-sparrow',
+    name: 'Predatory Sparrow',
+    aliases: ['Gonjeshke Darande'],
+    motivation: 'hacktivist',
+    attribution: 'Israel-aligned',
+    sponsor: 'Israel-aligned (suspected state link)',
+    status: 'active',
+    sectors: ['Iranian government', 'CNI', 'Banks', 'Steel mills'],
+    summary: 'Predatory Sparrow is a hacktivist group operating exclusively against Iranian targets, widely assessed to be Israeli state-aligned (or a state operation operating under hacktivist cover). Notable for highly visible, often physically-impacting operations against Iranian critical infrastructure — including the 2022 attack on Iranian steel mills that produced video of physical damage, and the 2023 attack on Iran\'s fuel distribution system that disrupted petrol stations nationwide. A useful case study in state operations conducted with hacktivist branding.',
+    mitreId: null,
+    firstSeen: 2021
+  },
+  {
+    id: 'lulzsec',
+    name: 'LulzSec',
+    aliases: ['Lulz Security'],
+    motivation: 'hacktivist',
+    attribution: 'Unattributed',
+    sponsor: null,
+    status: 'historical',
+    sectors: ['Government', 'Media', 'Gaming companies (historical)'],
+    summary: 'LulzSec was a notorious hacktivist collective active for approximately 50 days in mid-2011, responsible for a string of high-profile compromises including Sony, the CIA public website, the US Senate, and the UK Serious Organised Crime Agency. Operationally finished by FBI cooperation from informant Hector Monsegur ("Sabu"); core members including Jake Davis ("Topiary") and Mustafa Al-Bassam were arrested and convicted. Historical, but worth including as the canonical example of a hacktivist crew transitioning rapidly from prominence to law enforcement disruption.',
+    mitreId: null,
+    firstSeen: 2011
+  },
+
+  // ============================================================
+  // MIXED-MOTIVATION COLLECTIVES (The Com and successors)
+  // ============================================================
+  {
+    id: 'scattered-spider',
+    name: 'Scattered Spider',
+    aliases: ['UNC3944', 'Octo Tempest', '0ktapus', 'Muddled Libra', 'Scatter Swine', 'Star Fraud'],
+    motivation: 'financial',
+    attribution: 'UK/US/Europe',
+    sponsor: null,
+    status: 'active',
+    sectors: ['Telecommunications', 'Casinos', 'Retail', 'Insurance', 'Airlines', 'SaaS'],
+    summary: 'Scattered Spider is a financially-motivated criminal collective comprising mostly English-speaking young operators based in the US, UK, and Europe, part of the broader cybercriminal community known as "The Com". Notorious for sophisticated social engineering against IT help desks — the September 2023 MGM Resorts and Caesars attacks were the breakout moments — and for sustained operations through 2024-2026 against retail (M&S, Co-op, Harrods), airlines, and insurance. Despite multiple arrests through 2024 and 2025 the group continues to operate, with documented merger or affiliation with ShinyHunters in late 2025.',
+    mitreId: 'G1015',
+    firstSeen: 2022
+  },
+  {
+    id: 'shinyhunters',
+    name: 'ShinyHunters',
+    aliases: ['Scattered ShinyHunters (collective rename)'],
+    motivation: 'financial',
+    attribution: 'UK/US/Europe',
+    sponsor: null,
+    status: 'active',
+    sectors: ['Any organisation with valuable data, especially SaaS platforms'],
+    summary: 'ShinyHunters is a financially-motivated data theft and extortion group active since 2020, originally focused on data breach sales on underground forums (Tokopedia, Microsoft, AT&T leaks among the most notable). Operates a hybrid model of data theft, extortion, and dark-web data marketplace operation. Reported merger or operational affiliation with Scattered Spider was announced in 2025; both groups operate under the broader "The Com" community umbrella and increasingly share infrastructure and operators.',
+    mitreId: null,
+    firstSeen: 2020
+  },
+  {
+    id: 'lapsus',
+    name: 'LAPSUS$',
+    aliases: ['DEV-0537', 'Strawberry Tempest'],
+    motivation: 'financial',
+    attribution: 'UK/US/Europe',
+    sponsor: null,
+    status: 'disrupted',
+    sectors: ['Technology companies', 'Telecommunications', 'Government'],
+    summary: 'LAPSUS$ was a financially-motivated extortion group active primarily in late 2021 and early 2022, distinguished by extreme operational visibility — operating openly on Telegram, taunting victims, and broadcasting compromises in real time. Compromised Microsoft, Nvidia, Samsung, Okta, Uber, and Globant in a rapid sequence. The group was disrupted in 2022 with multiple UK and Brazilian arrests, with the alleged leader (a UK teenager) convicted in 2023. Members are believed to have dispersed into other parts of "The Com" community including what became Scattered Spider.',
+    mitreId: 'G1004',
+    firstSeen: 2021
+  },
+  {
+    id: 'the-com',
+    name: 'The Com',
+    aliases: ['The Community', 'Hacker Com'],
+    motivation: 'mixed',
+    attribution: 'UK/US/Europe',
+    sponsor: null,
+    status: 'active',
+    sectors: ['Cross-cutting — community rather than coordinated operation'],
+    summary: '"The Com" is not a single threat actor but a loose criminal community of thousands of English-speaking operators, originally formed around SIM-swapping crews and now encompassing the personnel base for Scattered Spider, ShinyHunters, LAPSUS$, and various smaller extortion crews. Members are predominantly young (often teenagers and young adults), recruited through Telegram, Discord, and online gaming platforms, with significant overlap with violent crime ("swatting", physical extortion, sextortion). Worth understanding as community rather than operation: many high-profile compromises in 2023-2026 trace their personnel back here.',
+    mitreId: null,
+    firstSeen: 2018
+  },
+// ============================================================
+  // OT-SPECIALIST ACTORS
+  // ============================================================
+  {
+    id: 'xenotime',
+    name: 'XENOTIME',
+    aliases: ['TEMP.Veles', 'TRITON actor'],
+    motivation: 'nation-state-disruption',
+    attribution: 'Russia',
+    sponsor: 'Central Scientific Research Institute of Chemistry and Mechanics (TsNIIKhM)',
+    status: 'active',
+    sectors: ['Oil & Gas', 'Electric Power', 'Critical Infrastructure'],
+    summary: 'XENOTIME is the threat actor responsible for the 2017 Triton/Trisis attack on a Saudi Arabian petrochemical plant — the first publicly known cyberattack to specifically target a Safety Instrumented System (Schneider Triconex SIS controllers), with the apparent intent to disable safety protections protecting the plant from physical disaster. Attributed to a Russian government research institute (TsNIIKhM) which was US-sanctioned in 2020. The group has been observed conducting reconnaissance against electric utilities in the US, Europe, and elsewhere; continued operations through 2024-2026 keep it at the top of any OT threat list.',
+    mitreId: 'G0090',
+    firstSeen: 2014
+  },
+  {
+    id: 'electrum',
+    name: 'ELECTRUM',
+    aliases: ['Sandworm sub-cluster', 'Ukrainian grid attack actor'],
+    motivation: 'nation-state-disruption',
+    attribution: 'Russia',
+    sponsor: 'GRU (Sandworm sub-cluster)',
+    status: 'active',
+    sectors: ['Electric Power', 'CNI'],
+    summary: 'ELECTRUM is the Dragos cluster designation for the actor responsible for the December 2016 attack on Ukrainian electricity transmission — the second of the two canonical Ukrainian grid attacks — which deployed the Industroyer/CrashOverride framework, the first malware purpose-built for electric grid disruption. Closely overlapping with Sandworm (both GRU-attributed) but tracked separately by some vendors for the OT-specific focus. Continued operations against Ukrainian energy infrastructure through the ongoing war, including the 2022 Industroyer2 deployment.',
+    mitreId: null,
+    firstSeen: 2016
+  },
+  {
+    id: 'chernovite',
+    name: 'CHERNOVITE',
+    aliases: ['Pipedream actor', 'Incontroller'],
+    motivation: 'nation-state-disruption',
+    attribution: 'Unattributed',
+    sponsor: 'unattributed',
+    status: 'active',
+    sectors: ['Liquefied Natural Gas', 'Electric Power', 'Industrial Control Systems'],
+    summary: 'CHERNOVITE is the Dragos designation for the developers of the Pipedream/Incontroller toolkit — the first publicly known multi-vendor ICS attack framework, capable of targeting controllers from Schneider, Omron, and OPC UA implementations. The toolkit was discovered in 2022 before deployment in a real attack, an unusual case of advance warning in the OT space. Attribution remains debated but the sophistication implies nation-state development; the toolkit was assessed as one of the most dangerous public ICS-malware developments since Triton.',
+    mitreId: null,
+    firstSeen: 2022
+  },
+  {
+    id: 'voltzite',
+    name: 'VOLTZITE',
+    aliases: ['Volt Typhoon (Dragos cluster)', 'Vanguard Panda'],
+    motivation: 'nation-state-disruption',
+    attribution: 'China',
+    sponsor: 'PLA',
+    status: 'active',
+    sectors: ['Electric Power', 'Water', 'Telecommunications', 'Emergency Services'],
+    summary: 'VOLTZITE is the Dragos cluster designation for the OT-focused subset of Volt Typhoon\'s activity, specifically the operations targeting electric utility, water utility, and emergency management organisations in the US for pre-positioning purposes. Distinct from broader Volt Typhoon activity in being tracked specifically for OT/ICS implications. Dragos documents continued reconnaissance and access activity through 2024-2025; the assessment that VOLTZITE has established footholds in OT environments is treated as ongoing condition.',
+    mitreId: null,
+    firstSeen: 2022
+  },
+  {
+    id: 'graphite',
+    name: 'GRAPHITE',
+    aliases: ['APT28 (OT sub-cluster)'],
+    motivation: 'nation-state-disruption',
+    attribution: 'Russia',
+    sponsor: 'GRU',
+    status: 'active',
+    sectors: ['Energy', 'Manufacturing', 'Government'],
+    summary: 'GRAPHITE is the Dragos cluster designation for an OT-targeting Russian threat actor overlapping with APT28 (Fancy Bear), distinct from Sandworm and tracked for activity focused on energy and manufacturing sectors. Continued reconnaissance and access activity through 2025. Worth knowing as an example of how multiple state actors within the same country develop overlapping OT capabilities, complicating attribution and response.',
+    mitreId: null,
+    firstSeen: 2020
+  },
+  {
+    id: 'kamacite',
+    name: 'KAMACITE',
+    aliases: ['Sandworm IT-side', 'Initial access cluster'],
+    motivation: 'nation-state-disruption',
+    attribution: 'Russia',
+    sponsor: 'GRU (Sandworm)',
+    status: 'active',
+    sectors: ['Energy', 'CNI'],
+    summary: 'KAMACITE is the Dragos designation for the IT-side initial access cluster of Sandworm operations — the team that gains initial footholds and hands them off to OT-specialist sub-clusters (ELECTRUM, others) for the destructive operation. Useful as a model for understanding how state actors organise their operations: not all members of "Sandworm" do everything; there is specialisation between initial access, reconnaissance, and OT-specific exploitation.',
+    mitreId: null,
+    firstSeen: 2017
+  },
+
+  // ============================================================
+  // ADDITIONAL CHINESE GROUPS
+  // ============================================================
+  {
+    id: 'apt27',
+    name: 'APT27',
+    aliases: ['Emissary Panda', 'Bronze Union', 'LuckyMouse', 'GREF', 'Iron Tiger'],
+    motivation: 'nation-state-espionage',
+    attribution: 'China',
+    sponsor: 'MSS',
+    status: 'active',
+    sectors: ['Government', 'Defence', 'Technology', 'Pharmaceutical', 'Aerospace'],
+    summary: 'APT27 is one of the long-running MSS-aligned espionage groups, active since at least 2010 and consistently focused on government, defence, and intellectual property targets globally. Notable for the HyperBro implant and a long history of operational continuity despite repeated public attribution and tooling exposure. Indicted by the German federal prosecutor in 2024 for the 2021 attack on the Bundestag and ongoing operations against European targets; continues active.',
+    mitreId: 'G0027',
+    firstSeen: 2010
+  },
+  {
+    id: 'apt31',
+    name: 'APT31',
+    aliases: ['Judgement Panda', 'ZIRCONIUM', 'Violet Typhoon', 'Red Keres'],
+    motivation: 'nation-state-espionage',
+    attribution: 'China',
+    sponsor: 'MSS Hubei Bureau',
+    status: 'active',
+    sectors: ['Government', 'Political organisations', 'NGOs', 'Critics of China'],
+    summary: 'APT31 is the MSS Hubei Bureau-attributed actor, indicted by the US DOJ and UK government in 2024 for a sustained campaign against US and UK government officials, parliamentarians, dissidents, and journalists critical of China. The UK Electoral Commission compromise of 2021-2022 was publicly attributed to this group. Worth knowing as an example of state-cyber-operations directed at political and policy targets specifically, as distinct from IP or military intelligence collection.',
+    mitreId: 'G0128',
+    firstSeen: 2010
+  },
+  {
+    id: 'storm-0558',
+    name: 'Storm-0558',
+    aliases: ['Charcoal Typhoon (overlap)', 'unnamed Chinese actor'],
+    motivation: 'nation-state-espionage',
+    attribution: 'China',
+    sponsor: 'PRC state-aligned',
+    status: 'active',
+    sectors: ['Government', 'Email accounts of US officials'],
+    summary: 'Storm-0558 is the Microsoft designation for the Chinese state-aligned actor responsible for the July 2023 compromise of Microsoft\'s consumer signing key — a sophisticated attack that gave the actor the ability to forge authentication tokens and access US State Department and Commerce Department email accounts including the US Ambassador to China. The incident prompted Microsoft\'s "Secure Future Initiative" overhaul and significant US government scrutiny. Continued operations expected through 2025-2026; cluster designations may have evolved.',
+    mitreId: null,
+    firstSeen: 2021
+  },
+
+  // ============================================================
+  // ADDITIONAL IRANIAN GROUPS
+  // ============================================================
+  {
+    id: 'apt35',
+    name: 'APT35',
+    aliases: ['Charming Kitten', 'Mint Sandstorm', 'Phosphorus', 'TA453', 'Newscaster'],
+    motivation: 'nation-state-espionage',
+    attribution: 'Iran',
+    sponsor: 'IRGC',
+    status: 'active',
+    sectors: ['Government', 'Defence', 'Journalists', 'Academics', 'Healthcare', 'Energy'],
+    summary: 'APT35 is an IRGC-aligned espionage group focused on intelligence collection against US and Middle Eastern government, defence, and policy targets, with a particular sub-specialty in targeting journalists, academics, and dissidents working on Iran-related issues. Distinguished by careful, long-running social engineering campaigns including fake personas and impersonation of journalists. Continues active in 2025-2026 with significant operations targeting Israeli and US policy communities.',
+    mitreId: 'G0059',
+    firstSeen: 2014
+  },
+  {
+    id: 'aps39',
+    name: 'APT39',
+    aliases: ['ITG07', 'Chafer', 'Remix Kitten'],
+    motivation: 'nation-state-espionage',
+    attribution: 'Iran',
+    sponsor: 'MOIS',
+    status: 'active',
+    sectors: ['Telecommunications', 'Travel', 'Technology', 'Government'],
+    summary: 'APT39 is a MOIS-aligned espionage group active since at least 2014, focused on telecommunications and travel-industry targets — a focus consistent with personal-tracking intelligence collection rather than IP theft. Members were named and indicted by the US DOJ in 2020. Continued operations through 2024-2026; useful example of how Iranian state cyber operations are oriented toward different intelligence priorities than Russian or Chinese operations.',
+    mitreId: 'G0087',
+    firstSeen: 2014
+  },
+
+  // ============================================================
+  // ADDITIONAL EMERGING GROUPS
+  // ============================================================
+  {
+    id: 'fin8',
+    name: 'FIN8',
+    aliases: ['Syssphinx', 'White Rabbit'],
+    motivation: 'financial',
+    attribution: 'Unattributed',
+    sponsor: null,
+    status: 'active',
+    sectors: ['Retail', 'Hospitality', 'Restaurants', 'Healthcare'],
+    summary: 'FIN8 is a long-running financially-motivated group active since 2016, originally focused on point-of-sale malware deployment and increasingly active as a ransomware affiliate and developer (operating the BADHATCH, Sardonic, and White Rabbit toolsets). Periods of activity dormancy followed by re-emergence with new tooling; continues active in 2025-2026 with continued POS and ransomware operations.',
+    mitreId: 'G0061',
+    firstSeen: 2016
+  },
+  {
+    id: 'gold-melody',
+    name: 'GOLD MELODY',
+    aliases: ['UNC961', 'Prophet Spider'],
+    motivation: 'financial',
+    attribution: 'Unattributed',
+    sponsor: null,
+    status: 'active',
+    sectors: ['Wide cross-sector — Initial Access Broker'],
+    summary: 'GOLD MELODY is an Initial Access Broker — a financially-motivated actor that compromises organisations and sells access to other criminal groups (typically ransomware operators) rather than monetising the access directly. Operates across multiple industries opportunistically, exploiting recently-disclosed perimeter device vulnerabilities (especially file-transfer products and edge devices). A useful example of the IAB tier of the cybercrime ecosystem — many ransomware events that appear directly attributable to a ransomware group actually originate with an IAB sale.',
+    mitreId: null,
+    firstSeen: 2017
+  },
+  {
+    id: 'rhadamanthys',
+    name: 'Rhadamanthys Operators',
+    aliases: ['Stealer operators (multiple)'],
+    motivation: 'financial',
+    attribution: 'Unattributed',
+    sponsor: null,
+    status: 'active',
+    sectors: ['Indiscriminate — credential and credential theft at scale'],
+    summary: 'Rhadamanthys is an infostealer Malware-as-a-Service operation, with the malware sold to many independent operators (rather than being deployed by a single actor). Notable for being one of the most prolific stealer operations of 2024-2026, harvesting credentials, cookies, cryptocurrency wallets, and browser data at scale from compromised endpoints. The stolen credentials feed the criminal ecosystem — Initial Access Brokers buy stealer logs to identify viable targets. Worth understanding as infrastructure rather than as a single actor: the credentials that compromise your organisation may have been stolen by someone unrelated to who ultimately uses them.',
+    mitreId: null,
+    firstSeen: 2022
+  },
+  {
+    id: 'silentpush',
+    name: 'IntelBroker',
+    aliases: ['Endurance team', 'CyberNiggers (forum handle)'],
+    motivation: 'financial',
+    attribution: 'UK/US/Europe',
+    sponsor: null,
+    status: 'disrupted',
+    sectors: ['Technology', 'Government', 'Cybersecurity vendors'],
+    summary: 'IntelBroker was a prominent data theft and forum reputation actor active from 2023 through 2025, claiming and selling data from a long list of high-profile breaches (Cisco, AMD, HPE, T-Mobile, multiple US federal agencies). The alleged operator (a UK national) was arrested in early 2025. Worth knowing as an example of the data-broker tier of the modern cybercrime ecosystem — actors whose business model is purely data theft and resale rather than ransomware or extortion.',
+    mitreId: null,
+    firstSeen: 2023
+  },
+
+  // ============================================================
+  // NOTABLE STATE-ALIGNED GROUPS (additional)
+  // ============================================================
+  {
+    id: 'apt37',
+    name: 'APT37',
+    aliases: ['Reaper', 'Ricochet Chollima', 'ScarCruft', 'Group123'],
+    motivation: 'nation-state-espionage',
+    attribution: 'DPRK',
+    sponsor: 'MSS (Ministry of State Security of DPRK)',
+    status: 'active',
+    sectors: ['Government', 'Defence', 'Media', 'Human Rights Organisations'],
+    summary: 'APT37 is a DPRK state-aligned espionage actor distinct from the Lazarus umbrella, focused primarily on South Korean and South Korea-related targets, plus Japan, Vietnam, and broader Asian regional intelligence. Notable for relatively bespoke malware development including ROKRAT and DOLPHIN, and for operating with a longer tradition than Lazarus (active since at least 2012). Continued operations through 2025 with intensified focus on Korean Peninsula policy targets.',
+    mitreId: 'G0067',
+    firstSeen: 2012
+  }
+];
+
+
+// ============================================
+// STATE
+// ============================================
+const state = {
+  search: '',
+  motivation: new Set(),
+  attribution: new Set(),
+  status: new Set()
+};
+
+// ============================================
+// MOTIVATION DISPLAY LABELS
+// ============================================
+const MOTIVATION_LABELS = {
+  'nation-state-espionage': 'Nation-State · Espionage',
+  'nation-state-disruption': 'Nation-State · Disruption',
+  'financial': 'Financial',
+  'hacktivist': 'Hacktivist',
+  'mixed': 'Mixed'
+};
+
+const STATUS_LABELS = {
+  'active': 'Active',
+  'disrupted': 'Disrupted',
+  'historical': 'Historical',
+  'dormant': 'Dormant'
+};
+
+// ============================================
+// INIT
+// ============================================
+function init() {
+  buildFilterChips();
+  bindEvents();
+  renderResults();
+}
+
+function bindEvents() {
+  const searchInput = document.getElementById('searchInput');
+  searchInput.addEventListener('input', e => {
+    state.search = e.target.value.trim().toLowerCase();
+    renderResults();
+  });
+
+  document.getElementById('clearFilters').addEventListener('click', () => {
+    state.search = '';
+    state.motivation.clear();
+    state.attribution.clear();
+    state.status.clear();
+    searchInput.value = '';
+    buildFilterChips();
+    renderResults();
+  });
+}
+
+// ============================================
+// BUILD FILTER CHIPS
+// ============================================
+function buildFilterChips() {
+  // Motivation chips — fixed order
+  const motivationOrder = ['nation-state-espionage', 'nation-state-disruption', 'financial', 'hacktivist', 'mixed'];
+  const motivationCounts = countBy(ACTORS, 'motivation');
+  renderChipGroup('motivationFilters', motivationOrder, motivationCounts, MOTIVATION_LABELS, state.motivation, 'motivation');
+
+  // Attribution chips — by frequency
+  const attributionCounts = countBy(ACTORS, 'attribution');
+  const attributionOrder = Object.keys(attributionCounts).sort((a, b) => attributionCounts[b] - attributionCounts[a]);
+  renderChipGroup('attributionFilters', attributionOrder, attributionCounts, null, state.attribution, 'attribution');
+
+  // Status chips — fixed order
+  const statusOrder = ['active', 'disrupted', 'historical', 'dormant'];
+  const statusCounts = countBy(ACTORS, 'status');
+  const presentStatuses = statusOrder.filter(s => statusCounts[s] > 0);
+  renderChipGroup('statusFilters', presentStatuses, statusCounts, STATUS_LABELS, state.status, 'status');
+}
+
+function renderChipGroup(containerId, values, counts, labelMap, activeSet, axis) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = values.map(v => {
+    const label = labelMap ? labelMap[v] : v;
+    const active = activeSet.has(v) ? ' active' : '';
+    return `<button class="filter-chip${active}" data-axis="${axis}" data-value="${escapeAttr(v)}">${escapeHtml(label)}<span class="filter-chip-count">${counts[v]}</span></button>`;
+  }).join('');
+
+  container.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const value = chip.dataset.value;
+      if (activeSet.has(value)) {
+        activeSet.delete(value);
+      } else {
+        activeSet.add(value);
+      }
+      chip.classList.toggle('active');
+      renderResults();
+    });
+  });
+}
+
+function countBy(arr, key) {
+  const m = {};
+  arr.forEach(a => { m[a[key]] = (m[a[key]] || 0) + 1; });
+  return m;
+}
+
+// ============================================
+// FILTER & SEARCH
+// ============================================
+function getFilteredActors() {
+  return ACTORS.filter(a => {
+    // Motivation
+    if (state.motivation.size > 0 && !state.motivation.has(a.motivation)) return false;
+    // Attribution
+    if (state.attribution.size > 0 && !state.attribution.has(a.attribution)) return false;
+    // Status
+    if (state.status.size > 0 && !state.status.has(a.status)) return false;
+    // Search — match name, aliases (case-insensitive)
+    if (state.search) {
+      const haystack = (a.name + ' ' + (a.aliases || []).join(' ') + ' ' + (a.sponsor || '') + ' ' + a.attribution).toLowerCase();
+      if (!haystack.includes(state.search)) return false;
+    }
+    return true;
+  });
+}
+
+// ============================================
+// RENDER RESULTS
+// ============================================
+function renderResults() {
+  const filtered = getFilteredActors();
+  document.getElementById('resultsCount').innerHTML = `Showing <strong>${filtered.length}</strong> of ${ACTORS.length} actors`;
+
+  // Disable clear-filters button if nothing's filtered
+  const clearBtn = document.getElementById('clearFilters');
+  const anyFilters = state.search || state.motivation.size || state.attribution.size || state.status.size;
+  clearBtn.disabled = !anyFilters;
+
+  const container = document.getElementById('resultsContainer');
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-title">No actors match your filters</div>
+        <div class="empty-state-sub">Try clearing some filters or broadening your search</div>
+      </div>
+    `;
+    return;
+  }
+
+  // Sort: active first, then by name
+  const sorted = filtered.slice().sort((a, b) => {
+    const statusOrder = { 'active': 0, 'disrupted': 1, 'dormant': 2, 'historical': 3 };
+    const sa = statusOrder[a.status] ?? 99;
+    const sb = statusOrder[b.status] ?? 99;
+    if (sa !== sb) return sa - sb;
+    return a.name.localeCompare(b.name);
+  });
+
+  container.innerHTML = `<div class="results-grid">${sorted.map(renderActorCard).join('')}</div>`;
+}
+
+function renderActorCard(a) {
+  const aliases = (a.aliases || []).length > 0
+    ? `<div class="actor-aliases"><strong>Aliases:</strong>${escapeHtml(a.aliases.join(' · '))}</div>`
+    : '';
+
+  const sectors = (a.sectors || []).slice(0, 6).map(s => `<span class="actor-tag">${escapeHtml(s)}</span>`).join('');
+
+  return `
+    <article class="actor-card" data-motivation="${escapeAttr(a.motivation)}">
+      <div class="actor-header">
+        <h3 class="actor-name">${escapeHtml(a.name)}</h3>
+        <span class="actor-status-badge" data-status="${escapeAttr(a.status)}">${escapeHtml(STATUS_LABELS[a.status] || a.status)}</span>
+      </div>
+      <div class="actor-meta">
+        <span class="actor-meta-tag attribution">${escapeHtml(a.attribution)}${a.sponsor ? ' · ' + escapeHtml(a.sponsor) : ''}</span>
+        ${a.firstSeen ? `<span class="actor-meta-tag first-seen">First tracked ${a.firstSeen}</span>` : ''}
+        ${a.mitreId ? `<span class="actor-meta-tag mitre">MITRE ${escapeHtml(a.mitreId)}</span>` : ''}
+      </div>
+      ${aliases}
+      <p class="actor-summary">${escapeHtml(a.summary)}</p>
+      <div class="actor-tags">
+        <span class="actor-tag motivation">${escapeHtml(MOTIVATION_LABELS[a.motivation] || a.motivation)}</span>
+        ${sectors}
+      </div>
+    </article>
+  `;
+}
+
+// ============================================
+// HELPERS
+// ============================================
+function escapeHtml(s) {
+  if (s === null || s === undefined) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function escapeAttr(s) {
+  return escapeHtml(s);
+}
+
+// ============================================
+// BOOT
+// ============================================
+document.addEventListener('DOMContentLoaded', init);
+
+</script>
+
+</body>
+</html>
