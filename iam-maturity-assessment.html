@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IAM Maturity Assessment · Dan Howett</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e0f10; --bg-elev:#18191b; --bg-muted:#1d1e20; --bg-subtle:#232528; --bg-band:#14161a;
+  --text:#f0f0ee; --text-muted:#9a9a92; --text-dim:#6b6b66;
+  --border:#2a2c2f; --border-strong:#3a3d40;
+  --accent:#60a5fa; --accent-hover:#93c5fd; --accent-soft:rgba(96,165,250,0.12); --accent-text:#93c5fd;
+  --orange:#fb923c; --orange-soft:rgba(251,146,60,0.16);
+  --purple:#a78bfa; --purple-soft:rgba(167,139,250,0.16);
+  --st-initial:#f87171; --st-initial-soft:rgba(248,113,113,0.16);
+  --st-developing:#fbbf24; --st-developing-soft:rgba(251,191,36,0.16);
+  --st-defined:#60a5fa; --st-defined-soft:rgba(96,165,250,0.16);
+  --st-optimised:#4ade80; --st-optimised-soft:rgba(74,222,128,0.16);
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.3);
+  --shadow:0 1px 3px rgba(0,0,0,0.4),0 1px 2px rgba(0,0,0,0.3);
+  --shadow-lg:0 8px 24px rgba(0,0,0,0.5),0 2px 4px rgba(0,0,0,0.3);
+}
+[data-theme="light"]{
+  --bg:#fafaf7; --bg-elev:#ffffff; --bg-muted:#f4f4ef; --bg-subtle:#efefe8; --bg-band:#e6ebf2;
+  --text:#1a1a1a; --text-muted:#5e5e58; --text-dim:#6b6b66;
+  --border:#e8e6df; --border-strong:#d6d3c9;
+  --accent:#1d4ed8; --accent-hover:#1e40af; --accent-soft:#eff4ff; --accent-text:#1e40af;
+  --orange:#ea580c; --orange-soft:#ffedd5;
+  --purple:#7c3aed; --purple-soft:#ede9fe;
+  --st-initial:#dc2626; --st-initial-soft:#fee2e2;
+  --st-developing:#f59e0b; --st-developing-soft:#fef3c7;
+  --st-defined:#3b82f6; --st-defined-soft:#dbeafe;
+  --st-optimised:#16a34a; --st-optimised-soft:#dcfce7;
+  --shadow-sm:0 1px 2px rgba(15,15,15,0.04);
+  --shadow:0 1px 3px rgba(15,15,15,0.06),0 1px 2px rgba(15,15,15,0.04);
+  --shadow-lg:0 8px 24px rgba(15,15,15,0.06),0 2px 4px rgba(15,15,15,0.04);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
+.mono{font-family:'JetBrains Mono',monospace}
+.serif{font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+
+/* ---- site header ---- */
+.site{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.site-inner{max-width:1180px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);font-weight:700;font-size:.92rem}
+.brand .logo{width:30px;height:30px;border-radius:7px;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:800;font-size:.78rem;letter-spacing:-.02em}
+[data-theme="light"] .brand .logo{color:#fff}
+.brand .slash{color:var(--text-dim);font-weight:400}
+.brand .second{color:var(--text-muted);font-weight:500}
+.site-meta{margin-left:auto;display:flex;align-items:center;gap:6px}
+.btn{font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:500;letter-spacing:.02em;border:1px solid var(--border-strong);background:var(--bg-elev);color:var(--text-muted);padding:7px 12px;border-radius:7px;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{color:var(--text);border-color:var(--accent);background:var(--accent-soft)}
+.btn.sm{padding:6px 10px;font-size:.68rem}
+.btn.danger:hover{color:var(--st-initial);border-color:var(--st-initial);background:var(--st-initial-soft)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.primary:hover{background:var(--accent-hover);border-color:var(--accent-hover);color:#fff}
+.theme-toggle{width:34px;height:34px;padding:0;justify-content:center}
+
+/* ---- layout ---- */
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+.hero{padding:48px 0 28px}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-text);margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap}
+.eyebrow .dot{color:var(--text-dim)}
+h1.title{font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;font-weight:800;font-size:clamp(2.1rem,5vw,3.2rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:18px;max-width:18ch}
+.lede{font-size:1.04rem;color:var(--text-muted);max-width:62ch}
+.lede strong{color:var(--text);font-weight:600}
+.stat-row{display:flex;gap:26px;flex-wrap:wrap;margin-top:26px;padding-top:22px;border-top:1px solid var(--border)}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat .n{font-family:'Inter',sans-serif;font-weight:700;font-size:1.7rem;line-height:1;letter-spacing:-.02em;color:var(--text)}
+.stat .l{font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim)}
+
+/* ---- cards / sections ---- */
+.section{padding:30px 0;border-top:1px solid var(--border)}
+.section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:20px}
+.section-head .idx{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--accent-text);letter-spacing:.05em}
+.section-head h2{font-family:'Inter',sans-serif;font-weight:700;font-size:1.5rem;letter-spacing:-.02em}
+.card{background:var(--bg-elev);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-sm)}
+
+.notice{display:flex;gap:12px;background:var(--orange-soft);border:1px solid color-mix(in srgb,var(--orange) 30%,transparent);border-radius:10px;padding:14px 16px;font-size:.84rem;color:var(--text-muted);margin:18px 0}
+.notice .bang{flex:none;width:20px;height:20px;border-radius:50%;background:var(--orange);color:#fff;display:grid;place-items:center;font-weight:800;font-size:.72rem}
+.notice strong{color:var(--text)}
+
+/* ---- setup ---- */
+.setup-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;padding:18px}
+.setup-row{display:flex;flex-direction:column;gap:6px}
+.setup-row label{font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim)}
+.setup-row input,.setup-row select{font-family:inherit;font-size:.9rem;background:var(--bg-muted);border:1px solid var(--border);border-radius:8px;padding:9px 11px;color:var(--text)}
+.setup-row input:focus,.setup-row select:focus{outline:none;border-color:var(--accent);background:var(--bg-elev)}
+
+/* ---- framework chips ---- */
+.fw-row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 4px}
+.chip{font-family:'JetBrains Mono',monospace;font-size:.68rem;padding:4px 9px;border-radius:6px;background:var(--bg-subtle);border:1px solid var(--border);color:var(--text-muted)}
+
+/* ---- domain blocks ---- */
+.domain{margin-bottom:14px;overflow:hidden}
+.domain-head{display:flex;align-items:center;gap:14px;padding:16px 18px;cursor:pointer;user-select:none}
+.domain-head:hover{background:var(--bg-muted)}
+.domain-icon{flex:none;width:38px;height:38px;border-radius:9px;background:var(--accent-soft);color:var(--accent-text);display:grid;place-items:center;font-size:1.05rem}
+.domain-meta{flex:1;min-width:0}
+.domain-meta .dt{font-weight:700;font-size:.98rem;display:flex;align-items:center;gap:8px}
+.domain-meta .dn{font-family:'JetBrains Mono',monospace;font-size:.64rem;color:var(--text-dim);letter-spacing:.05em}
+.domain-meta .dd{font-size:.82rem;color:var(--text-muted);margin-top:2px}
+.domain-score{flex:none;text-align:right;font-family:'JetBrains Mono',monospace}
+.domain-score .ds-n{font-size:1.2rem;font-weight:600}
+.domain-score .ds-l{font-size:.6rem;color:var(--text-dim);letter-spacing:.05em;text-transform:uppercase}
+.domain-chev{flex:none;color:var(--text-dim);transition:transform .2s}
+.domain.open .domain-chev{transform:rotate(180deg)}
+.domain-body{display:none;border-top:1px solid var(--border);padding:6px 0}
+.domain.open .domain-body{display:block}
+
+/* ---- capability ---- */
+.cap{padding:16px 18px;border-bottom:1px solid var(--border)}
+.cap:last-child{border-bottom:none}
+.cap-top{display:flex;justify-content:space-between;gap:14px;margin-bottom:10px}
+.cap-name{font-weight:600;font-size:.92rem}
+.cap-desc{font-size:.82rem;color:var(--text-muted);margin-top:3px}
+.cap-ref{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--text-dim);margin-top:6px;letter-spacing:.02em}
+.stage-opts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stage-opt{position:relative;border:1px solid var(--border);border-radius:9px;padding:10px;cursor:pointer;transition:all .15s;background:var(--bg-muted)}
+.stage-opt:hover{border-color:var(--border-strong)}
+.stage-opt input{position:absolute;opacity:0}
+.stage-opt .so-h{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.stage-opt .so-dot{width:9px;height:9px;border-radius:50%;flex:none}
+.stage-opt .so-name{font-family:'JetBrains Mono',monospace;font-size:.66rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
+.stage-opt .so-d{font-size:.74rem;color:var(--text-muted);line-height:1.4}
+.stage-opt[data-stage="0"] .so-dot{background:var(--st-initial)}
+.stage-opt[data-stage="1"] .so-dot{background:var(--st-developing)}
+.stage-opt[data-stage="2"] .so-dot{background:var(--st-defined)}
+.stage-opt[data-stage="3"] .so-dot{background:var(--st-optimised)}
+.stage-opt.sel[data-stage="0"]{border-color:var(--st-initial);background:var(--st-initial-soft)}
+.stage-opt.sel[data-stage="1"]{border-color:var(--st-developing);background:var(--st-developing-soft)}
+.stage-opt.sel[data-stage="2"]{border-color:var(--st-defined);background:var(--st-defined-soft)}
+.stage-opt.sel[data-stage="3"]{border-color:var(--st-optimised);background:var(--st-optimised-soft)}
+.cap-na{margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:.66rem;color:var(--text-dim);display:flex;align-items:center;gap:7px;cursor:pointer}
+.cap-na input{accent-color:var(--accent)}
+
+/* ---- results ---- */
+.results{display:none}
+.results.show{display:block}
+.overall{display:flex;gap:24px;align-items:center;flex-wrap:wrap;padding:22px;margin-bottom:18px}
+.overall-num{font-family:'Inter',sans-serif;font-weight:800;font-size:3.6rem;line-height:.9;letter-spacing:-.03em}
+.overall-meta .ol{font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim)}
+.overall-meta .ostage{font-size:1.3rem;font-weight:700;margin-top:2px}
+.overall-bar{flex:1;min-width:200px}
+.bar-track{height:10px;border-radius:6px;background:var(--bg-subtle);overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:6px;transition:width .6s ease}
+.bar-ticks{display:flex;justify-content:space-between;margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--text-dim)}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:860px){.grid-2{grid-template-columns:1fr}.stage-opts{grid-template-columns:1fr 1fr}.overall-num{font-size:3rem}}
+.panel{padding:18px}
+.panel h3{font-family:'Inter',sans-serif;font-weight:700;font-size:1.1rem;letter-spacing:-.01em;margin-bottom:4px}
+.panel .ph{font-family:'JetBrains Mono',monospace;font-size:.64rem;letter-spacing:.05em;text-transform:uppercase;color:var(--text-dim);margin-bottom:14px}
+
+/* heatmap */
+.heatmap{display:flex;flex-direction:column;gap:7px}
+.hm-row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
+.hm-label{font-size:.82rem;color:var(--text-muted)}
+.hm-bar{display:flex;align-items:center;gap:10px}
+.hm-track{width:120px;height:8px;border-radius:5px;background:var(--bg-subtle);overflow:hidden}
+.hm-fill{height:100%;border-radius:5px}
+.hm-val{font-family:'JetBrains Mono',monospace;font-size:.72rem;width:30px;text-align:right}
+
+/* gap register */
+.gap{padding:12px 14px;border:1px solid var(--border);border-radius:9px;margin-bottom:9px;background:var(--bg-muted)}
+.gap-h{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.gap-name{font-weight:600;font-size:.86rem}
+.gap-tag{font-family:'JetBrains Mono',monospace;font-size:.6rem;padding:3px 7px;border-radius:5px;flex:none;letter-spacing:.04em}
+.gap-tag.quick{background:var(--st-optimised-soft);color:var(--st-optimised)}
+.gap-tag.crit{background:var(--st-initial-soft);color:var(--st-initial)}
+.gap-from{font-family:'JetBrains Mono',monospace;font-size:.64rem;color:var(--text-dim);margin-top:5px}
+.gap-act{font-size:.8rem;color:var(--text-muted);margin-top:6px}
+
+/* anti-patterns */
+.ap{display:flex;gap:11px;padding:12px 14px;border:1px solid color-mix(in srgb,var(--st-initial) 35%,transparent);background:var(--st-initial-soft);border-radius:9px;margin-bottom:9px}
+.ap .ap-i{flex:none;color:var(--st-initial);font-weight:800;font-size:1rem}
+.ap-t{font-weight:600;font-size:.84rem}
+.ap-d{font-size:.8rem;color:var(--text-muted);margin-top:3px}
+
+/* roadmap */
+.rm-step{display:grid;grid-template-columns:auto 1fr;gap:14px;padding-bottom:18px;position:relative}
+.rm-step:not(:last-child)::before{content:"";position:absolute;left:15px;top:32px;bottom:0;width:2px;background:var(--border)}
+.rm-marker{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-weight:600;font-size:.78rem;flex:none;z-index:1}
+.rm-h{font-family:'JetBrains Mono',monospace;font-size:.64rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim)}
+.rm-title{font-weight:600;font-size:.92rem;margin:2px 0 4px}
+.rm-body{font-size:.82rem;color:var(--text-muted)}
+.rm-items{margin-top:8px;display:flex;flex-direction:column;gap:5px}
+.rm-item{font-size:.8rem;color:var(--text-muted);padding-left:16px;position:relative}
+.rm-item::before{content:"→";position:absolute;left:0;color:var(--accent-text)}
+
+/* radar */
+.radar-wrap{display:grid;place-items:center}
+.legend{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.legend-item{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:.66rem;color:var(--text-muted)}
+.legend-swatch{width:11px;height:11px;border-radius:3px}
+
+.sector-ctx{margin-top:14px;padding:14px 16px;border:1px solid var(--accent);border-radius:10px;background:var(--accent-soft)}
+.sector-ctx .sc-h{font-family:'JetBrains Mono',monospace;font-size:.64rem;letter-spacing:.05em;text-transform:uppercase;color:var(--accent-text);margin-bottom:6px}
+.sector-ctx .sc-b{font-size:.84rem;color:var(--text-muted)}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--text-dim)}
+.empty-state .es-i{font-size:2rem;margin-bottom:10px;opacity:.5}
+
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0}
+
+/* toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:var(--bg);padding:11px 18px;border-radius:9px;font-size:.84rem;font-weight:500;box-shadow:var(--shadow-lg);opacity:0;transition:all .3s;z-index:100}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+footer{border-top:1px solid var(--border);margin-top:40px;padding:28px 0;text-align:center;font-size:.78rem;color:var(--text-dim)}
+footer a{color:var(--text-muted)}
+
+@media print{
+  .site,.actions,.theme-toggle,.notice,.cap-na,.domain-chev,.fw-toggle{display:none!important}
+  .domain-body{display:block!important}
+  .results{display:block!important}
+  body{background:#fff;color:#000}
+  .card{box-shadow:none;border:1px solid #ccc;break-inside:avoid}
+}
+.fw-toggle{font-family:'JetBrains Mono',monospace;font-size:.68rem;background:none;border:none;color:var(--accent-text);cursor:pointer;padding:4px 0}
+.fw-detail{display:none;margin-top:10px}
+.fw-detail.show{display:block}
+.fw-link{display:block;font-size:.8rem;color:var(--text-muted);padding:5px 0;border-bottom:1px solid var(--border);text-decoration:none}
+.fw-link:hover{color:var(--accent-text)}
+.fw-link .fl-name{color:var(--text);font-weight:500}
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="site-inner">
+    <a href="https://danhowett.github.io/useful/" class="brand">
+      <span class="logo">DH</span>
+      <span>Dan Howett <span class="slash">/</span> <span class="second">IAM Maturity</span></span>
+    </a>
+    <div class="site-meta">
+      <button class="btn ghost sm" onclick="exportJSON()" title="Save assessment as JSON">SAVE JSON</button>
+      <button class="btn ghost sm" onclick="document.getElementById('loadFile').click()" title="Load saved assessment">LOAD</button>
+      <input type="file" id="loadFile" accept="application/json" style="display:none" onchange="importJSON(event)">
+      <button class="btn ghost sm" onclick="exportMarkdown()" title="Export Markdown report">MD</button>
+      <button class="btn ghost sm" onclick="window.print()" title="Print or save PDF">PDF</button>
+      <button class="btn danger sm" onclick="resetAssessment()">RESET</button>
+      <button class="btn theme-toggle" onclick="toggleTheme()" title="Toggle theme" id="themeBtn">◐</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="hero">
+    <div class="eyebrow">
+      <span>Identity &amp; Access</span><span class="dot">·</span>
+      <span>Workforce IAM</span><span class="dot">·</span>
+      <span>NIST 800-63 · CSF 2.0 · CISA ZTMM · NCSC · ISO 27001</span>
+    </div>
+    <h1 class="title serif">How mature is your identity control plane?</h1>
+    <p class="lede">A 32-capability self-assessment of <strong>workforce identity &amp; access management</strong> across eight domains — from joiner-mover-leaver and MFA through to privileged access, governance and identity threat detection. Score against four maturity stages, surface anti-patterns that are actively doing harm, and get a heatmap, radar, gap register and prioritised roadmap. Sits one layer deeper than the Identity pillar of the Zero Trust assessment.</p>
+    <div class="stat-row">
+      <div class="stat"><span class="n">8</span><span class="l">Domains</span></div>
+      <div class="stat"><span class="n">32</span><span class="l">Capabilities</span></div>
+      <div class="stat"><span class="n">4</span><span class="l">Stages</span></div>
+      <div class="stat"><span class="n">10</span><span class="l">Sectors</span></div>
+      <div class="stat"><span class="n">9</span><span class="l">Anti-patterns</span></div>
+      <div class="stat"><span class="n">~20</span><span class="l">Minutes</span></div>
+    </div>
+  </section>
+
+  <div class="notice">
+    <span class="bang">!</span>
+    <div><strong>Proof of concept only.</strong> This assessment is a self-evaluation aid mapping to public framework descriptions (NIST SP 800-63, NIST CSF 2.0, CISA ZTMM v2.0, NCSC IAM guidance, ISO/IEC 27001:2022). It is not a formal audit, certification, or professional advice. Outputs should not be relied on for any decision with material consequence without independent verification. Use entirely at your own risk.</div>
+  </div>
+
+  <!-- SETUP -->
+  <section class="section">
+    <div class="section-head"><span class="idx">01</span><h2 class="serif">Assessment context</h2></div>
+    <div class="card">
+      <div class="setup-grid">
+        <div class="setup-row"><label>Organisation</label><input id="ctxOrg" placeholder="Organisation name" oninput="saveLocal()"></div>
+        <div class="setup-row"><label>Assessor</label><input id="ctxAssessor" placeholder="Your name / role" oninput="saveLocal()"></div>
+        <div class="setup-row"><label>Sector</label>
+          <select id="ctxSector" onchange="renderSectorContext();saveLocal()">
+            <option value="">— Choose to enable sector context —</option>
+            <option value="finance">Financial Services</option>
+            <option value="health">Health &amp; Care</option>
+            <option value="gov">Government / Public Sector</option>
+            <option value="energy">Energy &amp; Utilities (CNI)</option>
+            <option value="telecom">Telecoms</option>
+            <option value="retail">Retail &amp; E-commerce</option>
+            <option value="manufacturing">Manufacturing</option>
+            <option value="transport">Transport</option>
+            <option value="education">Education</option>
+            <option value="tech">Technology / SaaS</option>
+          </select>
+        </div>
+        <div class="setup-row"><label>Date</label><input id="ctxDate" type="date" oninput="saveLocal()"></div>
+      </div>
+    </div>
+    <div id="sectorCtx"></div>
+  </section>
+
+  <!-- STAGES EXPLAINER -->
+  <section class="section">
+    <div class="section-head"><span class="idx">02</span><h2 class="serif">The four maturity stages</h2></div>
+    <div class="card panel">
+      <div class="stage-opts" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stage-opt sel" data-stage="0" style="cursor:default">
+          <div class="so-h"><span class="so-dot"></span><span class="so-name">Initial</span></div>
+          <div class="so-d">Ad-hoc, manual, undocumented. Reactive and inconsistent — gaps are common and unmonitored.</div>
+        </div>
+        <div class="stage-opt sel" data-stage="1" style="cursor:default">
+          <div class="so-h"><span class="so-dot"></span><span class="so-name">Developing</span></div>
+          <div class="so-d">Documented and partially implemented, but inconsistent coverage and limited automation or enforcement.</div>
+        </div>
+        <div class="stage-opt sel" data-stage="2" style="cursor:default">
+          <div class="so-h"><span class="so-dot"></span><span class="so-name">Defined</span></div>
+          <div class="so-d">Standardised, broadly enforced and largely automated across the estate, with measurement in place.</div>
+        </div>
+        <div class="stage-opt sel" data-stage="3" style="cursor:default">
+          <div class="so-h"><span class="so-dot"></span><span class="so-name">Optimised</span></div>
+          <div class="so-d">Continuously verified, risk-adaptive and self-correcting. Fully automated with active threat detection.</div>
+        </div>
+      </div>
+      <button class="fw-toggle" onclick="document.getElementById('fwDetail').classList.toggle('show')" style="margin-top:14px">FRAMEWORK MAPPING ↓</button>
+      <div class="fw-detail" id="fwDetail">
+        <a class="fw-link" href="https://pages.nist.gov/800-63-3/" target="_blank" rel="noopener"><span class="fl-name">NIST SP 800-63</span> — Digital Identity Guidelines (IAL/AAL/FAL)</a>
+        <a class="fw-link" href="https://www.nist.gov/cyberframework" target="_blank" rel="noopener"><span class="fl-name">NIST CSF 2.0</span> — PR.AA Identity Management, Authentication &amp; Access Control</a>
+        <a class="fw-link" href="https://www.cisa.gov/zero-trust-maturity-model" target="_blank" rel="noopener"><span class="fl-name">CISA ZTMM v2.0</span> — Identity pillar (reconciles with the Zero Trust assessment)</a>
+        <a class="fw-link" href="https://www.ncsc.gov.uk/collection/identity-and-access-management" target="_blank" rel="noopener"><span class="fl-name">NCSC</span> — Identity and Access Management collection</a>
+        <a class="fw-link" href="https://www.iso.org/standard/27001" target="_blank" rel="noopener"><span class="fl-name">ISO/IEC 27001:2022</span> — A.5.15–5.18 Access control, identity, authentication, privileged access</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ASSESSMENT -->
+  <section class="section">
+    <div class="section-head"><span class="idx">03</span><h2 class="serif">Assess your capabilities</h2></div>
+    <div id="domains"></div>
+  </section>
+
+  <div class="actions">
+    <button class="btn primary" onclick="showResults()">VIEW RESULTS →</button>
+    <button class="btn ghost" onclick="autoExpand()">EXPAND ALL</button>
+    <button class="btn ghost" onclick="autoCollapse()">COLLAPSE ALL</button>
+  </div>
+
+  <!-- RESULTS -->
+  <section class="section results" id="resultsSection">
+    <div class="section-head"><span class="idx">04</span><h2 class="serif">Results &amp; report</h2></div>
+    <div class="card overall">
+      <div class="overall-num serif" id="overallNum">—</div>
+      <div class="overall-meta">
+        <div class="ol">Overall maturity</div>
+        <div class="ostage" id="overallStage">Not yet scored</div>
+      </div>
+      <div class="overall-bar">
+        <div class="bar-track"><div class="bar-fill" id="overallFill" style="width:0%;background:var(--st-developing)"></div></div>
+        <div class="bar-ticks"><span>Initial</span><span>Developing</span><span>Defined</span><span>Optimised</span></div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card panel">
+        <h3 class="serif">Maturity radar</h3>
+        <div class="ph">Score by domain · 0–3 scale</div>
+        <div class="radar-wrap"><div id="radar"></div></div>
+        <div class="legend">
+          <div class="legend-item"><span class="legend-swatch" style="background:var(--accent)"></span>Current</div>
+          <div class="legend-item"><span class="legend-swatch" style="background:var(--text-dim);opacity:.4"></span>Target (Defined+)</div>
+        </div>
+      </div>
+      <div class="card panel">
+        <h3 class="serif">Domain heatmap</h3>
+        <div class="ph">Where strength and weakness cluster</div>
+        <div class="heatmap" id="heatmap"></div>
+      </div>
+    </div>
+
+    <div class="card panel" id="apPanel" style="margin-top:18px">
+      <h3 class="serif">Anti-pattern detector</h3>
+      <div class="ph">Practices that may be actively doing harm</div>
+      <div id="antipatterns"></div>
+    </div>
+
+    <div class="card panel" style="margin-top:18px">
+      <h3 class="serif">Gap register</h3>
+      <div class="ph">Lowest-scoring capabilities · quick wins flagged</div>
+      <div id="gaps"></div>
+    </div>
+
+    <div class="card panel" style="margin-top:18px">
+      <h3 class="serif">Improvement roadmap</h3>
+      <div class="ph">Sequenced by risk reduction and effort</div>
+      <div id="roadmap"></div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap">
+    <a href="https://danhowett.github.io/useful/">← Back to all tools</a> ·
+    <a href="https://github.com/danhowett/useful" target="_blank" rel="noopener">github.com/danhowett/useful</a><br>
+    Tools created with Claude.ai · Client-side only · No data leaves your browser
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ DATA MODEL ============ */
+const STAGES=["Initial","Developing","Defined","Optimised"];
+const STAGE_VARS=["--st-initial","--st-developing","--st-defined","--st-optimised"];
+
+const DOMAINS=[
+ {id:"jml",icon:"⟳",name:"Identity Lifecycle (JML)",num:"D1",
+  desc:"Joiner, mover and leaver processes — provisioning, role change and timely deprovisioning.",
+  caps:[
+   {id:"jml1",name:"Joiner provisioning",desc:"How are new identities and their initial access created and approved?",ref:"NIST CSF PR.AA-01 · ISO 27001 A.5.16",
+    stages:["Manual ticket, access copied from a peer ('same as Bob')","Standard request form with approval, mostly manual setup","Automated provisioning from HR source with role-based birthright access","Fully automated, attribute-driven, access scoped to risk and verified"]},
+   {id:"jml2",name:"Mover / role change",desc:"When someone changes role, is prior access removed as new access is granted?",ref:"NIST CSF PR.AA-05 · ISO 27001 A.5.18",
+    stages:["No process — access accretes over time","Recognised but manual and frequently incomplete","Triggered workflow removes old access on role change","Continuous reconciliation against HR; entitlement creep actively prevented"]},
+   {id:"jml3",name:"Leaver deprovisioning",desc:"How quickly and completely is access revoked when someone leaves?",ref:"NIST CSF PR.AA-05 · NCSC IAM",
+    stages:["Days to weeks, often missed; manual across systems","Documented SLA but inconsistent across the estate","Automated disable from HR trigger within hours across SSO-connected apps","Real-time deprovisioning incl. tokens, sessions, keys and non-SSO apps"]},
+   {id:"jml4",name:"Joiner-mover-leaver reconciliation",desc:"Are accounts periodically reconciled against an authoritative source?",ref:"ISO 27001 A.5.16 · NIST 800-53 AC-2",
+    stages:["No reconciliation; unknown what exists","Occasional manual spot-checks","Scheduled reconciliation against HR/authoritative source","Continuous automated reconciliation with alerting on drift"]}
+  ]},
+ {id:"authn",icon:"🔑",name:"Authentication & MFA",num:"D2",
+  desc:"How identities prove who they are — MFA coverage, factor strength, and legacy auth.",
+  caps:[
+   {id:"authn1",name:"MFA coverage",desc:"What proportion of workforce access is protected by MFA?",ref:"NIST 800-63B AAL2 · CSF PR.AA-03",
+    stages:["MFA on few or no systems","MFA on email/VPN but gaps remain","MFA enforced on the large majority of apps via SSO","MFA universal, including legacy and admin paths"]},
+   {id:"authn2",name:"Phishing-resistant factors",desc:"Are factors resistant to phishing and real-time relay/MFA-fatigue?",ref:"NIST 800-63B · CISA ZTMM Identity",
+    stages:["SMS / email OTP only","App push / TOTP (susceptible to fatigue & relay)","FIDO2/WebAuthn or PKI for high-risk roles","Phishing-resistant by default across the workforce"]},
+   {id:"authn3",name:"Passwordless adoption",desc:"How far has the organisation moved beyond passwords?",ref:"NIST 800-63B · NCSC IAM",
+    stages:["Passwords everywhere, complexity-rotation rules","Passwords plus MFA bolt-on","Passwordless for primary workforce sign-in","Passwordless end-to-end; passwords eliminated as a factor"]},
+   {id:"authn4",name:"Legacy authentication elimination",desc:"Are protocols that bypass MFA (POP/IMAP, basic auth, NTLM) blocked?",ref:"NCSC IAM · CISA ZTMM Identity",
+    stages:["Legacy protocols broadly enabled","Some blocking; exceptions widely granted","Legacy auth blocked with monitored exceptions","Legacy auth fully removed; continuously monitored"]}
+  ]},
+ {id:"authz",icon:"⊞",name:"Authorisation & Least Privilege",num:"D3",
+  desc:"What identities can do once authenticated — access models, standing privilege and SoD.",
+  caps:[
+   {id:"authz1",name:"Access model (RBAC/ABAC)",desc:"Is access granted through a coherent model or one-off grants?",ref:"NIST 800-162 ABAC · ISO 27001 A.5.15",
+    stages:["Direct, ad-hoc per-user grants","Some groups/roles but inconsistent and overlapping","Defined RBAC model maintained across core systems","Attribute/policy-based access, dynamically evaluated"]},
+   {id:"authz2",name:"Least privilege / standing access",desc:"Do identities hold only the access they need, only when needed?",ref:"NIST CSF PR.AA-05 · CISA ZTMM",
+    stages:["Broad standing access; over-provisioning normal","Some review but standing privilege widespread","Least privilege enforced; entitlements right-sized","Just-in-time access; near-zero standing privilege"]},
+   {id:"authz3",name:"Just-in-time elevation",desc:"Can users elevate to higher access temporarily, with approval?",ref:"CISA ZTMM Identity · NCSC PAM",
+    stages:["No JIT; elevation is permanent","Manual temporary grants, rarely revoked","JIT elevation with approval and auto-expiry for some roles","JIT default for all privileged actions, risk-scored"]},
+   {id:"authz4",name:"Segregation of duties (SoD)",desc:"Are toxic combinations of access prevented and detected?",ref:"ISO 27001 A.5.3 · NIST 800-53 AC-5",
+    stages:["No SoD concept applied","SoD considered manually for finance only","SoD rules defined and checked at request time","Continuous SoD violation detection and remediation"]}
+  ]},
+ {id:"pam",icon:"⛨",name:"Privileged Access Management",num:"D4",
+  desc:"Control of admin, root and high-impact accounts — vaulting, sessions and break-glass.",
+  caps:[
+   {id:"pam1",name:"Privileged credential vaulting",desc:"Are privileged credentials vaulted, rotated and brokered?",ref:"NCSC PAM · NIST 800-53 AC-6",
+    stages:["Admin passwords shared / in spreadsheets","Some vaulting; many credentials outside it","Privileged creds vaulted with rotation for key systems","All privileged access brokered; secrets never exposed to users"]},
+   {id:"pam2",name:"Privileged session control",desc:"Are privileged sessions isolated, monitored and recorded?",ref:"NCSC PAM · CISA ZTMM",
+    stages:["Direct admin from normal workstations","Some jump hosts, inconsistently used","Privileged sessions brokered via PAM with logging","Isolated PAW/session recording with real-time monitoring"]},
+   {id:"pam3",name:"Tiered admin model",desc:"Are admin tiers separated to contain credential theft (tier 0/1/2)?",ref:"Microsoft tiering · NCSC IAM",
+    stages:["Single admin account used everywhere","Some separate admin accounts, no tiering","Tiered admin model defined and largely enforced","Strict tier isolation; tier-0 fully segregated and monitored"]},
+   {id:"pam4",name:"Break-glass accounts",desc:"Are emergency-access accounts defined, secured and monitored?",ref:"NCSC IAM · CISA ZTMM",
+    stages:["No defined break-glass; or shared known passwords","Break-glass exists but unmonitored","Defined, vaulted break-glass with use alerting","Tested break-glass, MFA-exempt by design, every use alerts & reviewed"]}
+  ]},
+ {id:"fed",icon:"⇄",name:"Federation & SSO",num:"D5",
+  desc:"Consolidating identity and applying context — IdP, SSO coverage and conditional access.",
+  caps:[
+   {id:"fed1",name:"IdP consolidation",desc:"Is there a single authoritative identity provider, or many silos?",ref:"NIST 800-63C FAL · CISA ZTMM",
+    stages:["Many local accounts per app; no central IdP","Central directory but many apps still separate","Primary IdP with most apps federated","Single IdP; local accounts the rare, governed exception"]},
+   {id:"fed2",name:"SSO application coverage",desc:"What share of applications authenticate through SSO?",ref:"CISA ZTMM Identity",
+    stages:["Few apps on SSO","Major apps on SSO; long tail outside","Most apps federated to the IdP","Near-total SSO coverage incl. legacy via proxies"]},
+   {id:"fed3",name:"Conditional / risk-based access",desc:"Are access decisions adapted to device, location and risk signals?",ref:"CISA ZTMM Identity · NCSC IAM",
+    stages:["Static allow once authenticated","Basic conditions (e.g. block legacy, require MFA)","Conditional access by device compliance & location","Continuous, risk-adaptive access evaluated per session"]},
+   {id:"fed4",name:"Token & session security",desc:"Are tokens/sessions protected against theft and replay?",ref:"NIST 800-63C · CISA ZTMM",
+    stages:["Long-lived sessions, no revocation path","Some session limits; revocation manual","Bounded lifetimes with central revocation","Token binding / continuous evaluation; theft detected & killed"]}
+  ]},
+ {id:"iga",icon:"☑",name:"Identity Governance (IGA)",num:"D6",
+  desc:"Oversight of who has what and why — access reviews, request workflows and role lifecycle.",
+  caps:[
+   {id:"iga1",name:"Access recertification",desc:"Are entitlements periodically reviewed and re-attested by owners?",ref:"ISO 27001 A.5.18 · NIST 800-53 AC-2",
+    stages:["No reviews; access never re-checked","Occasional manual reviews, low completion","Scheduled campaigns for privileged & sensitive access","Continuous, risk-prioritised certification with auto-revoke"]},
+   {id:"iga2",name:"Access request workflow",desc:"Is access requested through a governed, auditable workflow?",ref:"ISO 27001 A.5.15 · NCSC IAM",
+    stages:["Email / verbal requests, no record","Ticketing but inconsistent approval","Self-service catalogue with policy-based approval","Risk-aware requests with automated fulfilment & full audit"]},
+   {id:"iga3",name:"Role lifecycle & mining",desc:"Are roles designed, maintained and cleaned up over time?",ref:"NIST 800-162 · ISO 27001 A.5.15",
+    stages:["No role concept; or roles never maintained","Roles exist but grow stale and overlapping","Roles reviewed; mining used to refine entitlements","Continuous role optimisation; entitlement bloat actively reduced"]},
+   {id:"iga4",name:"IAM policy & ownership",desc:"Is there clear policy, ownership and metrics for identity?",ref:"NIST CSF GV · ISO 27001 A.5.1",
+    stages:["No documented IAM policy or owner","Policy exists but unowned / unmeasured","Owned policy with KPIs reported to management","Identity treated as a managed program with board-level metrics"]}
+  ]},
+ {id:"hygiene",icon:"⊘",name:"Directory & Account Hygiene",num:"D7",
+  desc:"The state of the directory itself — service accounts, dormant, orphan and shared accounts.",
+  caps:[
+   {id:"hyg1",name:"Service / non-human account governance",desc:"Are service accounts inventoried, owned and their secrets managed?",ref:"NCSC IAM · NIST 800-53 AC-2",
+    stages:["Unknown count; passwords static and shared","Partial inventory; some ownership","Inventoried, owned, with rotation for key accounts","Full lifecycle for NHIs; managed identities / short-lived creds"]},
+   {id:"hyg2",name:"Dormant & orphan accounts",desc:"Are inactive and owner-less accounts found and disabled?",ref:"ISO 27001 A.5.16 · CSF PR.AA",
+    stages:["No detection; dormant accounts accumulate","Manual periodic clean-ups","Automated dormancy detection and disable","Continuous detection; orphans auto-quarantined"]},
+   {id:"hyg3",name:"Shared account elimination",desc:"Are shared/generic logins removed in favour of individual identity?",ref:"NCSC IAM · ISO 27001 A.5.16",
+    stages:["Shared logins common, incl. for admin","Recognised problem; reduction ad-hoc","Shared accounts largely eliminated; exceptions vaulted","No shared accounts; all actions attributable to a person"]},
+   {id:"hyg4",name:"Account naming & tiering hygiene",desc:"Are accounts consistently named, classified and tier-tagged?",ref:"Microsoft tiering · NCSC IAM",
+    stages:["No standards; unable to tell account types apart","Conventions exist but inconsistently applied","Standardised naming/classification enforced for new accounts","Fully classified estate; tiering drives policy automatically"]}
+  ]},
+ {id:"itdr",icon:"◎",name:"Identity Threat Detection & Response",num:"D8",
+  desc:"Treating identity as an attack surface — logging, detection of identity attacks and response.",
+  caps:[
+   {id:"itdr1",name:"Identity telemetry & logging",desc:"Are authentication and directory events centrally logged?",ref:"NIST CSF DE.CM · NCSC IAM",
+    stages:["Auth logs not collected centrally","Some logs in SIEM, gaps in coverage","Comprehensive identity telemetry centralised","Full identity telemetry incl. NHI, tokens and SaaS"]},
+   {id:"itdr2",name:"Identity attack detection",desc:"Can you detect MFA fatigue, impossible travel, token theft, password spray?",ref:"MITRE ATT&CK · CISA ZTMM",
+    stages:["No identity-specific detections","A few basic rules (e.g. lockouts)","Detections for common identity TTPs in place","Behavioural/anomaly detection tuned to identity attacks"]},
+   {id:"itdr3",name:"Privilege & directory change monitoring",desc:"Are sensitive privilege and directory changes alerted on?",ref:"NIST CSF DE.CM · MITRE ATT&CK",
+    stages:["Privilege changes not monitored","Reviewed retrospectively, if at all","Real-time alerts on tier-0 / high-risk changes","Automated response to anomalous privilege changes"]},
+   {id:"itdr4",name:"Identity incident response",desc:"Are there runbooks for compromised-identity scenarios?",ref:"NIST 800-61r2 · NCSC IAM",
+    stages:["No identity-specific IR playbooks","General IR only; identity steps improvised","Runbooks for account compromise & token theft","Tested, partly-automated identity containment (disable/revoke/rotate)"]}
+  ]}
+];
+
+const ANTIPATTERNS=[
+ {test:s=>s.jml3<=1,t:"Slow or incomplete leaver deprovisioning",d:"Access lingering after departure is a leading cause of insider and post-employment incidents. Tie deprovisioning to the HR leaver trigger and include tokens, sessions and non-SSO apps."},
+ {test:s=>s.authn2<=1 && s.pam1<=2,t:"Phishable MFA on privileged accounts",d:"SMS/push factors on admin accounts are defeated by MFA-fatigue and real-time relay — the exact Scattered Spider playbook. Move privileged roles to FIDO2/WebAuthn first."},
+ {test:s=>s.hyg3<=1,t:"Shared administrative accounts",d:"Shared logins destroy attributability and block individual MFA. Every privileged action should map to one named person."},
+ {test:s=>s.authz2<=1 && s.pam3<=1,t:"Standing domain/global admin",d:"Permanent high-tier privilege is the prize attackers seek. Combine just-in-time elevation with a tiered admin model to shrink the standing-privilege blast radius."},
+ {test:s=>s.jml1<=1,t:"'Same access as Bob' provisioning",d:"Cloning a peer's access copies their accumulated entitlement creep into every new starter. Move to role-based birthright access from an authoritative source."},
+ {test:s=>s.iga1<=1,t:"No access recertification",d:"Without periodic review, entitlements only ever grow. Start with recertification campaigns for privileged and sensitive access."},
+ {test:s=>s.authn4<=1,t:"Legacy authentication left enabled",d:"Protocols like basic auth and NTLM silently bypass MFA and conditional access. Block them with monitored, time-bound exceptions."},
+ {test:s=>s.itdr1<=1,t:"Identity attacks are invisible",d:"If authentication and directory events aren't centrally logged, identity attacks cannot be detected or investigated. Centralise this telemetry as a priority."},
+ {test:s=>s.pam4<=1,t:"Break-glass accounts unmanaged",d:"Undefined or unmonitored emergency accounts are both an availability risk and a backdoor. Define, vault and alert on every use."}
+];
+
+const SECTOR_CTX={
+ finance:{p:["DORA","SoD","PAM"],t:"Financial services face DORA operational-resilience expectations and intense scrutiny of privileged access and segregation of duties. Prioritise PAM, SoD enforcement and access recertification — these attract the most regulatory and audit attention."},
+ health:{p:["JML","Shared accounts","Audit"],t:"Health & care environments struggle with shared clinical logins and high staff churn. Attributable access and fast leaver deprovisioning protect both patient data and clinical safety; balance with break-glass for emergency care."},
+ gov:{p:["Tiering","Phishing-resistant MFA","ITDR"],t:"Government bodies are high-value espionage and disruption targets. Phishing-resistant MFA, strict admin tiering and strong identity threat detection align with NCSC IAM guidance and CAF expectations."},
+ energy:{p:["Tier-0","NHI","ITDR"],t:"Energy & utilities (CNI) must protect identity paths into OT. Keep IT identity and OT access strictly separated, govern non-human/service accounts tightly, and detect privilege changes affecting tier-0 systems."},
+ telecom:{p:["PAM","Token security","ITDR"],t:"Telecoms are targeted for both customer data and infrastructure access. Privileged access control and token/session security are critical given the high impact of network-management compromise."},
+ retail:{p:["JML","MFA coverage","NHI"],t:"Retail has seasonal workforce surges and heavy SaaS/service-account use. Automate joiner-leaver at scale, ensure MFA coverage on the long tail of apps, and govern integration/service accounts."},
+ manufacturing:{p:["IT/OT separation","Service accounts","Legacy auth"],t:"Manufacturing carries legacy systems and dense machine-to-machine identity. Eliminate legacy auth where possible, govern service accounts, and separate corporate identity from plant systems."},
+ transport:{p:["PAM","ITDR","Break-glass"],t:"Transport operators run safety-critical and availability-sensitive systems. Strong PAM, tested break-glass and identity threat detection reduce both disruption and safety risk."},
+ education:{p:["JML","Shared accounts","MFA coverage"],t:"Education has very high identity churn and historically open access cultures. Focus on lifecycle automation, reducing shared accounts, and extending MFA coverage across staff and research systems."},
+ tech:{p:["NHI","Token security","JIT"],t:"Technology/SaaS organisations are dominated by non-human identity, secrets and OAuth grants. Prioritise machine-identity governance, token security and just-in-time access to engineering and cloud planes."}
+};
+
+/* ============ STATE ============ */
+let scores={}; // capId -> 0..3 or "na"
+
+/* ============ RENDER ASSESSMENT ============ */
+function renderDomains(){
+  const wrap=document.getElementById('domains');
+  wrap.innerHTML=DOMAINS.map((d,di)=>`
+    <div class="card domain${di===0?' open':''}" id="dom-${d.id}">
+      <div class="domain-head" onclick="toggleDomain('${d.id}')">
+        <div class="domain-icon">${d.icon}</div>
+        <div class="domain-meta">
+          <div class="dt">${d.name} <span class="dn">${d.num}</span></div>
+          <div class="dd">${d.desc}</div>
+        </div>
+        <div class="domain-score"><div class="ds-n" id="dscore-${d.id}">—</div><div class="ds-l">avg</div></div>
+        <div class="domain-chev">▾</div>
+      </div>
+      <div class="domain-body">
+        ${d.caps.map(c=>`
+          <div class="cap" id="cap-${c.id}">
+            <div class="cap-top">
+              <div>
+                <div class="cap-name">${c.name}</div>
+                <div class="cap-desc">${c.desc}</div>
+                <div class="cap-ref">${c.ref}</div>
+              </div>
+            </div>
+            <div class="stage-opts">
+              ${c.stages.map((st,si)=>`
+                <label class="stage-opt" data-stage="${si}" id="opt-${c.id}-${si}" onclick="setScore('${c.id}',${si},'${d.id}')">
+                  <input type="radio" name="${c.id}">
+                  <div class="so-h"><span class="so-dot"></span><span class="so-name">${STAGES[si]}</span></div>
+                  <div class="so-d">${st}</div>
+                </label>`).join('')}
+            </div>
+            <label class="cap-na"><input type="checkbox" id="na-${c.id}" onchange="setNA('${c.id}','${d.id}')"> Not applicable / out of scope</label>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+function toggleDomain(id){document.getElementById('dom-'+id).classList.toggle('open');}
+function autoExpand(){DOMAINS.forEach(d=>document.getElementById('dom-'+d.id).classList.add('open'));}
+function autoCollapse(){DOMAINS.forEach(d=>document.getElementById('dom-'+d.id).classList.remove('open'));}
+
+function setScore(capId,stage,domId){
+  if(document.getElementById('na-'+capId).checked){document.getElementById('na-'+capId).checked=false;}
+  scores[capId]=stage;
+  DOMAINS.find(d=>d.id===domId).caps.find(c=>c.id===capId).stages
+    .forEach((_,si)=>document.getElementById(`opt-${capId}-${si}`).classList.toggle('sel',si===stage));
+  updateDomainScore(domId);saveLocal();
+}
+function setNA(capId,domId){
+  const na=document.getElementById('na-'+capId).checked;
+  if(na){scores[capId]="na";
+    DOMAINS.find(d=>d.id===domId).caps.find(c=>c.id===capId).stages
+      .forEach((_,si)=>document.getElementById(`opt-${capId}-${si}`).classList.remove('sel'));
+  } else { delete scores[capId]; }
+  updateDomainScore(domId);saveLocal();
+}
+function domainAvg(d){
+  const vals=d.caps.map(c=>scores[c.id]).filter(v=>typeof v==='number');
+  if(!vals.length)return null;
+  return vals.reduce((a,b)=>a+b,0)/vals.length;
+}
+function updateDomainScore(domId){
+  const d=DOMAINS.find(x=>x.id===domId);const avg=domainAvg(d);
+  document.getElementById('dscore-'+domId).textContent=avg===null?'—':avg.toFixed(1);
+}
+
+/* ============ RESULTS ============ */
+function showResults(){
+  const sec=document.getElementById('resultsSection');sec.classList.add('show');
+  const all=DOMAINS.flatMap(d=>d.caps.map(c=>scores[c.id])).filter(v=>typeof v==='number');
+  if(!all.length){
+    document.getElementById('overallNum').textContent='—';
+    document.getElementById('overallStage').textContent='Score at least one capability';
+    sec.scrollIntoView({behavior:'smooth'});return;
+  }
+  const overall=all.reduce((a,b)=>a+b,0)/all.length;
+  document.getElementById('overallNum').textContent=overall.toFixed(1);
+  const oi=Math.round(overall);
+  document.getElementById('overallStage').textContent=STAGES[Math.min(3,oi)]+(overall<2?' — work to do':overall>=2.5?' — solid':'');
+  const fill=document.getElementById('overallFill');
+  fill.style.width=(overall/3*100)+'%';
+  fill.style.background=`var(${STAGE_VARS[Math.min(3,Math.floor(overall+0.0001))]})`;
+  renderRadar();renderHeatmap();renderAntipatterns();renderGaps();renderRoadmap();
+  sec.scrollIntoView({behavior:'smooth'});
+}
+
+function renderHeatmap(){
+  const el=document.getElementById('heatmap');
+  el.innerHTML=DOMAINS.map(d=>{
+    const avg=domainAvg(d);
+    if(avg===null)return `<div class="hm-row"><span class="hm-label">${d.name}</span><div class="hm-bar"><div class="hm-track"></div><span class="hm-val" style="color:var(--text-dim)">n/a</span></div></div>`;
+    const pct=avg/3*100;const col=STAGE_VARS[Math.min(3,Math.floor(avg+0.0001))];
+    return `<div class="hm-row"><span class="hm-label">${d.name}</span><div class="hm-bar"><div class="hm-track"><div class="hm-fill" style="width:${pct}%;background:var(${col})"></div></div><span class="hm-val">${avg.toFixed(1)}</span></div></div>`;
+  }).join('');
+}
+
+function renderRadar(){
+  const size=300,cx=size/2,cy=size/2,r=110,n=DOMAINS.length;
+  const target=2; // Defined
+  const pt=(i,val)=>{const ang=(Math.PI*2*i/n)-Math.PI/2;const rr=val/3*r;return [cx+rr*Math.cos(ang),cy+rr*Math.sin(ang)];};
+  let grid='';
+  for(let g=1;g<=3;g++){const pts=DOMAINS.map((_,i)=>pt(i,g).join(',')).join(' ');grid+=`<polygon points="${pts}" fill="none" stroke="var(--border)" stroke-width="1"/>`;}
+  let axes='';DOMAINS.forEach((d,i)=>{const[x,y]=pt(i,3);axes+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--border)" stroke-width="1"/>`;});
+  const tgtPts=DOMAINS.map((_,i)=>pt(i,target).join(',')).join(' ');
+  const curPts=DOMAINS.map((d,i)=>{const a=domainAvg(d);return pt(i,a===null?0:a).join(',');}).join(' ');
+  let labels='';DOMAINS.forEach((d,i)=>{const[x,y]=pt(i,3.55);const anchor=Math.abs(x-cx)<8?'middle':(x<cx?'end':'start');
+    labels+=`<text x="${x}" y="${y}" font-family="JetBrains Mono,monospace" font-size="8" fill="var(--text-muted)" text-anchor="${anchor}" dominant-baseline="middle">${d.num}</text>`;});
+  document.getElementById('radar').innerHTML=`<svg viewBox="-30 -20 ${size+60} ${size+40}" width="100%" style="max-width:340px">
+    ${grid}${axes}
+    <polygon points="${tgtPts}" fill="none" stroke="var(--text-dim)" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.5"/>
+    <polygon points="${curPts}" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+    ${DOMAINS.map((d,i)=>{const a=domainAvg(d);const[x,y]=pt(i,a===null?0:a);return `<circle cx="${x}" cy="${y}" r="3" fill="var(--accent)"/>`;}).join('')}
+    ${labels}
+  </svg>`;
+}
+
+function renderAntipatterns(){
+  const s={};DOMAINS.forEach(d=>d.caps.forEach(c=>{s[c.id]=typeof scores[c.id]==='number'?scores[c.id]:3;}));
+  const hits=ANTIPATTERNS.filter(a=>a.test(s));
+  const el=document.getElementById('antipatterns');
+  if(!hits.length){el.innerHTML=`<div class="empty-state"><div class="es-i">✓</div>No anti-patterns detected from current scores. Keep verifying with evidence.</div>`;return;}
+  el.innerHTML=hits.map(a=>`<div class="ap"><span class="ap-i">!</span><div><div class="ap-t">${a.t}</div><div class="ap-d">${a.d}</div></div></div>`).join('');
+}
+
+function renderGaps(){
+  const list=[];
+  DOMAINS.forEach(d=>d.caps.forEach(c=>{if(typeof scores[c.id]==='number')list.push({d,c,s:scores[c.id]});}));
+  const gaps=list.filter(x=>x.s<2).sort((a,b)=>a.s-b.s).slice(0,10);
+  const el=document.getElementById('gaps');
+  if(!gaps.length){el.innerHTML=`<div class="empty-state"><div class="es-i">✓</div>No capabilities below the Defined stage. Strong position — focus on optimisation.</div>`;return;}
+  el.innerHTML=gaps.map(g=>{
+    const quick=g.s===1; // one stage from Defined = quicker win
+    return `<div class="gap"><div class="gap-h"><span class="gap-name">${g.c.name}</span>
+      <span class="gap-tag ${quick?'quick':'crit'}">${quick?'QUICK WIN':'PRIORITY'}</span></div>
+      <div class="gap-from">${g.d.name} · ${STAGES[g.s]} → ${STAGES[g.s+1]}</div>
+      <div class="gap-act">${g.c.stages[g.s+1]}</div></div>`;
+  }).join('');
+}
+
+function renderRoadmap(){
+  const byDomain=DOMAINS.map(d=>({d,avg:domainAvg(d)})).filter(x=>x.avg!==null).sort((a,b)=>a.avg-b.avg);
+  const phases=[
+    {h:"Horizon 1 · 0–3 months",title:"Stop the bleeding",items:byDomain.filter(x=>x.avg<1.5).slice(0,3)},
+    {h:"Horizon 2 · 3–9 months",title:"Build the baseline",items:byDomain.filter(x=>x.avg>=1.5&&x.avg<2.2).slice(0,3)},
+    {h:"Horizon 3 · 9–18 months",title:"Optimise & verify",items:byDomain.filter(x=>x.avg>=2.2).slice(0,3)}
+  ];
+  const el=document.getElementById('roadmap');
+  el.innerHTML=phases.map((p,i)=>{
+    const col=STAGE_VARS[i===0?0:i===1?1:3];
+    const items=p.items.length?p.items.map(x=>`<div class="rm-item">${x.d.name} — currently ${x.avg.toFixed(1)} (${STAGES[Math.round(x.avg)]})</div>`).join(''):`<div class="rm-item" style="opacity:.6">No domains in this band</div>`;
+    return `<div class="rm-step"><div class="rm-marker" style="background:var(${col}-soft);color:var(${col})">${i+1}</div>
+      <div><div class="rm-h">${p.h}</div><div class="rm-title">${p.title}</div>
+      <div class="rm-body">${i===0?'Address the lowest-scoring domains and any detected anti-patterns first — these carry the most risk for the least effort.':i===1?'Standardise and automate across the estate to reach a consistent Defined baseline.':'Move strong domains toward continuous, risk-adaptive operation and identity threat detection.'}</div>
+      <div class="rm-items">${items}</div></div></div>`;
+  }).join('');
+}
+
+function renderSectorContext(){
+  const sec=document.getElementById('ctxSector').value;const el=document.getElementById('sectorCtx');
+  if(!sec||!SECTOR_CTX[sec]){el.innerHTML='';return;}
+  const c=SECTOR_CTX[sec];
+  el.innerHTML=`<div class="sector-ctx"><div class="sc-h">Sector context · priorities</div>
+    <div class="fw-row">${c.p.map(p=>`<span class="chip">${p}</span>`).join('')}</div>
+    <div class="sc-b">${c.t}</div></div>`;
+}
+
+/* ============ PERSISTENCE ============ */
+function snapshot(){return {v:1,tool:"iam-maturity",ts:new Date().toISOString(),
+  ctx:{org:val('ctxOrg'),assessor:val('ctxAssessor'),sector:val('ctxSector'),date:val('ctxDate')},scores};}
+function val(id){return document.getElementById(id).value;}
+function saveLocal(){try{localStorage.setItem('iam-maturity',JSON.stringify(snapshot()));}catch(e){}}
+function loadLocal(){try{const r=localStorage.getItem('iam-maturity');if(r)applyState(JSON.parse(r));}catch(e){}}
+function applyState(st){
+  if(st.ctx){document.getElementById('ctxOrg').value=st.ctx.org||'';document.getElementById('ctxAssessor').value=st.ctx.assessor||'';
+    document.getElementById('ctxSector').value=st.ctx.sector||'';document.getElementById('ctxDate').value=st.ctx.date||'';renderSectorContext();}
+  scores=st.scores||{};
+  Object.entries(scores).forEach(([cap,v])=>{
+    const dom=DOMAINS.find(d=>d.caps.some(c=>c.id===cap));if(!dom)return;
+    if(v==='na'){const na=document.getElementById('na-'+cap);if(na)na.checked=true;}
+    else if(typeof v==='number'){const o=document.getElementById(`opt-${cap}-${v}`);if(o)o.classList.add('sel');}
+  });
+  DOMAINS.forEach(d=>updateDomainScore(d.id));
+}
+
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(snapshot(),null,2)],{type:'application/json'});
+  dl(blob,`iam-maturity-${(val('ctxOrg')||'assessment').replace(/\s+/g,'-').toLowerCase()}.json`);
+  toast('Assessment saved as JSON');
+}
+function importJSON(e){
+  const f=e.target.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=ev=>{try{const st=JSON.parse(ev.target.result);
+    DOMAINS.forEach(d=>d.caps.forEach(c=>{const o0=document.getElementById(`na-${c.id}`);if(o0)o0.checked=false;
+      c.stages.forEach((_,si)=>{const o=document.getElementById(`opt-${c.id}-${si}`);if(o)o.classList.remove('sel');});}));
+    applyState(st);saveLocal();toast('Assessment loaded');showResults();
+  }catch(err){toast('Could not read that file');}};
+  rd.readAsText(f);e.target.value='';
+}
+
+function exportMarkdown(){
+  const s=snapshot();const all=DOMAINS.flatMap(d=>d.caps.map(c=>scores[c.id])).filter(v=>typeof v==='number');
+  const overall=all.length?(all.reduce((a,b)=>a+b,0)/all.length):0;
+  let md=`# IAM Maturity Assessment\n\n`;
+  md+=`- Organisation: ${s.ctx.org||'—'}\n- Assessor: ${s.ctx.assessor||'—'}\n- Sector: ${s.ctx.sector||'—'}\n- Date: ${s.ctx.date||'—'}\n`;
+  md+=`- Overall maturity: ${all.length?overall.toFixed(1)+' / 3 ('+STAGES[Math.min(3,Math.round(overall))]+')':'not scored'}\n\n`;
+  md+=`## Domain scores\n\n| Domain | Avg | Stage |\n|---|---|---|\n`;
+  DOMAINS.forEach(d=>{const a=domainAvg(d);md+=`| ${d.name} | ${a===null?'n/a':a.toFixed(1)} | ${a===null?'—':STAGES[Math.round(a)]} |\n`;});
+  md+=`\n## Capability detail\n\n`;
+  DOMAINS.forEach(d=>{md+=`### ${d.num} ${d.name}\n\n`;d.caps.forEach(c=>{const v=scores[c.id];
+    md+=`- **${c.name}** — ${v==='na'?'N/A':typeof v==='number'?STAGES[v]:'not scored'}${c.ref?'  \n  _'+c.ref+'_':''}\n`;});md+=`\n`;});
+  const sObj={};DOMAINS.forEach(d=>d.caps.forEach(c=>sObj[c.id]=typeof scores[c.id]==='number'?scores[c.id]:3));
+  const hits=ANTIPATTERNS.filter(a=>a.test(sObj));
+  if(hits.length){md+=`## Anti-patterns detected\n\n`;hits.forEach(h=>md+=`- **${h.t}** — ${h.d}\n`);md+=`\n`;}
+  md+=`\n---\n_Proof of concept. Not a formal audit or professional advice. Generated by danhowett.github.io/useful._\n`;
+  dl(new Blob([md],{type:'text/markdown'}),`iam-maturity-${(s.ctx.org||'assessment').replace(/\s+/g,'-').toLowerCase()}.md`);
+  toast('Markdown report exported');
+}
+
+function dl(blob,name){const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;a.click();URL.revokeObjectURL(u);}
+
+function resetAssessment(){
+  if(!confirm('Clear all scores and context? This cannot be undone.'))return;
+  scores={};['ctxOrg','ctxAssessor','ctxSector','ctxDate'].forEach(id=>document.getElementById(id).value='');
+  DOMAINS.forEach(d=>{d.caps.forEach(c=>{const na=document.getElementById('na-'+c.id);if(na)na.checked=false;
+    c.stages.forEach((_,si)=>document.getElementById(`opt-${c.id}-${si}`).classList.remove('sel'));});updateDomainScore(d.id);});
+  document.getElementById('resultsSection').classList.remove('show');renderSectorContext();
+  try{localStorage.removeItem('iam-maturity');}catch(e){}toast('Assessment reset');
+}
+
+/* ============ UI CHROME ============ */
+function toggleTheme(){const h=document.documentElement;const t=h.getAttribute('data-theme')==='dark'?'light':'dark';
+  h.setAttribute('data-theme',t);try{localStorage.setItem('iam-theme',t);}catch(e){} if(document.getElementById('resultsSection').classList.contains('show'))renderRadar();}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+/* ============ INIT ============ */
+(function init(){
+  try{const th=localStorage.getItem('iam-theme');document.documentElement.setAttribute('data-theme',th||'light');}catch(e){}
+  renderDomains();
+  document.getElementById('ctxDate').value=new Date().toISOString().slice(0,10);
+  loadLocal();
+})();
+</script>
+</body>
+</html>
