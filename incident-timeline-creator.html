@@ -1,0 +1,2347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Incident Timeline Creator · Dan Howett</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fafaf7;
+  --bg-elev: #ffffff;
+  --bg-muted: #f4f4ef;
+  --bg-subtle: #efefe8;
+  --border: #e8e6df;
+  --border-strong: #d6d3c9;
+  --text: #1a1a1a;
+  --text-2: #3a3a36;
+  --text-dim: #6b6b66;
+  --text-muted: #9a9a92;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-soft: #eff4ff;
+  --accent-text: #1e40af;
+  --green: #16a34a;
+  --green-soft: #dcfce7;
+  --orange: #ea580c;
+  --orange-soft: #ffedd5;
+  --red: #dc2626;
+  --red-soft: #fee2e2;
+  --purple: #7c3aed;
+  --purple-soft: #ede9fe;
+  --yellow: #eab308;
+  --yellow-soft: #fef9c3;
+  --shadow-sm: 0 1px 2px rgba(15, 15, 15, 0.04);
+  --shadow: 0 1px 3px rgba(15, 15, 15, 0.06), 0 1px 2px rgba(15, 15, 15, 0.04);
+  --shadow-lg: 0 8px 24px rgba(15, 15, 15, 0.06), 0 2px 4px rgba(15, 15, 15, 0.04);
+}
+[data-theme="dark"] {
+  --bg: #0e0f10;
+  --bg-elev: #18191b;
+  --bg-muted: #1d1e20;
+  --bg-subtle: #232528;
+  --border: #2a2c2f;
+  --border-strong: #3a3d40;
+  --text: #f0f0ee;
+  --text-2: #d6d6d2;
+  --text-dim: #8b8b85;
+  --text-muted: #5e5e58;
+  --accent: #60a5fa;
+  --accent-hover: #93c5fd;
+  --accent-soft: rgba(96, 165, 250, 0.12);
+  --accent-text: #93c5fd;
+  --green: #4ade80;
+  --green-soft: rgba(74, 222, 128, 0.16);
+  --orange: #fb923c;
+  --orange-soft: rgba(251, 146, 60, 0.16);
+  --red: #f87171;
+  --red-soft: rgba(248, 113, 113, 0.16);
+  --purple: #a78bfa;
+  --purple-soft: rgba(167, 139, 250, 0.16);
+  --yellow: #facc15;
+  --yellow-soft: rgba(250, 204, 21, 0.16);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01", "cv11";
+  letter-spacing: -0.005em;
+  transition: background 0.2s, color 0.2s;
+}
+.mono { font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace; }
+.serif { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-weight: 400; }
+a { color: inherit; text-decoration: none; }
+
+/* HEADER */
+header.site {
+  border-bottom: 1px solid var(--border);
+  background: rgba(250, 250, 247, 0.85);
+  backdrop-filter: saturate(180%) blur(10px);
+  -webkit-backdrop-filter: saturate(180%) blur(10px);
+  position: sticky; top: 0; z-index: 50;
+}
+[data-theme="dark"] header.site { background: rgba(14, 15, 16, 0.85); }
+.site-inner {
+  max-width: 1400px; margin: 0 auto; padding: 14px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.brand-link {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; font-weight: 600; color: var(--text);
+}
+.brand-mark {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 12px;
+}
+.brand-name .slash { color: var(--text-muted); margin: 0 5px; font-weight: 400; }
+.brand-name .second { color: var(--text-dim); font-weight: 500; }
+.site-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.btn {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  padding: 7px 12px; border-radius: 7px;
+  font-size: 12px; font-family: inherit; font-weight: 500;
+  cursor: pointer; transition: all 0.15s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn:hover { background: var(--bg-muted); border-color: var(--border-strong); }
+.btn.primary {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+}
+.btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn.ghost { background: transparent; }
+.btn.danger { color: var(--red); border-color: var(--border); }
+.btn.danger:hover { background: var(--red-soft); border-color: var(--red); }
+.btn.sm { padding: 5px 10px; font-size: 11px; }
+.theme-toggle {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-dim); width: 32px; height: 32px;
+  border-radius: 8px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.theme-toggle:hover { background: var(--bg-muted); color: var(--text); }
+.theme-toggle svg { width: 15px; height: 15px; }
+.sun-icon { display: none; }
+.moon-icon { display: block; }
+[data-theme="dark"] .sun-icon { display: block; }
+[data-theme="dark"] .moon-icon { display: none; }
+
+/* MAIN */
+main {
+  max-width: 1400px; margin: 0 auto;
+  padding: 32px 28px 80px;
+}
+
+/* HERO BLOCK */
+.page-hero {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 24px; margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.page-hero-text { flex: 1; min-width: 280px; }
+.eyebrow {
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); letter-spacing: 0.05em;
+  text-transform: uppercase; margin-bottom: 10px;
+}
+h1.page-title {
+  font-size: 30px; line-height: 1.1; letter-spacing: -0.025em;
+  font-weight: 700; margin-bottom: 8px;
+}
+h1.page-title .accent {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic; font-weight: 400; color: var(--accent);
+  letter-spacing: -0.01em;
+}
+.page-lead {
+  font-size: 14.5px; color: var(--text-dim);
+  max-width: 720px; line-height: 1.55;
+}
+
+/* DISCLAIMER PILL */
+.disclaimer-pill {
+  font-size: 11.5px; color: var(--text-dim);
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--orange-soft);
+  border: 1px solid var(--orange);
+  padding: 5px 12px; border-radius: 999px;
+  margin-bottom: 18px;
+  font-weight: 500;
+}
+.disclaimer-pill::before {
+  content: "!"; width: 16px; height: 16px;
+  background: var(--orange); color: #fff;
+  border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 10px; font-weight: 700;
+}
+[data-theme="dark"] .disclaimer-pill { color: var(--text-2); }
+
+/* CARDS / PANELS */
+.card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.card-title {
+  font-size: 13px; font-weight: 700; letter-spacing: -0.01em;
+  display: flex; align-items: center; gap: 8px; margin-bottom: 4px;
+}
+.card-sub {
+  font-size: 12px; color: var(--text-dim); margin-bottom: 14px;
+}
+
+/* ENTRY FORM */
+.form-grid {
+  display: grid;
+  grid-template-columns: 130px 110px 1fr 1.6fr auto;
+  gap: 10px; align-items: end;
+}
+.field label {
+  display: block; font-size: 10.5px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--text-dim); margin-bottom: 5px;
+}
+.field input, .field select, .field textarea {
+  width: 100%; background: var(--bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 8px 10px; font-size: 13px; font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.field input.mono, .field select.mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.field textarea { resize: vertical; min-height: 38px; line-height: 1.45; }
+.form-actions { display: flex; gap: 8px; }
+.hint { font-size: 11px; color: var(--text-muted); margin-top: 10px; font-family: 'JetBrains Mono', monospace; }
+
+/* ATT&CK PICKER */
+.attack-row { margin-top: 12px; }
+.attack-chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.attack-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--purple-soft); color: var(--purple);
+  border: 1px solid var(--purple);
+  padding: 3px 8px 3px 9px; border-radius: 999px;
+  font-size: 11px; font-family: 'JetBrains Mono', monospace; font-weight: 600;
+}
+.attack-chip .x { cursor: pointer; opacity: 0.6; font-size: 13px; line-height: 1; }
+.attack-chip .x:hover { opacity: 1; }
+.attack-add-btn {
+  background: var(--bg-muted); border: 1px dashed var(--border-strong);
+  color: var(--text-dim); padding: 3px 10px; border-radius: 999px;
+  font-size: 11px; font-family: 'JetBrains Mono', monospace; cursor: pointer;
+  transition: all 0.15s;
+}
+.attack-add-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+/* MITRE MODAL */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 200; display: none; align-items: flex-start; justify-content: center;
+  padding: 60px 20px; overflow-y: auto;
+  backdrop-filter: blur(2px);
+}
+.modal-backdrop.show { display: flex; }
+.modal {
+  background: var(--bg-elev); border: 1px solid var(--border-strong);
+  border-radius: 14px; width: 100%; max-width: 760px;
+  box-shadow: var(--shadow-lg); overflow: hidden;
+}
+.modal-head {
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.modal-head h3 { font-size: 14px; font-weight: 700; }
+.modal-search { padding: 14px 20px 8px; }
+.modal-search input {
+  width: 100%; background: var(--bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 9px 12px; font-size: 13px; font-family: 'JetBrains Mono', monospace;
+}
+.modal-search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.modal-body { max-height: 50vh; overflow-y: auto; padding: 6px 12px 16px; }
+.tactic-group { margin: 10px 8px 4px; }
+.tactic-label {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.05em; color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace; margin-bottom: 6px;
+  padding-bottom: 4px; border-bottom: 1px solid var(--border);
+}
+.tech-pick {
+  display: flex; align-items: baseline; gap: 8px;
+  padding: 5px 8px; border-radius: 6px; cursor: pointer;
+  font-size: 12.5px; transition: background 0.12s;
+}
+.tech-pick:hover { background: var(--accent-soft); }
+.tech-pick.selected { background: var(--purple-soft); }
+.tech-pick .tid {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: var(--purple); font-weight: 600; min-width: 58px;
+}
+.tech-pick.selected .tid { color: var(--purple); }
+.suggest-label { color: var(--purple) !important; border-bottom-color: var(--purple) !important; }
+.all-label {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.05em; color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace; margin: 14px 8px 2px;
+}
+.kw-hit {
+  margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  background: var(--yellow-soft); color: var(--yellow); border: 1px solid var(--yellow);
+  padding: 0 6px; border-radius: 5px; font-weight: 600; white-space: nowrap;
+}
+[data-theme="dark"] .kw-hit { color: var(--yellow); }
+.tac-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+
+/* VIEW CONTROLS */
+.view-bar {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.seg {
+  display: inline-flex; background: var(--bg-muted);
+  border: 1px solid var(--border); border-radius: 9px; padding: 3px; gap: 2px;
+}
+.seg button {
+  background: transparent; border: none; color: var(--text-dim);
+  padding: 6px 14px; border-radius: 7px; font-size: 12px; font-weight: 600;
+  font-family: inherit; cursor: pointer; transition: all 0.15s;
+}
+.seg button.active { background: var(--bg-elev); color: var(--text); box-shadow: var(--shadow-sm); }
+.host-filter { display: flex; align-items: center; gap: 6px; }
+.host-filter select {
+  background: var(--bg-elev); color: var(--text); border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 10px; font-size: 12px; font-family: 'JetBrains Mono', monospace;
+}
+.count-pill {
+  margin-left: auto; font-size: 11.5px; color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--bg-muted); border: 1px solid var(--border);
+  padding: 4px 10px; border-radius: 999px;
+}
+
+/* TIMELINE */
+.tl-empty {
+  text-align: center; padding: 50px 20px; color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
+}
+.host-section { margin-bottom: 26px; }
+.host-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 4px;
+}
+.host-name {
+  font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600;
+  color: var(--text); display: inline-flex; align-items: center; gap: 7px;
+}
+.host-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.host-count { font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+
+.timeline {
+  position: relative; margin-left: 8px;
+  padding-left: 26px; border-left: 2px solid var(--border-strong);
+  margin-top: 14px;
+}
+.tl-item { position: relative; padding-bottom: 18px; }
+.tl-item:last-child { padding-bottom: 2px; }
+.tl-node {
+  position: absolute; left: -34px; top: 2px;
+  width: 15px; height: 15px; border-radius: 50%;
+  background: var(--bg-elev); border: 3px solid var(--accent);
+  box-shadow: 0 0 0 3px var(--bg);
+}
+.tl-card {
+  background: var(--bg-elev); border: 1px solid var(--border);
+  border-radius: 10px; padding: 11px 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.tl-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+.tl-meta {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-bottom: 5px;
+}
+.tl-time {
+  font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
+  font-weight: 600; color: var(--text);
+}
+.tl-date {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: var(--text-dim);
+}
+.tl-host-tag {
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+  background: var(--bg-muted); border: 1px solid var(--border);
+  color: var(--text-2); padding: 1px 7px; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.tl-comment { font-size: 13px; color: var(--text-2); line-height: 1.5; white-space: pre-wrap; }
+.tl-attack { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.tl-tid {
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+  background: color-mix(in srgb, var(--tc, var(--purple)) 14%, transparent);
+  color: var(--tc, var(--purple));
+  border: 1px solid var(--tc, var(--purple)); padding: 1px 7px; border-radius: 5px;
+  font-weight: 600;
+}
+.tl-tactic {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--tc); border: 1px solid var(--tc);
+  background: color-mix(in srgb, var(--tc) 12%, transparent);
+  padding: 1px 7px; border-radius: 999px;
+}
+.tl-gap {
+  position: relative; height: 16px; margin: -4px 0 6px -26px;
+  display: flex; align-items: center; padding-left: 30px;
+}
+.tl-gap span {
+  font-family: 'JetBrains Mono', monospace; font-size: 9.5px;
+  color: var(--text-muted); background: var(--bg);
+  padding: 0 6px; border: 1px dashed var(--border-strong); border-radius: 999px;
+}
+.tl-actions { display: flex; gap: 4px; margin-top: 8px; }
+.tl-act {
+  background: transparent; border: 1px solid var(--border); color: var(--text-dim);
+  font-size: 10.5px; padding: 2px 8px; border-radius: 6px; cursor: pointer;
+  font-family: inherit; transition: all 0.15s;
+}
+.tl-act:hover { background: var(--bg-muted); color: var(--text); }
+.tl-act.del:hover { background: var(--red-soft); color: var(--red); border-color: var(--red); }
+
+/* SUB SEGMENTED + EXPORT BTN in view bar */
+.seg.sub button { padding: 6px 12px; font-size: 11.5px; }
+
+/* TACTIC LEGEND */
+.legend-row {
+  display: flex; flex-wrap: wrap; gap: 8px 14px;
+  padding: 12px 16px; margin-bottom: 16px;
+  background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px;
+}
+.legend-chip { display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px; color: var(--text-2); }
+.legend-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+
+/* SWIMLANE */
+.svg-scroll { overflow-x: auto; padding: 4px; }
+.svg-scroll svg { display: block; min-width: 100%; }
+.svg-scroll circle { cursor: default; }
+
+/* DENSITY */
+.dens-overall, .dens-row { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+.dens-rows { margin-top: 10px; }
+.dens-host {
+  width: 130px; flex: none; font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: var(--text-2); display: flex; align-items: center; gap: 6px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dens-host .host-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.dens-track { flex: 1; display: flex; gap: 2px; height: 20px; }
+.dens-overall .dens-track { height: 26px; }
+.dens-cell {
+  flex: 1; border-radius: 2px;
+  background: color-mix(in srgb, var(--accent) calc(var(--i) * 85% + 6%), var(--bg-muted));
+  transition: transform 0.1s;
+}
+.dens-cell:hover { transform: scaleY(1.25); }
+.dens-axis {
+  display: flex; justify-content: space-between; margin-top: 8px; margin-left: 140px;
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted);
+}
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--text); color: var(--bg);
+  padding: 10px 16px; border-radius: 8px;
+  font-size: 12.5px; font-weight: 500;
+  z-index: 300; opacity: 0; transform: translateY(8px);
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+  box-shadow: var(--shadow-lg);
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+.muted { color: var(--text-muted); }
+.dim { color: var(--text-dim); }
+
+/* RESPONSIVE */
+@media (max-width: 820px) {
+  .form-grid { grid-template-columns: 1fr 1fr; }
+  .form-grid .field.wide { grid-column: 1 / -1; }
+  .form-actions { grid-column: 1 / -1; }
+}
+
+/* PRINT */
+@media print {
+  header.site, .entry-card, .view-bar .seg, .theme-toggle, .btn, .tl-actions { display: none !important; }
+  body { background: white; color: black; }
+  .card, .tl-card { background: white !important; border: 1px solid #ccc !important; box-shadow: none !important; }
+  main { max-width: 100%; padding: 0; }
+  .timeline { border-color: #ccc; }
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 6px; border: 2px solid var(--bg); }
+</style>
+</head>
+<body>
+<header class="site">
+  <div class="site-inner">
+    <a href="/useful/" class="brand-link">
+      <div class="brand-mark">DH</div>
+      <div class="brand-name">Dan Howett <span class="slash">/</span><span class="second">Incident Timeline</span></div>
+    </a>
+    <div class="site-meta">
+      <button class="btn ghost sm" onclick="saveState()" title="Save timeline state as JSON">SAVE JSON</button>
+      <button class="btn ghost sm" onclick="document.getElementById('loadFile').click()" title="Load a saved timeline JSON">LOAD</button>
+      <button class="btn ghost sm" onclick="exportMarkdown()" title="Export timeline as Markdown">MARKDOWN</button>
+      <button class="btn ghost sm" onclick="exportCSV()" title="Export timeline as CSV">CSV</button>
+      <button class="btn ghost sm" onclick="window.print()" title="Print / save PDF">PDF</button>
+      <button class="btn danger sm" onclick="resetAll()">RESET</button>
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+        <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+<input type="file" id="loadFile" accept="application/json,.json" style="display:none" onchange="loadState(event)">
+
+<main>
+
+  <div class="page-hero">
+    <div class="page-hero-text">
+      <div class="eyebrow">Incident Response · DFIR · Timeline Builder</div>
+      <h1 class="page-title">Build the incident <span class="accent">timeline</span>.</h1>
+      <p class="page-lead">
+        Capture events as they surface — date, time, host, what happened — and the tool builds a visual
+        timeline as you go. Tag each event with <span class="mono dim">MITRE ATT&CK</span> techniques,
+        view per-host or as one unified super-timeline, and save / load your working state. Everything
+        stays in your browser.
+      </p>
+    </div>
+  </div>
+
+  <div class="disclaimer-pill">Proof of concept only · Use at your own risk · Verify all findings independently</div>
+
+  <!-- ENTRY FORM -->
+  <section class="card entry-card">
+    <div class="card-title">＋ Add event</div>
+    <div class="card-sub">Times are recorded exactly as you enter them — keep your timezone convention consistent (UTC recommended for IR).</div>
+    <div class="form-grid">
+      <div class="field">
+        <label for="fDate">Date</label>
+        <input type="date" id="fDate" class="mono">
+      </div>
+      <div class="field">
+        <label for="fTime">Time</label>
+        <input type="time" id="fTime" class="mono" step="1">
+      </div>
+      <div class="field">
+        <label for="fHost">Host / asset</label>
+        <input type="text" id="fHost" class="mono" placeholder="WS-FIN-04" list="hostList" autocomplete="off">
+        <datalist id="hostList"></datalist>
+      </div>
+      <div class="field wide">
+        <label for="fComment">Comments</label>
+        <textarea id="fComment" placeholder="What was observed — e.g. mimikatz.exe executed; LSASS access; outbound to 185.x.x.x"></textarea>
+      </div>
+      <div class="field form-actions">
+        <button class="btn primary" onclick="addEvent()">Add</button>
+      </div>
+    </div>
+    <div class="attack-row">
+      <div class="attack-chips" id="pendingAttack">
+        <button class="attack-add-btn" onclick="openAttackPicker('pending')">+ ATT&CK technique</button>
+      </div>
+    </div>
+    <div class="hint">Enter in any field then press <strong>Ctrl/⌘ + Enter</strong> to add · time defaults to now if left blank</div>
+  </section>
+
+  <!-- VIEW CONTROLS -->
+  <div class="view-bar">
+    <div class="seg" id="viewSeg">
+      <button id="view_card" class="active" onclick="setView('card')">Cards</button>
+      <button id="view_swimlane" onclick="setView('swimlane')">Swimlane</button>
+      <button id="view_density" onclick="setView('density')">Density</button>
+    </div>
+
+    <!-- card-view scope toggle -->
+    <div class="seg sub" id="scopeSeg">
+      <button id="scope_unified" class="active" onclick="setScope('unified')">Unified</button>
+      <button id="scope_host" onclick="setScope('host')">Per host</button>
+    </div>
+
+    <!-- per-host filter (card view, host scope) -->
+    <div class="host-filter" id="hostFilterWrap" style="display:none">
+      <span class="dim mono" style="font-size:11px">FILTER</span>
+      <select id="hostFilter" onchange="render()"><option value="__all">All hosts</option></select>
+    </div>
+
+    <!-- swimlane spacing toggle -->
+    <div class="seg sub" id="spacingSeg" style="display:none">
+      <button id="space_even" class="active" onclick="setSpacing('even')" title="Equal gaps between events">Even</button>
+      <button id="space_real" onclick="setSpacing('real')" title="Gaps proportional to real elapsed time">Real-time</button>
+    </div>
+
+    <button class="btn ghost sm" id="svgExportBtn" onclick="exportSVG()" style="display:none">⬇ SVG</button>
+
+    <div class="count-pill" id="countPill">0 events · 0 hosts</div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div id="timelineRoot"></div>
+
+</main>
+
+<!-- MITRE PICKER MODAL -->
+<div class="modal-backdrop" id="attackModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Add ATT&CK technique</h3>
+      <button class="btn ghost sm" onclick="closeAttackPicker()">Done</button>
+    </div>
+    <div class="modal-search">
+      <input type="text" id="attackSearch" placeholder="Search by tool, behaviour, event ID or T-code — powershell, mimikatz, 4624, lateral movement, T1003..." autocomplete="off" oninput="renderAttackList()">
+    </div>
+    <div class="modal-body" id="attackList"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// Incident Timeline Creator · Dan Howett
+// Client-side only. No data leaves the browser.
+// ATT&CK technique data shared with the ATT&CK Technique Mapper.
+// ============================================================
+
+const ATTACK_MATRIX = [
+  {
+    id: "TA0043",
+    name: "Reconnaissance",
+    short: "Recon",
+    desc: "Information gathering to plan future operations",
+    techniques: [
+      { id: "T1595", name: "Active Scanning" },
+      { id: "T1592", name: "Gather Victim Host Information" },
+      { id: "T1589", name: "Gather Victim Identity Information" },
+      { id: "T1590", name: "Gather Victim Network Information" },
+      { id: "T1591", name: "Gather Victim Org Information" },
+      { id: "T1598", name: "Phishing for Information" },
+      { id: "T1597", name: "Search Closed Sources" },
+      { id: "T1596", name: "Search Open Technical Databases" },
+      { id: "T1593", name: "Search Open Websites/Domains" },
+      { id: "T1594", name: "Search Victim-Owned Websites" }
+    ]
+  },
+  {
+    id: "TA0042",
+    name: "Resource Development",
+    short: "ResourceDev",
+    desc: "Establishing resources to support operations",
+    techniques: [
+      { id: "T1650", name: "Acquire Access" },
+      { id: "T1583", name: "Acquire Infrastructure" },
+      { id: "T1586", name: "Compromise Accounts" },
+      { id: "T1584", name: "Compromise Infrastructure" },
+      { id: "T1587", name: "Develop Capabilities" },
+      { id: "T1585", name: "Establish Accounts" },
+      { id: "T1588", name: "Obtain Capabilities" },
+      { id: "T1608", name: "Stage Capabilities" }
+    ]
+  },
+  {
+    id: "TA0001",
+    name: "Initial Access",
+    short: "InitialAccess",
+    desc: "Gaining entry into the environment",
+    techniques: [
+      { id: "T1189", name: "Drive-by Compromise" },
+      { id: "T1190", name: "Exploit Public-Facing Application" },
+      { id: "T1133", name: "External Remote Services" },
+      { id: "T1200", name: "Hardware Additions" },
+      { id: "T1566", name: "Phishing" },
+      { id: "T1091", name: "Replication Through Removable Media" },
+      { id: "T1195", name: "Supply Chain Compromise" },
+      { id: "T1199", name: "Trusted Relationship" },
+      { id: "T1078", name: "Valid Accounts" }
+    ]
+  },
+  {
+    id: "TA0002",
+    name: "Execution",
+    short: "Execution",
+    desc: "Running malicious code on a system",
+    techniques: [
+      { id: "T1651", name: "Cloud Administration Command" },
+      { id: "T1059", name: "Command and Scripting Interpreter" },
+      { id: "T1609", name: "Container Administration Command" },
+      { id: "T1610", name: "Deploy Container" },
+      { id: "T1203", name: "Exploitation for Client Execution" },
+      { id: "T1559", name: "Inter-Process Communication" },
+      { id: "T1106", name: "Native API" },
+      { id: "T1053", name: "Scheduled Task/Job" },
+      { id: "T1648", name: "Serverless Execution" },
+      { id: "T1129", name: "Shared Modules" },
+      { id: "T1072", name: "Software Deployment Tools" },
+      { id: "T1569", name: "System Services" },
+      { id: "T1204", name: "User Execution" },
+      { id: "T1047", name: "Windows Management Instrumentation" }
+    ]
+  },
+  {
+    id: "TA0003",
+    name: "Persistence",
+    short: "Persistence",
+    desc: "Maintaining access through restarts and credential changes",
+    techniques: [
+      { id: "T1098", name: "Account Manipulation" },
+      { id: "T1197", name: "BITS Jobs" },
+      { id: "T1547", name: "Boot or Logon Autostart Execution" },
+      { id: "T1037", name: "Boot or Logon Initialization Scripts" },
+      { id: "T1176", name: "Browser Extensions" },
+      { id: "T1554", name: "Compromise Client Software Binary" },
+      { id: "T1136", name: "Create Account" },
+      { id: "T1543", name: "Create or Modify System Process" },
+      { id: "T1546", name: "Event Triggered Execution" },
+      { id: "T1133b", name: "External Remote Services" },
+      { id: "T1574", name: "Hijack Execution Flow" },
+      { id: "T1525", name: "Implant Internal Image" },
+      { id: "T1556", name: "Modify Authentication Process" },
+      { id: "T1137", name: "Office Application Startup" },
+      { id: "T1542", name: "Pre-OS Boot" },
+      { id: "T1053b", name: "Scheduled Task/Job" },
+      { id: "T1505", name: "Server Software Component" },
+      { id: "T1205", name: "Traffic Signaling" },
+      { id: "T1078b", name: "Valid Accounts" }
+    ]
+  },
+  {
+    id: "TA0004",
+    name: "Privilege Escalation",
+    short: "PrivEsc",
+    desc: "Gaining higher-level permissions",
+    techniques: [
+      { id: "T1548", name: "Abuse Elevation Control Mechanism" },
+      { id: "T1134", name: "Access Token Manipulation" },
+      { id: "T1098b", name: "Account Manipulation" },
+      { id: "T1547b", name: "Boot or Logon Autostart Execution" },
+      { id: "T1037b", name: "Boot or Logon Initialization Scripts" },
+      { id: "T1543b", name: "Create or Modify System Process" },
+      { id: "T1484", name: "Domain or Tenant Policy Modification" },
+      { id: "T1611", name: "Escape to Host" },
+      { id: "T1546b", name: "Event Triggered Execution" },
+      { id: "T1068", name: "Exploitation for Privilege Escalation" },
+      { id: "T1574b", name: "Hijack Execution Flow" },
+      { id: "T1055", name: "Process Injection" },
+      { id: "T1053c", name: "Scheduled Task/Job" },
+      { id: "T1078c", name: "Valid Accounts" }
+    ]
+  },
+  {
+    id: "TA0005",
+    name: "Defense Evasion",
+    short: "DefenseEvasion",
+    desc: "Avoiding detection",
+    techniques: [
+      { id: "T1548b", name: "Abuse Elevation Control Mechanism" },
+      { id: "T1134b", name: "Access Token Manipulation" },
+      { id: "T1197b", name: "BITS Jobs" },
+      { id: "T1612", name: "Build Image on Host" },
+      { id: "T1140", name: "Deobfuscate/Decode Files or Information" },
+      { id: "T1610b", name: "Deploy Container" },
+      { id: "T1006", name: "Direct Volume Access" },
+      { id: "T1484b", name: "Domain or Tenant Policy Modification" },
+      { id: "T1480", name: "Execution Guardrails" },
+      { id: "T1211", name: "Exploitation for Defense Evasion" },
+      { id: "T1222", name: "File and Directory Permissions Modification" },
+      { id: "T1564", name: "Hide Artifacts" },
+      { id: "T1574c", name: "Hijack Execution Flow" },
+      { id: "T1562", name: "Impair Defenses" },
+      { id: "T1656", name: "Impersonation" },
+      { id: "T1070", name: "Indicator Removal" },
+      { id: "T1202", name: "Indirect Command Execution" },
+      { id: "T1036", name: "Masquerading" },
+      { id: "T1556b", name: "Modify Authentication Process" },
+      { id: "T1578", name: "Modify Cloud Compute Infrastructure" },
+      { id: "T1112", name: "Modify Registry" },
+      { id: "T1601", name: "Modify System Image" },
+      { id: "T1599", name: "Network Boundary Bridging" },
+      { id: "T1027", name: "Obfuscated Files or Information" },
+      { id: "T1647", name: "Plist File Modification" },
+      { id: "T1542b", name: "Pre-OS Boot" },
+      { id: "T1055b", name: "Process Injection" },
+      { id: "T1620", name: "Reflective Code Loading" },
+      { id: "T1207", name: "Rogue Domain Controller" },
+      { id: "T1014", name: "Rootkit" },
+      { id: "T1553", name: "Subvert Trust Controls" },
+      { id: "T1218", name: "System Binary Proxy Execution" },
+      { id: "T1216", name: "System Script Proxy Execution" },
+      { id: "T1221", name: "Template Injection" },
+      { id: "T1205b", name: "Traffic Signaling" },
+      { id: "T1127", name: "Trusted Developer Utilities Proxy Execution" },
+      { id: "T1535", name: "Unused/Unsupported Cloud Regions" },
+      { id: "T1550", name: "Use Alternate Authentication Material" },
+      { id: "T1078d", name: "Valid Accounts" },
+      { id: "T1497", name: "Virtualization/Sandbox Evasion" },
+      { id: "T1600", name: "Weaken Encryption" },
+      { id: "T1220", name: "XSL Script Processing" }
+    ]
+  },
+  {
+    id: "TA0006",
+    name: "Credential Access",
+    short: "CredAccess",
+    desc: "Stealing credentials",
+    techniques: [
+      { id: "T1557", name: "Adversary-in-the-Middle" },
+      { id: "T1110", name: "Brute Force" },
+      { id: "T1555", name: "Credentials from Password Stores" },
+      { id: "T1212", name: "Exploitation for Credential Access" },
+      { id: "T1187", name: "Forced Authentication" },
+      { id: "T1606", name: "Forge Web Credentials" },
+      { id: "T1056", name: "Input Capture" },
+      { id: "T1556c", name: "Modify Authentication Process" },
+      { id: "T1111", name: "Multi-Factor Authentication Interception" },
+      { id: "T1621", name: "Multi-Factor Authentication Request Generation" },
+      { id: "T1040", name: "Network Sniffing" },
+      { id: "T1003", name: "OS Credential Dumping" },
+      { id: "T1528", name: "Steal Application Access Token" },
+      { id: "T1649", name: "Steal or Forge Authentication Certificates" },
+      { id: "T1558", name: "Steal or Forge Kerberos Tickets" },
+      { id: "T1539", name: "Steal Web Session Cookie" },
+      { id: "T1552", name: "Unsecured Credentials" }
+    ]
+  },
+  {
+    id: "TA0007",
+    name: "Discovery",
+    short: "Discovery",
+    desc: "Learning about the environment",
+    techniques: [
+      { id: "T1087", name: "Account Discovery" },
+      { id: "T1010", name: "Application Window Discovery" },
+      { id: "T1217", name: "Browser Information Discovery" },
+      { id: "T1580", name: "Cloud Infrastructure Discovery" },
+      { id: "T1538", name: "Cloud Service Dashboard" },
+      { id: "T1526", name: "Cloud Service Discovery" },
+      { id: "T1619", name: "Cloud Storage Object Discovery" },
+      { id: "T1613", name: "Container and Resource Discovery" },
+      { id: "T1622", name: "Debugger Evasion" },
+      { id: "T1652", name: "Device Driver Discovery" },
+      { id: "T1482", name: "Domain Trust Discovery" },
+      { id: "T1083", name: "File and Directory Discovery" },
+      { id: "T1615", name: "Group Policy Discovery" },
+      { id: "T1654", name: "Log Enumeration" },
+      { id: "T1046", name: "Network Service Discovery" },
+      { id: "T1135", name: "Network Share Discovery" },
+      { id: "T1040b", name: "Network Sniffing" },
+      { id: "T1201", name: "Password Policy Discovery" },
+      { id: "T1120", name: "Peripheral Device Discovery" },
+      { id: "T1069", name: "Permission Groups Discovery" },
+      { id: "T1057", name: "Process Discovery" },
+      { id: "T1012", name: "Query Registry" },
+      { id: "T1018", name: "Remote System Discovery" },
+      { id: "T1518", name: "Software Discovery" },
+      { id: "T1082", name: "System Information Discovery" },
+      { id: "T1614", name: "System Location Discovery" },
+      { id: "T1016", name: "System Network Configuration Discovery" },
+      { id: "T1049", name: "System Network Connections Discovery" },
+      { id: "T1033", name: "System Owner/User Discovery" },
+      { id: "T1007", name: "System Service Discovery" },
+      { id: "T1124", name: "System Time Discovery" },
+      { id: "T1497b", name: "Virtualization/Sandbox Evasion" }
+    ]
+  },
+  {
+    id: "TA0008",
+    name: "Lateral Movement",
+    short: "LateralMov",
+    desc: "Moving through the environment",
+    techniques: [
+      { id: "T1210", name: "Exploitation of Remote Services" },
+      { id: "T1534", name: "Internal Spearphishing" },
+      { id: "T1570", name: "Lateral Tool Transfer" },
+      { id: "T1563", name: "Remote Service Session Hijacking" },
+      { id: "T1021", name: "Remote Services" },
+      { id: "T1091b", name: "Replication Through Removable Media" },
+      { id: "T1072b", name: "Software Deployment Tools" },
+      { id: "T1080", name: "Taint Shared Content" },
+      { id: "T1550b", name: "Use Alternate Authentication Material" }
+    ]
+  },
+  {
+    id: "TA0009",
+    name: "Collection",
+    short: "Collection",
+    desc: "Gathering data of interest",
+    techniques: [
+      { id: "T1557b", name: "Adversary-in-the-Middle" },
+      { id: "T1560", name: "Archive Collected Data" },
+      { id: "T1123", name: "Audio Capture" },
+      { id: "T1119", name: "Automated Collection" },
+      { id: "T1185", name: "Browser Session Hijacking" },
+      { id: "T1115", name: "Clipboard Data" },
+      { id: "T1530", name: "Data from Cloud Storage" },
+      { id: "T1602", name: "Data from Configuration Repository" },
+      { id: "T1213", name: "Data from Information Repositories" },
+      { id: "T1005", name: "Data from Local System" },
+      { id: "T1039", name: "Data from Network Shared Drive" },
+      { id: "T1025", name: "Data from Removable Media" },
+      { id: "T1074", name: "Data Staged" },
+      { id: "T1114", name: "Email Collection" },
+      { id: "T1056b", name: "Input Capture" },
+      { id: "T1113", name: "Screen Capture" },
+      { id: "T1125", name: "Video Capture" }
+    ]
+  },
+  {
+    id: "TA0011",
+    name: "Command and Control",
+    short: "C2",
+    desc: "Communicating with compromised systems",
+    techniques: [
+      { id: "T1071", name: "Application Layer Protocol" },
+      { id: "T1092", name: "Communication Through Removable Media" },
+      { id: "T1659", name: "Content Injection" },
+      { id: "T1132", name: "Data Encoding" },
+      { id: "T1001", name: "Data Obfuscation" },
+      { id: "T1568", name: "Dynamic Resolution" },
+      { id: "T1573", name: "Encrypted Channel" },
+      { id: "T1008", name: "Fallback Channels" },
+      { id: "T1665", name: "Hide Infrastructure" },
+      { id: "T1105", name: "Ingress Tool Transfer" },
+      { id: "T1104", name: "Multi-Stage Channels" },
+      { id: "T1095", name: "Non-Application Layer Protocol" },
+      { id: "T1571", name: "Non-Standard Port" },
+      { id: "T1572", name: "Protocol Tunneling" },
+      { id: "T1090", name: "Proxy" },
+      { id: "T1219", name: "Remote Access Software" },
+      { id: "T1205c", name: "Traffic Signaling" },
+      { id: "T1102", name: "Web Service" }
+    ]
+  },
+  {
+    id: "TA0010",
+    name: "Exfiltration",
+    short: "Exfil",
+    desc: "Stealing data",
+    techniques: [
+      { id: "T1020", name: "Automated Exfiltration" },
+      { id: "T1030", name: "Data Transfer Size Limits" },
+      { id: "T1048", name: "Exfiltration Over Alternative Protocol" },
+      { id: "T1041", name: "Exfiltration Over C2 Channel" },
+      { id: "T1011", name: "Exfiltration Over Other Network Medium" },
+      { id: "T1052", name: "Exfiltration Over Physical Medium" },
+      { id: "T1567", name: "Exfiltration Over Web Service" },
+      { id: "T1029", name: "Scheduled Transfer" },
+      { id: "T1537", name: "Transfer Data to Cloud Account" }
+    ]
+  },
+  {
+    id: "TA0040",
+    name: "Impact",
+    short: "Impact",
+    desc: "Disrupting, destroying or manipulating",
+    techniques: [
+      { id: "T1531", name: "Account Access Removal" },
+      { id: "T1485", name: "Data Destruction" },
+      { id: "T1486", name: "Data Encrypted for Impact" },
+      { id: "T1565", name: "Data Manipulation" },
+      { id: "T1491", name: "Defacement" },
+      { id: "T1561", name: "Disk Wipe" },
+      { id: "T1657", name: "Financial Theft" },
+      { id: "T1495", name: "Firmware Corruption" },
+      { id: "T1490", name: "Inhibit System Recovery" },
+      { id: "T1498", name: "Network Denial of Service" },
+      { id: "T1496", name: "Resource Hijacking" },
+      { id: "T1489", name: "Service Stop" },
+      { id: "T1529", name: "System Shutdown/Reboot" }
+    ]
+  }
+];
+
+function baseTID(id) { return id.replace(/[a-z]$/, ""); }
+
+// Flat lookup: base TID -> { name, tactic }
+const TECH_LOOKUP = {};
+ATTACK_MATRIX.forEach(tac => {
+  tac.techniques.forEach(t => {
+    const b = baseTID(t.id);
+    if (!TECH_LOOKUP[b]) TECH_LOOKUP[b] = { name: t.name, tactics: [] };
+    if (!TECH_LOOKUP[b].tactics.includes(tac.name)) TECH_LOOKUP[b].tactics.push(tac.name);
+  });
+});
+
+// ============================================================
+// KEYWORD → ATT&CK DICTIONARY  (shared with the ATT&CK Technique Mapper)
+// Type "powershell", "lsass", "lateral movement", "4624" etc. in the picker
+// search and the relevant techniques surface — same behaviour as the Mapper.
+// ============================================================
+const KEYWORD_MAP = {
+  // ============== INITIAL ACCESS ==============
+  "phishing": ["T1566", "T1204"],
+  "spearphishing": ["T1566"],
+  "phish": ["T1566"],
+  "malicious attachment": ["T1566", "T1204"],
+  "malicious link": ["T1566", "T1204"],
+  "macro": ["T1566", "T1204", "T1059"],
+  "doc with macro": ["T1566", "T1059"],
+  "qr code": ["T1566"],
+  "quishing": ["T1566"],
+  "drive-by": ["T1189"],
+  "drive by download": ["T1189"],
+  "watering hole": ["T1189"],
+  "exploit public": ["T1190"],
+  "exploit public-facing": ["T1190"],
+  "web shell": ["T1190", "T1505"],
+  "webshell": ["T1190", "T1505"],
+  "vpn compromise": ["T1133", "T1078"],
+  "rdp exposed": ["T1133", "T1078", "T1021"],
+  "supply chain": ["T1195"],
+  "third party": ["T1199", "T1195"],
+  "msp compromise": ["T1199"],
+  "trusted relationship": ["T1199"],
+  "valid accounts": ["T1078"],
+  "stolen credentials": ["T1078"],
+  "compromised account": ["T1078"],
+  "removable media": ["T1091"],
+  "usb": ["T1091", "T1052"],
+  "infected usb": ["T1091"],
+
+  // ============== EXECUTION ==============
+  "powershell": ["T1059"],
+  "ps1": ["T1059"],
+  "encoded command": ["T1059", "T1027"],
+  "powershell encoded": ["T1059", "T1027"],
+  "iex": ["T1059"],
+  "invoke-expression": ["T1059"],
+  "downloadstring": ["T1059", "T1105"],
+  "cmd.exe": ["T1059"],
+  "command shell": ["T1059"],
+  "bash": ["T1059"],
+  "python": ["T1059"],
+  "perl": ["T1059"],
+  "javascript": ["T1059"],
+  "vbscript": ["T1059"],
+  "wscript": ["T1059"],
+  "cscript": ["T1059"],
+  "scripting": ["T1059"],
+  "wmi": ["T1047"],
+  "wmic": ["T1047"],
+  "windows management instrumentation": ["T1047"],
+  "scheduled task": ["T1053"],
+  "schtasks": ["T1053"],
+  "at.exe": ["T1053"],
+  "cron": ["T1053"],
+  "systemd timer": ["T1053"],
+  "user execution": ["T1204"],
+  "double click": ["T1204"],
+  "user opened": ["T1204"],
+  "service execution": ["T1569"],
+  "psexec": ["T1569", "T1021"],
+  "exploit client": ["T1203"],
+  "exploit office": ["T1203"],
+  "follina": ["T1203"],
+  "cve-2022-30190": ["T1203"],
+  "log4j": ["T1190", "T1203"],
+  "log4shell": ["T1190", "T1203"],
+  "sccm": ["T1072"],
+  "intune": ["T1072"],
+  "rmm tool": ["T1219", "T1072"],
+
+  // ============== PERSISTENCE ==============
+  "registry run": ["T1547"],
+  "run key": ["T1547"],
+  "runonce": ["T1547"],
+  "startup folder": ["T1547"],
+  "logon script": ["T1037"],
+  "create account": ["T1136"],
+  "new user": ["T1136"],
+  "new admin": ["T1136", "T1098"],
+  "service installed": ["T1543"],
+  "new service": ["T1543"],
+  "wmi event subscription": ["T1546"],
+  "browser extension": ["T1176"],
+  "malicious extension": ["T1176"],
+  "outlook rule": ["T1137"],
+  "office addin": ["T1137"],
+  "bootkit": ["T1542"],
+  "uefi": ["T1542"],
+  "skeleton key": ["T1556"],
+  "modify auth": ["T1556"],
+  "dll search order": ["T1574"],
+  "dll hijack": ["T1574"],
+  "dll sideload": ["T1574"],
+  "dll sideloading": ["T1574"],
+  "iis module": ["T1505"],
+  "sql server stored procedure": ["T1505"],
+  "transport agent": ["T1505"],
+
+  // ============== PRIVILEGE ESCALATION ==============
+  "uac bypass": ["T1548"],
+  "fodhelper": ["T1548"],
+  "token impersonation": ["T1134"],
+  "token theft": ["T1134"],
+  "primary token": ["T1134"],
+  "make token": ["T1134"],
+  "exploit privesc": ["T1068"],
+  "kernel exploit": ["T1068"],
+  "printnightmare": ["T1068"],
+  "zerologon": ["T1068", "T1003"],
+  "process injection": ["T1055"],
+  "dll injection": ["T1055"],
+  "process hollowing": ["T1055"],
+  "reflective dll": ["T1055", "T1620"],
+  "thread hijacking": ["T1055"],
+  "apc injection": ["T1055"],
+  "container escape": ["T1611"],
+  "domain policy modification": ["T1484"],
+  "gpo abuse": ["T1484"],
+  "access token": ["T1134"],
+
+  // ============== DEFENSE EVASION ==============
+  "disable defender": ["T1562"],
+  "disable av": ["T1562"],
+  "disable edr": ["T1562"],
+  "tamper": ["T1562"],
+  "edr tamper": ["T1562"],
+  "stop service": ["T1562", "T1489"],
+  "kill av": ["T1562"],
+  "uninstall edr": ["T1562"],
+  "edr bypass": ["T1562"],
+  "edr evasion": ["T1562"],
+  "amsi bypass": ["T1562"],
+  "etw bypass": ["T1562"],
+  "sysmon disabled": ["T1562"],
+  "log cleared": ["T1070"],
+  "wevtutil cl": ["T1070"],
+  "clear event log": ["T1070"],
+  "clear logs": ["T1070"],
+  "delete logs": ["T1070"],
+  "indicator removal": ["T1070"],
+  "timestomp": ["T1070"],
+  "obfuscation": ["T1027"],
+  "obfuscated": ["T1027"],
+  "encoded": ["T1027"],
+  "base64": ["T1027", "T1140"],
+  "packed": ["T1027"],
+  "deobfuscate": ["T1140"],
+  "masquerading": ["T1036"],
+  "renamed binary": ["T1036"],
+  "svchost lookalike": ["T1036"],
+  "spoofed": ["T1036"],
+  "rundll32": ["T1218"],
+  "regsvr32": ["T1218"],
+  "mshta": ["T1218"],
+  "msbuild": ["T1127"],
+  "installutil": ["T1218"],
+  "regasm": ["T1218"],
+  "lolbin": ["T1218", "T1127"],
+  "lolbas": ["T1218"],
+  "living off the land": ["T1218", "T1059"],
+  "living-off-the-land": ["T1218", "T1059"],
+  "lotl": ["T1218", "T1059"],
+  "rootkit": ["T1014"],
+  "bootloader": ["T1542"],
+  "subvert trust": ["T1553"],
+  "code signing": ["T1553"],
+  "stolen cert": ["T1553"],
+  "modify registry": ["T1112"],
+  "reg.exe": ["T1112"],
+  "hidden file": ["T1564"],
+  "alternate data stream": ["T1564"],
+  "ads": ["T1564"],
+  "process doppelganging": ["T1055"],
+  "indirect command": ["T1202"],
+  "pcalua": ["T1202"],
+  "forfiles": ["T1202"],
+  "pass the hash": ["T1550"],
+  "pth": ["T1550"],
+  "pass the ticket": ["T1550"],
+  "ptt": ["T1550"],
+
+  // ============== CREDENTIAL ACCESS ==============
+  "mimikatz": ["T1003", "T1558", "T1552"],
+  "lsass": ["T1003"],
+  "lsass dump": ["T1003"],
+  "comsvcs": ["T1003"],
+  "procdump lsass": ["T1003"],
+  "credential dump": ["T1003"],
+  "credential dumping": ["T1003"],
+  "sam dump": ["T1003"],
+  "ntds.dit": ["T1003"],
+  "ntds": ["T1003"],
+  "dcsync": ["T1003"],
+  "dcshadow": ["T1003"],
+  "secretsdump": ["T1003"],
+  "credential theft": ["T1003", "T1555"],
+  "lazagne": ["T1555"],
+  "browser credentials": ["T1555"],
+  "saved password": ["T1555"],
+  "keychain": ["T1555"],
+  "credential manager": ["T1555"],
+  "brute force": ["T1110"],
+  "password spray": ["T1110"],
+  "password spraying": ["T1110"],
+  "credential stuffing": ["T1110"],
+  "rdp brute force": ["T1110", "T1021"],
+  "smb brute": ["T1110"],
+  "kerberoasting": ["T1558"],
+  "kerberoast": ["T1558"],
+  "asreproast": ["T1558"],
+  "asreproasting": ["T1558"],
+  "golden ticket": ["T1558"],
+  "silver ticket": ["T1558"],
+  "kerberos abuse": ["T1558"],
+  "rubeus": ["T1558"],
+  "tgt theft": ["T1558"],
+  "ccache": ["T1558"],
+  "keylogger": ["T1056"],
+  "keylog": ["T1056"],
+  "input capture": ["T1056"],
+  "form grabber": ["T1056"],
+  "mfa bombing": ["T1621"],
+  "mfa fatigue": ["T1621"],
+  "mfa spam": ["T1621"],
+  "push spam": ["T1621"],
+  "push bombing": ["T1621"],
+  "adversary in the middle": ["T1557"],
+  "evilginx": ["T1557", "T1539"],
+  "modlishka": ["T1557"],
+  "aitm": ["T1557"],
+  "session hijack": ["T1539", "T1185"],
+  "cookie theft": ["T1539"],
+  "steal cookie": ["T1539"],
+  "session token": ["T1528", "T1539"],
+  "oauth abuse": ["T1528"],
+  "oauth token theft": ["T1528"],
+  "oauth grant": ["T1528"],
+  "consent phishing": ["T1528", "T1566"],
+  "illicit consent": ["T1528"],
+  "device code phishing": ["T1528"],
+  "ad cs abuse": ["T1649"],
+  "certificate theft": ["T1649"],
+  "certifried": ["T1649"],
+  "esc1": ["T1649"],
+  "esc8": ["T1649"],
+  "shadow credentials": ["T1556"],
+  "responder": ["T1557"],
+  "ntlm relay": ["T1557"],
+  "llmnr poisoning": ["T1557"],
+  "mitm6": ["T1557"],
+  "unsecured credentials": ["T1552"],
+  "credentials in files": ["T1552"],
+  "credentials in registry": ["T1552"],
+  "git credentials": ["T1552"],
+  "private key": ["T1552"],
+  "ssh key": ["T1552"],
+
+  // ============== DISCOVERY ==============
+  "whoami": ["T1033"],
+  "net user": ["T1087"],
+  "net group": ["T1087", "T1069"],
+  "net localgroup": ["T1087", "T1069"],
+  "net view": ["T1018", "T1135"],
+  "nltest": ["T1018", "T1482"],
+  "domain admins": ["T1087", "T1069"],
+  "ad enumeration": ["T1087", "T1018"],
+  "ldap query": ["T1087", "T1018"],
+  "adfind": ["T1018", "T1087"],
+  "bloodhound": ["T1087", "T1482", "T1018"],
+  "sharphound": ["T1087", "T1482", "T1018"],
+  "ad recon": ["T1087", "T1018"],
+  "domain trust": ["T1482"],
+  "trustdump": ["T1482"],
+  "permission group": ["T1069"],
+  "ipconfig": ["T1016"],
+  "ifconfig": ["T1016"],
+  "netstat": ["T1049"],
+  "tasklist": ["T1057"],
+  "ps": ["T1057"],
+  "process listing": ["T1057"],
+  "systeminfo": ["T1082"],
+  "uname": ["T1082"],
+  "wmic os": ["T1082"],
+  "host enumeration": ["T1082"],
+  "port scan": ["T1046"],
+  "nmap": ["T1046"],
+  "masscan": ["T1046"],
+  "service scan": ["T1046"],
+  "share enumeration": ["T1135"],
+  "smb scan": ["T1135", "T1046"],
+  "file discovery": ["T1083"],
+  "find sensitive": ["T1083"],
+  "tree": ["T1083"],
+  "dir /s": ["T1083"],
+  "registry query": ["T1012"],
+  "reg query": ["T1012"],
+  "remote system": ["T1018"],
+  "ping sweep": ["T1018", "T1046"],
+  "cloud enum": ["T1580", "T1526"],
+  "scout suite": ["T1580"],
+  "cloudfox": ["T1580"],
+  "azure recon": ["T1580", "T1087"],
+  "aws enum": ["T1580", "T1087"],
+  "s3 enumeration": ["T1619"],
+  "blob enumeration": ["T1619"],
+
+  // ============== LATERAL MOVEMENT ==============
+  "lateral movement": ["T1021", "T1570"],
+  "smb": ["T1021", "T1570"],
+  "rdp": ["T1021"],
+  "remote desktop": ["T1021"],
+  "wmic process call create": ["T1021", "T1047"],
+  "winrm": ["T1021"],
+  "powershell remoting": ["T1021"],
+  "evil-winrm": ["T1021"],
+  "ssh lateral": ["T1021"],
+  "vnc": ["T1021"],
+  "remote service": ["T1021"],
+  "admin share": ["T1021", "T1570"],
+  "admin$": ["T1021"],
+  "c$": ["T1021"],
+  "ipc$": ["T1021"],
+  "smbexec": ["T1021"],
+  "wmiexec": ["T1021", "T1047"],
+  "atexec": ["T1053", "T1021"],
+  "dcomexec": ["T1021"],
+  "impacket": ["T1021", "T1003", "T1558"],
+  "internal phishing": ["T1534"],
+  "lateral tool transfer": ["T1570"],
+  "exploit remote service": ["T1210"],
+  "smbghost": ["T1210"],
+  "eternalblue": ["T1210"],
+  "ms17-010": ["T1210"],
+  "session hijacking": ["T1563"],
+  "tscon": ["T1563"],
+  "rdp session hijack": ["T1563"],
+
+  // ============== COLLECTION ==============
+  "data staging": ["T1074"],
+  "stage files": ["T1074"],
+  "compress data": ["T1560"],
+  "7zip": ["T1560"],
+  "7-zip": ["T1560"],
+  "winrar": ["T1560"],
+  "rar archive": ["T1560"],
+  "zip large": ["T1560"],
+  "tar archive": ["T1560"],
+  "screenshot": ["T1113"],
+  "screen capture": ["T1113"],
+  "screen recording": ["T1113"],
+  "clipboard": ["T1115"],
+  "audio capture": ["T1123"],
+  "video capture": ["T1125"],
+  "email collection": ["T1114"],
+  "mailbox export": ["T1114"],
+  "pst export": ["T1114"],
+  "ews abuse": ["T1114"],
+  "graph api mailbox": ["T1114"],
+  "sharepoint download": ["T1213"],
+  "confluence download": ["T1213"],
+  "wiki scraping": ["T1213"],
+  "data from cloud": ["T1530"],
+  "s3 download": ["T1530"],
+  "blob download": ["T1530"],
+  "automated collection": ["T1119"],
+
+  // ============== COMMAND AND CONTROL ==============
+  "cobalt strike": ["T1071", "T1055", "T1218", "T1027", "T1090"],
+  "cobaltstrike": ["T1071", "T1055", "T1218", "T1027"],
+  "beacon": ["T1071", "T1573"],
+  "metasploit": ["T1071", "T1055"],
+  "meterpreter": ["T1071", "T1055"],
+  "sliver": ["T1071", "T1573"],
+  "havoc": ["T1071", "T1573"],
+  "mythic": ["T1071", "T1573"],
+  "brute ratel": ["T1071", "T1573"],
+  "c2": ["T1071", "T1573"],
+  "c2 channel": ["T1071", "T1573"],
+  "command and control": ["T1071", "T1573"],
+  "https beacon": ["T1071", "T1573"],
+  "dns tunnel": ["T1071", "T1572"],
+  "dns tunneling": ["T1071", "T1572"],
+  "icmp tunnel": ["T1095", "T1572"],
+  "domain fronting": ["T1090", "T1568"],
+  "cdn abuse": ["T1090"],
+  "cloudflare abuse": ["T1090"],
+  "tor": ["T1090"],
+  "proxy chain": ["T1090"],
+  "domain generation": ["T1568"],
+  "dga": ["T1568"],
+  "fast flux": ["T1568"],
+  "dead drop": ["T1102"],
+  "github c2": ["T1102"],
+  "pastebin c2": ["T1102"],
+  "telegram c2": ["T1102"],
+  "discord c2": ["T1102"],
+  "social media c2": ["T1102"],
+  "remote access tool": ["T1219"],
+  "anydesk": ["T1219"],
+  "teamviewer": ["T1219"],
+  "screenconnect": ["T1219"],
+  "connectwise": ["T1219"],
+  "splashtop": ["T1219"],
+  "atera": ["T1219"],
+  "syncro": ["T1219"],
+  "ngrok": ["T1090", "T1572"],
+  "ingress tool transfer": ["T1105"],
+  "certutil download": ["T1105"],
+  "bitsadmin": ["T1105", "T1197"],
+  "curl wget": ["T1105"],
+  "tool drop": ["T1105"],
+
+  // ============== EXFILTRATION ==============
+  "exfiltration": ["T1041", "T1567"],
+  "exfil": ["T1041", "T1567"],
+  "data exfil": ["T1041", "T1567"],
+  "rclone": ["T1567"],
+  "megasync": ["T1567"],
+  "mega.nz": ["T1567"],
+  "dropbox upload": ["T1567"],
+  "google drive upload": ["T1567"],
+  "onedrive upload": ["T1567"],
+  "wetransfer": ["T1567"],
+  "exfil to cloud": ["T1567", "T1537"],
+  "cloud account upload": ["T1537"],
+  "exfil over c2": ["T1041"],
+  "ftp exfil": ["T1048"],
+  "scp exfil": ["T1048"],
+  "smtp exfil": ["T1048"],
+  "alternative protocol": ["T1048"],
+  "physical exfil": ["T1052"],
+  "data transfer size": ["T1030"],
+  "scheduled transfer": ["T1029"],
+
+  // ============== IMPACT ==============
+  "ransomware": ["T1486", "T1490", "T1489"],
+  "encrypt files": ["T1486"],
+  "encrypted for impact": ["T1486"],
+  "lockbit": ["T1486", "T1490"],
+  "alphv": ["T1486", "T1490"],
+  "blackcat": ["T1486", "T1490"],
+  "akira": ["T1486", "T1490"],
+  "black basta": ["T1486", "T1490"],
+  "ryuk": ["T1486"],
+  "conti": ["T1486"],
+  "play": ["T1486"],
+  "medusa": ["T1486"],
+  "ransomhub": ["T1486"],
+  "cl0p": ["T1486", "T1567"],
+  "shadow copy": ["T1490"],
+  "vssadmin delete": ["T1490"],
+  "wbadmin delete": ["T1490"],
+  "bcdedit": ["T1490"],
+  "delete backup": ["T1490"],
+  "inhibit recovery": ["T1490"],
+  "wiper": ["T1485", "T1561"],
+  "data destruction": ["T1485"],
+  "data wiped": ["T1485", "T1561"],
+  "disk wipe": ["T1561"],
+  "mbr wipe": ["T1561"],
+  "hermeticwiper": ["T1485", "T1561"],
+  "whispergate": ["T1485"],
+  "caddywiper": ["T1485"],
+  "isaacwiper": ["T1485"],
+  "data manipulation": ["T1565"],
+  "defacement": ["T1491"],
+  "service stop": ["T1489"],
+  "stopped services": ["T1489"],
+  "system shutdown": ["T1529"],
+  "force reboot": ["T1529"],
+  "ddos": ["T1498"],
+  "denial of service": ["T1498"],
+  "cryptomining": ["T1496"],
+  "crypto miner": ["T1496"],
+  "xmrig": ["T1496"],
+  "resource hijack": ["T1496"],
+  "cloud mining": ["T1496"],
+  "account locked": ["T1531"],
+  "account access removal": ["T1531"],
+  "financial fraud": ["T1657"],
+  "wire fraud": ["T1657"],
+  "invoice fraud": ["T1657"],
+  "bec": ["T1657", "T1078", "T1566"],
+  "business email compromise": ["T1657", "T1566"],
+
+  // ============== WINDOWS EVENT IDs ==============
+  "4624": ["T1078"],
+  "4625": ["T1110"],
+  "4648": ["T1078"],
+  "4672": ["T1078"],
+  "4688": ["T1059"],
+  "4697": ["T1543", "T1569"],
+  "4698": ["T1053"],
+  "4699": ["T1053"],
+  "4700": ["T1053"],
+  "4702": ["T1053"],
+  "4720": ["T1136"],
+  "4722": ["T1098"],
+  "4724": ["T1098"],
+  "4728": ["T1098"],
+  "4732": ["T1098"],
+  "4738": ["T1098"],
+  "5140": ["T1135"],
+  "5145": ["T1135"],
+  "1102": ["T1070"],
+  "104": ["T1070"],
+  "7045": ["T1543", "T1569"],
+
+  // Sysmon
+  "sysmon 1": ["T1059"],
+  "sysmon 3": ["T1071"],
+  "sysmon 7": ["T1574"],
+  "sysmon 8": ["T1055"],
+  "sysmon 10": ["T1003"],
+  "sysmon 11": ["T1105"],
+  "sysmon 12": ["T1112", "T1547"],
+  "sysmon 13": ["T1112", "T1547"],
+  "sysmon 22": ["T1071"],
+
+  // ============== CLOUD / IDENTITY ==============
+  "azure ad": ["T1078"],
+  "entra id": ["T1078"],
+  "okta": ["T1078"],
+  "global admin": ["T1078", "T1098"],
+  "privilege escalation cloud": ["T1098"],
+  "consent grant": ["T1528"],
+  "service principal": ["T1078", "T1098"],
+  "managed identity abuse": ["T1078"],
+  "iam abuse": ["T1078", "T1098"],
+  "assume role": ["T1078"],
+  "sts assume": ["T1078"],
+  "instance metadata": ["T1552"],
+  "imds": ["T1552"],
+  "169.254.169.254": ["T1552"],
+  "federated trust": ["T1606", "T1556"],
+  "saml forge": ["T1606"],
+  "golden saml": ["T1606"],
+  "adfs abuse": ["T1606", "T1556"],
+  "primary refresh token": ["T1528"],
+  "prt": ["T1528"],
+
+  // ============== RECON ==============
+  "reconnaissance": ["T1595", "T1596"],
+  "active scanning": ["T1595"],
+  "shodan": ["T1596"],
+  "censys": ["T1596"],
+  "github recon": ["T1593"],
+  "dorking": ["T1593"],
+  "linkedin recon": ["T1591"],
+  "harvester": ["T1589"],
+  "phishing for info": ["T1598"]
+};
+
+function buildKeywordIndex() {
+  const entries = Object.entries(KEYWORD_MAP).map(([k, v]) => ({ kw: k.toLowerCase(), tids: v }));
+  entries.sort((a, b) => b.kw.length - a.kw.length);
+  return entries;
+}
+const KEYWORD_INDEX = buildKeywordIndex();
+
+// Returns { tids:Set, byTid: {tid:[matchedKeyword,...]} }
+function keywordMatches(input) {
+  const q = (input||'').toLowerCase().trim();
+  const tids = new Set(); const byTid = {};
+  if (!q) return { tids, byTid };
+  const add = (e) => e.tids.forEach(t => {
+    const b = baseTID(t); tids.add(b);
+    (byTid[b] = byTid[b] || []).push(e.kw);
+  });
+  if (KEYWORD_MAP[q]) add({ kw:q, tids:KEYWORD_MAP[q] });
+  for (const e of KEYWORD_INDEX) {
+    if (q === e.kw) continue; // already added above
+    if (q.length >= 3 && (q.includes(e.kw) || e.kw.includes(q))) add(e);
+  }
+  return { tids, byTid };
+}
+
+// ============================================================
+// TACTIC COLOUR MAP  (kill-chain order, used for colour-coding events)
+// ============================================================
+const TACTIC_ORDER = ATTACK_MATRIX.map(t => t.name);
+const TACTIC_COLORS = {
+  "Reconnaissance":        "#64748b",
+  "Resource Development":  "#6b7280",
+  "Initial Access":        "#2563eb",
+  "Execution":             "#0891b2",
+  "Persistence":           "#0d9488",
+  "Privilege Escalation":  "#7c3aed",
+  "Defense Evasion":       "#9333ea",
+  "Credential Access":     "#db2777",
+  "Discovery":             "#0284c7",
+  "Lateral Movement":      "#ca8a04",
+  "Collection":            "#d97706",
+  "Command and Control":   "#ea580c",
+  "Exfiltration":          "#dc2626",
+  "Impact":                "#b91c1c"
+};
+// Primary tactic for an event = earliest-in-kill-chain tactic among its techniques
+function eventTactic(ev) {
+  let best = null, bestIdx = 999;
+  (ev.attack||[]).forEach(tid => {
+    const info = TECH_LOOKUP[tid];
+    if (!info) return;
+    info.tactics.forEach(tac => {
+      const i = TACTIC_ORDER.indexOf(tac);
+      if (i >= 0 && i < bestIdx) { bestIdx = i; best = tac; }
+    });
+  });
+  return best;
+}
+function tacticColor(tac) { return TACTIC_COLORS[tac] || "var(--text-muted)"; }
+
+
+
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  events: [],        // { id, date, time, host, comment, attack: [tid,...] }
+  view: 'card',          // 'card' | 'swimlane' | 'density'
+  scope: 'unified',      // 'unified' | 'host' (card view only)
+  spacing: 'even',       // 'even' | 'real' (swimlane x-axis)
+  theme: null
+};
+let pendingAttack = [];     // ATT&CK tids staged on the entry form
+let editingId = null;       // event id currently being edited (reuses entry form)
+let pickerTarget = 'pending'; // 'pending' or an event id
+
+const HOST_COLORS = ['#2563eb','#dc2626','#16a34a','#ea580c','#7c3aed','#0891b2','#db2777','#ca8a04','#4f46e5','#059669'];
+function hostColor(host) {
+  const hosts = distinctHosts();
+  const i = hosts.indexOf(host);
+  return HOST_COLORS[i % HOST_COLORS.length];
+}
+function distinctHosts() {
+  return [...new Set(state.events.map(e => e.host || 'Unassigned'))].sort((a,b)=>a.localeCompare(b));
+}
+
+// ============================================================
+// ADD / EDIT / DELETE
+// ============================================================
+function pad(n){ return String(n).padStart(2,'0'); }
+function nowParts() {
+  const d = new Date();
+  return {
+    date: `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`,
+    time: `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+  };
+}
+
+function addEvent() {
+  const date = document.getElementById('fDate').value;
+  let time = document.getElementById('fTime').value;
+  const host = document.getElementById('fHost').value.trim();
+  const comment = document.getElementById('fComment').value.trim();
+
+  if (!comment) { showToast('Add a comment describing the event'); return; }
+  const np = nowParts();
+  const finalDate = date || np.date;
+  const finalTime = time || np.time;
+
+  if (editingId) {
+    const ev = state.events.find(e => e.id === editingId);
+    if (ev) {
+      ev.date = finalDate; ev.time = finalTime; ev.host = host || 'Unassigned';
+      ev.comment = comment; ev.attack = [...pendingAttack];
+    }
+    editingId = null;
+    document.querySelector('.entry-card .card-title').textContent = '＋ Add event';
+    document.querySelector('.entry-card .btn.primary').textContent = 'Add';
+    showToast('Event updated');
+  } else {
+    state.events.push({
+      id: 'ev_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+      date: finalDate, time: finalTime,
+      host: host || 'Unassigned', comment, attack: [...pendingAttack]
+    });
+    showToast('Event added');
+  }
+
+  // reset form
+  document.getElementById('fComment').value = '';
+  document.getElementById('fTime').value = '';
+  pendingAttack = [];
+  renderPendingAttack();
+  render();
+}
+
+function editEvent(id) {
+  const ev = state.events.find(e => e.id === id);
+  if (!ev) return;
+  editingId = id;
+  document.getElementById('fDate').value = ev.date;
+  document.getElementById('fTime').value = ev.time;
+  document.getElementById('fHost').value = ev.host === 'Unassigned' ? '' : ev.host;
+  document.getElementById('fComment').value = ev.comment;
+  pendingAttack = [...(ev.attack || [])];
+  renderPendingAttack();
+  document.querySelector('.entry-card .card-title').textContent = '✎ Edit event';
+  document.querySelector('.entry-card .btn.primary').textContent = 'Update';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  document.getElementById('fComment').focus();
+}
+
+function deleteEvent(id) {
+  state.events = state.events.filter(e => e.id !== id);
+  if (editingId === id) {
+    editingId = null;
+    document.querySelector('.entry-card .card-title').textContent = '＋ Add event';
+    document.querySelector('.entry-card .btn.primary').textContent = 'Add';
+  }
+  render();
+  showToast('Event removed');
+}
+
+// ============================================================
+// ATT&CK PICKER
+// ============================================================
+function openAttackPicker(target) {
+  pickerTarget = target;
+  document.getElementById('attackSearch').value = '';
+  renderAttackList();
+  document.getElementById('attackModal').classList.add('show');
+  setTimeout(() => document.getElementById('attackSearch').focus(), 50);
+}
+function closeAttackPicker() {
+  document.getElementById('attackModal').classList.remove('show');
+  render();
+}
+function currentPickerSelection() {
+  if (pickerTarget === 'pending') return pendingAttack;
+  const ev = state.events.find(e => e.id === pickerTarget);
+  return ev ? ev.attack : [];
+}
+function toggleTechnique(tid) {
+  const sel = currentPickerSelection();
+  const i = sel.indexOf(tid);
+  if (i >= 0) sel.splice(i,1); else sel.push(tid);
+  if (pickerTarget === 'pending') renderPendingAttack();
+  renderAttackList();
+}
+function techPickRow(b, name, on, extra) {
+  return `<div class="tech-pick ${on?'selected':''}" onclick="toggleTechnique('${b}')">
+    <span class="tid">${b}</span><span>${escapeHtml(name)}</span>${extra||''}${on?'<span style="margin-left:auto;color:var(--purple)">✓</span>':''}
+  </div>`;
+}
+function renderAttackList() {
+  const raw = document.getElementById('attackSearch').value.trim();
+  const q = raw.toLowerCase();
+  const sel = currentPickerSelection();
+  const root = document.getElementById('attackList');
+  let html = '';
+
+  // --- 1) Keyword-driven suggestions (powershell, lsass, 4624, lateral movement...) ---
+  if (q) {
+    const km = keywordMatches(raw);
+    const suggestedTids = [...km.tids].filter(tid => TECH_LOOKUP[tid]);
+    if (suggestedTids.length) {
+      html += `<div class="tactic-group"><div class="tactic-label suggest-label">Suggested — matched "${escapeHtml(raw)}"</div>`;
+      suggestedTids.forEach(tid => {
+        const info = TECH_LOOKUP[tid];
+        const kws = [...new Set(km.byTid[tid]||[])];
+        const kwTag = kws.length ? `<span class="kw-hit" title="matched keyword">${escapeHtml(kws[0])}${kws.length>1?' +'+(kws.length-1):''}</span>` : '';
+        html += techPickRow(tid, info.name, sel.includes(tid), kwTag);
+      });
+      html += `</div>`;
+    }
+  }
+
+  // --- 2) Literal ID / name / tactic filter, grouped by tactic ---
+  let literalHtml = '';
+  ATTACK_MATRIX.forEach(tac => {
+    const matches = tac.techniques.filter(t => {
+      const b = baseTID(t.id);
+      if (!q) return true;
+      return b.toLowerCase().includes(q) || t.name.toLowerCase().includes(q) || tac.name.toLowerCase().includes(q);
+    });
+    const seen = new Set();
+    const uniq = matches.filter(t => { const b = baseTID(t.id); if (seen.has(b)) return false; seen.add(b); return true; });
+    if (!uniq.length) return;
+    literalHtml += `<div class="tactic-group"><div class="tactic-label"><span class="tac-dot" style="background:${tacticColor(tac.name)}"></span>${tac.name}</div>`;
+    uniq.forEach(t => {
+      const b = baseTID(t.id);
+      literalHtml += techPickRow(b, t.name, sel.includes(b));
+    });
+    literalHtml += `</div>`;
+  });
+
+  if (q && literalHtml) html += `<div class="tactic-label all-label">All techniques</div>`;
+  html += literalHtml;
+
+  root.innerHTML = html || `<div class="tl-empty">Nothing matches "${escapeHtml(raw)}". Try a tool, behaviour, or T-code.</div>`;
+}
+function renderPendingAttack() {
+  const root = document.getElementById('pendingAttack');
+  let html = pendingAttack.map(tid =>
+    `<span class="attack-chip">${tid}<span class="x" onclick="removePending('${tid}')">×</span></span>`
+  ).join('');
+  html += `<button class="attack-add-btn" onclick="openAttackPicker('pending')">+ ATT&CK technique</button>`;
+  root.innerHTML = html;
+}
+function removePending(tid) {
+  pendingAttack = pendingAttack.filter(t => t !== tid);
+  renderPendingAttack();
+}
+
+// ============================================================
+// VIEW + RENDER
+// ============================================================
+function setView(v) {
+  state.view = v;
+  ['card','swimlane','density'].forEach(x =>
+    document.getElementById('view_'+x).classList.toggle('active', x===v));
+  // contextual controls
+  document.getElementById('scopeSeg').style.display   = v==='card' ? 'inline-flex' : 'none';
+  document.getElementById('spacingSeg').style.display = v==='swimlane' ? 'inline-flex' : 'none';
+  document.getElementById('svgExportBtn').style.display = v==='swimlane' ? 'inline-flex' : 'none';
+  document.getElementById('hostFilterWrap').style.display =
+    (v==='card' && state.scope==='host') ? 'flex' : 'none';
+  render();
+}
+function setScope(s) {
+  state.scope = s;
+  document.getElementById('scope_unified').classList.toggle('active', s==='unified');
+  document.getElementById('scope_host').classList.toggle('active', s==='host');
+  document.getElementById('hostFilterWrap').style.display = s==='host' ? 'flex' : 'none';
+  render();
+}
+function setSpacing(s) {
+  state.spacing = s;
+  document.getElementById('space_even').classList.toggle('active', s==='even');
+  document.getElementById('space_real').classList.toggle('active', s==='real');
+  render();
+}
+
+function sortEvents(arr) {
+  return [...arr].sort((a,b) => evKey(a).localeCompare(evKey(b)));
+}
+function evKey(e){ return (e.date||'') + 'T' + (e.time||'00:00:00'); }
+
+// Parse event to a JS timestamp (ms). Falls back to index ordering if unparseable.
+function evTime(e){
+  const d = e.date || '';
+  const t = (e.time || '00:00:00');
+  const ms = Date.parse(`${d}T${t}`);
+  return isNaN(ms) ? null : ms;
+}
+function fmtGap(ms){
+  if (ms <= 0) return '';
+  const s = Math.round(ms/1000);
+  const d = Math.floor(s/86400), h = Math.floor((s%86400)/3600), m = Math.floor((s%3600)/60);
+  const parts = [];
+  if (d) parts.push(d+'d'); if (h) parts.push(h+'h'); if (m) parts.push(m+'m');
+  if (!parts.length) return s ? s+'s' : '';
+  return '+ ' + parts.slice(0,2).join(' ');
+}
+
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function attackTagsHtml(attack) {
+  if (!attack || !attack.length) return '';
+  return `<div class="tl-attack">` + attack.map(tid => {
+    const info = TECH_LOOKUP[tid];
+    const title = info ? `${tid} — ${info.name} (${info.tactics.join(', ')})` : tid;
+    const col = info ? tacticColor(info.tactics[0]) : 'var(--purple)';
+    return `<span class="tl-tid" style="--tc:${col}" title="${escapeHtml(title)}">${tid}</span>`;
+  }).join('') + `</div>`;
+}
+
+// Richer card: tactic stripe + time-gap marker vs previous event
+function eventCardHtml(ev, showHost, prevEv) {
+  const hostTag = showHost ? `<span class="tl-host-tag"><span class="host-dot" style="width:7px;height:7px;background:${hostColor(ev.host)}"></span>${escapeHtml(ev.host)}</span>` : '';
+  const tac = eventTactic(ev);
+  const stripe = tac ? tacticColor(tac) : (showHost ? hostColor(ev.host) : 'var(--accent)');
+  const tacBadge = tac ? `<span class="tl-tactic" style="--tc:${tacticColor(tac)}">${tac}</span>` : '';
+  // gap marker
+  let gapHtml = '';
+  if (prevEv) {
+    const a = evTime(prevEv), b = evTime(ev);
+    if (a!=null && b!=null && b>a) {
+      const g = fmtGap(b-a);
+      if (g) gapHtml = `<div class="tl-gap"><span>${g}</span></div>`;
+    }
+  }
+  return `${gapHtml}<div class="tl-item">
+    <div class="tl-node" style="border-color:${stripe}"></div>
+    <div class="tl-card" style="border-left:3px solid ${stripe}">
+      <div class="tl-meta">
+        <span class="tl-time">${escapeHtml(ev.time||'—')}</span>
+        <span class="tl-date">${escapeHtml(ev.date||'—')}</span>
+        ${hostTag}${tacBadge}
+      </div>
+      <div class="tl-comment">${escapeHtml(ev.comment)}</div>
+      ${attackTagsHtml(ev.attack)}
+      <div class="tl-actions">
+        <button class="tl-act" onclick="editEvent('${ev.id}')">Edit</button>
+        <button class="tl-act del" onclick="deleteEvent('${ev.id}')">Delete</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function refreshChrome() {
+  const hosts = distinctHosts();
+  document.getElementById('countPill').textContent =
+    `${state.events.length} event${state.events.length!==1?'s':''} · ${hosts.length} host${hosts.length!==1?'s':''}`;
+  document.getElementById('hostList').innerHTML = hosts.filter(h=>h!=='Unassigned').map(h=>`<option value="${escapeHtml(h)}">`).join('');
+  const hf = document.getElementById('hostFilter');
+  const prev = hf.value;
+  hf.innerHTML = '<option value="__all">All hosts</option>' + hosts.map(h=>`<option value="${escapeHtml(h)}">${escapeHtml(h)}</option>`).join('');
+  if ([...hf.options].some(o=>o.value===prev)) hf.value = prev;
+}
+
+function render() {
+  const root = document.getElementById('timelineRoot');
+  refreshChrome();
+
+  if (!state.events.length) {
+    root.innerHTML = `<div class="card"><div class="tl-empty">No events yet — add your first observation above to start building the timeline.</div></div>`;
+    return;
+  }
+  if (state.view === 'swimlane') return renderSwimlane(root);
+  if (state.view === 'density')  return renderDensity(root);
+  return renderCards(root);
+}
+
+function renderCards(root) {
+  const hosts = distinctHosts();
+  if (state.scope === 'unified') {
+    const sorted = sortEvents(state.events);
+    let prev = null;
+    root.innerHTML = `<section class="card"><div class="timeline">` +
+      sorted.map(ev => { const h = eventCardHtml(ev, true, prev); prev = ev; return h; }).join('') +
+      `</div></section>` + tacticLegendHtml();
+  } else {
+    const filter = document.getElementById('hostFilter').value;
+    const showHosts = filter === '__all' ? hosts : hosts.filter(h=>h===filter);
+    root.innerHTML = showHosts.map(host => {
+      const evs = sortEvents(state.events.filter(e => (e.host||'Unassigned') === host));
+      let prev = null;
+      return `<section class="card host-section">
+        <div class="host-header">
+          <span class="host-name"><span class="host-dot" style="background:${hostColor(host)}"></span>${escapeHtml(host)}</span>
+          <span class="host-count">${evs.length} event${evs.length!==1?'s':''}</span>
+        </div>
+        <div class="timeline">${evs.map(ev => { const h = eventCardHtml(ev, false, prev); prev = ev; return h; }).join('')}</div>
+      </section>`;
+    }).join('') + tacticLegendHtml();
+  }
+}
+
+// Which tactics actually appear, in kill-chain order (for legends)
+function activeTactics() {
+  const present = new Set();
+  state.events.forEach(ev => { const t = eventTactic(ev); if (t) present.add(t); });
+  return TACTIC_ORDER.filter(t => present.has(t));
+}
+function tacticLegendHtml() {
+  const tacs = activeTactics();
+  if (!tacs.length) return '';
+  return `<div class="legend-row">` +
+    tacs.map(t => `<span class="legend-chip"><span class="legend-dot" style="background:${tacticColor(t)}"></span>${t}</span>`).join('') +
+    `</div>`;
+}
+
+// ============================================================
+// SWIMLANE  (host = lane, x-axis = time; SVG, used on-screen + for export)
+// ============================================================
+function shortHost(h){ return h.length > 18 ? h.slice(0,17)+'…' : h; }
+function fmtTick(ms){
+  const d = new Date(ms);
+  const p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+// Build positions. spacing 'even' = equal steps; 'real' = proportional to time.
+function computeLayout() {
+  const sorted = sortEvents(state.events);
+  const times = sorted.map(evTime);
+  const haveAll = times.every(t => t!=null);
+  const useReal = state.spacing === 'real' && haveAll && times[times.length-1] > times[0];
+
+  const n = sorted.length;
+  const pos = []; // 0..1 along the axis
+  if (useReal) {
+    const min = times[0], max = times[times.length-1], span = max-min;
+    sorted.forEach((e,i) => pos.push(span ? (times[i]-min)/span : i/(n-1||1)));
+  } else {
+    sorted.forEach((e,i) => pos.push(n>1 ? i/(n-1) : 0.5));
+  }
+  return { sorted, times, pos, useReal };
+}
+
+function buildSwimlaneSVG(opts) {
+  opts = opts || {};
+  const forExport = !!opts.forExport;
+  const hosts = distinctHosts();
+  const { sorted, times, pos, useReal } = computeLayout();
+
+  // geometry
+  const padL = 150, padR = 40, padT = 54, rowH = 64, axisH = 38;
+  const legendH = (opts.forExport && activeTactics().length) ? 28 : 0;
+  const innerW = Math.max(680, sorted.length * 88);
+  const W = padL + innerW + padR;
+  const H = padT + hosts.length * rowH + axisH + legendH;
+  const x = p => padL + p * innerW;
+  const laneY = h => padT + hosts.indexOf(h) * rowH + rowH/2;
+
+  // theme-aware palette (resolved to literal hex for export portability)
+  const dark = (document.documentElement.getAttribute('data-theme')==='dark');
+  const C = {
+    bg:    forExport ? (dark?'#0e0f10':'#ffffff') : 'transparent',
+    grid:  dark?'#2a2c2f':'#e8e6df',
+    gridStrong: dark?'#3a3d40':'#d6d3c9',
+    text:  dark?'#f0f0ee':'#1a1a1a',
+    dim:   dark?'#8b8b85':'#6b6b66',
+    laneA: dark?'rgba(255,255,255,0.02)':'rgba(0,0,0,0.015)',
+    card:  dark?'#18191b':'#ffffff'
+  };
+
+  let s = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="Inter, system-ui, sans-serif">`;
+  s += `<rect width="${W}" height="${H}" fill="${C.bg}"/>`;
+  if (forExport) s += `<text x="${padL}" y="26" font-size="15" font-weight="700" fill="${C.text}">Incident Timeline — Swimlane</text>
+    <text x="${W-padR}" y="26" font-size="10" text-anchor="end" fill="${C.dim}" font-family="'JetBrains Mono',monospace">${fmtTick(Date.now())} · ${sorted.length} events · ${hosts.length} hosts</text>`;
+
+  // lane backgrounds + labels
+  hosts.forEach((h,i) => {
+    const y = padT + i*rowH;
+    if (i%2) s += `<rect x="0" y="${y}" width="${W}" height="${rowH}" fill="${C.laneA}"/>`;
+    s += `<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="${C.grid}" stroke-width="1"/>`;
+    const col = hostColor(h);
+    s += `<circle cx="20" cy="${y+rowH/2}" r="5" fill="${col}"/>`;
+    s += `<text x="34" y="${y+rowH/2+4}" font-size="12" font-weight="600" fill="${C.text}" font-family="'JetBrains Mono',monospace">${escapeXml(shortHost(h))}</text>`;
+  });
+  const yBot = padT + hosts.length*rowH;
+  s += `<line x1="${padL}" y1="${yBot}" x2="${W-padR}" y2="${yBot}" stroke="${C.gridStrong}" stroke-width="1.5"/>`;
+
+  // axis ticks
+  const tickCount = Math.min(6, sorted.length);
+  for (let k=0;k<tickCount;k++){
+    const p = tickCount>1 ? k/(tickCount-1) : 0;
+    const tx = x(p);
+    s += `<line x1="${tx}" y1="${padT}" x2="${tx}" y2="${yBot}" stroke="${C.grid}" stroke-width="1" stroke-dasharray="2 4"/>`;
+    let label = '';
+    if (useReal) { label = fmtTick(times[0] + p*(times[times.length-1]-times[0])); }
+    else { const idx = Math.round(p*(sorted.length-1)); const e = sorted[idx]; label = `${e.date||''} ${e.time||''}`.trim(); }
+    s += `<text x="${tx}" y="${yBot+16}" font-size="9" text-anchor="middle" fill="${C.dim}" font-family="'JetBrains Mono',monospace">${escapeXml(label)}</text>`;
+  }
+
+  // connecting path per host (attack progression within a host)
+  hosts.forEach(h => {
+    const idxs = sorted.map((e,i)=>({e,i})).filter(o => (o.e.host||'Unassigned')===h);
+    if (idxs.length<2) return;
+    const pts = idxs.map(o => `${x(pos[o.i])},${laneY(h)}`).join(' ');
+    s += `<polyline points="${pts}" fill="none" stroke="${hostColor(h)}" stroke-width="1.5" stroke-opacity="0.35"/>`;
+  });
+
+  // event nodes
+  // track last x per host to stagger labels when nodes are close
+  const lastX = {};
+  sorted.forEach((e,i) => {
+    const host = e.host||'Unassigned';
+    const cx = x(pos[i]), cy = laneY(host);
+    const tac = eventTactic(e);
+    const col = tac ? tacticColor(tac) : hostColor(host);
+    const near = (lastX[host]!=null && Math.abs(cx-lastX[host]) < 46);
+    const yOff = near ? -26 : -13;   // lift label higher if crowding the previous node
+    lastX[host] = cx;
+    s += `<circle cx="${cx}" cy="${cy}" r="7" fill="${C.card}" stroke="${col}" stroke-width="3"/>`;
+    s += `<text x="${cx}" y="${cy+yOff}" font-size="8.5" text-anchor="middle" fill="${C.dim}" font-family="'JetBrains Mono',monospace">${escapeXml(e.time||'')}</text>`;
+    if (e.attack && e.attack.length){
+      s += `<text x="${cx}" y="${cy+20}" font-size="8.5" text-anchor="middle" fill="${col}" font-family="'JetBrains Mono',monospace" font-weight="600">${escapeXml(e.attack[0])}${e.attack.length>1?'+'+(e.attack.length-1):''}</text>`;
+    }
+    if (!forExport) s += `<title>${escapeXml((e.date||'')+' '+(e.time||'')+' · '+(e.host||'')+'\n'+(e.comment||''))}</title>`;
+  });
+
+  // tactic legend strip (below the axis, export only — on-screen uses HTML legend)
+  if (forExport){
+    const tacs = activeTactics();
+    if (tacs.length){
+      let cx2 = padL; const ly2 = yBot + 34;
+      s += `<g>`;
+      tacs.forEach(t => {
+        s += `<circle cx="${cx2+4}" cy="${ly2-3}" r="4" fill="${tacticColor(t)}"/>`;
+        s += `<text x="${cx2+13}" y="${ly2}" font-size="9" fill="${C.dim}">${escapeXml(t)}</text>`;
+        cx2 += 16 + t.length*5.4 + 14;
+      });
+      s += `</g>`;
+    }
+  }
+
+  s += `</svg>`;
+  return { svg:s, W, H };
+}
+function escapeXml(s){ return (s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function renderSwimlane(root) {
+  const { svg } = buildSwimlaneSVG({ forExport:false });
+  root.innerHTML = `<section class="card">
+    <div class="svg-scroll">${svg}</div>
+  </section>` + tacticLegendHtml();
+}
+
+// ============================================================
+// DENSITY  (when did activity happen — buckets over the incident window)
+// ============================================================
+function renderDensity(root) {
+  const sorted = sortEvents(state.events);
+  const times = sorted.map(evTime);
+  const haveAll = times.every(t=>t!=null) && sorted.length>1 && times[times.length-1]>times[0];
+  const hosts = distinctHosts();
+
+  if (!haveAll) {
+    root.innerHTML = `<section class="card"><div class="tl-empty">Density needs at least two events with valid, differing date-times. Add precise timestamps to see activity clustering.</div></section>`;
+    return;
+  }
+  const min = times[0], max = times[times.length-1], span = max-min;
+  const BUCKETS = Math.min(48, Math.max(12, sorted.length*2));
+  // per-host bucket counts
+  const grid = {}; hosts.forEach(h => grid[h] = new Array(BUCKETS).fill(0));
+  const totals = new Array(BUCKETS).fill(0);
+  sorted.forEach((e,i) => {
+    let b = Math.floor(((times[i]-min)/span)*BUCKETS);
+    if (b>=BUCKETS) b = BUCKETS-1; if (b<0) b=0;
+    grid[e.host||'Unassigned'][b]++; totals[b]++;
+  });
+  const maxCount = Math.max(...totals, 1);
+
+  const fmt = ms => { const d=new Date(ms); const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; };
+
+  // overall strip
+  let overallCells = '';
+  for (let b=0;b<BUCKETS;b++){
+    const intensity = totals[b]/maxCount;
+    overallCells += `<div class="dens-cell" style="--i:${intensity}" title="${totals[b]} event(s)"></div>`;
+  }
+
+  // per-host heat rows
+  let rows = hosts.map(h => {
+    const cells = grid[h].map(c => {
+      const intensity = c/maxCount;
+      return `<div class="dens-cell" style="--i:${intensity}" title="${c} event(s) on ${escapeHtml(h)}"></div>`;
+    }).join('');
+    return `<div class="dens-row">
+      <div class="dens-host"><span class="host-dot" style="background:${hostColor(h)}"></span>${escapeHtml(shortHost(h))}</div>
+      <div class="dens-track">${cells}</div>
+    </div>`;
+  }).join('');
+
+  root.innerHTML = `<section class="card">
+    <div class="card-title">Activity density</div>
+    <div class="card-sub">Each column is a time bucket across the incident window (${fmt(min)} → ${fmt(max)}). Darker = more events.</div>
+    <div class="dens-overall">
+      <div class="dens-host dim">ALL</div>
+      <div class="dens-track">${overallCells}</div>
+    </div>
+    <div class="dens-rows">${rows}</div>
+    <div class="dens-axis"><span>${fmt(min)}</span><span>${fmt(max)}</span></div>
+  </section>` + tacticLegendHtml();
+}
+
+// ============================================================
+// SVG EXPORT  (report-ready, theme-baked, self-contained)
+// ============================================================
+function exportSVG() {
+  if (!state.events.length) { showToast('Nothing to export'); return; }
+  const { svg } = buildSwimlaneSVG({ forExport:true });
+  const doc = `<?xml version="1.0" encoding="UTF-8"?>\n` + svg;
+  download(doc, `incident-timeline-swimlane-${dateSlug()}.svg`, 'image/svg+xml');
+  showToast('SVG exported');
+}
+
+// ============================================================
+// SAVE / LOAD / EXPORT
+// ============================================================
+function dateSlug() { return new Date().toISOString().split('T')[0]; }
+function download(content, filename, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function saveState() {
+  const payload = {
+    tool: 'incident-timeline-creator',
+    schema: 2,
+    generated: new Date().toISOString(),
+    view: state.view,
+    scope: state.scope,
+    spacing: state.spacing,
+    theme: document.documentElement.getAttribute('data-theme') || 'light',
+    events: state.events
+  };
+  download(JSON.stringify(payload, null, 2), `incident-timeline-${dateSlug()}.json`, 'application/json');
+  showToast('State saved');
+}
+
+function loadState(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (!data || !Array.isArray(data.events)) throw new Error('Not a timeline file');
+      // normalise
+      state.events = data.events.map(x => ({
+        id: x.id || ('ev_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)),
+        date: x.date || '', time: x.time || '',
+        host: x.host || 'Unassigned',
+        comment: x.comment || '',
+        attack: Array.isArray(x.attack) ? x.attack.map(baseTID) : []
+      }));
+      if (data.theme) setTheme(data.theme);
+      // migrate legacy view values (unified/host) -> card + scope
+      if (data.view === 'unified' || data.view === 'host') {
+        state.scope = data.view; setScope(data.view); setView('card');
+      } else {
+        if (data.scope) setScope(data.scope);
+        if (data.spacing) setSpacing(data.spacing);
+        setView(data.view || 'card');
+      }
+      render();
+      showToast(`Loaded ${state.events.length} events`);
+    } catch(err) {
+      showToast('Could not load — invalid file');
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function exportMarkdown() {
+  if (!state.events.length) { showToast('Nothing to export'); return; }
+  const hosts = distinctHosts();
+  let md = `# Incident Timeline\n\n_Generated ${new Date().toISOString()} · ${state.events.length} events across ${hosts.length} host(s)_\n\n`;
+  md += `## Unified timeline\n\n| Date | Time | Host | ATT&CK | Comments |\n|---|---|---|---|---|\n`;
+  sortEvents(state.events).forEach(ev => {
+    const atk = (ev.attack||[]).join(', ');
+    md += `| ${ev.date||''} | ${ev.time||''} | ${ev.host||''} | ${atk} | ${(ev.comment||'').replace(/\n/g,' / ').replace(/\|/g,'\\|')} |\n`;
+  });
+  md += `\n## Per-host breakdown\n`;
+  hosts.forEach(h => {
+    md += `\n### ${h}\n\n`;
+    sortEvents(state.events.filter(e=>(e.host||'Unassigned')===h)).forEach(ev => {
+      const atk = (ev.attack||[]).length ? ` _[${ev.attack.join(', ')}]_` : '';
+      md += `- **${ev.date||'—'} ${ev.time||''}** — ${(ev.comment||'').replace(/\n/g,' / ')}${atk}\n`;
+    });
+  });
+  // ATT&CK summary
+  const allTids = [...new Set(state.events.flatMap(e=>e.attack||[]))].sort();
+  if (allTids.length) {
+    md += `\n## ATT&CK techniques observed\n\n`;
+    allTids.forEach(tid => {
+      const info = TECH_LOOKUP[tid];
+      md += `- **${tid}** — ${info ? info.name : 'Unknown'}${info ? ` _(${info.tactics.join(', ')})_` : ''}\n`;
+    });
+  }
+  download(md, `incident-timeline-${dateSlug()}.md`, 'text/markdown');
+  showToast('Markdown exported');
+}
+
+function exportCSV() {
+  if (!state.events.length) { showToast('Nothing to export'); return; }
+  const rows = [['Date','Time','Host','ATT&CK','Comments']];
+  sortEvents(state.events).forEach(ev => {
+    rows.push([ev.date||'', ev.time||'', ev.host||'', (ev.attack||[]).join(' '), ev.comment||'']);
+  });
+  const csv = rows.map(r => r.map(c => {
+    const s = String(c);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+  }).join(',')).join('\n');
+  download(csv, `incident-timeline-${dateSlug()}.csv`, 'text/csv');
+  showToast('CSV exported');
+}
+
+function resetAll() {
+  if (!state.events.length || confirm('Clear all events? This cannot be undone (save first if needed).')) {
+    state.events = [];
+    editingId = null; pendingAttack = [];
+    document.getElementById('fComment').value = '';
+    document.getElementById('fTime').value = '';
+    document.getElementById('fHost').value = '';
+    document.querySelector('.entry-card .card-title').textContent = '＋ Add event';
+    document.querySelector('.entry-card .btn.primary').textContent = 'Add';
+    renderPendingAttack();
+    render();
+    showToast('Reset');
+  }
+}
+
+// ============================================================
+// THEME (matches dh-theme convention across the suite)
+// ============================================================
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('dh-theme', t); } catch(e) {}
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  setTheme(cur === 'light' ? 'dark' : 'light');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+(function init(){
+  let saved = null;
+  try { saved = localStorage.getItem('dh-theme'); } catch(e){}
+  if (saved) setTheme(saved);
+  else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) setTheme('dark');
+  else setTheme('light');
+
+  const np = nowParts();
+  document.getElementById('fDate').value = np.date;
+
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); addEvent(); }
+    if (e.key === 'Escape') closeAttackPicker();
+  });
+  document.getElementById('attackModal').addEventListener('click', e => {
+    if (e.target.id === 'attackModal') closeAttackPicker();
+  });
+
+  renderPendingAttack();
+  render();
+})();
+</script>
+
+</body>
+</html>
