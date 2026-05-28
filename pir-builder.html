@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Post-Incident Review Builder · Dan Howett</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fafaf7;
+  --bg-elev: #ffffff;
+  --bg-muted: #f4f4ef;
+  --bg-subtle: #efefe8;
+  --border: #e8e6df;
+  --border-strong: #d6d3c9;
+  --text: #1a1a1a;
+  --text-2: #3a3a36;
+  --text-dim: #6b6b66;
+  --text-muted: #9a9a92;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-soft: #eff4ff;
+  --accent-text: #1e40af;
+  --green: #16a34a;
+  --green-soft: #dcfce7;
+  --orange: #ea580c;
+  --orange-soft: #ffedd5;
+  --red: #dc2626;
+  --red-soft: #fee2e2;
+  --purple: #7c3aed;
+  --purple-soft: #ede9fe;
+  --yellow: #eab308;
+  --yellow-soft: #fef9c3;
+  --shadow-sm: 0 1px 2px rgba(15, 15, 15, 0.04);
+  --shadow: 0 1px 3px rgba(15, 15, 15, 0.06), 0 1px 2px rgba(15, 15, 15, 0.04);
+  --shadow-lg: 0 8px 24px rgba(15, 15, 15, 0.06), 0 2px 4px rgba(15, 15, 15, 0.04);
+}
+[data-theme="dark"] {
+  --bg: #0e0f10;
+  --bg-elev: #18191b;
+  --bg-muted: #1d1e20;
+  --bg-subtle: #232528;
+  --border: #2a2c2f;
+  --border-strong: #3a3d40;
+  --text: #f0f0ee;
+  --text-2: #d6d6d2;
+  --text-dim: #8b8b85;
+  --text-muted: #5e5e58;
+  --accent: #60a5fa;
+  --accent-hover: #93c5fd;
+  --accent-soft: rgba(96, 165, 250, 0.12);
+  --accent-text: #93c5fd;
+  --green: #4ade80;
+  --green-soft: rgba(74, 222, 128, 0.16);
+  --orange: #fb923c;
+  --orange-soft: rgba(251, 146, 60, 0.16);
+  --red: #f87171;
+  --red-soft: rgba(248, 113, 113, 0.16);
+  --purple: #a78bfa;
+  --purple-soft: rgba(167, 139, 250, 0.16);
+  --yellow: #facc15;
+  --yellow-soft: rgba(250, 204, 21, 0.16);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01", "cv11";
+  letter-spacing: -0.005em;
+  transition: background 0.2s, color 0.2s;
+}
+.mono { font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace; }
+.serif { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-weight: 400; }
+a { color: inherit; text-decoration: none; }
+
+/* HEADER */
+header.site {
+  border-bottom: 1px solid var(--border);
+  background: rgba(250, 250, 247, 0.85);
+  backdrop-filter: saturate(180%) blur(10px);
+  -webkit-backdrop-filter: saturate(180%) blur(10px);
+  position: sticky; top: 0; z-index: 50;
+}
+[data-theme="dark"] header.site { background: rgba(14, 15, 16, 0.85); }
+.site-inner {
+  max-width: 1400px; margin: 0 auto; padding: 14px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.brand-link {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; font-weight: 600; color: var(--text);
+}
+.brand-mark {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 12px;
+}
+.brand-name .slash { color: var(--text-muted); margin: 0 5px; font-weight: 400; }
+.brand-name .second { color: var(--text-dim); font-weight: 500; }
+.site-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.btn {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  padding: 7px 12px; border-radius: 7px;
+  font-size: 12px; font-family: inherit; font-weight: 500;
+  cursor: pointer; transition: all 0.15s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn:hover { background: var(--bg-muted); border-color: var(--border-strong); }
+.btn.primary {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+}
+.btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn.ghost { background: transparent; }
+.btn.danger { color: var(--red); border-color: var(--border); }
+.btn.danger:hover { background: var(--red-soft); border-color: var(--red); }
+.btn.sm { padding: 5px 10px; font-size: 11px; }
+.theme-toggle {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-dim); width: 32px; height: 32px;
+  border-radius: 8px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.theme-toggle:hover { background: var(--bg-muted); color: var(--text); }
+.theme-toggle svg { width: 15px; height: 15px; }
+.sun-icon { display: none; }
+.moon-icon { display: block; }
+[data-theme="dark"] .sun-icon { display: block; }
+[data-theme="dark"] .moon-icon { display: none; }
+
+/* MAIN */
+main {
+  max-width: 1400px; margin: 0 auto;
+  padding: 32px 28px 80px;
+}
+
+/* HERO BLOCK */
+.page-hero {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 24px; margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.page-hero-text { flex: 1; min-width: 280px; }
+.eyebrow {
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); letter-spacing: 0.05em;
+  text-transform: uppercase; margin-bottom: 10px;
+}
+h1.page-title {
+  font-size: 30px; line-height: 1.1; letter-spacing: -0.025em;
+  font-weight: 700; margin-bottom: 8px;
+}
+h1.page-title .accent {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic; font-weight: 400; color: var(--accent);
+  letter-spacing: -0.01em;
+}
+.page-lead {
+  font-size: 14.5px; color: var(--text-dim);
+  max-width: 720px; line-height: 1.55;
+}
+
+/* DISCLAIMER PILL */
+.disclaimer-pill {
+  font-size: 11.5px; color: var(--text-dim);
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--orange-soft);
+  border: 1px solid var(--orange);
+  padding: 5px 12px; border-radius: 999px;
+  margin-bottom: 18px;
+  font-weight: 500;
+}
+.disclaimer-pill::before {
+  content: "!"; width: 16px; height: 16px;
+  background: var(--orange); color: #fff;
+  border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 10px; font-weight: 700;
+}
+[data-theme="dark"] .disclaimer-pill { color: var(--text-2); }
+
+/* CARDS / PANELS */
+.card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.card-title {
+  font-size: 13px; font-weight: 700; letter-spacing: -0.01em;
+  display: flex; align-items: center; gap: 8px; margin-bottom: 4px;
+}
+.card-sub {
+  font-size: 12px; color: var(--text-dim); margin-bottom: 14px;
+}
+
+/* LAYOUT: form + preview */
+.pir-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+.pir-form { min-width: 0; }
+.pir-preview-wrap { position: sticky; top: 84px; }
+
+/* SECTION CARDS */
+.sec { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 14px; box-shadow: var(--shadow-sm); overflow: hidden; }
+.sec-head { display: flex; align-items: center; gap: 10px; padding: 13px 16px; cursor: pointer; user-select: none; }
+.sec-head:hover { background: var(--bg-muted); }
+.sec-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent); width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex: none; }
+.sec-title { font-size: 13.5px; font-weight: 700; flex: 1; }
+.sec-opt { font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.sec-chev { color: var(--text-muted); transition: transform 0.2s; font-size: 12px; }
+.sec.collapsed .sec-chev { transform: rotate(-90deg); }
+.sec-body { padding: 0 16px 16px; }
+.sec.collapsed .sec-body { display: none; }
+
+.fld { margin-bottom: 12px; }
+.fld:last-child { margin-bottom: 0; }
+.fld label { display: block; font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-dim); margin-bottom: 5px; }
+.fld label .opt { text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--text-muted); }
+.fld input, .fld select, .fld textarea { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 13px; font-family: inherit; transition: border-color 0.15s, box-shadow 0.15s; }
+.fld input:focus, .fld select:focus, .fld textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.fld input.mono, .fld select.mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.fld textarea { resize: vertical; min-height: 64px; line-height: 1.5; font-family: inherit; }
+.fld-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.fld-row.three { grid-template-columns: 1fr 1fr 1fr; }
+
+/* REPEATABLE ITEM LISTS */
+.items { display: flex; flex-direction: column; gap: 8px; }
+.item-row { display: flex; gap: 8px; align-items: flex-start; }
+.item-row textarea, .item-row input { flex: 1; }
+.item-del { background: transparent; border: 1px solid var(--border); color: var(--text-muted); width: 30px; height: 34px; flex: none; border-radius: 7px; cursor: pointer; font-size: 14px; transition: all 0.15s; }
+.item-del:hover { background: var(--red-soft); color: var(--red); border-color: var(--red); }
+.add-item { background: var(--bg-muted); border: 1px dashed var(--border-strong); color: var(--text-dim); padding: 6px 12px; border-radius: 8px; font-size: 11.5px; font-family: inherit; cursor: pointer; align-self: flex-start; margin-top: 4px; transition: all 0.15s; }
+.add-item:hover { color: var(--accent); border-color: var(--accent); }
+
+/* FRAMING TOGGLE */
+.framing-seg { display: inline-flex; background: var(--bg-muted); border: 1px solid var(--border); border-radius: 9px; padding: 3px; gap: 2px; margin-bottom: 12px; flex-wrap: wrap; }
+.framing-seg button { background: transparent; border: none; color: var(--text-dim); padding: 6px 12px; border-radius: 7px; font-size: 11.5px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.15s; }
+.framing-seg button.active { background: var(--bg-elev); color: var(--text); box-shadow: var(--shadow-sm); }
+.reflect-col { margin-bottom: 14px; }
+.reflect-col > .col-label { font-size: 11.5px; font-weight: 700; margin-bottom: 7px; display: flex; align-items: center; gap: 7px; }
+.col-dot { width: 9px; height: 9px; border-radius: 50%; }
+
+/* ACTION ITEMS TABLE */
+.act-mini { display: flex; flex-direction: column; gap: 8px; }
+.act-mini-row { display: grid; grid-template-columns: 2fr 1fr 110px 130px 30px; gap: 8px; align-items: center; }
+.act-mini-row input, .act-mini-row select { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 7px; padding: 7px 9px; font-size: 12px; font-family: inherit; width: 100%; }
+.act-mini-head { display: grid; grid-template-columns: 2fr 1fr 110px 130px 30px; gap: 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; padding: 0 2px; }
+
+/* METRICS */
+.metrics-strip { display: flex; gap: 10px; flex-wrap: wrap; }
+.metric-box { flex: 1; min-width: 110px; background: var(--bg); border: 1px solid var(--border); border-radius: 9px; padding: 10px 12px; }
+.metric-box .mv { font-size: 18px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.metric-box .ml { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+.metric-auto { font-size: 10px; color: var(--accent); margin-top: 2px; }
+
+/* PREVIEW */
+.preview { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-sm); max-height: calc(100vh - 120px); overflow-y: auto; }
+.preview-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg-elev); z-index: 2; }
+.preview-head .pt { font-size: 11px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); font-weight: 600; }
+.doc { padding: 22px 26px; font-size: 13.5px; line-height: 1.6; color: var(--text-2); }
+.doc h1 { font-size: 22px; color: var(--text); margin-bottom: 4px; letter-spacing: -0.02em; }
+.doc .doc-meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); margin-bottom: 18px; }
+.doc h2 { font-size: 14px; color: var(--text); margin: 20px 0 8px; padding-bottom: 5px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+.doc h2 .h2n { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); }
+.doc h3 { font-size: 12.5px; color: var(--text); margin: 12px 0 5px; }
+.doc p { margin-bottom: 8px; }
+.doc ul { margin: 4px 0 10px; padding-left: 20px; }
+.doc li { margin-bottom: 4px; }
+.doc .empty-note { color: var(--text-muted); font-style: italic; font-size: 12px; }
+.doc .pill { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 999px; border: 1px solid currentColor; margin-right: 5px; }
+.doc table.mtable { width: 100%; border-collapse: collapse; font-size: 12px; margin: 6px 0 10px; }
+.doc table.mtable th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; padding: 5px 8px; border-bottom: 1px solid var(--border); }
+.doc table.mtable td { padding: 5px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.sev-1,.sev-critical { color: var(--red); } .sev-2,.sev-high { color: var(--orange); }
+.sev-3,.sev-medium { color: var(--yellow); } .sev-4,.sev-low { color: var(--text-dim); }
+
+/* TOAST */
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 8px; font-size: 12.5px; font-weight: 500; z-index: 300; opacity: 0; transform: translateY(8px); transition: opacity 0.2s, transform 0.2s; pointer-events: none; box-shadow: var(--shadow-lg); }
+.toast.show { opacity: 1; transform: translateY(0); }
+.muted { color: var(--text-muted); } .dim { color: var(--text-dim); }
+
+/* RESPONSIVE */
+@media (max-width: 1000px) {
+  .pir-layout { grid-template-columns: 1fr; }
+  .pir-preview-wrap { position: static; }
+  .preview { max-height: none; }
+  .act-mini-row, .act-mini-head { grid-template-columns: 1fr 1fr; }
+  .act-mini-head { display: none; }
+}
+
+/* PRINT — preview only */
+@media print {
+  header.site, .pir-form, .view-bar, .theme-toggle, .btn, .preview-head { display: none !important; }
+  .pir-layout { display: block; }
+  .preview { border: none; box-shadow: none; max-height: none; overflow: visible; }
+  body { background: white; color: black; }
+  .doc { color: black; }
+  main { max-width: 100%; padding: 0; }
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 6px; border: 2px solid var(--bg); }
+</style>
+</head>
+<body>
+<header class="site">
+  <div class="site-inner">
+    <a href="/useful/" class="brand-link">
+      <div class="brand-mark">DH</div>
+      <div class="brand-name">Dan Howett <span class="slash">/</span><span class="second">PIR Builder</span></div>
+    </a>
+    <div class="site-meta">
+      <button class="btn ghost sm" onclick="saveState()" title="Save PIR state as JSON">SAVE JSON</button>
+      <button class="btn ghost sm" onclick="document.getElementById('loadFile').click()" title="Load a saved PIR">LOAD</button>
+      <button class="btn ghost sm" onclick="exportMarkdown()" title="Export PIR as Markdown">MARKDOWN</button>
+      <button class="btn ghost sm" onclick="exportActionsCSV()" title="Export action items as CSV (Action Tracker compatible)">ACTIONS CSV</button>
+      <button class="btn ghost sm" onclick="window.print()" title="Print / save PDF">PDF</button>
+      <button class="btn danger sm" onclick="resetAll()">RESET</button>
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+        <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+<input type="file" id="loadFile" accept="application/json,.json" style="display:none" onchange="loadState(event)">
+
+<main>
+  <div class="page-hero">
+    <div class="page-hero-text">
+      <div class="eyebrow">Incident Response · DFIR · Post-Incident Review</div>
+      <h1 class="page-title">Close the loop with a <span class="accent">blameless review</span>.</h1>
+      <p class="page-lead">
+        A guided post-incident review builder — work through summary, impact, timeline, reflection, root cause,
+        and lessons, and watch a clean report assemble live alongside. Reflection uses your choice of blameless
+        framing. Lessons become owned, prioritised action items you can export straight into the Action Tracker.
+        Metrics auto-calculate from your dates. Everything stays in your browser.
+      </p>
+    </div>
+  </div>
+
+  <div class="disclaimer-pill">Proof of concept only · Use at your own risk · A blameless review aid, not a formal compliance record</div>
+
+  <div class="pir-layout">
+    <!-- ============ FORM ============ -->
+    <div class="pir-form" id="pirForm">
+
+      <!-- 1 SUMMARY -->
+      <div class="sec" data-sec="summary">
+        <div class="sec-head" onclick="toggleSec('summary')"><span class="sec-num">1</span><span class="sec-title">Incident summary</span><span class="sec-chev">▾</span></div>
+        <div class="sec-body">
+          <div class="fld"><label>Incident title</label><input type="text" id="f_title" oninput="sync()" placeholder="Ransomware on finance file share"></div>
+          <div class="fld-row">
+            <div class="fld"><label>Reference / ID</label><input type="text" id="f_ref" class="mono" oninput="sync()" placeholder="INC-2026-0042"></div>
+            <div class="fld"><label>Severity</label><select id="f_sev" class="mono" onchange="sync()"><option value="">—</option><option>SEV1 — Critical</option><option>SEV2 — High</option><option>SEV3 — Medium</option><option>SEV4 — Low</option></select></div>
+          </div>
+          <div class="fld"><label>Incident type</label><input type="text" id="f_type" oninput="sync()" placeholder="Ransomware / BEC / data breach / DoS / insider"></div>
+          <div class="fld-row three">
+            <div class="fld"><label>Detected <span class="opt">(date/time)</span></label><input type="datetime-local" id="f_detected" class="mono" onchange="sync()"></div>
+            <div class="fld"><label>Contained</label><input type="datetime-local" id="f_contained" class="mono" onchange="sync()"></div>
+            <div class="fld"><label>Resolved</label><input type="datetime-local" id="f_resolved" class="mono" onchange="sync()"></div>
+          </div>
+          <div class="fld"><label>Executive summary</label><textarea id="f_summary" oninput="sync()" placeholder="One paragraph a leader could read: what happened, scope, current state."></textarea></div>
+          <div class="fld-row">
+            <div class="fld"><label>Author</label><input type="text" id="f_author" oninput="sync()" placeholder="J. Doe, IR Lead"></div>
+            <div class="fld"><label>Review date</label><input type="date" id="f_reviewdate" class="mono" onchange="sync()"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2 IMPACT -->
+      <div class="sec" data-sec="impact">
+        <div class="sec-head" onclick="toggleSec('impact')"><span class="sec-num">2</span><span class="sec-title">Impact</span><span class="sec-chev">▾</span></div>
+        <div class="sec-body">
+          <div class="fld"><label>Systems / data affected</label><textarea id="f_affected" oninput="sync()" placeholder="Finance file server, 3 workstations, ~12k documents (no evidence of exfiltration)."></textarea></div>
+          <div class="fld"><label>Business impact</label><textarea id="f_bizimpact" oninput="sync()" placeholder="Finance team offline ~6h; month-end close delayed 1 day."></textarea></div>
+          <div class="fld-row">
+            <div class="fld"><label>Downtime <span class="opt">(if any)</span></label><input type="text" id="f_downtime" oninput="sync()" placeholder="~6 hours"></div>
+            <div class="fld"><label>Notifications made <span class="opt">(regulator/customer)</span></label><input type="text" id="f_notifs" oninput="sync()" placeholder="ICO notified within 72h; no customer notice required"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3 TIMELINE -->
+      <div class="sec" data-sec="timeline">
+        <div class="sec-head" onclick="toggleSec('timeline')"><span class="sec-num">3</span><span class="sec-title">Key event timeline</span><span class="sec-opt">milestones</span><span class="sec-chev">▾</span></div>
+        <div class="sec-body">
+          <div class="items" id="timelineItems"></div>
+          <button class="add-item" onclick="addTimeline()">+ Add milestone</button>
+        </div>
+      </div>
+
+      <!-- 4 REFLECTION -->
+      <div class="sec" data-sec="reflection">
+        <div class="sec-head" onclick="toggleSec('reflection')"><span class="sec-num">4</span><span class="sec-title">Reflection</span><span class="sec-opt">blameless</span><span class="sec-chev">▾</span></div>
+        <div class="sec-body">
+          <div class="framing-seg" id="framingSeg">
+            <button class="active" onclick="setFraming('wld')">Went well / Didn't / Lucky</button>
+            <button onclick="setFraming('css')">Continue / Stop / Start</button>
+            <button onclick="setFraming('wi')">Well / Improve</button>
+          </div>
+          <div id="reflectCols"></div>
+        </div>
+      </div>
+
+      <!-- 5 ROOT CAUSE -->
+      <div class="sec" data-sec="rootcause">
+        <div class="sec-head" onclick="toggleSec('rootcause')"><span class="sec-num">5</span><span class="sec-title">Root cause &amp; contributing factors</span><span class="sec-chev">▾</span></div>
+        <div class="sec-body">
+          <div class="fld"><label>Root cause</label><textarea id="f_rootcause" oninput="sync()" placeholder="Initial access via phishing link; macro executed; no MFA on VPN allowed lateral movement."></textarea></div>
+          <div class="fld"><label>Contributing factors</label><textarea id="f_contributing" oninput="sync()" placeholder="Unpatched endpoint; backup not segmented; alert fatigue delayed triage."></textarea></div>
+        </div>
+      </div>
+
+      <!-- 6 LESSONS + ACTIONS -->
+      <div class="sec" data-sec="lessons">
+        <div class="sec-head" onclick="toggleSec('lessons')"><span class="sec-num">6</span><span class="sec-title">Lessons learned &amp; action items</span><span class="sec-chev">▾</span></div>
+        <div class="sec-body">
+          <div class="fld">
+            <label>Lessons learned</label>
+            <div class="items" id="lessonItems"></div>
+            <button class="add-item" onclick="addLesson()">+ Add lesson</button>
+          </div>
+          <div class="fld" style="margin-top:16px">
+            <label>Action items <span class="opt">(owned follow-ups — exportable to Action Tracker)</span></label>
+            <div class="act-mini-head"><span>Action</span><span>Owner</span><span>Priority</span><span>Due</span><span></span></div>
+            <div class="act-mini" id="actionItems"></div>
+            <button class="add-item" onclick="addAction()">+ Add action item</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7 METRICS -->
+      <div class="sec" data-sec="metrics">
+        <div class="sec-head" onclick="toggleSec('metrics')"><span class="sec-num">7</span><span class="sec-title">Metrics</span><span class="sec-opt">optional</span><span class="sec-chev">▾</span></div>
+        <div class="sec-body">
+          <p class="dim" style="font-size:11.5px;margin-bottom:12px;font-family:'JetBrains Mono',monospace">Auto-calculated from section 1 dates where possible — override by typing.</p>
+          <div class="metrics-strip">
+            <div class="metric-box"><label class="dim" style="font-size:10px">MTTD <span class="opt">detect</span></label><input type="text" id="f_mttd" class="mono" oninput="sync()" placeholder="—" style="border:none;background:transparent;padding:4px 0;font-size:16px;font-weight:700"></div>
+            <div class="metric-box"><label class="dim" style="font-size:10px">Time to contain</label><input type="text" id="f_mttc" class="mono" oninput="sync()" placeholder="auto" style="border:none;background:transparent;padding:4px 0;font-size:16px;font-weight:700"></div>
+            <div class="metric-box"><label class="dim" style="font-size:10px">Time to resolve</label><input type="text" id="f_mttr" class="mono" oninput="sync()" placeholder="auto" style="border:none;background:transparent;padding:4px 0;font-size:16px;font-weight:700"></div>
+          </div>
+          <div class="fld" style="margin-top:12px"><label>Other metrics / notes <span class="opt">(optional)</span></label><textarea id="f_metricnotes" oninput="sync()" placeholder="Dwell time, # endpoints reimaged, cost estimate…"></textarea></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ PREVIEW ============ -->
+    <div class="pir-preview-wrap">
+      <div class="preview">
+        <div class="preview-head"><span class="pt">Live preview</span><button class="btn ghost sm" onclick="exportMarkdown()">Export ↓</button></div>
+        <div class="doc" id="doc"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// Post-Incident Review Builder · Dan Howett — client-side only
+// ============================================================
+const FRAMINGS = {
+  wld: { label:'Went well / Didn\u2019t / Lucky', cols:[
+    {key:'well',  title:'What went well',  color:'#16a34a'},
+    {key:'badly', title:'What didn\u2019t go well', color:'#dc2626'},
+    {key:'lucky', title:'Where we got lucky', color:'#ea580c'} ] },
+  css: { label:'Continue / Stop / Start', cols:[
+    {key:'continue', title:'Continue', color:'#16a34a'},
+    {key:'stop',     title:'Stop',     color:'#dc2626'},
+    {key:'start',    title:'Start',    color:'#2563eb'} ] },
+  wi: { label:'Well / Improve', cols:[
+    {key:'well',    title:'What went well',  color:'#16a34a'},
+    {key:'improve', title:'What to improve', color:'#ea580c'} ] },
+};
+const PRIORITIES = ['Critical','High','Medium','Low'];
+
+let state = {
+  // section 1
+  title:'', ref:'', sev:'', type:'', detected:'', contained:'', resolved:'',
+  summary:'', author:'', reviewdate:'',
+  // section 2
+  affected:'', bizimpact:'', downtime:'', notifs:'',
+  // section 3
+  timeline:[],   // [{when, what}]
+  // section 4
+  framing:'wld',
+  reflect:{},    // { colKey: [strings] }
+  // section 5
+  rootcause:'', contributing:'',
+  // section 6
+  lessons:[],    // [string]
+  actions:[],    // [{text, owner, priority, due}]
+  // section 7
+  mttd:'', mttc:'', mttr:'', metricnotes:'',
+  // meta
+  collapsed:{}, theme:null
+};
+
+function esc(s){ return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escAttr(s){ return esc(s); }
+function id(x){ return document.getElementById(x); }
+
+// ---------- collapse ----------
+function toggleSec(name){
+  const el=document.querySelector(`.sec[data-sec="${name}"]`);
+  el.classList.toggle('collapsed');
+  state.collapsed[name]=el.classList.contains('collapsed');
+}
+
+// ---------- pull simple fields from DOM ----------
+const SIMPLE = ['title','ref','sev','type','detected','contained','resolved','summary','author','reviewdate',
+  'affected','bizimpact','downtime','notifs','rootcause','contributing','mttd','mttc','mttr','metricnotes'];
+function pull(){ SIMPLE.forEach(k=>{ const el=id('f_'+k); if(el) state[k]=el.value; }); }
+
+// ---------- duration calc ----------
+function durBetween(a,b){
+  if(!a||!b) return '';
+  const t1=Date.parse(a), t2=Date.parse(b);
+  if(isNaN(t1)||isNaN(t2)||t2<t1) return '';
+  let mins=Math.round((t2-t1)/60000);
+  const d=Math.floor(mins/1440); mins-=d*1440;
+  const h=Math.floor(mins/60); const m=mins-h*60;
+  const parts=[]; if(d)parts.push(d+'d'); if(h)parts.push(h+'h'); if(m||!parts.length)parts.push(m+'m');
+  return parts.join(' ');
+}
+function autoMetrics(){
+  // MTTC = detected->contained, MTTR = detected->resolved (only if user hasn't typed override)
+  const c=durBetween(state.detected,state.contained);
+  const r=durBetween(state.detected,state.resolved);
+  return {c,r};
+}
+
+// ---------- repeatable: timeline ----------
+function addTimeline(when,what){ state.timeline.push({when:when||'',what:what||''}); renderTimeline(); sync(); }
+function renderTimeline(){
+  const root=id('timelineItems');
+  root.innerHTML = state.timeline.map((t,i)=>`
+    <div class="item-row">
+      <input type="text" class="mono" style="max-width:160px" value="${escAttr(t.when)}" placeholder="2026-05-20 09:15" oninput="state.timeline[${i}].when=this.value; sync()">
+      <input type="text" value="${escAttr(t.what)}" placeholder="Detection — EDR alert on WS-FIN-04" oninput="state.timeline[${i}].what=this.value; sync()">
+      <button class="item-del" onclick="state.timeline.splice(${i},1); renderTimeline(); sync()">×</button>
+    </div>`).join('') || '<p class="dim" style="font-size:12px">No milestones yet.</p>';
+}
+
+// ---------- repeatable: reflection ----------
+function setFraming(f){
+  state.framing=f;
+  document.querySelectorAll('#framingSeg button').forEach((b,i)=>b.classList.toggle('active', Object.keys(FRAMINGS)[i]===f));
+  renderReflect(); sync();
+}
+function renderReflect(){
+  const fr=FRAMINGS[state.framing];
+  const root=id('reflectCols');
+  root.innerHTML = fr.cols.map(col=>{
+    const arr=state.reflect[col.key]||[];
+    const rows=arr.map((v,i)=>`
+      <div class="item-row">
+        <textarea oninput="state.reflect['${col.key}'][${i}]=this.value; sync()" style="min-height:38px">${esc(v)}</textarea>
+        <button class="item-del" onclick="state.reflect['${col.key}'].splice(${i},1); renderReflect(); sync()">×</button>
+      </div>`).join('');
+    return `<div class="reflect-col">
+      <div class="col-label"><span class="col-dot" style="background:${col.color}"></span>${col.title}</div>
+      <div class="items">${rows||''}</div>
+      <button class="add-item" onclick="(state.reflect['${col.key}']=state.reflect['${col.key}']||[]).push(''); renderReflect(); sync()">+ Add</button>
+    </div>`;
+  }).join('');
+}
+
+// ---------- repeatable: lessons ----------
+function addLesson(v){ state.lessons.push(v||''); renderLessons(); sync(); }
+function renderLessons(){
+  const root=id('lessonItems');
+  root.innerHTML = state.lessons.map((l,i)=>`
+    <div class="item-row">
+      <textarea style="min-height:38px" oninput="state.lessons[${i}]=this.value; sync()" placeholder="Enforce MFA on all remote access">${esc(l)}</textarea>
+      <button class="item-del" onclick="state.lessons.splice(${i},1); renderLessons(); sync()">×</button>
+    </div>`).join('') || '<p class="dim" style="font-size:12px">No lessons captured yet.</p>';
+}
+
+// ---------- repeatable: action items ----------
+function addAction(a){ state.actions.push(a||{text:'',owner:'',priority:'Medium',due:''}); renderActions(); sync(); }
+function renderActions(){
+  const root=id('actionItems');
+  root.innerHTML = state.actions.map((a,i)=>`
+    <div class="act-mini-row">
+      <input type="text" value="${escAttr(a.text)}" placeholder="Roll out MFA to VPN" oninput="state.actions[${i}].text=this.value; sync()">
+      <input type="text" value="${escAttr(a.owner)}" placeholder="IT" oninput="state.actions[${i}].owner=this.value; sync()">
+      <select onchange="state.actions[${i}].priority=this.value; sync()">${PRIORITIES.map(p=>`<option ${a.priority===p?'selected':''}>${p}</option>`).join('')}</select>
+      <input type="date" class="mono" value="${escAttr(a.due)}" onchange="state.actions[${i}].due=this.value; sync()">
+      <button class="item-del" onclick="state.actions.splice(${i},1); renderActions(); sync()">×</button>
+    </div>`).join('') || '<p class="dim" style="font-size:12px">No action items yet.</p>';
+}
+
+// ---------- live preview ----------
+function sevClass(s){ const m=(s||'').match(/SEV(\d)/); return m?('sev-'+m[1]):''; }
+function ml(arr){ return (arr&&arr.length)? '<ul>'+arr.filter(x=>x&&x.trim()).map(x=>`<li>${esc(x)}</li>`).join('')+'</ul>' : ''; }
+
+function buildDoc(){
+  pull();
+  const am=autoMetrics();
+  const mttc = state.mttc || am.c;
+  const mttr = state.mttr || am.r;
+  let h='';
+  h+=`<h1>${esc(state.title)||'Untitled incident review'}</h1>`;
+  const metabits=[state.ref, state.author?('by '+state.author):'', state.reviewdate].filter(Boolean);
+  h+=`<div class="doc-meta">${metabits.map(esc).join(' · ')||'Post-incident review'}</div>`;
+
+  // 1 summary
+  h+=`<h2><span class="h2n">1</span> Incident summary</h2>`;
+  const facts=[];
+  if(state.sev) facts.push(`<span class="pill ${sevClass(state.sev)}">${esc(state.sev)}</span>`);
+  if(state.type) facts.push(esc(state.type));
+  if(facts.length) h+=`<p>${facts.join(' ')}</p>`;
+  const dts=[]; if(state.detected)dts.push('Detected '+esc(fmtDT(state.detected))); if(state.contained)dts.push('Contained '+esc(fmtDT(state.contained))); if(state.resolved)dts.push('Resolved '+esc(fmtDT(state.resolved)));
+  if(dts.length) h+=`<p class="dim" style="font-family:'JetBrains Mono',monospace;font-size:11px">${dts.join(' → ')}</p>`;
+  h+= state.summary? `<p>${esc(state.summary)}</p>` : `<p class="empty-note">No executive summary yet.</p>`;
+
+  // 2 impact
+  h+=`<h2><span class="h2n">2</span> Impact</h2>`;
+  if(state.affected) h+=`<h3>Systems / data affected</h3><p>${esc(state.affected)}</p>`;
+  if(state.bizimpact) h+=`<h3>Business impact</h3><p>${esc(state.bizimpact)}</p>`;
+  const imp=[]; if(state.downtime)imp.push('Downtime: '+esc(state.downtime)); if(state.notifs)imp.push('Notifications: '+esc(state.notifs));
+  if(imp.length) h+=`<p>${imp.join(' · ')}</p>`;
+  if(!state.affected&&!state.bizimpact&&!imp.length) h+=`<p class="empty-note">No impact recorded yet.</p>`;
+
+  // 3 timeline
+  h+=`<h2><span class="h2n">3</span> Key event timeline</h2>`;
+  const tl=state.timeline.filter(t=>t.when||t.what);
+  if(tl.length){
+    h+=`<table class="mtable"><thead><tr><th>When</th><th>Event</th></tr></thead><tbody>`;
+    h+=tl.map(t=>`<tr><td class="mono">${esc(t.when)}</td><td>${esc(t.what)}</td></tr>`).join('');
+    h+=`</tbody></table>`;
+  } else h+=`<p class="empty-note">No milestones added.</p>`;
+
+  // 4 reflection
+  const fr=FRAMINGS[state.framing];
+  h+=`<h2><span class="h2n">4</span> Reflection <span class="dim" style="font-size:11px;font-weight:400">(${esc(fr.label)})</span></h2>`;
+  let anyR=false;
+  fr.cols.forEach(col=>{ const arr=(state.reflect[col.key]||[]).filter(x=>x&&x.trim()); if(arr.length){ anyR=true; h+=`<h3 style="color:${col.color}">${col.title}</h3>${ml(arr)}`; } });
+  if(!anyR) h+=`<p class="empty-note">No reflections captured.</p>`;
+
+  // 5 root cause
+  h+=`<h2><span class="h2n">5</span> Root cause &amp; contributing factors</h2>`;
+  if(state.rootcause) h+=`<h3>Root cause</h3><p>${esc(state.rootcause)}</p>`;
+  if(state.contributing) h+=`<h3>Contributing factors</h3><p>${esc(state.contributing)}</p>`;
+  if(!state.rootcause&&!state.contributing) h+=`<p class="empty-note">Not yet determined.</p>`;
+
+  // 6 lessons + actions
+  h+=`<h2><span class="h2n">6</span> Lessons learned &amp; actions</h2>`;
+  const lessons=state.lessons.filter(l=>l&&l.trim());
+  if(lessons.length){ h+=`<h3>Lessons</h3>${ml(lessons)}`; } else h+=`<p class="empty-note">No lessons captured.</p>`;
+  const acts=state.actions.filter(a=>a.text&&a.text.trim());
+  if(acts.length){
+    h+=`<h3>Action items</h3><table class="mtable"><thead><tr><th>Action</th><th>Owner</th><th>Priority</th><th>Due</th></tr></thead><tbody>`;
+    h+=acts.map(a=>`<tr><td>${esc(a.text)}</td><td>${esc(a.owner)}</td><td><span class="pill sev-${(a.priority||'').toLowerCase()}">${esc(a.priority)}</span></td><td class="mono">${esc(a.due)}</td></tr>`).join('');
+    h+=`</tbody></table>`;
+  }
+
+  // 7 metrics
+  if(mttc||mttr||state.mttd||state.metricnotes){
+    h+=`<h2><span class="h2n">7</span> Metrics</h2>`;
+    const mx=[]; if(state.mttd)mx.push(`MTTD ${esc(state.mttd)}`); if(mttc)mx.push(`Time to contain ${esc(mttc)}`); if(mttr)mx.push(`Time to resolve ${esc(mttr)}`);
+    if(mx.length) h+=`<p>${mx.map(m=>`<span class="pill">${m}</span>`).join(' ')}</p>`;
+    if(state.metricnotes) h+=`<p>${esc(state.metricnotes)}</p>`;
+  }
+  return h;
+}
+function fmtDT(v){ if(!v) return ''; return v.replace('T',' '); }
+
+function sync(){
+  pull();
+  // reflect auto-metric placeholders into the metric boxes (show computed if empty)
+  const am=autoMetrics();
+  const mttcEl=id('f_mttc'), mttrEl=id('f_mttr');
+  if(mttcEl && !mttcEl.value) mttcEl.placeholder = am.c || 'auto';
+  if(mttrEl && !mttrEl.value) mttrEl.placeholder = am.r || 'auto';
+  id('doc').innerHTML = buildDoc();
+}
+
+// ---------- exports ----------
+function dateSlug(){ return new Date().toISOString().split('T')[0]; }
+function download(content,filename,mime){ const b=new Blob([content],{type:mime}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(u),1000); }
+
+function exportMarkdown(){
+  pull();
+  const am=autoMetrics(); const mttc=state.mttc||am.c, mttr=state.mttr||am.r;
+  const fr=FRAMINGS[state.framing];
+  let m=`# Post-Incident Review: ${state.title||'Untitled'}\n\n`;
+  const meta=[state.ref, state.author?('Author: '+state.author):'', state.reviewdate?('Review date: '+state.reviewdate):''].filter(Boolean);
+  if(meta.length) m+=`_${meta.join(' · ')}_\n\n`;
+  m+=`## 1. Incident summary\n\n`;
+  if(state.sev) m+=`- **Severity:** ${state.sev}\n`;
+  if(state.type) m+=`- **Type:** ${state.type}\n`;
+  if(state.detected) m+=`- **Detected:** ${fmtDT(state.detected)}\n`;
+  if(state.contained) m+=`- **Contained:** ${fmtDT(state.contained)}\n`;
+  if(state.resolved) m+=`- **Resolved:** ${fmtDT(state.resolved)}\n`;
+  m+=`\n${state.summary||'_No summary._'}\n\n`;
+  m+=`## 2. Impact\n\n`;
+  if(state.affected) m+=`**Systems / data affected:** ${state.affected}\n\n`;
+  if(state.bizimpact) m+=`**Business impact:** ${state.bizimpact}\n\n`;
+  if(state.downtime) m+=`**Downtime:** ${state.downtime}\n\n`;
+  if(state.notifs) m+=`**Notifications:** ${state.notifs}\n\n`;
+  m+=`## 3. Key event timeline\n\n`;
+  const tl=state.timeline.filter(t=>t.when||t.what);
+  if(tl.length){ m+=`| When | Event |\n|---|---|\n`; tl.forEach(t=>m+=`| ${(t.when||'').replace(/\|/g,'\\|')} | ${(t.what||'').replace(/\|/g,'\\|')} |\n`); m+=`\n`; }
+  else m+=`_No milestones._\n\n`;
+  m+=`## 4. Reflection (${fr.label})\n\n`;
+  fr.cols.forEach(col=>{ const arr=(state.reflect[col.key]||[]).filter(x=>x&&x.trim()); if(arr.length){ m+=`### ${col.title}\n\n`; arr.forEach(x=>m+=`- ${x}\n`); m+=`\n`; } });
+  m+=`## 5. Root cause & contributing factors\n\n`;
+  if(state.rootcause) m+=`**Root cause:** ${state.rootcause}\n\n`;
+  if(state.contributing) m+=`**Contributing factors:** ${state.contributing}\n\n`;
+  m+=`## 6. Lessons learned & actions\n\n`;
+  const lessons=state.lessons.filter(l=>l&&l.trim());
+  if(lessons.length){ m+=`### Lessons\n\n`; lessons.forEach(l=>m+=`- ${l}\n`); m+=`\n`; }
+  const acts=state.actions.filter(a=>a.text&&a.text.trim());
+  if(acts.length){ m+=`### Action items\n\n| Action | Owner | Priority | Due |\n|---|---|---|---|\n`; acts.forEach(a=>m+=`| ${(a.text||'').replace(/\|/g,'\\|')} | ${a.owner||''} | ${a.priority||''} | ${a.due||''} |\n`); m+=`\n`; }
+  if(mttc||mttr||state.mttd||state.metricnotes){
+    m+=`## 7. Metrics\n\n`;
+    if(state.mttd) m+=`- **MTTD:** ${state.mttd}\n`;
+    if(mttc) m+=`- **Time to contain:** ${mttc}\n`;
+    if(mttr) m+=`- **Time to resolve:** ${mttr}\n`;
+    if(state.metricnotes) m+=`\n${state.metricnotes}\n`;
+  }
+  download(m, `pir-${(state.ref||dateSlug()).replace(/[^\w-]/g,'_')}.md`, 'text/markdown');
+  showToast('Markdown exported');
+}
+
+function exportActionsCSV(){
+  const acts=state.actions.filter(a=>a.text&&a.text.trim());
+  if(!acts.length){ showToast('No action items to export'); return; }
+  // Action Tracker-compatible columns
+  const rows=[['Action ID','Task','Owner','Priority','Category','Status','Due date','Due time','Overdue','Depends on','Related','Notes']];
+  acts.forEach((a,i)=>rows.push([`ACT-${String(i+1).padStart(3,'0')}`, a.text, a.owner||'', a.priority||'Medium', 'Recovery', 'Open', a.due||'', '', '', '', '', `From PIR: ${state.ref||state.title||''}`]));
+  const csv=rows.map(r=>r.map(c=>{const s=String(c);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}).join(',')).join('\n');
+  download(csv, `pir-actions-${dateSlug()}.csv`, 'text/csv');
+  showToast('Action items exported (Action Tracker compatible)');
+}
+
+// ---------- save / load ----------
+function saveState(){
+  pull();
+  const payload=Object.assign({tool:'pir-builder',schema:1,generated:new Date().toISOString(),theme:document.documentElement.getAttribute('data-theme')||'light'}, state);
+  download(JSON.stringify(payload,null,2), `pir-${(state.ref||dateSlug()).replace(/[^\w-]/g,'_')}.json`, 'application/json');
+  showToast('State saved');
+}
+function loadState(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const d=JSON.parse(ev.target.result);
+      if(d.tool!=='pir-builder' && !('summary' in d) && !('lessons' in d)) throw new Error('bad');
+      SIMPLE.forEach(k=>{ if(k in d) state[k]=d[k]||''; });
+      state.timeline=Array.isArray(d.timeline)?d.timeline:[];
+      state.reflect=d.reflect&&typeof d.reflect==='object'?d.reflect:{};
+      state.framing=FRAMINGS[d.framing]?d.framing:'wld';
+      state.lessons=Array.isArray(d.lessons)?d.lessons:[];
+      state.actions=Array.isArray(d.actions)?d.actions:[];
+      state.collapsed=d.collapsed||{};
+      if(d.theme) setTheme(d.theme);
+      hydrate();
+      showToast('PIR loaded');
+    }catch(err){ showToast('Could not load — invalid file'); }
+    e.target.value='';
+  };
+  reader.readAsText(file);
+}
+
+// push state back into the DOM
+function hydrate(){
+  SIMPLE.forEach(k=>{ const el=id('f_'+k); if(el) el.value=state[k]||''; });
+  // framing buttons
+  document.querySelectorAll('#framingSeg button').forEach((b,i)=>b.classList.toggle('active', Object.keys(FRAMINGS)[i]===state.framing));
+  // collapse
+  Object.keys(state.collapsed||{}).forEach(name=>{ const el=document.querySelector(`.sec[data-sec="${name}"]`); if(el) el.classList.toggle('collapsed', !!state.collapsed[name]); });
+  renderTimeline(); renderReflect(); renderLessons(); renderActions(); sync();
+}
+
+function resetAll(){
+  if(confirm('Clear the entire review? This cannot be undone (save first if needed).')){
+    const theme=state.theme;
+    state={ title:'',ref:'',sev:'',type:'',detected:'',contained:'',resolved:'',summary:'',author:'',reviewdate:'',
+      affected:'',bizimpact:'',downtime:'',notifs:'', timeline:[], framing:'wld', reflect:{}, rootcause:'',contributing:'',
+      lessons:[], actions:[], mttd:'',mttc:'',mttr:'',metricnotes:'', collapsed:{}, theme };
+    hydrate(); showToast('Reset');
+  }
+}
+
+// ---------- theme + toast ----------
+function setTheme(t){ document.documentElement.setAttribute('data-theme',t); try{localStorage.setItem('dh-theme',t);}catch(e){} }
+function toggleTheme(){ const c=document.documentElement.getAttribute('data-theme')||'light'; setTheme(c==='light'?'dark':'light'); }
+let toastTimer=null;
+function showToast(msg){ const t=id('toast'); t.textContent=msg; t.classList.add('show'); if(toastTimer)clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),1800); }
+
+// ---------- init ----------
+(function init(){
+  let saved=null; try{saved=localStorage.getItem('dh-theme');}catch(e){}
+  if(saved) setTheme(saved); else if(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches) setTheme('dark'); else setTheme('light');
+  // seed one empty row in each list for guidance
+  state.reflect={}; 
+  renderTimeline(); renderReflect(); renderLessons(); renderActions();
+  document.addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&e.key==='s'){ e.preventDefault(); saveState(); } });
+  sync();
+})();
+</script>
+
+</body>
+</html>

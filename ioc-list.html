@@ -1,0 +1,2220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IOC List · Dan Howett</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fafaf7;
+  --bg-elev: #ffffff;
+  --bg-muted: #f4f4ef;
+  --bg-subtle: #efefe8;
+  --border: #e8e6df;
+  --border-strong: #d6d3c9;
+  --text: #1a1a1a;
+  --text-2: #3a3a36;
+  --text-dim: #6b6b66;
+  --text-muted: #9a9a92;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-soft: #eff4ff;
+  --accent-text: #1e40af;
+  --green: #16a34a;
+  --green-soft: #dcfce7;
+  --orange: #ea580c;
+  --orange-soft: #ffedd5;
+  --red: #dc2626;
+  --red-soft: #fee2e2;
+  --purple: #7c3aed;
+  --purple-soft: #ede9fe;
+  --yellow: #eab308;
+  --yellow-soft: #fef9c3;
+  --shadow-sm: 0 1px 2px rgba(15, 15, 15, 0.04);
+  --shadow: 0 1px 3px rgba(15, 15, 15, 0.06), 0 1px 2px rgba(15, 15, 15, 0.04);
+  --shadow-lg: 0 8px 24px rgba(15, 15, 15, 0.06), 0 2px 4px rgba(15, 15, 15, 0.04);
+}
+[data-theme="dark"] {
+  --bg: #0e0f10;
+  --bg-elev: #18191b;
+  --bg-muted: #1d1e20;
+  --bg-subtle: #232528;
+  --border: #2a2c2f;
+  --border-strong: #3a3d40;
+  --text: #f0f0ee;
+  --text-2: #d6d6d2;
+  --text-dim: #8b8b85;
+  --text-muted: #5e5e58;
+  --accent: #60a5fa;
+  --accent-hover: #93c5fd;
+  --accent-soft: rgba(96, 165, 250, 0.12);
+  --accent-text: #93c5fd;
+  --green: #4ade80;
+  --green-soft: rgba(74, 222, 128, 0.16);
+  --orange: #fb923c;
+  --orange-soft: rgba(251, 146, 60, 0.16);
+  --red: #f87171;
+  --red-soft: rgba(248, 113, 113, 0.16);
+  --purple: #a78bfa;
+  --purple-soft: rgba(167, 139, 250, 0.16);
+  --yellow: #facc15;
+  --yellow-soft: rgba(250, 204, 21, 0.16);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01", "cv11";
+  letter-spacing: -0.005em;
+  transition: background 0.2s, color 0.2s;
+}
+.mono { font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace; }
+.serif { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-weight: 400; }
+a { color: inherit; text-decoration: none; }
+
+/* HEADER */
+header.site {
+  border-bottom: 1px solid var(--border);
+  background: rgba(250, 250, 247, 0.85);
+  backdrop-filter: saturate(180%) blur(10px);
+  -webkit-backdrop-filter: saturate(180%) blur(10px);
+  position: sticky; top: 0; z-index: 50;
+}
+[data-theme="dark"] header.site { background: rgba(14, 15, 16, 0.85); }
+.site-inner {
+  max-width: 1400px; margin: 0 auto; padding: 14px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.brand-link {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; font-weight: 600; color: var(--text);
+}
+.brand-mark {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 12px;
+}
+.brand-name .slash { color: var(--text-muted); margin: 0 5px; font-weight: 400; }
+.brand-name .second { color: var(--text-dim); font-weight: 500; }
+.site-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.btn {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  padding: 7px 12px; border-radius: 7px;
+  font-size: 12px; font-family: inherit; font-weight: 500;
+  cursor: pointer; transition: all 0.15s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn:hover { background: var(--bg-muted); border-color: var(--border-strong); }
+.btn.primary {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+}
+.btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn.ghost { background: transparent; }
+.btn.danger { color: var(--red); border-color: var(--border); }
+.btn.danger:hover { background: var(--red-soft); border-color: var(--red); }
+.btn.sm { padding: 5px 10px; font-size: 11px; }
+.theme-toggle {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-dim); width: 32px; height: 32px;
+  border-radius: 8px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.theme-toggle:hover { background: var(--bg-muted); color: var(--text); }
+.theme-toggle svg { width: 15px; height: 15px; }
+.sun-icon { display: none; }
+.moon-icon { display: block; }
+[data-theme="dark"] .sun-icon { display: block; }
+[data-theme="dark"] .moon-icon { display: none; }
+
+/* MAIN */
+main {
+  max-width: 1400px; margin: 0 auto;
+  padding: 32px 28px 80px;
+}
+
+/* HERO BLOCK */
+.page-hero {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 24px; margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.page-hero-text { flex: 1; min-width: 280px; }
+.eyebrow {
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim); letter-spacing: 0.05em;
+  text-transform: uppercase; margin-bottom: 10px;
+}
+h1.page-title {
+  font-size: 30px; line-height: 1.1; letter-spacing: -0.025em;
+  font-weight: 700; margin-bottom: 8px;
+}
+h1.page-title .accent {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-style: italic; font-weight: 400; color: var(--accent);
+  letter-spacing: -0.01em;
+}
+.page-lead {
+  font-size: 14.5px; color: var(--text-dim);
+  max-width: 720px; line-height: 1.55;
+}
+
+/* DISCLAIMER PILL */
+.disclaimer-pill {
+  font-size: 11.5px; color: var(--text-dim);
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--orange-soft);
+  border: 1px solid var(--orange);
+  padding: 5px 12px; border-radius: 999px;
+  margin-bottom: 18px;
+  font-weight: 500;
+}
+.disclaimer-pill::before {
+  content: "!"; width: 16px; height: 16px;
+  background: var(--orange); color: #fff;
+  border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 10px; font-weight: 700;
+}
+[data-theme="dark"] .disclaimer-pill { color: var(--text-2); }
+
+/* CARDS / PANELS */
+.card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.card-title {
+  font-size: 13px; font-weight: 700; letter-spacing: -0.01em;
+  display: flex; align-items: center; gap: 8px; margin-bottom: 4px;
+}
+.card-sub {
+  font-size: 12px; color: var(--text-dim); margin-bottom: 14px;
+}
+
+/* ENTRY FORM */
+.entry-card { padding: 18px 20px; }
+.card-title {
+  font-size: 13px; font-weight: 700; letter-spacing: -0.01em;
+  display: flex; align-items: center; gap: 8px; margin-bottom: 4px;
+}
+.card-sub { font-size: 12px; color: var(--text-dim); margin-bottom: 14px; }
+.form-grid {
+  display: grid;
+  grid-template-columns: 170px 180px 1.4fr 1fr auto;
+  gap: 10px; align-items: end;
+}
+.field label {
+  display: block; font-size: 10.5px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--text-dim); margin-bottom: 5px;
+}
+.field input, .field select, .field textarea {
+  width: 100%; background: var(--bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 8px 10px; font-size: 13px; font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.field input.mono, .field select.mono, .field textarea.mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.field textarea { resize: vertical; min-height: 38px; line-height: 1.45; }
+.field input.custom-type { display: none; }
+.field.show-custom input.custom-type { display: block; margin-top: 6px; }
+.form-actions { display: flex; gap: 8px; }
+.hint { font-size: 11px; color: var(--text-muted); margin-top: 10px; font-family: 'JetBrains Mono', monospace; }
+
+/* TOOLBAR */
+.view-bar {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.search-wrap {
+  flex: 1; min-width: 220px; max-width: 380px; position: relative;
+}
+.search-wrap input {
+  width: 100%; background: var(--bg-elev); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 12px 8px 32px; font-size: 13px;
+  color: var(--text); font-family: 'JetBrains Mono', monospace;
+}
+.search-wrap input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.search-wrap::before {
+  content: "⌕"; position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+  color: var(--text-muted); font-size: 14px;
+}
+.seg {
+  display: inline-flex; background: var(--bg-muted);
+  border: 1px solid var(--border); border-radius: 9px; padding: 3px; gap: 2px;
+}
+.seg button {
+  background: transparent; border: none; color: var(--text-dim);
+  padding: 6px 14px; border-radius: 7px; font-size: 12px; font-weight: 600;
+  font-family: inherit; cursor: pointer; transition: all 0.15s;
+}
+.seg button.active { background: var(--bg-elev); color: var(--text); box-shadow: var(--shadow-sm); }
+.count-pill {
+  margin-left: auto; font-size: 11.5px; color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--bg-muted); border: 1px solid var(--border);
+  padding: 4px 10px; border-radius: 999px;
+}
+
+/* TYPE GROUPS */
+.type-group { margin-bottom: 22px; }
+.type-header {
+  display: flex; align-items: baseline; gap: 10px;
+  margin-bottom: 8px; padding: 0 4px;
+}
+.type-label {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  font-weight: 700; color: var(--text);
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.type-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.type-count { font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+.type-copy-all {
+  margin-left: auto;
+  background: transparent; border: 1px solid var(--border); color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+  padding: 2px 9px; border-radius: 6px; cursor: pointer;
+  transition: all 0.15s;
+}
+.type-copy-all:hover { background: var(--bg-muted); color: var(--accent); border-color: var(--accent); }
+
+/* IOC TABLE */
+.ioc-table-wrap {
+  background: var(--bg-elev); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden;
+}
+.ioc-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ioc-table thead th {
+  text-align: left; font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--text-muted); font-family: 'JetBrains Mono', monospace;
+  padding: 9px 14px; background: var(--bg-muted);
+  border-bottom: 1px solid var(--border); white-space: nowrap;
+}
+.ioc-table tbody td {
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+  vertical-align: top; line-height: 1.45;
+}
+.ioc-table tbody tr:last-child td { border-bottom: none; }
+.ioc-table tbody tr:hover { background: var(--bg-muted); }
+
+.ioc-value {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  color: var(--text); word-break: break-all; line-height: 1.4;
+  display: inline-block;
+}
+.ioc-value.long { max-width: 420px; }
+.ioc-source {
+  font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+  color: var(--text-2); white-space: nowrap;
+}
+.ioc-desc { color: var(--text-2); font-size: 12.5px; max-width: 360px; }
+.ioc-actions { display: flex; gap: 4px; justify-content: flex-end; }
+.ioc-act {
+  background: transparent; border: 1px solid var(--border); color: var(--text-dim);
+  font-size: 10.5px; padding: 2px 8px; border-radius: 6px; cursor: pointer;
+  font-family: inherit; transition: all 0.15s;
+}
+.ioc-act:hover { background: var(--bg); color: var(--text); }
+.ioc-act.copy:hover { color: var(--accent); border-color: var(--accent); }
+.ioc-act.del:hover { background: var(--red-soft); color: var(--red); border-color: var(--red); }
+
+/* DEFANG INDICATOR */
+.defang-tag {
+  font-size: 9.5px; font-family: 'JetBrains Mono', monospace;
+  background: var(--orange-soft); color: var(--orange);
+  border: 1px solid var(--orange);
+  padding: 0 5px; border-radius: 4px; margin-left: 6px;
+  vertical-align: middle; font-weight: 600;
+}
+
+/* DEFANG TOGGLE */
+.defang-toggle {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 11.5px; color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+}
+.defang-toggle input { accent-color: var(--accent); }
+
+/* ATT&CK CHIPS (form + table) */
+.attack-chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-height: 26px; }
+.attack-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--purple-soft); color: var(--purple);
+  border: 1px solid var(--purple);
+  padding: 3px 8px 3px 9px; border-radius: 999px;
+  font-size: 11px; font-family: 'JetBrains Mono', monospace; font-weight: 600;
+}
+.attack-chip .x { cursor: pointer; opacity: 0.6; font-size: 13px; line-height: 1; }
+.attack-chip .x:hover { opacity: 1; }
+.attack-add-btn {
+  background: var(--bg-muted); border: 1px dashed var(--border-strong);
+  color: var(--text-dim); padding: 3px 10px; border-radius: 999px;
+  font-size: 11px; font-family: 'JetBrains Mono', monospace; cursor: pointer;
+  transition: all 0.15s;
+}
+.attack-add-btn:hover { color: var(--accent); border-color: var(--accent); }
+.ioc-attack { display: flex; flex-wrap: wrap; gap: 4px; }
+.ioc-tid {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  background: var(--purple-soft); color: var(--purple);
+  border: 1px solid var(--purple); padding: 1px 6px; border-radius: 4px;
+  font-weight: 600; white-space: nowrap;
+}
+
+/* CONFIDENCE + BLOCKED BADGES */
+.conf-badge, .blocked-badge {
+  display: inline-block; font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 999px; letter-spacing: 0.04em;
+  border: 1px solid currentColor; white-space: nowrap;
+}
+.conf-low    { color: var(--text-muted); background: var(--bg-muted); border-color: var(--border-strong); }
+.conf-medium { color: var(--orange); background: var(--orange-soft); }
+.conf-high   { color: var(--red);    background: var(--red-soft); }
+.conf-none   { color: var(--text-muted); border-style: dashed; background: transparent; }
+.blocked-yes { color: var(--green); background: var(--green-soft); }
+.blocked-no  { color: var(--text-muted); background: var(--bg-muted); border-color: var(--border-strong); }
+.blocked-where {
+  display: block; font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  color: var(--text-dim); margin-top: 3px;
+}
+
+/* MITRE MODAL (mirrors timeline tool) */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 200; display: none; align-items: flex-start; justify-content: center;
+  padding: 60px 20px; overflow-y: auto;
+  backdrop-filter: blur(2px);
+}
+.modal-backdrop.show { display: flex; }
+.modal {
+  background: var(--bg-elev); border: 1px solid var(--border-strong);
+  border-radius: 14px; width: 100%; max-width: 760px;
+  box-shadow: var(--shadow-lg); overflow: hidden;
+}
+.modal-head {
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.modal-head h3 { font-size: 14px; font-weight: 700; }
+.modal-search { padding: 14px 20px 8px; }
+.modal-search input {
+  width: 100%; background: var(--bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 9px 12px; font-size: 13px; font-family: 'JetBrains Mono', monospace;
+}
+.modal-search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.modal-body { max-height: 50vh; overflow-y: auto; padding: 6px 12px 16px; }
+.tactic-group { margin: 10px 8px 4px; }
+.tactic-label {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.05em; color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace; margin-bottom: 6px;
+  padding-bottom: 4px; border-bottom: 1px solid var(--border);
+}
+.suggest-label { color: var(--purple) !important; border-bottom-color: var(--purple) !important; }
+.all-label {
+  font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.05em; color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace; margin: 14px 8px 2px;
+}
+.tech-pick {
+  display: flex; align-items: baseline; gap: 8px;
+  padding: 5px 8px; border-radius: 6px; cursor: pointer;
+  font-size: 12.5px; transition: background 0.12s;
+}
+.tech-pick:hover { background: var(--accent-soft); }
+.tech-pick.selected { background: var(--purple-soft); }
+.tech-pick .tid {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: var(--purple); font-weight: 600; min-width: 58px;
+}
+.kw-hit {
+  margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  background: var(--yellow-soft); color: var(--yellow); border: 1px solid var(--yellow);
+  padding: 0 6px; border-radius: 5px; font-weight: 600; white-space: nowrap;
+}
+
+/* EMPTY */
+.empty {
+  text-align: center; padding: 50px 20px; color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
+}
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--text); color: var(--bg);
+  padding: 10px 16px; border-radius: 8px;
+  font-size: 12.5px; font-weight: 500;
+  z-index: 300; opacity: 0; transform: translateY(8px);
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+  box-shadow: var(--shadow-lg);
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.muted { color: var(--text-muted); }
+.dim { color: var(--text-dim); }
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .form-grid { grid-template-columns: 1fr 1fr; }
+  .form-grid .field.wide { grid-column: 1 / -1; }
+  .form-actions { grid-column: 1 / -1; }
+  .ioc-table thead { display: none; }
+  .ioc-table tbody td { display: block; padding: 6px 14px; }
+  .ioc-table tbody td:first-child { padding-top: 12px; }
+  .ioc-table tbody td:last-child { padding-bottom: 12px; }
+  .ioc-table tbody tr { border-bottom: 1px solid var(--border); display: block; }
+}
+
+/* PRINT */
+@media print {
+  header.site, .entry-card, .view-bar, .ioc-actions, .type-copy-all, .theme-toggle, .btn { display: none !important; }
+  body { background: white; color: black; }
+  .card, .ioc-table-wrap { background: white !important; border: 1px solid #ccc !important; box-shadow: none !important; }
+  main { max-width: 100%; padding: 0; }
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 6px; border: 2px solid var(--bg); }
+</style>
+</head>
+<body>
+<header class="site">
+  <div class="site-inner">
+    <a href="/useful/" class="brand-link">
+      <div class="brand-mark">DH</div>
+      <div class="brand-name">Dan Howett <span class="slash">/</span><span class="second">IOC List</span></div>
+    </a>
+    <div class="site-meta">
+      <button class="btn ghost sm" onclick="saveState()" title="Save IOC list state as JSON">SAVE JSON</button>
+      <button class="btn ghost sm" onclick="document.getElementById('loadFile').click()" title="Load a saved IOC list">LOAD</button>
+      <button class="btn ghost sm" onclick="exportCSV()" title="Export as CSV">CSV</button>
+      <button class="btn ghost sm" onclick="exportSTIX()" title="Export as STIX 2.1 bundle">STIX</button>
+      <button class="btn ghost sm" onclick="exportMarkdown()" title="Export as Markdown">MARKDOWN</button>
+      <button class="btn ghost sm" onclick="window.print()" title="Print / save PDF">PDF</button>
+      <button class="btn danger sm" onclick="resetAll()">RESET</button>
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+        <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+<input type="file" id="loadFile" accept="application/json,.json" style="display:none" onchange="loadState(event)">
+
+<main>
+
+  <div class="page-hero">
+    <div class="page-hero-text">
+      <div class="eyebrow">Incident Response · DFIR · Indicator Tracker</div>
+      <h1 class="page-title">Capture every <span class="accent">indicator</span>.</h1>
+      <p class="page-lead">
+        Track Indicators of Compromise as they surface — IP addresses, domains, hashes, URLs, file paths,
+        registry keys, user accounts and more. Network indicators are auto-defanged on display so the page is
+        safe to share or screenshot. Group by type, copy individual or bulk values to clipboard, and export to
+        <span class="mono dim">STIX 2.1</span>, CSV, or Markdown. Everything stays in your browser.
+      </p>
+    </div>
+  </div>
+
+  <div class="disclaimer-pill">Proof of concept only · Use at your own risk · Verify all indicators independently before action</div>
+
+  <!-- ENTRY FORM -->
+  <section class="card entry-card">
+    <div class="card-title">＋ Add indicator</div>
+    <div class="card-sub">Pick a type, paste the value, note where it was seen. Multi-line input creates multiple IOCs of the same type at once.</div>
+    <div class="form-grid">
+      <div class="field" id="typeField">
+        <label for="fType">IOC type</label>
+        <select id="fType" class="mono" onchange="onTypeChange()"></select>
+        <input type="text" id="fTypeCustom" class="mono custom-type" placeholder="Custom type label">
+      </div>
+      <div class="field">
+        <label for="fSource">Source (host / log)</label>
+        <input type="text" id="fSource" class="mono" placeholder="WS-FIN-04 / Firewall / Splunk" list="sourceList" autocomplete="off">
+        <datalist id="sourceList"></datalist>
+      </div>
+      <div class="field wide">
+        <label for="fValue">IOC value <span class="dim" style="text-transform:none;letter-spacing:0;font-weight:400">— paste raw; defanged input like <span class="mono">1.2.3[.]4</span> is normalised</span></label>
+        <textarea id="fValue" class="mono" placeholder="185.220.101.42&#10;evil-domain.tld&#10;d41d8cd98f00b204e9800998ecf8427e"></textarea>
+      </div>
+      <div class="field wide">
+        <label for="fDesc">Description / comments</label>
+        <textarea id="fDesc" placeholder="C2 server seen in PowerShell DownloadString; first seen 2026-05-20 09:15"></textarea>
+      </div>
+
+      <div class="field">
+        <label for="fConfidence">Confidence</label>
+        <select id="fConfidence" class="mono">
+          <option value="">— choose —</option>
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="fBlocked">Blocked</label>
+        <select id="fBlocked" class="mono" onchange="onBlockedChange()">
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+      </div>
+      <div class="field wide" id="whereBlockedField" style="display:none">
+        <label for="fWhereBlocked">Where blocked</label>
+        <input type="text" id="fWhereBlocked" class="mono" placeholder="Perimeter FW / EDR / DNS sinkhole / mail gateway">
+      </div>
+
+      <div class="field wide">
+        <label>ATT&CK techniques <span class="dim" style="text-transform:none;letter-spacing:0;font-weight:400">— optional, multiple allowed</span></label>
+        <div class="attack-chips" id="pendingAttack">
+          <button class="attack-add-btn" type="button" onclick="openAttackPicker('pending')">+ ATT&CK technique</button>
+        </div>
+      </div>
+
+      <div class="field form-actions">
+        <button class="btn primary" onclick="addIOC()">Add</button>
+      </div>
+    </div>
+    <div class="hint"><strong>Ctrl/⌘ + Enter</strong> to add · multi-line values create one IOC per non-empty line · all share the chosen type, confidence, blocked status &amp; ATT&CK tags</div>
+  </section>
+
+  <!-- TOOLBAR -->
+  <div class="view-bar">
+    <div class="search-wrap">
+      <input type="text" id="search" placeholder="Filter — value, source, description..." oninput="render()">
+    </div>
+    <div class="seg">
+      <button id="view_grouped" class="active" onclick="setView('grouped')">By type</button>
+      <button id="view_flat" onclick="setView('flat')">All IOCs</button>
+    </div>
+    <label class="defang-toggle">
+      <input type="checkbox" id="defangToggle" checked onchange="setDefang(this.checked)">
+      Defang network IOCs
+    </label>
+    <div class="count-pill" id="countPill">0 indicators</div>
+  </div>
+
+  <!-- IOC LIST -->
+  <div id="iocRoot"></div>
+
+</main>
+
+<!-- MITRE PICKER MODAL -->
+<div class="modal-backdrop" id="attackModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Add ATT&CK technique</h3>
+      <button class="btn ghost sm" onclick="closeAttackPicker()">Done</button>
+    </div>
+    <div class="modal-search">
+      <input type="text" id="attackSearch" placeholder="Search by tool, behaviour, event ID or T-code — powershell, mimikatz, 4624, lateral movement, T1003..." autocomplete="off" oninput="renderAttackList()">
+    </div>
+    <div class="modal-body" id="attackList"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// IOC List · Dan Howett
+// Client-side only. ATT&CK data shared with the Timeline + Mapper tools.
+// ============================================================
+
+const ATTACK_MATRIX = [
+  {
+    id: "TA0043",
+    name: "Reconnaissance",
+    short: "Recon",
+    desc: "Information gathering to plan future operations",
+    techniques: [
+      { id: "T1595", name: "Active Scanning" },
+      { id: "T1592", name: "Gather Victim Host Information" },
+      { id: "T1589", name: "Gather Victim Identity Information" },
+      { id: "T1590", name: "Gather Victim Network Information" },
+      { id: "T1591", name: "Gather Victim Org Information" },
+      { id: "T1598", name: "Phishing for Information" },
+      { id: "T1597", name: "Search Closed Sources" },
+      { id: "T1596", name: "Search Open Technical Databases" },
+      { id: "T1593", name: "Search Open Websites/Domains" },
+      { id: "T1594", name: "Search Victim-Owned Websites" }
+    ]
+  },
+  {
+    id: "TA0042",
+    name: "Resource Development",
+    short: "ResourceDev",
+    desc: "Establishing resources to support operations",
+    techniques: [
+      { id: "T1650", name: "Acquire Access" },
+      { id: "T1583", name: "Acquire Infrastructure" },
+      { id: "T1586", name: "Compromise Accounts" },
+      { id: "T1584", name: "Compromise Infrastructure" },
+      { id: "T1587", name: "Develop Capabilities" },
+      { id: "T1585", name: "Establish Accounts" },
+      { id: "T1588", name: "Obtain Capabilities" },
+      { id: "T1608", name: "Stage Capabilities" }
+    ]
+  },
+  {
+    id: "TA0001",
+    name: "Initial Access",
+    short: "InitialAccess",
+    desc: "Gaining entry into the environment",
+    techniques: [
+      { id: "T1189", name: "Drive-by Compromise" },
+      { id: "T1190", name: "Exploit Public-Facing Application" },
+      { id: "T1133", name: "External Remote Services" },
+      { id: "T1200", name: "Hardware Additions" },
+      { id: "T1566", name: "Phishing" },
+      { id: "T1091", name: "Replication Through Removable Media" },
+      { id: "T1195", name: "Supply Chain Compromise" },
+      { id: "T1199", name: "Trusted Relationship" },
+      { id: "T1078", name: "Valid Accounts" }
+    ]
+  },
+  {
+    id: "TA0002",
+    name: "Execution",
+    short: "Execution",
+    desc: "Running malicious code on a system",
+    techniques: [
+      { id: "T1651", name: "Cloud Administration Command" },
+      { id: "T1059", name: "Command and Scripting Interpreter" },
+      { id: "T1609", name: "Container Administration Command" },
+      { id: "T1610", name: "Deploy Container" },
+      { id: "T1203", name: "Exploitation for Client Execution" },
+      { id: "T1559", name: "Inter-Process Communication" },
+      { id: "T1106", name: "Native API" },
+      { id: "T1053", name: "Scheduled Task/Job" },
+      { id: "T1648", name: "Serverless Execution" },
+      { id: "T1129", name: "Shared Modules" },
+      { id: "T1072", name: "Software Deployment Tools" },
+      { id: "T1569", name: "System Services" },
+      { id: "T1204", name: "User Execution" },
+      { id: "T1047", name: "Windows Management Instrumentation" }
+    ]
+  },
+  {
+    id: "TA0003",
+    name: "Persistence",
+    short: "Persistence",
+    desc: "Maintaining access through restarts and credential changes",
+    techniques: [
+      { id: "T1098", name: "Account Manipulation" },
+      { id: "T1197", name: "BITS Jobs" },
+      { id: "T1547", name: "Boot or Logon Autostart Execution" },
+      { id: "T1037", name: "Boot or Logon Initialization Scripts" },
+      { id: "T1176", name: "Browser Extensions" },
+      { id: "T1554", name: "Compromise Client Software Binary" },
+      { id: "T1136", name: "Create Account" },
+      { id: "T1543", name: "Create or Modify System Process" },
+      { id: "T1546", name: "Event Triggered Execution" },
+      { id: "T1133b", name: "External Remote Services" },
+      { id: "T1574", name: "Hijack Execution Flow" },
+      { id: "T1525", name: "Implant Internal Image" },
+      { id: "T1556", name: "Modify Authentication Process" },
+      { id: "T1137", name: "Office Application Startup" },
+      { id: "T1542", name: "Pre-OS Boot" },
+      { id: "T1053b", name: "Scheduled Task/Job" },
+      { id: "T1505", name: "Server Software Component" },
+      { id: "T1205", name: "Traffic Signaling" },
+      { id: "T1078b", name: "Valid Accounts" }
+    ]
+  },
+  {
+    id: "TA0004",
+    name: "Privilege Escalation",
+    short: "PrivEsc",
+    desc: "Gaining higher-level permissions",
+    techniques: [
+      { id: "T1548", name: "Abuse Elevation Control Mechanism" },
+      { id: "T1134", name: "Access Token Manipulation" },
+      { id: "T1098b", name: "Account Manipulation" },
+      { id: "T1547b", name: "Boot or Logon Autostart Execution" },
+      { id: "T1037b", name: "Boot or Logon Initialization Scripts" },
+      { id: "T1543b", name: "Create or Modify System Process" },
+      { id: "T1484", name: "Domain or Tenant Policy Modification" },
+      { id: "T1611", name: "Escape to Host" },
+      { id: "T1546b", name: "Event Triggered Execution" },
+      { id: "T1068", name: "Exploitation for Privilege Escalation" },
+      { id: "T1574b", name: "Hijack Execution Flow" },
+      { id: "T1055", name: "Process Injection" },
+      { id: "T1053c", name: "Scheduled Task/Job" },
+      { id: "T1078c", name: "Valid Accounts" }
+    ]
+  },
+  {
+    id: "TA0005",
+    name: "Defense Evasion",
+    short: "DefenseEvasion",
+    desc: "Avoiding detection",
+    techniques: [
+      { id: "T1548b", name: "Abuse Elevation Control Mechanism" },
+      { id: "T1134b", name: "Access Token Manipulation" },
+      { id: "T1197b", name: "BITS Jobs" },
+      { id: "T1612", name: "Build Image on Host" },
+      { id: "T1140", name: "Deobfuscate/Decode Files or Information" },
+      { id: "T1610b", name: "Deploy Container" },
+      { id: "T1006", name: "Direct Volume Access" },
+      { id: "T1484b", name: "Domain or Tenant Policy Modification" },
+      { id: "T1480", name: "Execution Guardrails" },
+      { id: "T1211", name: "Exploitation for Defense Evasion" },
+      { id: "T1222", name: "File and Directory Permissions Modification" },
+      { id: "T1564", name: "Hide Artifacts" },
+      { id: "T1574c", name: "Hijack Execution Flow" },
+      { id: "T1562", name: "Impair Defenses" },
+      { id: "T1656", name: "Impersonation" },
+      { id: "T1070", name: "Indicator Removal" },
+      { id: "T1202", name: "Indirect Command Execution" },
+      { id: "T1036", name: "Masquerading" },
+      { id: "T1556b", name: "Modify Authentication Process" },
+      { id: "T1578", name: "Modify Cloud Compute Infrastructure" },
+      { id: "T1112", name: "Modify Registry" },
+      { id: "T1601", name: "Modify System Image" },
+      { id: "T1599", name: "Network Boundary Bridging" },
+      { id: "T1027", name: "Obfuscated Files or Information" },
+      { id: "T1647", name: "Plist File Modification" },
+      { id: "T1542b", name: "Pre-OS Boot" },
+      { id: "T1055b", name: "Process Injection" },
+      { id: "T1620", name: "Reflective Code Loading" },
+      { id: "T1207", name: "Rogue Domain Controller" },
+      { id: "T1014", name: "Rootkit" },
+      { id: "T1553", name: "Subvert Trust Controls" },
+      { id: "T1218", name: "System Binary Proxy Execution" },
+      { id: "T1216", name: "System Script Proxy Execution" },
+      { id: "T1221", name: "Template Injection" },
+      { id: "T1205b", name: "Traffic Signaling" },
+      { id: "T1127", name: "Trusted Developer Utilities Proxy Execution" },
+      { id: "T1535", name: "Unused/Unsupported Cloud Regions" },
+      { id: "T1550", name: "Use Alternate Authentication Material" },
+      { id: "T1078d", name: "Valid Accounts" },
+      { id: "T1497", name: "Virtualization/Sandbox Evasion" },
+      { id: "T1600", name: "Weaken Encryption" },
+      { id: "T1220", name: "XSL Script Processing" }
+    ]
+  },
+  {
+    id: "TA0006",
+    name: "Credential Access",
+    short: "CredAccess",
+    desc: "Stealing credentials",
+    techniques: [
+      { id: "T1557", name: "Adversary-in-the-Middle" },
+      { id: "T1110", name: "Brute Force" },
+      { id: "T1555", name: "Credentials from Password Stores" },
+      { id: "T1212", name: "Exploitation for Credential Access" },
+      { id: "T1187", name: "Forced Authentication" },
+      { id: "T1606", name: "Forge Web Credentials" },
+      { id: "T1056", name: "Input Capture" },
+      { id: "T1556c", name: "Modify Authentication Process" },
+      { id: "T1111", name: "Multi-Factor Authentication Interception" },
+      { id: "T1621", name: "Multi-Factor Authentication Request Generation" },
+      { id: "T1040", name: "Network Sniffing" },
+      { id: "T1003", name: "OS Credential Dumping" },
+      { id: "T1528", name: "Steal Application Access Token" },
+      { id: "T1649", name: "Steal or Forge Authentication Certificates" },
+      { id: "T1558", name: "Steal or Forge Kerberos Tickets" },
+      { id: "T1539", name: "Steal Web Session Cookie" },
+      { id: "T1552", name: "Unsecured Credentials" }
+    ]
+  },
+  {
+    id: "TA0007",
+    name: "Discovery",
+    short: "Discovery",
+    desc: "Learning about the environment",
+    techniques: [
+      { id: "T1087", name: "Account Discovery" },
+      { id: "T1010", name: "Application Window Discovery" },
+      { id: "T1217", name: "Browser Information Discovery" },
+      { id: "T1580", name: "Cloud Infrastructure Discovery" },
+      { id: "T1538", name: "Cloud Service Dashboard" },
+      { id: "T1526", name: "Cloud Service Discovery" },
+      { id: "T1619", name: "Cloud Storage Object Discovery" },
+      { id: "T1613", name: "Container and Resource Discovery" },
+      { id: "T1622", name: "Debugger Evasion" },
+      { id: "T1652", name: "Device Driver Discovery" },
+      { id: "T1482", name: "Domain Trust Discovery" },
+      { id: "T1083", name: "File and Directory Discovery" },
+      { id: "T1615", name: "Group Policy Discovery" },
+      { id: "T1654", name: "Log Enumeration" },
+      { id: "T1046", name: "Network Service Discovery" },
+      { id: "T1135", name: "Network Share Discovery" },
+      { id: "T1040b", name: "Network Sniffing" },
+      { id: "T1201", name: "Password Policy Discovery" },
+      { id: "T1120", name: "Peripheral Device Discovery" },
+      { id: "T1069", name: "Permission Groups Discovery" },
+      { id: "T1057", name: "Process Discovery" },
+      { id: "T1012", name: "Query Registry" },
+      { id: "T1018", name: "Remote System Discovery" },
+      { id: "T1518", name: "Software Discovery" },
+      { id: "T1082", name: "System Information Discovery" },
+      { id: "T1614", name: "System Location Discovery" },
+      { id: "T1016", name: "System Network Configuration Discovery" },
+      { id: "T1049", name: "System Network Connections Discovery" },
+      { id: "T1033", name: "System Owner/User Discovery" },
+      { id: "T1007", name: "System Service Discovery" },
+      { id: "T1124", name: "System Time Discovery" },
+      { id: "T1497b", name: "Virtualization/Sandbox Evasion" }
+    ]
+  },
+  {
+    id: "TA0008",
+    name: "Lateral Movement",
+    short: "LateralMov",
+    desc: "Moving through the environment",
+    techniques: [
+      { id: "T1210", name: "Exploitation of Remote Services" },
+      { id: "T1534", name: "Internal Spearphishing" },
+      { id: "T1570", name: "Lateral Tool Transfer" },
+      { id: "T1563", name: "Remote Service Session Hijacking" },
+      { id: "T1021", name: "Remote Services" },
+      { id: "T1091b", name: "Replication Through Removable Media" },
+      { id: "T1072b", name: "Software Deployment Tools" },
+      { id: "T1080", name: "Taint Shared Content" },
+      { id: "T1550b", name: "Use Alternate Authentication Material" }
+    ]
+  },
+  {
+    id: "TA0009",
+    name: "Collection",
+    short: "Collection",
+    desc: "Gathering data of interest",
+    techniques: [
+      { id: "T1557b", name: "Adversary-in-the-Middle" },
+      { id: "T1560", name: "Archive Collected Data" },
+      { id: "T1123", name: "Audio Capture" },
+      { id: "T1119", name: "Automated Collection" },
+      { id: "T1185", name: "Browser Session Hijacking" },
+      { id: "T1115", name: "Clipboard Data" },
+      { id: "T1530", name: "Data from Cloud Storage" },
+      { id: "T1602", name: "Data from Configuration Repository" },
+      { id: "T1213", name: "Data from Information Repositories" },
+      { id: "T1005", name: "Data from Local System" },
+      { id: "T1039", name: "Data from Network Shared Drive" },
+      { id: "T1025", name: "Data from Removable Media" },
+      { id: "T1074", name: "Data Staged" },
+      { id: "T1114", name: "Email Collection" },
+      { id: "T1056b", name: "Input Capture" },
+      { id: "T1113", name: "Screen Capture" },
+      { id: "T1125", name: "Video Capture" }
+    ]
+  },
+  {
+    id: "TA0011",
+    name: "Command and Control",
+    short: "C2",
+    desc: "Communicating with compromised systems",
+    techniques: [
+      { id: "T1071", name: "Application Layer Protocol" },
+      { id: "T1092", name: "Communication Through Removable Media" },
+      { id: "T1659", name: "Content Injection" },
+      { id: "T1132", name: "Data Encoding" },
+      { id: "T1001", name: "Data Obfuscation" },
+      { id: "T1568", name: "Dynamic Resolution" },
+      { id: "T1573", name: "Encrypted Channel" },
+      { id: "T1008", name: "Fallback Channels" },
+      { id: "T1665", name: "Hide Infrastructure" },
+      { id: "T1105", name: "Ingress Tool Transfer" },
+      { id: "T1104", name: "Multi-Stage Channels" },
+      { id: "T1095", name: "Non-Application Layer Protocol" },
+      { id: "T1571", name: "Non-Standard Port" },
+      { id: "T1572", name: "Protocol Tunneling" },
+      { id: "T1090", name: "Proxy" },
+      { id: "T1219", name: "Remote Access Software" },
+      { id: "T1205c", name: "Traffic Signaling" },
+      { id: "T1102", name: "Web Service" }
+    ]
+  },
+  {
+    id: "TA0010",
+    name: "Exfiltration",
+    short: "Exfil",
+    desc: "Stealing data",
+    techniques: [
+      { id: "T1020", name: "Automated Exfiltration" },
+      { id: "T1030", name: "Data Transfer Size Limits" },
+      { id: "T1048", name: "Exfiltration Over Alternative Protocol" },
+      { id: "T1041", name: "Exfiltration Over C2 Channel" },
+      { id: "T1011", name: "Exfiltration Over Other Network Medium" },
+      { id: "T1052", name: "Exfiltration Over Physical Medium" },
+      { id: "T1567", name: "Exfiltration Over Web Service" },
+      { id: "T1029", name: "Scheduled Transfer" },
+      { id: "T1537", name: "Transfer Data to Cloud Account" }
+    ]
+  },
+  {
+    id: "TA0040",
+    name: "Impact",
+    short: "Impact",
+    desc: "Disrupting, destroying or manipulating",
+    techniques: [
+      { id: "T1531", name: "Account Access Removal" },
+      { id: "T1485", name: "Data Destruction" },
+      { id: "T1486", name: "Data Encrypted for Impact" },
+      { id: "T1565", name: "Data Manipulation" },
+      { id: "T1491", name: "Defacement" },
+      { id: "T1561", name: "Disk Wipe" },
+      { id: "T1657", name: "Financial Theft" },
+      { id: "T1495", name: "Firmware Corruption" },
+      { id: "T1490", name: "Inhibit System Recovery" },
+      { id: "T1498", name: "Network Denial of Service" },
+      { id: "T1496", name: "Resource Hijacking" },
+      { id: "T1489", name: "Service Stop" },
+      { id: "T1529", name: "System Shutdown/Reboot" }
+    ]
+  }
+];
+
+const KEYWORD_MAP = {
+  // ============== INITIAL ACCESS ==============
+  "phishing": ["T1566", "T1204"],
+  "spearphishing": ["T1566"],
+  "phish": ["T1566"],
+  "malicious attachment": ["T1566", "T1204"],
+  "malicious link": ["T1566", "T1204"],
+  "macro": ["T1566", "T1204", "T1059"],
+  "doc with macro": ["T1566", "T1059"],
+  "qr code": ["T1566"],
+  "quishing": ["T1566"],
+  "drive-by": ["T1189"],
+  "drive by download": ["T1189"],
+  "watering hole": ["T1189"],
+  "exploit public": ["T1190"],
+  "exploit public-facing": ["T1190"],
+  "web shell": ["T1190", "T1505"],
+  "webshell": ["T1190", "T1505"],
+  "vpn compromise": ["T1133", "T1078"],
+  "rdp exposed": ["T1133", "T1078", "T1021"],
+  "supply chain": ["T1195"],
+  "third party": ["T1199", "T1195"],
+  "msp compromise": ["T1199"],
+  "trusted relationship": ["T1199"],
+  "valid accounts": ["T1078"],
+  "stolen credentials": ["T1078"],
+  "compromised account": ["T1078"],
+  "removable media": ["T1091"],
+  "usb": ["T1091", "T1052"],
+  "infected usb": ["T1091"],
+
+  // ============== EXECUTION ==============
+  "powershell": ["T1059"],
+  "ps1": ["T1059"],
+  "encoded command": ["T1059", "T1027"],
+  "powershell encoded": ["T1059", "T1027"],
+  "iex": ["T1059"],
+  "invoke-expression": ["T1059"],
+  "downloadstring": ["T1059", "T1105"],
+  "cmd.exe": ["T1059"],
+  "command shell": ["T1059"],
+  "bash": ["T1059"],
+  "python": ["T1059"],
+  "perl": ["T1059"],
+  "javascript": ["T1059"],
+  "vbscript": ["T1059"],
+  "wscript": ["T1059"],
+  "cscript": ["T1059"],
+  "scripting": ["T1059"],
+  "wmi": ["T1047"],
+  "wmic": ["T1047"],
+  "windows management instrumentation": ["T1047"],
+  "scheduled task": ["T1053"],
+  "schtasks": ["T1053"],
+  "at.exe": ["T1053"],
+  "cron": ["T1053"],
+  "systemd timer": ["T1053"],
+  "user execution": ["T1204"],
+  "double click": ["T1204"],
+  "user opened": ["T1204"],
+  "service execution": ["T1569"],
+  "psexec": ["T1569", "T1021"],
+  "exploit client": ["T1203"],
+  "exploit office": ["T1203"],
+  "follina": ["T1203"],
+  "cve-2022-30190": ["T1203"],
+  "log4j": ["T1190", "T1203"],
+  "log4shell": ["T1190", "T1203"],
+  "sccm": ["T1072"],
+  "intune": ["T1072"],
+  "rmm tool": ["T1219", "T1072"],
+
+  // ============== PERSISTENCE ==============
+  "registry run": ["T1547"],
+  "run key": ["T1547"],
+  "runonce": ["T1547"],
+  "startup folder": ["T1547"],
+  "logon script": ["T1037"],
+  "create account": ["T1136"],
+  "new user": ["T1136"],
+  "new admin": ["T1136", "T1098"],
+  "service installed": ["T1543"],
+  "new service": ["T1543"],
+  "wmi event subscription": ["T1546"],
+  "browser extension": ["T1176"],
+  "malicious extension": ["T1176"],
+  "outlook rule": ["T1137"],
+  "office addin": ["T1137"],
+  "bootkit": ["T1542"],
+  "uefi": ["T1542"],
+  "skeleton key": ["T1556"],
+  "modify auth": ["T1556"],
+  "dll search order": ["T1574"],
+  "dll hijack": ["T1574"],
+  "dll sideload": ["T1574"],
+  "dll sideloading": ["T1574"],
+  "iis module": ["T1505"],
+  "sql server stored procedure": ["T1505"],
+  "transport agent": ["T1505"],
+
+  // ============== PRIVILEGE ESCALATION ==============
+  "uac bypass": ["T1548"],
+  "fodhelper": ["T1548"],
+  "token impersonation": ["T1134"],
+  "token theft": ["T1134"],
+  "primary token": ["T1134"],
+  "make token": ["T1134"],
+  "exploit privesc": ["T1068"],
+  "kernel exploit": ["T1068"],
+  "printnightmare": ["T1068"],
+  "zerologon": ["T1068", "T1003"],
+  "process injection": ["T1055"],
+  "dll injection": ["T1055"],
+  "process hollowing": ["T1055"],
+  "reflective dll": ["T1055", "T1620"],
+  "thread hijacking": ["T1055"],
+  "apc injection": ["T1055"],
+  "container escape": ["T1611"],
+  "domain policy modification": ["T1484"],
+  "gpo abuse": ["T1484"],
+  "access token": ["T1134"],
+
+  // ============== DEFENSE EVASION ==============
+  "disable defender": ["T1562"],
+  "disable av": ["T1562"],
+  "disable edr": ["T1562"],
+  "tamper": ["T1562"],
+  "edr tamper": ["T1562"],
+  "stop service": ["T1562", "T1489"],
+  "kill av": ["T1562"],
+  "uninstall edr": ["T1562"],
+  "edr bypass": ["T1562"],
+  "edr evasion": ["T1562"],
+  "amsi bypass": ["T1562"],
+  "etw bypass": ["T1562"],
+  "sysmon disabled": ["T1562"],
+  "log cleared": ["T1070"],
+  "wevtutil cl": ["T1070"],
+  "clear event log": ["T1070"],
+  "clear logs": ["T1070"],
+  "delete logs": ["T1070"],
+  "indicator removal": ["T1070"],
+  "timestomp": ["T1070"],
+  "obfuscation": ["T1027"],
+  "obfuscated": ["T1027"],
+  "encoded": ["T1027"],
+  "base64": ["T1027", "T1140"],
+  "packed": ["T1027"],
+  "deobfuscate": ["T1140"],
+  "masquerading": ["T1036"],
+  "renamed binary": ["T1036"],
+  "svchost lookalike": ["T1036"],
+  "spoofed": ["T1036"],
+  "rundll32": ["T1218"],
+  "regsvr32": ["T1218"],
+  "mshta": ["T1218"],
+  "msbuild": ["T1127"],
+  "installutil": ["T1218"],
+  "regasm": ["T1218"],
+  "lolbin": ["T1218", "T1127"],
+  "lolbas": ["T1218"],
+  "living off the land": ["T1218", "T1059"],
+  "living-off-the-land": ["T1218", "T1059"],
+  "lotl": ["T1218", "T1059"],
+  "rootkit": ["T1014"],
+  "bootloader": ["T1542"],
+  "subvert trust": ["T1553"],
+  "code signing": ["T1553"],
+  "stolen cert": ["T1553"],
+  "modify registry": ["T1112"],
+  "reg.exe": ["T1112"],
+  "hidden file": ["T1564"],
+  "alternate data stream": ["T1564"],
+  "ads": ["T1564"],
+  "process doppelganging": ["T1055"],
+  "indirect command": ["T1202"],
+  "pcalua": ["T1202"],
+  "forfiles": ["T1202"],
+  "pass the hash": ["T1550"],
+  "pth": ["T1550"],
+  "pass the ticket": ["T1550"],
+  "ptt": ["T1550"],
+
+  // ============== CREDENTIAL ACCESS ==============
+  "mimikatz": ["T1003", "T1558", "T1552"],
+  "lsass": ["T1003"],
+  "lsass dump": ["T1003"],
+  "comsvcs": ["T1003"],
+  "procdump lsass": ["T1003"],
+  "credential dump": ["T1003"],
+  "credential dumping": ["T1003"],
+  "sam dump": ["T1003"],
+  "ntds.dit": ["T1003"],
+  "ntds": ["T1003"],
+  "dcsync": ["T1003"],
+  "dcshadow": ["T1003"],
+  "secretsdump": ["T1003"],
+  "credential theft": ["T1003", "T1555"],
+  "lazagne": ["T1555"],
+  "browser credentials": ["T1555"],
+  "saved password": ["T1555"],
+  "keychain": ["T1555"],
+  "credential manager": ["T1555"],
+  "brute force": ["T1110"],
+  "password spray": ["T1110"],
+  "password spraying": ["T1110"],
+  "credential stuffing": ["T1110"],
+  "rdp brute force": ["T1110", "T1021"],
+  "smb brute": ["T1110"],
+  "kerberoasting": ["T1558"],
+  "kerberoast": ["T1558"],
+  "asreproast": ["T1558"],
+  "asreproasting": ["T1558"],
+  "golden ticket": ["T1558"],
+  "silver ticket": ["T1558"],
+  "kerberos abuse": ["T1558"],
+  "rubeus": ["T1558"],
+  "tgt theft": ["T1558"],
+  "ccache": ["T1558"],
+  "keylogger": ["T1056"],
+  "keylog": ["T1056"],
+  "input capture": ["T1056"],
+  "form grabber": ["T1056"],
+  "mfa bombing": ["T1621"],
+  "mfa fatigue": ["T1621"],
+  "mfa spam": ["T1621"],
+  "push spam": ["T1621"],
+  "push bombing": ["T1621"],
+  "adversary in the middle": ["T1557"],
+  "evilginx": ["T1557", "T1539"],
+  "modlishka": ["T1557"],
+  "aitm": ["T1557"],
+  "session hijack": ["T1539", "T1185"],
+  "cookie theft": ["T1539"],
+  "steal cookie": ["T1539"],
+  "session token": ["T1528", "T1539"],
+  "oauth abuse": ["T1528"],
+  "oauth token theft": ["T1528"],
+  "oauth grant": ["T1528"],
+  "consent phishing": ["T1528", "T1566"],
+  "illicit consent": ["T1528"],
+  "device code phishing": ["T1528"],
+  "ad cs abuse": ["T1649"],
+  "certificate theft": ["T1649"],
+  "certifried": ["T1649"],
+  "esc1": ["T1649"],
+  "esc8": ["T1649"],
+  "shadow credentials": ["T1556"],
+  "responder": ["T1557"],
+  "ntlm relay": ["T1557"],
+  "llmnr poisoning": ["T1557"],
+  "mitm6": ["T1557"],
+  "unsecured credentials": ["T1552"],
+  "credentials in files": ["T1552"],
+  "credentials in registry": ["T1552"],
+  "git credentials": ["T1552"],
+  "private key": ["T1552"],
+  "ssh key": ["T1552"],
+
+  // ============== DISCOVERY ==============
+  "whoami": ["T1033"],
+  "net user": ["T1087"],
+  "net group": ["T1087", "T1069"],
+  "net localgroup": ["T1087", "T1069"],
+  "net view": ["T1018", "T1135"],
+  "nltest": ["T1018", "T1482"],
+  "domain admins": ["T1087", "T1069"],
+  "ad enumeration": ["T1087", "T1018"],
+  "ldap query": ["T1087", "T1018"],
+  "adfind": ["T1018", "T1087"],
+  "bloodhound": ["T1087", "T1482", "T1018"],
+  "sharphound": ["T1087", "T1482", "T1018"],
+  "ad recon": ["T1087", "T1018"],
+  "domain trust": ["T1482"],
+  "trustdump": ["T1482"],
+  "permission group": ["T1069"],
+  "ipconfig": ["T1016"],
+  "ifconfig": ["T1016"],
+  "netstat": ["T1049"],
+  "tasklist": ["T1057"],
+  "ps": ["T1057"],
+  "process listing": ["T1057"],
+  "systeminfo": ["T1082"],
+  "uname": ["T1082"],
+  "wmic os": ["T1082"],
+  "host enumeration": ["T1082"],
+  "port scan": ["T1046"],
+  "nmap": ["T1046"],
+  "masscan": ["T1046"],
+  "service scan": ["T1046"],
+  "share enumeration": ["T1135"],
+  "smb scan": ["T1135", "T1046"],
+  "file discovery": ["T1083"],
+  "find sensitive": ["T1083"],
+  "tree": ["T1083"],
+  "dir /s": ["T1083"],
+  "registry query": ["T1012"],
+  "reg query": ["T1012"],
+  "remote system": ["T1018"],
+  "ping sweep": ["T1018", "T1046"],
+  "cloud enum": ["T1580", "T1526"],
+  "scout suite": ["T1580"],
+  "cloudfox": ["T1580"],
+  "azure recon": ["T1580", "T1087"],
+  "aws enum": ["T1580", "T1087"],
+  "s3 enumeration": ["T1619"],
+  "blob enumeration": ["T1619"],
+
+  // ============== LATERAL MOVEMENT ==============
+  "lateral movement": ["T1021", "T1570"],
+  "smb": ["T1021", "T1570"],
+  "rdp": ["T1021"],
+  "remote desktop": ["T1021"],
+  "wmic process call create": ["T1021", "T1047"],
+  "winrm": ["T1021"],
+  "powershell remoting": ["T1021"],
+  "evil-winrm": ["T1021"],
+  "ssh lateral": ["T1021"],
+  "vnc": ["T1021"],
+  "remote service": ["T1021"],
+  "admin share": ["T1021", "T1570"],
+  "admin$": ["T1021"],
+  "c$": ["T1021"],
+  "ipc$": ["T1021"],
+  "smbexec": ["T1021"],
+  "wmiexec": ["T1021", "T1047"],
+  "atexec": ["T1053", "T1021"],
+  "dcomexec": ["T1021"],
+  "impacket": ["T1021", "T1003", "T1558"],
+  "internal phishing": ["T1534"],
+  "lateral tool transfer": ["T1570"],
+  "exploit remote service": ["T1210"],
+  "smbghost": ["T1210"],
+  "eternalblue": ["T1210"],
+  "ms17-010": ["T1210"],
+  "session hijacking": ["T1563"],
+  "tscon": ["T1563"],
+  "rdp session hijack": ["T1563"],
+
+  // ============== COLLECTION ==============
+  "data staging": ["T1074"],
+  "stage files": ["T1074"],
+  "compress data": ["T1560"],
+  "7zip": ["T1560"],
+  "7-zip": ["T1560"],
+  "winrar": ["T1560"],
+  "rar archive": ["T1560"],
+  "zip large": ["T1560"],
+  "tar archive": ["T1560"],
+  "screenshot": ["T1113"],
+  "screen capture": ["T1113"],
+  "screen recording": ["T1113"],
+  "clipboard": ["T1115"],
+  "audio capture": ["T1123"],
+  "video capture": ["T1125"],
+  "email collection": ["T1114"],
+  "mailbox export": ["T1114"],
+  "pst export": ["T1114"],
+  "ews abuse": ["T1114"],
+  "graph api mailbox": ["T1114"],
+  "sharepoint download": ["T1213"],
+  "confluence download": ["T1213"],
+  "wiki scraping": ["T1213"],
+  "data from cloud": ["T1530"],
+  "s3 download": ["T1530"],
+  "blob download": ["T1530"],
+  "automated collection": ["T1119"],
+
+  // ============== COMMAND AND CONTROL ==============
+  "cobalt strike": ["T1071", "T1055", "T1218", "T1027", "T1090"],
+  "cobaltstrike": ["T1071", "T1055", "T1218", "T1027"],
+  "beacon": ["T1071", "T1573"],
+  "metasploit": ["T1071", "T1055"],
+  "meterpreter": ["T1071", "T1055"],
+  "sliver": ["T1071", "T1573"],
+  "havoc": ["T1071", "T1573"],
+  "mythic": ["T1071", "T1573"],
+  "brute ratel": ["T1071", "T1573"],
+  "c2": ["T1071", "T1573"],
+  "c2 channel": ["T1071", "T1573"],
+  "command and control": ["T1071", "T1573"],
+  "https beacon": ["T1071", "T1573"],
+  "dns tunnel": ["T1071", "T1572"],
+  "dns tunneling": ["T1071", "T1572"],
+  "icmp tunnel": ["T1095", "T1572"],
+  "domain fronting": ["T1090", "T1568"],
+  "cdn abuse": ["T1090"],
+  "cloudflare abuse": ["T1090"],
+  "tor": ["T1090"],
+  "proxy chain": ["T1090"],
+  "domain generation": ["T1568"],
+  "dga": ["T1568"],
+  "fast flux": ["T1568"],
+  "dead drop": ["T1102"],
+  "github c2": ["T1102"],
+  "pastebin c2": ["T1102"],
+  "telegram c2": ["T1102"],
+  "discord c2": ["T1102"],
+  "social media c2": ["T1102"],
+  "remote access tool": ["T1219"],
+  "anydesk": ["T1219"],
+  "teamviewer": ["T1219"],
+  "screenconnect": ["T1219"],
+  "connectwise": ["T1219"],
+  "splashtop": ["T1219"],
+  "atera": ["T1219"],
+  "syncro": ["T1219"],
+  "ngrok": ["T1090", "T1572"],
+  "ingress tool transfer": ["T1105"],
+  "certutil download": ["T1105"],
+  "bitsadmin": ["T1105", "T1197"],
+  "curl wget": ["T1105"],
+  "tool drop": ["T1105"],
+
+  // ============== EXFILTRATION ==============
+  "exfiltration": ["T1041", "T1567"],
+  "exfil": ["T1041", "T1567"],
+  "data exfil": ["T1041", "T1567"],
+  "rclone": ["T1567"],
+  "megasync": ["T1567"],
+  "mega.nz": ["T1567"],
+  "dropbox upload": ["T1567"],
+  "google drive upload": ["T1567"],
+  "onedrive upload": ["T1567"],
+  "wetransfer": ["T1567"],
+  "exfil to cloud": ["T1567", "T1537"],
+  "cloud account upload": ["T1537"],
+  "exfil over c2": ["T1041"],
+  "ftp exfil": ["T1048"],
+  "scp exfil": ["T1048"],
+  "smtp exfil": ["T1048"],
+  "alternative protocol": ["T1048"],
+  "physical exfil": ["T1052"],
+  "data transfer size": ["T1030"],
+  "scheduled transfer": ["T1029"],
+
+  // ============== IMPACT ==============
+  "ransomware": ["T1486", "T1490", "T1489"],
+  "encrypt files": ["T1486"],
+  "encrypted for impact": ["T1486"],
+  "lockbit": ["T1486", "T1490"],
+  "alphv": ["T1486", "T1490"],
+  "blackcat": ["T1486", "T1490"],
+  "akira": ["T1486", "T1490"],
+  "black basta": ["T1486", "T1490"],
+  "ryuk": ["T1486"],
+  "conti": ["T1486"],
+  "play": ["T1486"],
+  "medusa": ["T1486"],
+  "ransomhub": ["T1486"],
+  "cl0p": ["T1486", "T1567"],
+  "shadow copy": ["T1490"],
+  "vssadmin delete": ["T1490"],
+  "wbadmin delete": ["T1490"],
+  "bcdedit": ["T1490"],
+  "delete backup": ["T1490"],
+  "inhibit recovery": ["T1490"],
+  "wiper": ["T1485", "T1561"],
+  "data destruction": ["T1485"],
+  "data wiped": ["T1485", "T1561"],
+  "disk wipe": ["T1561"],
+  "mbr wipe": ["T1561"],
+  "hermeticwiper": ["T1485", "T1561"],
+  "whispergate": ["T1485"],
+  "caddywiper": ["T1485"],
+  "isaacwiper": ["T1485"],
+  "data manipulation": ["T1565"],
+  "defacement": ["T1491"],
+  "service stop": ["T1489"],
+  "stopped services": ["T1489"],
+  "system shutdown": ["T1529"],
+  "force reboot": ["T1529"],
+  "ddos": ["T1498"],
+  "denial of service": ["T1498"],
+  "cryptomining": ["T1496"],
+  "crypto miner": ["T1496"],
+  "xmrig": ["T1496"],
+  "resource hijack": ["T1496"],
+  "cloud mining": ["T1496"],
+  "account locked": ["T1531"],
+  "account access removal": ["T1531"],
+  "financial fraud": ["T1657"],
+  "wire fraud": ["T1657"],
+  "invoice fraud": ["T1657"],
+  "bec": ["T1657", "T1078", "T1566"],
+  "business email compromise": ["T1657", "T1566"],
+
+  // ============== WINDOWS EVENT IDs ==============
+  "4624": ["T1078"],
+  "4625": ["T1110"],
+  "4648": ["T1078"],
+  "4672": ["T1078"],
+  "4688": ["T1059"],
+  "4697": ["T1543", "T1569"],
+  "4698": ["T1053"],
+  "4699": ["T1053"],
+  "4700": ["T1053"],
+  "4702": ["T1053"],
+  "4720": ["T1136"],
+  "4722": ["T1098"],
+  "4724": ["T1098"],
+  "4728": ["T1098"],
+  "4732": ["T1098"],
+  "4738": ["T1098"],
+  "5140": ["T1135"],
+  "5145": ["T1135"],
+  "1102": ["T1070"],
+  "104": ["T1070"],
+  "7045": ["T1543", "T1569"],
+
+  // Sysmon
+  "sysmon 1": ["T1059"],
+  "sysmon 3": ["T1071"],
+  "sysmon 7": ["T1574"],
+  "sysmon 8": ["T1055"],
+  "sysmon 10": ["T1003"],
+  "sysmon 11": ["T1105"],
+  "sysmon 12": ["T1112", "T1547"],
+  "sysmon 13": ["T1112", "T1547"],
+  "sysmon 22": ["T1071"],
+
+  // ============== CLOUD / IDENTITY ==============
+  "azure ad": ["T1078"],
+  "entra id": ["T1078"],
+  "okta": ["T1078"],
+  "global admin": ["T1078", "T1098"],
+  "privilege escalation cloud": ["T1098"],
+  "consent grant": ["T1528"],
+  "service principal": ["T1078", "T1098"],
+  "managed identity abuse": ["T1078"],
+  "iam abuse": ["T1078", "T1098"],
+  "assume role": ["T1078"],
+  "sts assume": ["T1078"],
+  "instance metadata": ["T1552"],
+  "imds": ["T1552"],
+  "169.254.169.254": ["T1552"],
+  "federated trust": ["T1606", "T1556"],
+  "saml forge": ["T1606"],
+  "golden saml": ["T1606"],
+  "adfs abuse": ["T1606", "T1556"],
+  "primary refresh token": ["T1528"],
+  "prt": ["T1528"],
+
+  // ============== RECON ==============
+  "reconnaissance": ["T1595", "T1596"],
+  "active scanning": ["T1595"],
+  "shodan": ["T1596"],
+  "censys": ["T1596"],
+  "github recon": ["T1593"],
+  "dorking": ["T1593"],
+  "linkedin recon": ["T1591"],
+  "harvester": ["T1589"],
+  "phishing for info": ["T1598"]
+};
+
+// ============================================================
+// IOC TYPE CATALOGUE
+// (stix_type used for STIX 2.1 export; defang flag = network-style)
+// ============================================================
+const IOC_TYPES = [
+  { key:'ipv4',        label:'IPv4 address',        stix:'ipv4-addr',       defang:true,  color:'#dc2626' },
+  { key:'ipv6',        label:'IPv6 address',        stix:'ipv6-addr',       defang:true,  color:'#dc2626' },
+  { key:'domain',      label:'Domain',              stix:'domain-name',     defang:true,  color:'#ea580c' },
+  { key:'url',         label:'URL',                 stix:'url',             defang:true,  color:'#ea580c' },
+  { key:'email',       label:'Email address',       stix:'email-addr',      defang:true,  color:'#db2777' },
+  { key:'md5',         label:'MD5 hash',            stix:'file:hashes.MD5',     defang:false, color:'#7c3aed' },
+  { key:'sha1',        label:'SHA-1 hash',          stix:'file:hashes.SHA-1',   defang:false, color:'#7c3aed' },
+  { key:'sha256',      label:'SHA-256 hash',        stix:'file:hashes.SHA-256', defang:false, color:'#7c3aed' },
+  { key:'filename',    label:'Filename',            stix:'file:name',       defang:false, color:'#0891b2' },
+  { key:'filepath',    label:'File path',           stix:'file:name',       defang:false, color:'#0891b2' },
+  { key:'process',     label:'Process name',        stix:'process:name',    defang:false, color:'#0d9488' },
+  { key:'cmdline',     label:'Command-line',        stix:'process:command_line', defang:false, color:'#0d9488' },
+  { key:'regkey',      label:'Registry key',        stix:'windows-registry-key', defang:false, color:'#ca8a04' },
+  { key:'mutex',       label:'Mutex',               stix:'mutex',           defang:false, color:'#ca8a04' },
+  { key:'useragent',   label:'User-Agent',          stix:'network-traffic', defang:false, color:'#64748b' },
+  { key:'username',    label:'User account',        stix:'user-account',    defang:false, color:'#4f46e5' },
+  { key:'service',     label:'Service / scheduled task', stix:'process:name', defang:false, color:'#4f46e5' },
+  { key:'asn',         label:'ASN',                 stix:'autonomous-system', defang:false, color:'#64748b' },
+  { key:'cve',         label:'CVE',                 stix:'vulnerability',   defang:false, color:'#b91c1c' },
+  { key:'yara',        label:'YARA rule name',      stix:'indicator',       defang:false, color:'#9333ea' },
+  { key:'other',       label:'Other (specify)',     stix:'indicator',       defang:false, color:'#6b7280' },
+];
+const TYPE_MAP = Object.fromEntries(IOC_TYPES.map(t => [t.key, t]));
+
+// ============================================================
+// ATT&CK helpers (matrix already loaded above)
+// ============================================================
+function baseTID(id) { return id.replace(/[a-z]$/, ""); }
+const TECH_LOOKUP = {};
+ATTACK_MATRIX.forEach(tac => {
+  tac.techniques.forEach(t => {
+    const b = baseTID(t.id);
+    if (!TECH_LOOKUP[b]) TECH_LOOKUP[b] = { name: t.name, tactics: [] };
+    if (!TECH_LOOKUP[b].tactics.includes(tac.name)) TECH_LOOKUP[b].tactics.push(tac.name);
+  });
+});
+function buildKeywordIndex() {
+  const entries = Object.entries(KEYWORD_MAP).map(([k,v]) => ({ kw:k.toLowerCase(), tids:v }));
+  entries.sort((a,b) => b.kw.length - a.kw.length);
+  return entries;
+}
+const KEYWORD_INDEX = buildKeywordIndex();
+function keywordMatches(input) {
+  const q = (input||'').toLowerCase().trim();
+  const tids = new Set(); const byTid = {};
+  if (!q) return { tids, byTid };
+  const add = e => e.tids.forEach(t => { const b = baseTID(t); tids.add(b); (byTid[b] = byTid[b] || []).push(e.kw); });
+  if (KEYWORD_MAP[q]) add({ kw:q, tids:KEYWORD_MAP[q] });
+  for (const e of KEYWORD_INDEX) {
+    if (q === e.kw) continue;
+    if (q.length >= 3 && (q.includes(e.kw) || e.kw.includes(q))) add(e);
+  }
+  return { tids, byTid };
+}
+
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  iocs: [],     // { id, type, customType, source, value, desc, confidence, blocked, whereBlocked, attack:[tid], added }
+  view: 'grouped',
+  defang: true,
+  theme: null
+};
+let pendingAttack = [];
+let editingId = null;
+let pickerTarget = 'pending';
+
+// ============================================================
+// DEFANG / REFANG
+// ============================================================
+function defang(s) {
+  if (!s) return s;
+  // common defang patterns: dots, ://, hxxp, @
+  return s
+    .replace(/\./g, '[.]')
+    .replace(/:\/\//g, '[://]')
+    .replace(/@/g, '[at]')
+    .replace(/^http/i, 'hxxp');
+}
+function refang(s) {
+  if (!s) return s;
+  return s
+    .replace(/\[\.\]/g, '.')
+    .replace(/\(\.\)/g, '.')
+    .replace(/\[:\/\/\]/g, '://')
+    .replace(/\[at\]/gi, '@')
+    .replace(/\[@\]/g, '@')
+    .replace(/^hxxp/i, 'http');
+}
+function shouldDefang(typeKey) {
+  const t = TYPE_MAP[typeKey];
+  return t && t.defang;
+}
+function displayValue(ioc) {
+  const raw = ioc.value || '';
+  if (state.defang && shouldDefang(ioc.type)) return defang(raw);
+  return raw;
+}
+
+// ============================================================
+// TYPE DROPDOWN INIT
+// ============================================================
+function initTypeDropdown() {
+  const sel = document.getElementById('fType');
+  sel.innerHTML = IOC_TYPES.map(t => `<option value="${t.key}">${t.label}</option>`).join('');
+  sel.value = 'ipv4';
+}
+function onTypeChange() {
+  const v = document.getElementById('fType').value;
+  document.getElementById('typeField').classList.toggle('show-custom', v === 'other');
+}
+function onBlockedChange() {
+  const v = document.getElementById('fBlocked').value;
+  document.getElementById('whereBlockedField').style.display = (v === 'Yes') ? 'block' : 'none';
+}
+
+// ============================================================
+// ADD / EDIT / DELETE
+// ============================================================
+function addIOC() {
+  const type = document.getElementById('fType').value;
+  const customType = document.getElementById('fTypeCustom').value.trim();
+  const source = document.getElementById('fSource').value.trim();
+  const valueRaw = document.getElementById('fValue').value.trim();
+  const desc = document.getElementById('fDesc').value.trim();
+  const confidence = document.getElementById('fConfidence').value;
+  const blocked = document.getElementById('fBlocked').value;
+  const whereBlocked = document.getElementById('fWhereBlocked').value.trim();
+
+  if (!valueRaw) { showToast('Add an IOC value'); return; }
+  if (!confidence) { showToast('Choose a confidence level'); return; }
+  if (type === 'other' && !customType) { showToast('Name the custom type'); return; }
+
+  if (editingId) {
+    const ioc = state.iocs.find(i => i.id === editingId);
+    if (ioc) {
+      ioc.type = type; ioc.customType = type === 'other' ? customType : '';
+      ioc.source = source; ioc.value = refang(valueRaw.split('\n')[0].trim());
+      ioc.desc = desc; ioc.confidence = confidence; ioc.blocked = blocked;
+      ioc.whereBlocked = blocked === 'Yes' ? whereBlocked : '';
+      ioc.attack = [...pendingAttack];
+    }
+    editingId = null;
+    document.querySelector('.entry-card .card-title').textContent = '＋ Add indicator';
+    document.querySelector('.entry-card .btn.primary').textContent = 'Add';
+    showToast('IOC updated');
+  } else {
+    // multi-line: one IOC per non-empty line (same metadata)
+    const lines = valueRaw.split('\n').map(l => refang(l.trim())).filter(Boolean);
+    const now = new Date().toISOString();
+    lines.forEach(v => {
+      state.iocs.push({
+        id: 'ioc_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+        type, customType: type === 'other' ? customType : '',
+        source, value: v, desc,
+        confidence, blocked,
+        whereBlocked: blocked === 'Yes' ? whereBlocked : '',
+        attack: [...pendingAttack],
+        added: now
+      });
+    });
+    showToast(lines.length === 1 ? 'IOC added' : `${lines.length} IOCs added`);
+  }
+
+  document.getElementById('fValue').value = '';
+  document.getElementById('fDesc').value = '';
+  document.getElementById('fConfidence').value = '';
+  document.getElementById('fBlocked').value = 'No';
+  document.getElementById('fWhereBlocked').value = '';
+  onBlockedChange();
+  pendingAttack = [];
+  renderPendingAttack();
+  render();
+}
+
+function editIOC(id) {
+  const ioc = state.iocs.find(i => i.id === id);
+  if (!ioc) return;
+  editingId = id;
+  document.getElementById('fType').value = ioc.type;
+  document.getElementById('fTypeCustom').value = ioc.customType || '';
+  onTypeChange();
+  document.getElementById('fSource').value = ioc.source || '';
+  document.getElementById('fValue').value = ioc.value || '';
+  document.getElementById('fDesc').value = ioc.desc || '';
+  document.getElementById('fConfidence').value = ioc.confidence || '';
+  document.getElementById('fBlocked').value = ioc.blocked || 'No';
+  onBlockedChange();
+  document.getElementById('fWhereBlocked').value = ioc.whereBlocked || '';
+  pendingAttack = [...(ioc.attack || [])];
+  renderPendingAttack();
+  document.querySelector('.entry-card .card-title').textContent = '✎ Edit indicator';
+  document.querySelector('.entry-card .btn.primary').textContent = 'Update';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  document.getElementById('fValue').focus();
+}
+function deleteIOC(id) {
+  state.iocs = state.iocs.filter(i => i.id !== id);
+  if (editingId === id) {
+    editingId = null;
+    document.querySelector('.entry-card .card-title').textContent = '＋ Add indicator';
+    document.querySelector('.entry-card .btn.primary').textContent = 'Add';
+  }
+  render();
+  showToast('IOC removed');
+}
+
+// ============================================================
+// ATT&CK PICKER
+// ============================================================
+function openAttackPicker(target) {
+  pickerTarget = target;
+  document.getElementById('attackSearch').value = '';
+  renderAttackList();
+  document.getElementById('attackModal').classList.add('show');
+  setTimeout(() => document.getElementById('attackSearch').focus(), 50);
+}
+function closeAttackPicker() {
+  document.getElementById('attackModal').classList.remove('show');
+  render();
+}
+function currentPickerSelection() {
+  if (pickerTarget === 'pending') return pendingAttack;
+  const ioc = state.iocs.find(i => i.id === pickerTarget);
+  return ioc ? (ioc.attack = ioc.attack || []) : [];
+}
+function toggleTechnique(tid) {
+  const sel = currentPickerSelection();
+  const i = sel.indexOf(tid);
+  if (i >= 0) sel.splice(i,1); else sel.push(tid);
+  if (pickerTarget === 'pending') renderPendingAttack();
+  renderAttackList();
+}
+function techPickRow(b, name, on, extra) {
+  return `<div class="tech-pick ${on?'selected':''}" onclick="toggleTechnique('${b}')">
+    <span class="tid">${b}</span><span>${escapeHtml(name)}</span>${extra||''}${on?'<span style="margin-left:auto;color:var(--purple)">✓</span>':''}
+  </div>`;
+}
+function renderAttackList() {
+  const raw = document.getElementById('attackSearch').value.trim();
+  const q = raw.toLowerCase();
+  const sel = currentPickerSelection();
+  const root = document.getElementById('attackList');
+  let html = '';
+  if (q) {
+    const km = keywordMatches(raw);
+    const suggested = [...km.tids].filter(tid => TECH_LOOKUP[tid]);
+    if (suggested.length) {
+      html += `<div class="tactic-group"><div class="tactic-label suggest-label">Suggested — matched "${escapeHtml(raw)}"</div>`;
+      suggested.forEach(tid => {
+        const info = TECH_LOOKUP[tid];
+        const kws = [...new Set(km.byTid[tid]||[])];
+        const kwTag = kws.length ? `<span class="kw-hit">${escapeHtml(kws[0])}${kws.length>1?' +'+(kws.length-1):''}</span>` : '';
+        html += techPickRow(tid, info.name, sel.includes(tid), kwTag);
+      });
+      html += `</div>`;
+    }
+  }
+  let literalHtml = '';
+  ATTACK_MATRIX.forEach(tac => {
+    const matches = tac.techniques.filter(t => {
+      const b = baseTID(t.id);
+      if (!q) return true;
+      return b.toLowerCase().includes(q) || t.name.toLowerCase().includes(q) || tac.name.toLowerCase().includes(q);
+    });
+    const seen = new Set();
+    const uniq = matches.filter(t => { const b = baseTID(t.id); if (seen.has(b)) return false; seen.add(b); return true; });
+    if (!uniq.length) return;
+    literalHtml += `<div class="tactic-group"><div class="tactic-label">${tac.name}</div>`;
+    uniq.forEach(t => { const b = baseTID(t.id); literalHtml += techPickRow(b, t.name, sel.includes(b)); });
+    literalHtml += `</div>`;
+  });
+  if (q && literalHtml) html += `<div class="all-label">All techniques</div>`;
+  html += literalHtml;
+  root.innerHTML = html || `<div class="empty">Nothing matches "${escapeHtml(raw)}".</div>`;
+}
+function renderPendingAttack() {
+  const root = document.getElementById('pendingAttack');
+  let html = pendingAttack.map(tid =>
+    `<span class="attack-chip">${tid}<span class="x" onclick="removePending('${tid}')">×</span></span>`
+  ).join('');
+  html += `<button class="attack-add-btn" type="button" onclick="openAttackPicker('pending')">+ ATT&CK technique</button>`;
+  root.innerHTML = html;
+}
+function removePending(tid) { pendingAttack = pendingAttack.filter(t => t !== tid); renderPendingAttack(); }
+
+// ============================================================
+// VIEW + RENDER
+// ============================================================
+function setView(v) {
+  state.view = v;
+  document.getElementById('view_grouped').classList.toggle('active', v==='grouped');
+  document.getElementById('view_flat').classList.toggle('active', v==='flat');
+  render();
+}
+function setDefang(on) { state.defang = on; render(); }
+
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function typeLabel(ioc) {
+  if (ioc.type === 'other' && ioc.customType) return ioc.customType;
+  return (TYPE_MAP[ioc.type] && TYPE_MAP[ioc.type].label) || ioc.type;
+}
+function typeColor(typeKey) { return (TYPE_MAP[typeKey] && TYPE_MAP[typeKey].color) || 'var(--text-muted)'; }
+
+function attackChipsHtml(attack) {
+  if (!attack || !attack.length) return '<span class="dim">—</span>';
+  return `<div class="ioc-attack">` + attack.map(tid => {
+    const info = TECH_LOOKUP[tid];
+    const title = info ? `${tid} — ${info.name}` : tid;
+    return `<span class="ioc-tid" title="${escapeHtml(title)}">${tid}</span>`;
+  }).join('') + `</div>`;
+}
+
+function confBadge(c) {
+  if (!c) return '<span class="conf-badge conf-none">—</span>';
+  const cls = 'conf-' + c.toLowerCase();
+  return `<span class="conf-badge ${cls}">${escapeHtml(c)}</span>`;
+}
+function blockedBadge(ioc) {
+  const yes = ioc.blocked === 'Yes';
+  let html = `<span class="blocked-badge ${yes?'blocked-yes':'blocked-no'}">${yes?'Blocked':'No'}</span>`;
+  if (yes && ioc.whereBlocked) html += `<span class="blocked-where">${escapeHtml(ioc.whereBlocked)}</span>`;
+  return html;
+}
+
+function rowHtml(ioc) {
+  const showDefang = state.defang && shouldDefang(ioc.type) && (ioc.value || '').match(/[.@:]/);
+  const defangTag = showDefang ? ' <span class="defang-tag" title="Defanged for safe display">defanged</span>' : '';
+  return `<tr>
+    <td>
+      <span class="ioc-value long">${escapeHtml(displayValue(ioc))}</span>${defangTag}
+      ${ioc.desc ? `<div class="ioc-desc">${escapeHtml(ioc.desc)}</div>` : ''}
+    </td>
+    <td><span class="ioc-source">${escapeHtml(ioc.source || '—')}</span></td>
+    <td>${confBadge(ioc.confidence)}</td>
+    <td>${blockedBadge(ioc)}</td>
+    <td>${attackChipsHtml(ioc.attack)}</td>
+    <td class="ioc-actions">
+      <button class="ioc-act copy" onclick="copyValue('${ioc.id}')" title="Copy raw value">Copy</button>
+      <button class="ioc-act" onclick="editIOC('${ioc.id}')">Edit</button>
+      <button class="ioc-act del" onclick="deleteIOC('${ioc.id}')">Delete</button>
+    </td>
+  </tr>`;
+}
+
+function filteredIOCs() {
+  const q = (document.getElementById('search').value || '').toLowerCase().trim();
+  if (!q) return state.iocs;
+  return state.iocs.filter(i =>
+    (i.value||'').toLowerCase().includes(q) ||
+    (i.source||'').toLowerCase().includes(q) ||
+    (i.desc||'').toLowerCase().includes(q) ||
+    (i.attack||[]).some(t => t.toLowerCase().includes(q)) ||
+    typeLabel(i).toLowerCase().includes(q)
+  );
+}
+
+function refreshChrome() {
+  const sources = [...new Set(state.iocs.map(i => i.source).filter(Boolean))].sort();
+  document.getElementById('sourceList').innerHTML = sources.map(s => `<option value="${escapeHtml(s)}">`).join('');
+  document.getElementById('countPill').textContent =
+    `${state.iocs.length} indicator${state.iocs.length!==1?'s':''}`;
+}
+
+function tableHead() {
+  return `<thead><tr>
+    <th>Value / description</th>
+    <th>Source</th>
+    <th>Confidence</th>
+    <th>Blocked</th>
+    <th>ATT&CK</th>
+    <th></th>
+  </tr></thead>`;
+}
+
+function render() {
+  refreshChrome();
+  const root = document.getElementById('iocRoot');
+  if (!state.iocs.length) {
+    root.innerHTML = `<div class="card"><div class="empty">No indicators yet — add the first observation above.</div></div>`;
+    return;
+  }
+  const list = filteredIOCs();
+  if (!list.length) {
+    root.innerHTML = `<div class="card"><div class="empty">No indicators match the filter.</div></div>`;
+    return;
+  }
+  if (state.view === 'flat') {
+    root.innerHTML = `<div class="ioc-table-wrap"><table class="ioc-table">${tableHead()}<tbody>` +
+      list.map(rowHtml).join('') + `</tbody></table></div>`;
+    return;
+  }
+  // grouped by type — preserve catalogue order, custom-other at end
+  const order = IOC_TYPES.map(t => t.key);
+  const groups = {};
+  list.forEach(i => { (groups[i.type] = groups[i.type] || []).push(i); });
+  root.innerHTML = order.filter(k => groups[k]).map(k => {
+    const items = groups[k];
+    const label = (TYPE_MAP[k] && TYPE_MAP[k].label) || k;
+    const color = typeColor(k);
+    return `<div class="type-group">
+      <div class="type-header">
+        <span class="type-label"><span class="type-dot" style="background:${color}"></span>${escapeHtml(label)}</span>
+        <span class="type-count">${items.length} indicator${items.length!==1?'s':''}</span>
+        <button class="type-copy-all" onclick="copyType('${k}')">Copy all (raw)</button>
+      </div>
+      <div class="ioc-table-wrap"><table class="ioc-table">${tableHead()}<tbody>` +
+      items.map(rowHtml).join('') +
+      `</tbody></table></div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// COPY
+// ============================================================
+function copyToClipboard(text, msg) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => showToast(msg || 'Copied'),
+      () => fallbackCopy(text, msg));
+  } else fallbackCopy(text, msg);
+}
+function fallbackCopy(text, msg) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.left = '-9999px';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); showToast(msg || 'Copied'); }
+  catch(e) { showToast('Copy failed'); }
+  document.body.removeChild(ta);
+}
+function copyValue(id) {
+  const ioc = state.iocs.find(i => i.id === id);
+  if (ioc) copyToClipboard(ioc.value, 'Value copied (raw)');
+}
+function copyType(typeKey) {
+  const items = filteredIOCs().filter(i => i.type === typeKey);
+  if (!items.length) return;
+  copyToClipboard(items.map(i => i.value).join('\n'), `${items.length} value${items.length!==1?'s':''} copied (raw)`);
+}
+
+// ============================================================
+// EXPORTS
+// ============================================================
+function dateSlug() { return new Date().toISOString().split('T')[0]; }
+function download(content, filename, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function exportCSV() {
+  if (!state.iocs.length) { showToast('Nothing to export'); return; }
+  const rows = [['Type','Value','Source','Confidence','Blocked','Where blocked','ATT&CK','Description','Added']];
+  state.iocs.forEach(i => rows.push([
+    typeLabel(i), i.value||'', i.source||'', i.confidence||'',
+    i.blocked||'No', i.whereBlocked||'',
+    (i.attack||[]).join(' '), i.desc||'', i.added||''
+  ]));
+  const csv = rows.map(r => r.map(c => {
+    const s = String(c);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+  }).join(',')).join('\n');
+  download(csv, `iocs-${dateSlug()}.csv`, 'text/csv');
+  showToast('CSV exported');
+}
+
+function exportMarkdown() {
+  if (!state.iocs.length) { showToast('Nothing to export'); return; }
+  let md = `# IOC List\n\n_Generated ${new Date().toISOString()} · ${state.iocs.length} indicators_\n\n`;
+  // group by type
+  const order = IOC_TYPES.map(t => t.key);
+  const groups = {};
+  state.iocs.forEach(i => { (groups[i.type] = groups[i.type] || []).push(i); });
+  order.filter(k => groups[k]).forEach(k => {
+    const label = (TYPE_MAP[k] && TYPE_MAP[k].label) || k;
+    md += `\n## ${label}\n\n| Value | Source | Confidence | Blocked | ATT&CK | Description |\n|---|---|---|---|---|---|\n`;
+    groups[k].forEach(i => {
+      const atk = (i.attack||[]).join(', ');
+      const blk = i.blocked === 'Yes' ? (i.whereBlocked ? `Yes (${i.whereBlocked})` : 'Yes') : 'No';
+      md += `| \`${(i.value||'').replace(/\|/g,'\\|')}\` | ${i.source||''} | ${i.confidence||''} | ${blk} | ${atk} | ${(i.desc||'').replace(/\|/g,'\\|').replace(/\n/g,' / ')} |\n`;
+    });
+  });
+  download(md, `iocs-${dateSlug()}.md`, 'text/markdown');
+  showToast('Markdown exported');
+}
+
+// STIX 2.1 indicator bundle (uses pattern syntax; minimal but valid)
+function exportSTIX() {
+  if (!state.iocs.length) { showToast('Nothing to export'); return; }
+  const now = new Date().toISOString();
+  const objects = [];
+  state.iocs.forEach(i => {
+    const id = 'indicator--' + uuidv4();
+    const t = TYPE_MAP[i.type] || TYPE_MAP['other'];
+    const pattern = stixPattern(t, i.value);
+    const conf = i.confidence === 'High' ? 85 : i.confidence === 'Medium' ? 50 : i.confidence === 'Low' ? 15 : null;
+    const obj = {
+      type: 'indicator',
+      spec_version: '2.1',
+      id,
+      created: i.added || now,
+      modified: i.added || now,
+      name: `${typeLabel(i)}: ${i.value}`,
+      description: [i.desc, i.source ? `Source: ${i.source}` : null,
+                    i.blocked === 'Yes' ? `Blocked at: ${i.whereBlocked || 'yes'}` : null].filter(Boolean).join(' — '),
+      indicator_types: ['malicious-activity'],
+      pattern,
+      pattern_type: 'stix',
+      valid_from: i.added || now,
+      labels: [i.type, i.blocked === 'Yes' ? 'blocked' : 'not-blocked'].filter(Boolean),
+    };
+    if (conf !== null) obj.confidence = conf;
+    if (i.attack && i.attack.length) {
+      obj.external_references = i.attack.map(tid => ({
+        source_name: 'mitre-attack',
+        external_id: tid,
+        url: `https://attack.mitre.org/techniques/${tid}/`
+      }));
+    }
+    objects.push(obj);
+  });
+  const bundle = { type: 'bundle', id: 'bundle--' + uuidv4(), objects };
+  download(JSON.stringify(bundle, null, 2), `iocs-stix-${dateSlug()}.json`, 'application/json');
+  showToast('STIX 2.1 exported');
+}
+function stixPattern(t, value) {
+  const v = String(value).replace(/'/g, "\\'");
+  switch (t.key) {
+    case 'ipv4':    return `[ipv4-addr:value = '${v}']`;
+    case 'ipv6':    return `[ipv6-addr:value = '${v}']`;
+    case 'domain':  return `[domain-name:value = '${v}']`;
+    case 'url':     return `[url:value = '${v}']`;
+    case 'email':   return `[email-addr:value = '${v}']`;
+    case 'md5':     return `[file:hashes.'MD5' = '${v}']`;
+    case 'sha1':    return `[file:hashes.'SHA-1' = '${v}']`;
+    case 'sha256':  return `[file:hashes.'SHA-256' = '${v}']`;
+    case 'filename':
+    case 'filepath':return `[file:name = '${v}']`;
+    case 'process': return `[process:name = '${v}']`;
+    case 'cmdline': return `[process:command_line = '${v}']`;
+    case 'regkey':  return `[windows-registry-key:key = '${v}']`;
+    case 'mutex':   return `[mutex:name = '${v}']`;
+    case 'username':return `[user-account:account_login = '${v}']`;
+    case 'asn':     return `[autonomous-system:number = '${v}']`;
+    case 'cve':     return `[vulnerability:name = '${v}']`;
+    default:        return `[x-custom:value = '${v}']`;
+  }
+}
+function uuidv4() {
+  if (crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random()*16|0; const v = c==='x' ? r : (r&0x3|0x8); return v.toString(16);
+  });
+}
+
+// ============================================================
+// SAVE / LOAD
+// ============================================================
+function saveState() {
+  const payload = {
+    tool: 'ioc-list',
+    schema: 1,
+    generated: new Date().toISOString(),
+    view: state.view,
+    defang: state.defang,
+    theme: document.documentElement.getAttribute('data-theme') || 'light',
+    iocs: state.iocs
+  };
+  download(JSON.stringify(payload, null, 2), `iocs-${dateSlug()}.json`, 'application/json');
+  showToast('State saved');
+}
+function loadState(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (!data || !Array.isArray(data.iocs)) throw new Error('Not an IOC list file');
+      state.iocs = data.iocs.map(x => ({
+        id: x.id || ('ioc_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)),
+        type: x.type || 'other',
+        customType: x.customType || '',
+        source: x.source || '',
+        value: x.value || '',
+        desc: x.desc || '',
+        confidence: x.confidence || '',
+        blocked: x.blocked || 'No',
+        whereBlocked: x.whereBlocked || '',
+        attack: Array.isArray(x.attack) ? x.attack.map(baseTID) : [],
+        added: x.added || new Date().toISOString()
+      }));
+      if (data.theme) setTheme(data.theme);
+      if (typeof data.defang === 'boolean') { state.defang = data.defang; document.getElementById('defangToggle').checked = data.defang; }
+      if (data.view) setView(data.view);
+      render();
+      showToast(`Loaded ${state.iocs.length} indicators`);
+    } catch(err) { showToast('Could not load — invalid file'); }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function resetAll() {
+  if (!state.iocs.length || confirm('Clear all indicators? This cannot be undone (save first if needed).')) {
+    state.iocs = []; editingId = null; pendingAttack = [];
+    ['fValue','fDesc','fSource','fWhereBlocked','fTypeCustom'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('fConfidence').value='';
+    document.getElementById('fBlocked').value='No'; onBlockedChange();
+    document.querySelector('.entry-card .card-title').textContent = '＋ Add indicator';
+    document.querySelector('.entry-card .btn.primary').textContent = 'Add';
+    renderPendingAttack(); render();
+    showToast('Reset');
+  }
+}
+
+// ============================================================
+// THEME + TOAST
+// ============================================================
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('dh-theme', t); } catch(e) {}
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  setTheme(cur === 'light' ? 'dark' : 'light');
+}
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+(function init(){
+  let saved = null; try { saved = localStorage.getItem('dh-theme'); } catch(e){}
+  if (saved) setTheme(saved);
+  else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) setTheme('dark');
+  else setTheme('light');
+
+  initTypeDropdown();
+  onTypeChange();
+  onBlockedChange();
+  renderPendingAttack();
+
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); addIOC(); }
+    if (e.key === 'Escape') closeAttackPicker();
+  });
+  document.getElementById('attackModal').addEventListener('click', e => {
+    if (e.target.id === 'attackModal') closeAttackPicker();
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>
