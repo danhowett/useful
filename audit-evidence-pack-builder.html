@@ -1,0 +1,1790 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audit Evidence Pack Builder — Dan Howett / Useful</title>
+<meta name="description" content="Build a structured evidence pack for ISO 27001:2022, NCSC CAF v4.0, or NHS DSPT v8. Track evidence pointers, assessor readiness, and ageing — export a Markdown index for the assessor.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f7f9;
+  --bg-elev:#ffffff;
+  --bg-soft:#eef2f5;
+  --text:#1a2230;
+  --text-muted:#525a68;
+  --text-dim:#8a909a;
+  --border:#dee3e9;
+  --border-strong:#c5ccd4;
+  --accent:#3f5b7a;
+  --accent-hover:#2d4866;
+  --accent-soft:#e8edf3;
+  --accent-text:#3f5b7a;
+  --shadow-sm:0 1px 2px rgba(30,40,60,0.04);
+  --shadow-md:0 4px 14px -6px rgba(30,40,60,0.10), 0 1px 2px rgba(30,40,60,0.04);
+  --st-notstarted:#9aa1ab;
+  --st-notstarted-soft:#eef2f5;
+  --st-inprogress:#a16207;
+  --st-inprogress-soft:#fdf4dc;
+  --st-ready:#0f7a3c;
+  --st-ready-soft:#e7f5ef;
+  --st-na:#525a68;
+  --st-na-soft:#e8ecf0;
+  --st-initial:#b91c1c;
+  --st-initial-soft:#fdeaea;
+  --orange:#c2410c;
+  --orange-soft:#fff1e8;
+}
+[data-theme="dark"]{
+  --bg:#0d1117;
+  --bg-elev:#161b22;
+  --bg-soft:#1c232c;
+  --text:#e6edf3;
+  --text-muted:#9ba6b3;
+  --text-dim:#6a7280;
+  --border:#262e38;
+  --border-strong:#3a4350;
+  --accent:#7e9bbd;
+  --accent-hover:#9ab1cd;
+  --accent-soft:rgba(126,155,189,0.12);
+  --accent-text:#9ab1cd;
+  --shadow-sm:none;
+  --shadow-md:0 4px 14px -6px rgba(0,0,0,0.4);
+  --st-notstarted:#6a7280;
+  --st-notstarted-soft:rgba(106,114,128,0.14);
+  --st-inprogress:#d4a04a;
+  --st-inprogress-soft:rgba(212,160,74,0.12);
+  --st-ready:#5ec48a;
+  --st-ready-soft:rgba(94,196,138,0.12);
+  --st-na:#9ba6b3;
+  --st-na-soft:rgba(155,166,179,0.10);
+  --st-initial:#f87171;
+  --st-initial-soft:rgba(248,113,113,0.12);
+  --orange:#fb923c;
+  --orange-soft:rgba(251,146,60,0.12);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+.mono{font-family:'JetBrains Mono',monospace}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+
+/* ===== SITE HEADER ===== */
+.site{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.site-inner{max-width:1280px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--text);font-weight:700;font-size:.92rem}
+.brand .logo{width:30px;height:30px;border-radius:7px;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:800;font-size:.78rem;letter-spacing:-.02em}
+.brand .slash{color:var(--text-dim);font-weight:400}
+.brand .second{color:var(--text-muted);font-weight:500}
+.site-meta{margin-left:auto;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+
+.btn{font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:500;letter-spacing:.02em;border:1px solid var(--border-strong);background:var(--bg-elev);color:var(--text-muted);padding:7px 12px;border-radius:7px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{color:var(--text);border-color:var(--accent);background:var(--accent-soft)}
+.btn.sm{padding:5px 9px;font-size:.66rem}
+.btn.danger:hover{color:var(--st-initial);border-color:var(--st-initial);background:var(--st-initial-soft)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.primary:hover{background:var(--accent-hover);border-color:var(--accent-hover);color:#fff}
+.btn.subtle{background:transparent;border-color:transparent;color:var(--text-dim)}
+.btn.subtle:hover{background:var(--bg-soft);color:var(--text)}
+.theme-toggle{width:34px;height:34px;padding:0;justify-content:center}
+
+/* ===== LAYOUT ===== */
+.wrap{max-width:1280px;margin:0 auto;padding:0 24px}
+.hero{padding:40px 0 24px}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-text);margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.eyebrow .dot{color:var(--text-dim)}
+h1.title{font-family:'Inter',sans-serif;font-weight:800;font-size:clamp(2rem,4.5vw,3rem);line-height:1.08;letter-spacing:-.02em;margin-bottom:16px;max-width:22ch}
+.lede{font-size:1.02rem;color:var(--text-muted);max-width:62ch}
+.lede strong{color:var(--text);font-weight:600}
+.stat-row{display:flex;gap:24px;flex-wrap:wrap;margin-top:24px;padding-top:20px;border-top:1px solid var(--border)}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat .n{font-family:'Inter',sans-serif;font-weight:700;font-size:1.6rem;line-height:1;letter-spacing:-.02em;color:var(--text)}
+.stat .l{font-family:'JetBrains Mono',monospace;font-size:.64rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim)}
+
+/* ===== SETUP CARD ===== */
+.section{padding:28px 0;border-top:1px solid var(--border)}
+.section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:18px}
+.section-head .idx{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--accent-text);letter-spacing:.06em}
+.section-head h2{font-family:'Inter',sans-serif;font-weight:700;font-size:1.4rem;letter-spacing:-.02em}
+.section-head .sub{font-size:.86rem;color:var(--text-dim);margin-left:auto}
+.card{background:var(--bg-elev);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-sm)}
+
+.setup-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;padding:18px}
+.setup-row{display:flex;flex-direction:column;gap:6px}
+.setup-row label{font:500 .68rem/1 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim)}
+.setup-row input, .setup-row select{font:500 .88rem/1.3 'Inter',sans-serif;color:var(--text);background:var(--bg);border:1px solid var(--border-strong);border-radius:7px;padding:9px 11px;outline:none;transition:border-color .15s,box-shadow .15s}
+.setup-row input:focus, .setup-row select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+
+/* ===== FRAMEWORK PICKER ===== */
+.fw-picker{display:flex;gap:8px;flex-wrap:wrap;padding:0 18px 18px}
+.fw-chip{font:600 .8rem/1 'Inter',sans-serif;border:1px solid var(--border-strong);background:var(--bg);color:var(--text-muted);padding:11px 16px;border-radius:8px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;align-items:flex-start;gap:5px;text-align:left;min-width:200px}
+.fw-chip:hover{border-color:var(--accent);color:var(--text)}
+.fw-chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.fw-chip .fw-name{font-weight:700}
+.fw-chip .fw-meta{font:500 .66rem/1 'JetBrains Mono',monospace;opacity:.7;letter-spacing:.04em}
+
+/* ===== READINESS DASHBOARD ===== */
+.dash{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:14px;margin-bottom:24px}
+.dash-card{background:var(--bg-elev);border:1px solid var(--border);border-radius:12px;padding:18px;box-shadow:var(--shadow-sm)}
+.dash-card h3{font:600 .68rem/1 'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:14px}
+.bigstat{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.bigstat .n{font:800 2.2rem/1 'Inter',sans-serif;letter-spacing:-.025em;color:var(--text)}
+.bigstat .of{font:500 .9rem/1 'Inter',sans-serif;color:var(--text-dim)}
+.bigstat .pct{font:600 .78rem/1 'JetBrains Mono',monospace;color:var(--st-ready);background:var(--st-ready-soft);padding:4px 8px;border-radius:5px;margin-left:auto}
+.progressbar{height:8px;background:var(--bg-soft);border-radius:4px;overflow:hidden;display:flex}
+.pb-seg{height:100%;transition:width .3s}
+.pb-ready{background:var(--st-ready)}
+.pb-inprogress{background:var(--st-inprogress)}
+.pb-notstarted{background:var(--st-notstarted)}
+.pb-na{background:var(--st-na);opacity:.4}
+.dash-legend{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;font:500 .68rem/1 'JetBrains Mono',monospace;color:var(--text-dim);letter-spacing:.04em}
+.dash-legend .sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:middle}
+.dash-legend .sw.ready{background:var(--st-ready)}
+.dash-legend .sw.inprogress{background:var(--st-inprogress)}
+.dash-legend .sw.notstarted{background:var(--st-notstarted)}
+.dash-legend .sw.na{background:var(--st-na);opacity:.4}
+.alert{display:flex;align-items:center;gap:8px;padding:9px 11px;background:var(--bg-soft);border-radius:7px;margin-bottom:6px;font-size:.82rem;color:var(--text-muted)}
+.alert .num{font:700 .9rem/1 'Inter',sans-serif;color:var(--text);min-width:24px;text-align:center}
+.alert.warn{background:var(--orange-soft);color:var(--orange)}
+.alert.warn .num{color:var(--orange)}
+.alert .lbl{flex:1}
+.alert.empty{color:var(--text-dim);background:transparent;padding:6px 0;font-style:italic}
+
+/* ===== FILTER BAR ===== */
+.filterbar{display:flex;gap:14px;flex-wrap:wrap;padding:14px 18px;background:var(--bg-elev);border:1px solid var(--border);border-radius:10px;margin-bottom:18px;align-items:center}
+.filter-group{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.filter-label{font:500 .68rem/1 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin-right:4px}
+.filter-chip{font:500 .76rem/1 'Inter',sans-serif;color:var(--text-muted);background:transparent;border:1px solid var(--border-strong);padding:6px 11px;border-radius:999px;cursor:pointer;transition:all .15s}
+.filter-chip:hover{color:var(--text);border-color:var(--accent)}
+.filter-chip.active{color:#fff;background:var(--accent);border-color:var(--accent)}
+.filter-chip.active.st-ready{background:var(--st-ready);border-color:var(--st-ready)}
+.filter-chip.active.st-inprogress{background:var(--st-inprogress);border-color:var(--st-inprogress)}
+.filter-chip.active.st-notstarted{background:var(--st-notstarted);border-color:var(--st-notstarted)}
+.filter-chip.active.st-na{background:var(--st-na);border-color:var(--st-na)}
+.search-wrap{position:relative;margin-left:auto;flex:0 0 240px}
+.search-input{width:100%;height:34px;padding:0 12px 0 32px;font:500 .82rem/1 'Inter',sans-serif;color:var(--text);background:var(--bg);border:1px solid var(--border-strong);border-radius:6px;outline:none}
+.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.search-input::placeholder{color:var(--text-dim)}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:.9rem;pointer-events:none}
+
+/* ===== THEME GROUP ===== */
+.theme-group{margin-bottom:32px}
+.theme-head{display:flex;align-items:baseline;gap:14px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.theme-head .id{font:700 .72rem/1 'JetBrains Mono',monospace;color:var(--accent-text);letter-spacing:.06em;padding:5px 9px;background:var(--accent-soft);border-radius:5px}
+.theme-head h3{font:700 1.15rem/1.1 'Inter',sans-serif;letter-spacing:-.015em}
+.theme-head .meta{font:500 .72rem/1 'JetBrains Mono',monospace;color:var(--text-dim);margin-left:auto;letter-spacing:.04em}
+.theme-head .meta .pct{color:var(--text)}
+
+.controls-list{display:flex;flex-direction:column;gap:10px}
+
+/* ===== CONTROL ROW ===== */
+.ctrl{background:var(--bg-elev);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .15s}
+.ctrl:hover{border-color:var(--border-strong)}
+.ctrl-head{display:grid;grid-template-columns:auto 1fr auto auto;gap:14px;padding:14px 16px;align-items:center;cursor:pointer;user-select:none}
+.ctrl-head:hover{background:var(--bg-soft)}
+.ctrl.open .ctrl-head{background:var(--bg-soft);border-bottom:1px solid var(--border)}
+.ctrl-id{font:600 .74rem/1 'JetBrains Mono',monospace;color:var(--accent-text);letter-spacing:.02em;min-width:60px;background:var(--accent-soft);padding:5px 8px;border-radius:5px;text-align:center}
+.ctrl-title{font:600 .94rem/1.3 'Inter',sans-serif;color:var(--text);letter-spacing:-.005em}
+.ctrl-status{display:flex;align-items:center;gap:6px;font:600 .68rem/1 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;padding:5px 9px;border-radius:5px;white-space:nowrap}
+.ctrl-status.notstarted{color:var(--st-notstarted);background:var(--st-notstarted-soft)}
+.ctrl-status.inprogress{color:var(--st-inprogress);background:var(--st-inprogress-soft)}
+.ctrl-status.ready{color:var(--st-ready);background:var(--st-ready-soft)}
+.ctrl-status.na{color:var(--st-na);background:var(--st-na-soft)}
+.ctrl-status .dotsym{width:7px;height:7px;border-radius:50%;background:currentColor}
+.ctrl-chev{color:var(--text-dim);font-size:.8rem;transition:transform .2s}
+.ctrl.open .ctrl-chev{transform:rotate(180deg)}
+
+.ctrl-body{padding:16px;display:none;gap:18px;flex-direction:column}
+.ctrl.open .ctrl-body{display:flex}
+
+.ctrl-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.ctrl-row.full{grid-template-columns:1fr}
+.ctrl-field{display:flex;flex-direction:column;gap:6px}
+.ctrl-field label{font:500 .66rem/1 'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);display:flex;gap:8px;align-items:center}
+.ctrl-field label .hint{text-transform:none;letter-spacing:0;font-weight:400;color:var(--text-dim);font-size:.7rem}
+.ctrl-field textarea,
+.ctrl-field input,
+.ctrl-field select{font:500 .84rem/1.45 'Inter',sans-serif;color:var(--text);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 10px;outline:none;width:100%;resize:vertical;font-family:'Inter',sans-serif}
+.ctrl-field textarea:focus,
+.ctrl-field input:focus,
+.ctrl-field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.ctrl-field textarea{min-height:64px}
+
+.assessor-want{background:var(--bg-soft);border-radius:7px;padding:11px 13px;font-size:.84rem;color:var(--text-muted);line-height:1.5}
+.assessor-want strong{color:var(--text);font-weight:600;display:block;font-size:.66rem;font-family:'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px}
+.assessor-want ul{margin:6px 0 0 18px;padding:0}
+.assessor-want li{margin-bottom:2px}
+
+/* Evidence pointers */
+.evidence-list{display:flex;flex-direction:column;gap:8px}
+.ev-row{display:grid;grid-template-columns:1.4fr 1.4fr 1fr 1fr auto;gap:8px;align-items:center}
+.ev-row input{font:500 .8rem/1.3 'Inter',sans-serif;color:var(--text);background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:6px 9px;outline:none}
+.ev-row input:focus{border-color:var(--accent)}
+.ev-row .age{font:500 .68rem/1 'JetBrains Mono',monospace;color:var(--text-dim);min-width:56px;text-align:center;padding:5px 0}
+.ev-row .age.stale{color:var(--orange)}
+.ev-row .age.old{color:var(--st-initial);font-weight:600}
+.ev-del{background:transparent;border:none;color:var(--text-dim);font-size:1rem;cursor:pointer;padding:4px 8px;border-radius:4px;transition:all .15s}
+.ev-del:hover{color:var(--st-initial);background:var(--st-initial-soft)}
+.ev-header{display:grid;grid-template-columns:1.4fr 1.4fr 1fr 1fr 36px;gap:8px;font:500 .62rem/1 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);padding:0 2px}
+.ev-add{margin-top:6px;align-self:flex-start}
+
+.ctrl-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:8px;border-top:1px solid var(--border)}
+
+/* ===== EMPTY STATE ===== */
+.empty-state{padding:60px 24px;text-align:center;color:var(--text-dim);display:none}
+.empty-state.show{display:block}
+.empty-state .big{font:700 1.4rem/1.1 'Inter',sans-serif;color:var(--text-muted);margin-bottom:8px;letter-spacing:-.02em}
+
+/* ===== FOOTER ===== */
+footer.site-foot{padding:32px 24px;border-top:1px solid var(--border);margin-top:48px}
+.foot-inner{max-width:1280px;margin:0 auto;display:flex;gap:14px;flex-wrap:wrap;align-items:center;font:500 .74rem/1.4 'JetBrains Mono',monospace;color:var(--text-dim);letter-spacing:.02em}
+.foot-inner a{color:var(--text-muted)}
+.foot-inner a:hover{color:var(--text)}
+.foot-inner .sep{color:var(--border-strong)}
+
+/* ===== TOAST ===== */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:11px 18px;border-radius:8px;font:500 .82rem/1 'Inter',sans-serif;opacity:0;transition:all .25s;pointer-events:none;z-index:100;box-shadow:var(--shadow-md)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ===== MODAL ===== */
+.modal-bg{position:fixed;inset:0;background:rgba(20,28,40,0.5);display:none;align-items:center;justify-content:center;z-index:200;padding:24px}
+.modal-bg.show{display:flex}
+.modal{background:var(--bg-elev);border:1px solid var(--border);border-radius:12px;max-width:800px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow-md)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border)}
+.modal-head h3{font:700 1.05rem/1 'Inter',sans-serif;letter-spacing:-.015em}
+.modal-body{padding:20px 22px;font-size:.86rem;color:var(--text-muted);line-height:1.6}
+.modal-body pre{background:var(--bg-soft);padding:14px;border-radius:8px;font:500 .76rem/1.5 'JetBrains Mono',monospace;color:var(--text);overflow-x:auto;white-space:pre-wrap;word-break:break-word;border:1px solid var(--border);max-height:50vh;overflow-y:auto}
+.modal-foot{display:flex;gap:8px;padding:14px 22px;border-top:1px solid var(--border);justify-content:flex-end}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width:900px){
+  .dash{grid-template-columns:1fr}
+  .ctrl-head{grid-template-columns:auto 1fr auto;gap:10px}
+  .ctrl-chev{display:none}
+  .ctrl-row{grid-template-columns:1fr}
+  .ev-row, .ev-header{grid-template-columns:1fr 1fr;gap:6px}
+  .ev-row .age{min-width:auto;text-align:left}
+  .ev-header{display:none}
+  .stat-row{gap:18px}
+}
+@media (max-width:600px){
+  .wrap{padding:0 16px}
+  .site-inner{padding:10px 16px;gap:10px;flex-wrap:wrap}
+  .site-meta{gap:4px}
+  .btn{padding:6px 9px;font-size:.66rem}
+  .btn .lbl{display:none}
+  .hero{padding:24px 0 18px}
+  h1.title{font-size:1.7rem}
+  .fw-chip{min-width:auto;width:100%}
+}
+
+@media print{
+  .site, .site-meta, .filterbar, .ctrl-actions, footer.site-foot, .dash-card .btn{display:none !important}
+  body{background:white;color:black}
+  .ctrl-body{display:flex !important}
+  .ctrl-chev{display:none}
+  .card, .ctrl, .dash-card{box-shadow:none;border:1px solid #ccc;page-break-inside:avoid}
+  .theme-group{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<!-- ================================================
+     SITE HEADER
+     ================================================ -->
+<header class="site">
+  <div class="site-inner">
+    <a href="index.html" class="brand">
+      <div class="logo">DH</div>
+      <span>Dan Howett<span class="slash">/</span><span class="second">Useful</span></span>
+    </a>
+    <div class="site-meta">
+      <button class="btn sm" onclick="saveState()" title="Download current state as JSON"><span>↓</span><span class="lbl">SAVE</span></button>
+      <button class="btn sm" onclick="loadStatePrompt()" title="Load state from JSON file"><span>↑</span><span class="lbl">LOAD</span></button>
+      <button class="btn sm" onclick="exportMarkdown()" title="Generate Markdown evidence index for assessor"><span>📋</span><span class="lbl">EXPORT</span></button>
+      <button class="btn sm" onclick="window.print()" title="Print or save as PDF"><span>⎙</span><span class="lbl">PRINT</span></button>
+      <button class="btn sm danger" onclick="resetState()" title="Clear all evidence records"><span>⌫</span><span class="lbl">RESET</span></button>
+      <button class="btn sm theme-toggle" onclick="toggleTheme()" title="Cycle theme">◐</button>
+    </div>
+  </div>
+</header>
+
+<!-- ================================================
+     HERO
+     ================================================ -->
+<div class="wrap">
+  <section class="hero">
+    <div class="eyebrow">
+      <span>Compliance</span><span class="dot">·</span><span>Audit Workflow</span><span class="dot">·</span><span>v1.0</span>
+    </div>
+    <h1 class="title">Audit Evidence Pack Builder</h1>
+    <p class="lede">
+      A working tool for the weeks before an audit. Pick your standard, walk the controls, record <strong>where evidence lives</strong>
+      (not the files themselves — assessors want pointers and document owners). Track readiness, surface stale evidence,
+      and export a clean Markdown index for the assessor. Client-side only — nothing leaves your browser. Browser auto-save keeps your work between sessions.
+    </p>
+    <div class="stat-row">
+      <div class="stat"><span class="n" id="stat-total">—</span><span class="l">Controls</span></div>
+      <div class="stat"><span class="n" id="stat-ready">—</span><span class="l">Ready</span></div>
+      <div class="stat"><span class="n" id="stat-inprogress">—</span><span class="l">In Progress</span></div>
+      <div class="stat"><span class="n" id="stat-stale">—</span><span class="l">Ageing Flags</span></div>
+      <div class="stat"><span class="n" id="stat-owner">—</span><span class="l">Missing Owner</span></div>
+    </div>
+  </section>
+
+  <!-- ================================================
+       SETUP: framework + engagement details
+       ================================================ -->
+  <section class="section">
+    <div class="section-head">
+      <span class="idx">01</span>
+      <h2>Setup</h2>
+      <span class="sub">Pick the standard you're auditing against and record the engagement</span>
+    </div>
+
+    <div class="card">
+      <div class="setup-grid">
+        <div class="setup-row">
+          <label for="org-name">Organisation</label>
+          <input type="text" id="org-name" placeholder="e.g. Acme Health Ltd" oninput="onSetupChange()">
+        </div>
+        <div class="setup-row">
+          <label for="assessor-name">Assessor / firm</label>
+          <input type="text" id="assessor-name" placeholder="e.g. BSI / RSM / internal audit" oninput="onSetupChange()">
+        </div>
+        <div class="setup-row">
+          <label for="audit-date">Audit / submission date</label>
+          <input type="date" id="audit-date" oninput="onSetupChange()">
+        </div>
+        <div class="setup-row">
+          <label for="scope-notes">Scope notes</label>
+          <input type="text" id="scope-notes" placeholder="e.g. ISMS scope: UK ops, payment systems" oninput="onSetupChange()">
+        </div>
+      </div>
+      <div class="fw-picker" id="fwPicker">
+        <!-- populated by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================
+       READINESS DASHBOARD
+       ================================================ -->
+  <section class="section">
+    <div class="section-head">
+      <span class="idx">02</span>
+      <h2>Readiness</h2>
+      <span class="sub" id="dash-fwname">—</span>
+    </div>
+
+    <div class="dash">
+      <div class="dash-card">
+        <h3>Overall progress</h3>
+        <div class="bigstat">
+          <span class="n" id="dash-ready">0</span>
+          <span class="of">of <span id="dash-total">0</span> controls ready</span>
+          <span class="pct" id="dash-pct">0%</span>
+        </div>
+        <div class="progressbar" id="dash-pb"></div>
+        <div class="dash-legend">
+          <span><span class="sw ready"></span>Ready</span>
+          <span><span class="sw inprogress"></span>In progress</span>
+          <span><span class="sw notstarted"></span>Not started</span>
+          <span><span class="sw na"></span>N/A</span>
+        </div>
+      </div>
+
+      <div class="dash-card">
+        <h3>Audit flags</h3>
+        <div id="dash-flags">
+          <div class="alert empty">No flags — start adding evidence to see issues surface.</div>
+        </div>
+      </div>
+
+      <div class="dash-card">
+        <h3>By theme</h3>
+        <div id="dash-themes" style="display:flex;flex-direction:column;gap:8px">
+          <div class="alert empty">Pick a framework above.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================
+       CONTROLS
+       ================================================ -->
+  <section class="section">
+    <div class="section-head">
+      <span class="idx">03</span>
+      <h2>Controls &amp; evidence</h2>
+      <span class="sub">Walk each control and record evidence pointers</span>
+    </div>
+
+    <div class="filterbar">
+      <div class="filter-group">
+        <span class="filter-label">Status</span>
+        <button class="filter-chip active" data-filter="status" data-value="all" onclick="setFilter('status','all')">All</button>
+        <button class="filter-chip" data-filter="status" data-value="ready" onclick="setFilter('status','ready')">Ready</button>
+        <button class="filter-chip" data-filter="status" data-value="inprogress" onclick="setFilter('status','inprogress')">In progress</button>
+        <button class="filter-chip" data-filter="status" data-value="notstarted" onclick="setFilter('status','notstarted')">Not started</button>
+        <button class="filter-chip" data-filter="status" data-value="na" onclick="setFilter('status','na')">N/A</button>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Flagged</span>
+        <button class="filter-chip" data-filter="flag" data-value="stale" onclick="setFilter('flag','stale')">Stale evidence</button>
+        <button class="filter-chip" data-filter="flag" data-value="noowner" onclick="setFilter('flag','noowner')">No owner</button>
+      </div>
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input type="search" id="ctrlSearch" class="search-input" placeholder="Search controls…" oninput="onSearch()">
+      </div>
+    </div>
+
+    <div id="controlsContainer"></div>
+
+    <div class="empty-state" id="emptyState">
+      <div class="big">No controls match those filters.</div>
+      <div>Try a different filter or clear the search.</div>
+    </div>
+  </section>
+</div>
+
+<footer class="site-foot">
+  <div class="foot-inner">
+    <a href="index.html">danhowett.github.io/useful</a>
+    <span class="sep">·</span>
+    <span>Client-side only — your data stays in your browser</span>
+    <span class="sep">·</span>
+    <span>v1.0</span>
+  </div>
+</footer>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-bg" id="exportModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Markdown evidence index</h3>
+      <button class="btn sm subtle" onclick="closeModal()">CLOSE</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin-bottom:12px">Copy this and share with your assessor as a pre-read. They follow each pointer to find the evidence in your document repository.</p>
+      <pre id="exportContent"></pre>
+    </div>
+    <div class="modal-foot">
+      <button class="btn primary" onclick="copyExport()">COPY TO CLIPBOARD</button>
+      <button class="btn" onclick="downloadExport()">DOWNLOAD .MD</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   FRAMEWORK DATA — pre-populated control sets with assessor-want
+   guidance for each. v1.0 ships with the structure; deep detail
+   is loaded for the most commonly-audited controls. Users add
+   their own evidence pointers per control.
+   ================================================================ */
+const FRAMEWORKS = {
+  /* --- placeholder; populated in second script block --- */
+};
+
+/* ================================================================
+   STATE
+   ================================================================ */
+let state = {
+  framework: 'iso27001',
+  setup: {org:'', assessor:'', audit_date:'', scope:''},
+  records: {},  // keyed by "framework_id:control_id"
+  filters: {status:'all', flag:null, search:''}
+};
+
+const STORAGE_KEY = 'dh-audit-evidence-v1';
+const THEME_KEY = 'dh-theme';
+
+/* ================================================================
+   THEME
+   ================================================================ */
+function setTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  try{localStorage.setItem(THEME_KEY,t)}catch(e){}
+}
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme')||'light';
+  setTheme(cur==='light'?'dark':'light');
+}
+(function(){
+  let saved=null;
+  try{saved=localStorage.getItem(THEME_KEY)}catch(e){}
+  if(saved) setTheme(saved);
+})();
+
+/* ================================================================
+   PERSISTENCE
+   ================================================================ */
+function persist(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+function restore(){
+  try{
+    const s = localStorage.getItem(STORAGE_KEY);
+    if(s){
+      const parsed = JSON.parse(s);
+      if(parsed && typeof parsed === 'object'){
+        state = Object.assign(state, parsed);
+        if(!state.filters) state.filters = {status:'all', flag:null, search:''};
+        return true;
+      }
+    }
+  }catch(e){}
+  return false;
+}
+
+function saveState(){
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const fname = `audit-evidence-${state.framework}-${(new Date()).toISOString().slice(0,10)}.json`;
+  a.href = url; a.download = fname; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 0);
+  toast('Saved '+fname);
+}
+
+function loadStatePrompt(){
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'application/json,.json';
+  input.onchange = (e)=>{
+    const f = e.target.files[0]; if(!f) return;
+    const r = new FileReader();
+    r.onload = ()=>{
+      try{
+        const parsed = JSON.parse(r.result);
+        if(!parsed.records) throw new Error('Not an evidence pack file');
+        state = Object.assign({framework:'iso27001',setup:{},records:{},filters:{status:'all'}}, parsed);
+        if(!state.filters) state.filters = {status:'all', flag:null, search:''};
+        persist(); render(); toast('Loaded '+f.name);
+      }catch(err){
+        toast('Could not load — '+err.message);
+      }
+    };
+    r.readAsText(f);
+  };
+  input.click();
+}
+
+function resetState(){
+  if(!confirm('Reset all evidence records? This clears every control entry for every framework. Your browser saved state will be wiped. Consider SAVE first.')) return;
+  state = {
+    framework: state.framework,
+    setup: {org:'', assessor:'', audit_date:'', scope:''},
+    records: {},
+    filters: {status:'all', flag:null, search:''}
+  };
+  persist(); render(); toast('Reset');
+}
+
+/* ================================================================
+   TOAST
+   ================================================================ */
+let toastTimer;
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2400);
+}
+
+/* ================================================================
+   RENDER LOOP — wired up after FRAMEWORKS is populated
+   ================================================================ */
+function render(){
+  if(typeof renderAll === 'function') renderAll();
+}
+
+document.addEventListener('keydown',(e)=>{
+  if(e.key === 'Escape'){
+    const m = document.getElementById('exportModal');
+    if(m.classList.contains('show')) closeModal();
+  }
+});
+</script>
+
+<script id="frameworks-data">
+/* ================================================================
+   FRAMEWORK DEFINITIONS — populated as a second script block so
+   the data is readable separate from app logic.
+   Each framework: { id, name, version, link, themes:[{id,name,controls:[]}] }
+   Each control: { id, name, what (1-line statement), asks (assessor expectations) }
+   ================================================================ */
+
+Object.assign(FRAMEWORKS, {
+
+  /* ===========================================================
+     ISO/IEC 27001:2022 — Annex A (93 controls in 4 themes)
+     =========================================================== */
+  iso27001: {
+    id: 'iso27001',
+    name: 'ISO/IEC 27001:2022',
+    short: 'ISO 27001',
+    version: '2022 edition',
+    link: 'https://www.iso.org/standard/27001',
+    intro: 'Annex A controls. The Statement of Applicability (SoA) governs which apply to your scope — mark out-of-scope controls as N/A with a documented rationale.',
+    themes: [
+      { id:'A.5', name:'Organisational controls', controls: [
+        { id:'A.5.1',  name:'Policies for information security',
+          what:'Information security policy and topic-specific policies defined, approved by management, published and communicated.',
+          asks:['Approved information security policy with management sign-off date','Topic-specific policies (acceptable use, access control, etc.)','Evidence of policy communication (training, intranet, attestations)','Policy review cycle and most recent review record'] },
+        { id:'A.5.2',  name:'Information security roles and responsibilities',
+          what:'Roles and responsibilities for information security defined and allocated.',
+          asks:['RACI or responsibility matrix','Job descriptions for security roles','Org chart showing CISO / security function reporting line'] },
+        { id:'A.5.3',  name:'Segregation of duties',
+          what:'Conflicting duties and areas of responsibility segregated.',
+          asks:['Matrix showing toxic combinations and how they are prevented','Privileged access review evidence','Approval workflow examples (change → release, request → approve)'] },
+        { id:'A.5.4',  name:'Management responsibilities',
+          what:'Management requires all personnel to apply information security in line with policies.',
+          asks:['Management briefing records','Security expectations in performance objectives','Disciplinary procedures referencing security policy'] },
+        { id:'A.5.5',  name:'Contact with authorities',
+          what:'Appropriate contacts with relevant authorities maintained.',
+          asks:['List of regulatory and law-enforcement contacts','ICO/NCSC/sector regulator engagement records'] },
+        { id:'A.5.6',  name:'Contact with special interest groups',
+          what:'Contact with special interest groups, security forums and professional associations maintained.',
+          asks:['Memberships (CISP, ISACs, ISF, industry groups)','Evidence of intelligence sharing'] },
+        { id:'A.5.7',  name:'Threat intelligence',
+          what:'Information about threats collected and analysed to produce threat intelligence.',
+          asks:['Threat intelligence sources list','Recent threat brief / weekly intel report','How TI feeds detection, vuln management and risk decisions'] },
+        { id:'A.5.8',  name:'Information security in project management',
+          what:'Information security integrated into project management.',
+          asks:['Project security checklist / gate criteria','Examples of security requirements in recent projects','Project security risk register'] },
+        { id:'A.5.9',  name:'Inventory of information and other associated assets',
+          what:'Inventory of information and associated assets, including owners, developed and maintained.',
+          asks:['Asset inventory (systems, data, software, hardware)','Owner per asset','Last-reviewed date for inventory'] },
+        { id:'A.5.10', name:'Acceptable use of information and other associated assets',
+          what:'Rules for acceptable use and procedures for handling identified.',
+          asks:['Acceptable use policy','Acknowledgement records (signed AUP, training completion)','Data handling guidelines per classification'] },
+        { id:'A.5.11', name:'Return of assets',
+          what:'Personnel and other interested parties return all organisational assets on termination.',
+          asks:['Leaver checklist with asset return step','Recent leaver records showing returns','Asset register updates on return'] },
+        { id:'A.5.12', name:'Classification of information',
+          what:'Information classified according to security needs.',
+          asks:['Classification scheme (e.g. Public/Internal/Confidential/Restricted)','Examples of classified documents','Handling rules per classification'] },
+        { id:'A.5.13', name:'Labelling of information',
+          what:'Procedures for labelling implemented per classification scheme.',
+          asks:['Labelling guidance','Sample labelled documents','Email/document footer template'] },
+        { id:'A.5.14', name:'Information transfer',
+          what:'Rules, procedures and agreements for secure information transfer in place.',
+          asks:['Transfer policy (email, removable media, cloud, courier)','NDAs with third parties','Encryption controls for transfer'] },
+        { id:'A.5.15', name:'Access control',
+          what:'Rules to control access established based on business and security requirements.',
+          asks:['Access control policy','Role-based access model','Access review evidence (last review date)'] },
+        { id:'A.5.16', name:'Identity management',
+          what:'Full lifecycle of identities managed.',
+          asks:['JML (joiner/mover/leaver) procedure','Sample JML tickets','Orphaned account review'] },
+        { id:'A.5.17', name:'Authentication information',
+          what:'Allocation and management of authentication information controlled.',
+          asks:['Password policy','MFA rollout evidence','Secret rotation procedure for service accounts'] },
+        { id:'A.5.18', name:'Access rights',
+          what:'Access rights provisioned, reviewed, modified and removed per access control policy.',
+          asks:['Access review cycle (frequency)','Last review records','Privileged access review log'] },
+        { id:'A.5.19', name:'Information security in supplier relationships',
+          what:'Processes to manage information security risks associated with suppliers defined.',
+          asks:['Supplier risk assessment process','Tiered supplier list','Supplier risk register'] },
+        { id:'A.5.20', name:'Addressing information security within supplier agreements',
+          what:'Security requirements established and agreed with each supplier.',
+          asks:['Contract clauses (DPA, security schedule)','Supplier code of conduct','Audit-rights clauses'] },
+        { id:'A.5.21', name:'Managing information security in the ICT supply chain',
+          what:'Processes and procedures defined to manage ICT supply chain risks.',
+          asks:['SBOM where applicable','Vendor questionnaires (SIG, CAIQ)','Critical-supplier list with dependency mapping'] },
+        { id:'A.5.22', name:'Monitoring, review and change management of supplier services',
+          what:'Supplier service delivery monitored, reviewed and changes managed.',
+          asks:['Supplier review cadence','Service reports','Change-acceptance records'] },
+        { id:'A.5.23', name:'Information security for use of cloud services',
+          what:'Processes for acquisition, use, management and exit from cloud services established.',
+          asks:['Cloud service inventory','Shared responsibility model documented per provider','Cloud exit plan'] },
+        { id:'A.5.24', name:'Information security incident management planning and preparation',
+          what:'Incident management planned, prepared and roles defined.',
+          asks:['Incident response plan','IR team roster','Recent IR exercise record'] },
+        { id:'A.5.25', name:'Assessment and decision on information security events',
+          what:'Events assessed and decisions made on whether they are incidents.',
+          asks:['Triage procedure','Event/incident classification scheme','Recent event log examples'] },
+        { id:'A.5.26', name:'Response to information security incidents',
+          what:'Incidents responded to per documented procedures.',
+          asks:['Recent incident records (sanitised)','Lessons learned documents','Communication procedures'] },
+        { id:'A.5.27', name:'Learning from information security incidents',
+          what:'Knowledge gained used to strengthen controls.',
+          asks:['Post-incident review records','Resulting control changes','Trend analysis'] },
+        { id:'A.5.28', name:'Collection of evidence',
+          what:'Procedures for identification, collection, acquisition and preservation of evidence established.',
+          asks:['Chain of custody procedure','Forensic readiness statement','Evidence register'] },
+        { id:'A.5.29', name:'Information security during disruption',
+          what:'Information security maintained during disruption.',
+          asks:['Business continuity plan with security considerations','BCP test records','Crisis comms plan'] },
+        { id:'A.5.30', name:'ICT readiness for business continuity',
+          what:'ICT readiness planned, implemented, maintained and tested.',
+          asks:['Disaster recovery plan','DR test records (last test date)','RTO/RPO definitions'] },
+        { id:'A.5.31', name:'Legal, statutory, regulatory and contractual requirements',
+          what:'Legal and regulatory requirements identified and met.',
+          asks:['Legal register','Cross-reference of regs to controls','Recent legal review'] },
+        { id:'A.5.32', name:'Intellectual property rights',
+          what:'Procedures to protect IP implemented.',
+          asks:['Software licensing register','IP clauses in contracts','Awareness training on IP'] },
+        { id:'A.5.33', name:'Protection of records',
+          what:'Records protected from loss, destruction, falsification, unauthorised access and release.',
+          asks:['Records retention schedule','Storage and protection controls','Disposal records'] },
+        { id:'A.5.34', name:'Privacy and protection of PII',
+          what:'Privacy and PII protection requirements identified and met per applicable laws.',
+          asks:['Privacy notice','ROPA (Article 30)','DPIA examples','UK GDPR procedures'] },
+        { id:'A.5.35', name:'Independent review of information security',
+          what:'Approach to managing information security reviewed independently at planned intervals.',
+          asks:['Internal audit reports','External assessor reports','Management response to findings'] },
+        { id:'A.5.36', name:'Compliance with policies, rules and standards for information security',
+          what:'Compliance regularly reviewed.',
+          asks:['Compliance monitoring records','Policy exceptions register','Non-compliance findings and treatment'] },
+        { id:'A.5.37', name:'Documented operating procedures',
+          what:'Operating procedures documented and made available.',
+          asks:['Operations runbooks','Document control evidence','SOP review cycle'] }
+      ]},
+      { id:'A.6', name:'People controls', controls: [
+        { id:'A.6.1',  name:'Screening',
+          what:'Background verification checks on candidates carried out per laws, regulations and ethics.',
+          asks:['Pre-employment screening procedure','Sample screening evidence (sanitised)','Right-to-work checks'] },
+        { id:'A.6.2',  name:'Terms and conditions of employment',
+          what:'Employment agreements state personnel and the organisation\'s responsibilities for information security.',
+          asks:['Standard employment contract with security clauses','NDA template','Confidentiality clauses'] },
+        { id:'A.6.3',  name:'Information security awareness, education and training',
+          what:'Personnel receive appropriate awareness, education and training and regular updates relevant to their role.',
+          asks:['Training matrix per role','Completion records (latest cycle)','Phishing simulation results'] },
+        { id:'A.6.4',  name:'Disciplinary process',
+          what:'Disciplinary process formalised and communicated to take action against personnel violating security policy.',
+          asks:['Disciplinary policy','Examples of policy breaches and responses (sanitised)','Communication evidence'] },
+        { id:'A.6.5',  name:'Responsibilities after termination or change of employment',
+          what:'Information security responsibilities and duties valid after termination or change defined and enforced.',
+          asks:['Termination procedure','Post-employment NDA clauses','Exit interview security checklist'] },
+        { id:'A.6.6',  name:'Confidentiality or non-disclosure agreements',
+          what:'NDAs reflecting needs for protection of information identified, reviewed and signed.',
+          asks:['NDA templates','Signed NDAs on file (third parties, contractors)','Review cycle'] },
+        { id:'A.6.7',  name:'Remote working',
+          what:'Security measures implemented when personnel working remotely.',
+          asks:['Remote working policy','VPN/zero-trust access configuration','Device controls for remote work'] },
+        { id:'A.6.8',  name:'Information security event reporting',
+          what:'Mechanism for personnel to report observed or suspected events.',
+          asks:['Reporting procedure (how, to whom, what counts)','Training/awareness on reporting','Recent report examples'] }
+      ]},
+      { id:'A.7', name:'Physical controls', controls: [
+        { id:'A.7.1',  name:'Physical security perimeters',
+          what:'Security perimeters defined and used to protect areas containing information.',
+          asks:['Site plans','Perimeter controls (fence, walls, doors)','Photographs of zones'] },
+        { id:'A.7.2',  name:'Physical entry',
+          what:'Secure areas protected by appropriate entry controls and access points.',
+          asks:['Access control system records','Visitor procedures','Tailgating prevention'] },
+        { id:'A.7.3',  name:'Securing offices, rooms and facilities',
+          what:'Physical security for offices, rooms and facilities designed and applied.',
+          asks:['Server room access policy','Clear desk evidence','CCTV coverage map'] },
+        { id:'A.7.4',  name:'Physical security monitoring',
+          what:'Premises continuously monitored for unauthorised physical access.',
+          asks:['CCTV retention policy','Alarm system records','Guard logs (if applicable)'] },
+        { id:'A.7.5',  name:'Protecting against physical and environmental threats',
+          what:'Protection against physical and environmental threats designed and implemented.',
+          asks:['Risk assessment for natural threats (flood, fire)','Fire suppression evidence','Environmental monitoring'] },
+        { id:'A.7.6',  name:'Working in secure areas',
+          what:'Procedures for working in secure areas designed and implemented.',
+          asks:['Secure area access rules','Visitor escort procedures','Recording prohibitions'] },
+        { id:'A.7.7',  name:'Clear desk and clear screen',
+          what:'Clear desk rules for papers and removable storage media and clear screen rules for information processing facilities defined.',
+          asks:['Policy','Walkthrough evidence (audit photos)','Awareness communications'] },
+        { id:'A.7.8',  name:'Equipment siting and protection',
+          what:'Equipment sited securely and protected.',
+          asks:['Equipment placement evidence','Power protection (UPS)','Environmental controls'] },
+        { id:'A.7.9',  name:'Security of assets off-premises',
+          what:'Off-site assets protected.',
+          asks:['Mobile device policy','Asset tracking for off-site equipment','Travel security guidance'] },
+        { id:'A.7.10', name:'Storage media',
+          what:'Storage media managed through lifecycle from acquisition through disposal.',
+          asks:['Media handling policy','Disposal records (e.g. shredding certificates)','Media inventory'] },
+        { id:'A.7.11', name:'Supporting utilities',
+          what:'Information processing facilities protected from power failures and other disruptions caused by failures in supporting utilities.',
+          asks:['UPS test records','Generator maintenance','Cooling redundancy'] },
+        { id:'A.7.12', name:'Cabling security',
+          what:'Cables carrying power, data or supporting information services protected.',
+          asks:['Cable management evidence','Conduit/segregation photos','Fibre cable security'] },
+        { id:'A.7.13', name:'Equipment maintenance',
+          what:'Equipment maintained correctly to ensure availability and integrity.',
+          asks:['Maintenance schedule','Service records','Vendor security clearance'] },
+        { id:'A.7.14', name:'Secure disposal or re-use of equipment',
+          what:'Equipment containing storage media verified for removal or secure overwriting.',
+          asks:['Disposal procedure','Certificates of destruction','Sanitisation records'] }
+      ]},
+      { id:'A.8', name:'Technological controls', controls: [
+        { id:'A.8.1',  name:'User endpoint devices',
+          what:'Information stored on, processed by or accessible via user endpoint devices protected.',
+          asks:['Endpoint protection policy','EDR/MDM configuration','Encryption evidence (BitLocker, FileVault)'] },
+        { id:'A.8.2',  name:'Privileged access rights',
+          what:'Allocation and use of privileged access rights restricted and managed.',
+          asks:['Privileged account inventory','PAM tool configuration','Privileged session logging'] },
+        { id:'A.8.3',  name:'Information access restriction',
+          what:'Access to information and other assets restricted per access control policy.',
+          asks:['Need-to-know enforcement','Data access logs','Sensitive data inventory'] },
+        { id:'A.8.4',  name:'Access to source code',
+          what:'Read and write access to source code, development tools and software libraries managed appropriately.',
+          asks:['Repository access controls','Branch protection rules','Code review process'] },
+        { id:'A.8.5',  name:'Secure authentication',
+          what:'Secure authentication technologies and procedures implemented based on access restriction.',
+          asks:['MFA coverage report','Authentication standards (FIDO2, OAuth)','Risk-based authentication'] },
+        { id:'A.8.6',  name:'Capacity management',
+          what:'Use of resources monitored and adjusted in line with current and projected capacity requirements.',
+          asks:['Capacity monitoring dashboards','Capacity reviews','Projected demand vs supply'] },
+        { id:'A.8.7',  name:'Protection against malware',
+          what:'Protection against malware implemented and supported by appropriate user awareness.',
+          asks:['Anti-malware configuration','Update cadence evidence','EDR coverage report'] },
+        { id:'A.8.8',  name:'Management of technical vulnerabilities',
+          what:'Information about technical vulnerabilities obtained, exposure evaluated and appropriate measures taken.',
+          asks:['Vulnerability scan results (recent)','Patching SLAs and evidence','CVE response process','KEV monitoring'] },
+        { id:'A.8.9',  name:'Configuration management',
+          what:'Configurations including security configurations of hardware, software, services and networks established, documented, implemented, monitored and reviewed.',
+          asks:['CMDB','Hardened baselines','Configuration drift monitoring'] },
+        { id:'A.8.10', name:'Information deletion',
+          what:'Information stored in information systems, devices or other storage media deleted when no longer required.',
+          asks:['Retention schedule','Deletion procedures','Verification of deletion'] },
+        { id:'A.8.11', name:'Data masking',
+          what:'Data masking used per access control and other related topic-specific policies.',
+          asks:['Where used (test environments, screens)','Masking technique','Evidence of implementation'] },
+        { id:'A.8.12', name:'Data leakage prevention',
+          what:'Data leakage prevention measures applied to systems, networks and devices that process, store or transmit sensitive information.',
+          asks:['DLP tool configuration','Recent DLP alerts and response','Coverage report (email, endpoint, cloud)'] },
+        { id:'A.8.13', name:'Information backup',
+          what:'Backup copies of information, software and systems maintained and regularly tested.',
+          asks:['Backup policy','Backup success rate','Restore test records'] },
+        { id:'A.8.14', name:'Redundancy of information processing facilities',
+          what:'Information processing facilities implemented with redundancy sufficient to meet availability requirements.',
+          asks:['HA architecture diagrams','Failover test records','RTO compliance evidence'] },
+        { id:'A.8.15', name:'Logging',
+          what:'Logs recording activities, exceptions, faults and other relevant events produced, stored, protected and analysed.',
+          asks:['Logging policy','Log sources inventory','Retention period','SIEM coverage'] },
+        { id:'A.8.16', name:'Monitoring activities',
+          what:'Networks, systems and applications monitored for anomalous behaviour and appropriate actions taken.',
+          asks:['SOC/SIEM rules','Detection coverage','MTTD/MTTR metrics'] },
+        { id:'A.8.17', name:'Clock synchronisation',
+          what:'Clocks of information processing systems synchronised to approved time sources.',
+          asks:['NTP source configuration','Time-sync monitoring','Drift alerts'] },
+        { id:'A.8.18', name:'Use of privileged utility programs',
+          what:'Use of utility programs that can override system and application controls restricted and tightly controlled.',
+          asks:['Approved utility list','Access controls','Usage logs'] },
+        { id:'A.8.19', name:'Installation of software on operational systems',
+          what:'Procedures and measures implemented to securely manage software installation on operational systems.',
+          asks:['Change management procedure','Software approval process','Application allow-listing'] },
+        { id:'A.8.20', name:'Networks security',
+          what:'Networks and network devices secured, managed and controlled to protect information.',
+          asks:['Network diagram','Firewall rule reviews','Network segmentation evidence'] },
+        { id:'A.8.21', name:'Security of network services',
+          what:'Security mechanisms, service levels and service requirements of network services identified, implemented and monitored.',
+          asks:['Network service inventory','SLAs','Monitoring evidence'] },
+        { id:'A.8.22', name:'Segregation of networks',
+          what:'Groups of information services, users and information systems segregated in the organisation\'s networks.',
+          asks:['Network segmentation diagram','VLAN/subnet design','Inter-segment access rules'] },
+        { id:'A.8.23', name:'Web filtering',
+          what:'Access to external websites managed to reduce exposure to malicious content.',
+          asks:['Web filter configuration','Category policy','Blocked/allowed lists'] },
+        { id:'A.8.24', name:'Use of cryptography',
+          what:'Rules for effective use of cryptography defined and implemented, including cryptographic key management.',
+          asks:['Cryptography policy','Approved algorithms list','Key management procedures'] },
+        { id:'A.8.25', name:'Secure development lifecycle',
+          what:'Rules for secure development of software and systems established and applied.',
+          asks:['SDLC documentation','Security in design reviews','Threat modelling examples'] },
+        { id:'A.8.26', name:'Application security requirements',
+          what:'Information security requirements identified, specified and approved when developing or acquiring applications.',
+          asks:['Security requirements template','Examples in recent projects','Approval records'] },
+        { id:'A.8.27', name:'Secure system architecture and engineering principles',
+          what:'Principles for engineering secure systems established, documented, maintained and applied.',
+          asks:['Architecture principles document','Reference architectures','Design review records'] },
+        { id:'A.8.28', name:'Secure coding',
+          what:'Secure coding principles applied to software development.',
+          asks:['Secure coding standard','SAST tool configuration and recent results','Developer training'] },
+        { id:'A.8.29', name:'Security testing in development and acceptance',
+          what:'Security testing processes defined and implemented in the development lifecycle.',
+          asks:['Test plans','SAST/DAST/IAST results','Acceptance criteria including security'] },
+        { id:'A.8.30', name:'Outsourced development',
+          what:'Outsourced system development directed, monitored and reviewed.',
+          asks:['Vendor security requirements','Code/security review of vendor deliverables','Contractual security clauses'] },
+        { id:'A.8.31', name:'Separation of development, test and production environments',
+          what:'Development, testing and production environments separated and secured.',
+          asks:['Environment architecture','Promotion procedures','Test data management'] },
+        { id:'A.8.32', name:'Change management',
+          what:'Changes to information processing facilities and information systems subject to change management procedures.',
+          asks:['Change management procedure','CAB minutes','Emergency change records'] },
+        { id:'A.8.33', name:'Test information',
+          what:'Test information appropriately selected, protected and managed.',
+          asks:['Test data policy','Data masking in non-prod','Synthetic data approach'] },
+        { id:'A.8.34', name:'Protection of information systems during audit testing',
+          what:'Audit tests and other assurance activities involving assessment of operational systems planned and agreed.',
+          asks:['Audit planning records','Tester access controls','Production system protection during testing'] }
+      ]}
+    ]
+  },
+
+  /* ===========================================================
+     NCSC CAF v4.0 — 4 objectives, 14 principles, 41 outcomes
+     =========================================================== */
+  caf: {
+    id: 'caf',
+    name: 'NCSC Cyber Assessment Framework v4.0',
+    short: 'CAF v4.0',
+    version: 'v4.0 (Aug 2025)',
+    link: 'https://www.ncsc.gov.uk/collection/cyber-assessment-framework',
+    intro: 'CAF v4.0 has 41 Contributing Outcomes across 4 objectives and 14 principles. Each outcome is assessed as Achieved / Partially Achieved / Not Achieved against the Indicators of Good Practice (IGPs).',
+    themes: [
+      { id:'A', name:'A — Managing security risk', controls: [
+        { id:'A1.a', name:'Board direction',
+          what:'Senior-level accountability for security, supported by appropriate structures and resources.',
+          asks:['Board paper / minutes referencing security risk','Designated board-level accountable individual','Security risk appetite statement'] },
+        { id:'A1.b', name:'Roles and responsibilities',
+          what:'Roles and responsibilities for security clearly defined throughout the organisation.',
+          asks:['Org chart with security roles','RACI matrix','Position descriptions'] },
+        { id:'A1.c', name:'Decision-making',
+          what:'Senior management have visibility and oversight of security risk to inform decisions.',
+          asks:['Security risk reporting cadence','Recent management reports','Examples of security-informed decisions'] },
+        { id:'A2.a', name:'Risk management process',
+          what:'Documented risk management process used to identify, analyse and manage security risk.',
+          asks:['Risk management methodology','Risk register','Risk assessment records'] },
+        { id:'A2.b', name:'Assurance',
+          what:'Confidence in security gained through independent and objective assurance activities.',
+          asks:['Internal audit programme','External assurance reports','Management response to findings'] },
+        { id:'A3.a', name:'Asset management',
+          what:'Everything required to deliver, maintain or support essential functions identified and known.',
+          asks:['Asset inventory (systems, data, people, dependencies)','Asset criticality classification','Last review date'] },
+        { id:'A4.a', name:'Supply chain',
+          what:'Risks understood and managed across the supply chain.',
+          asks:['Supplier register with criticality','Supplier security assessments','Contract security clauses'] }
+      ]},
+      { id:'B', name:'B — Protecting against cyber attack', controls: [
+        { id:'B1.a', name:'Policy and process development',
+          what:'Develop and communicate appropriate policies and processes to direct overall approach.',
+          asks:['Security policy suite','Approval and communication evidence','Review cycle'] },
+        { id:'B1.b', name:'Policy and process implementation',
+          what:'Policies and processes effectively applied.',
+          asks:['Implementation evidence','Compliance monitoring','Exception management'] },
+        { id:'B2.a', name:'Identity verification, authentication and authorisation',
+          what:'Robustly verify, authenticate and authorise access to networks and information systems supporting essential functions.',
+          asks:['JML process and tickets','MFA coverage','Access review records','Privileged access controls'] },
+        { id:'B2.b', name:'Device management',
+          what:'Fully know and have trust in devices used to access systems and information.',
+          asks:['Device inventory','MDM/EDR configuration','BYOD policy if applicable'] },
+        { id:'B2.c', name:'Privileged user management',
+          what:'Closely manage privileged user access.',
+          asks:['Privileged account inventory','PAM tool config','Privileged session monitoring','Just-in-time access evidence'] },
+        { id:'B2.d', name:'Identity and access management',
+          what:'Closely manage and maintain identity and access control.',
+          asks:['IAM platform overview','Lifecycle workflows','SSO configuration'] },
+        { id:'B3.a', name:'Understanding data',
+          what:'Understand, document and manage access to data important to essential functions.',
+          asks:['Data inventory / ROPA','Data flow diagrams','Classification scheme'] },
+        { id:'B3.b', name:'Data in transit',
+          what:'Data important to essential functions protected against unauthorised access in transit.',
+          asks:['Encryption-in-transit policy','TLS configuration evidence','VPN/private circuit usage'] },
+        { id:'B3.c', name:'Stored data',
+          what:'Data important to essential functions protected against unauthorised access when at rest.',
+          asks:['Encryption-at-rest evidence','Database encryption','Backup encryption'] },
+        { id:'B3.d', name:'Mobile data',
+          what:'Data important to essential functions protected on mobile devices.',
+          asks:['Mobile encryption','Remote wipe capability','Lost device procedures'] },
+        { id:'B3.e', name:'Media / equipment sanitisation',
+          what:'Sensitive data not accessible from sanitised or destroyed media or equipment.',
+          asks:['Disposal procedures','Sanitisation certificates','Asset disposal register'] },
+        { id:'B4.a', name:'Secure by design',
+          what:'Design security into network and information systems.',
+          asks:['Security architecture principles','Design review records','Reference architectures'] },
+        { id:'B4.b', name:'Secure configuration',
+          what:'Secure baseline build for systems and devices configured and maintained.',
+          asks:['Hardened baselines (CIS, vendor)','Config compliance reports','Drift monitoring'] },
+        { id:'B4.c', name:'Secure management',
+          what:'Manage systems to maintain and improve security.',
+          asks:['Operations runbooks','Privileged access for ops','Out-of-band management'] },
+        { id:'B4.d', name:'Vulnerability management',
+          what:'Manage known vulnerabilities to prevent exploitation.',
+          asks:['Vulnerability scan results','Patching SLAs','KEV/exploitation prioritisation'] },
+        { id:'B5.a', name:'Resilience preparation',
+          what:'Have the right resources and information to support resilience.',
+          asks:['BCP / DR plans','Resource availability records','Crisis comms plan'] },
+        { id:'B5.b', name:'Design for resilience',
+          what:'Design systems to be resilient to cyber attack.',
+          asks:['HA architectures','Failover capability','Single-point-of-failure analysis'] },
+        { id:'B5.c', name:'Backups',
+          what:'Hold accessible and secured backups of data and information.',
+          asks:['Backup policy','Backup success rates','Offline/immutable backup evidence','Restore tests'] },
+        { id:'B6.a', name:'Cyber security culture',
+          what:'Develop and pursue positive cyber security culture.',
+          asks:['Culture assessment','Awareness programme','Reporting metrics (positive reports)'] },
+        { id:'B6.b', name:'Cyber security training',
+          what:'Develop and maintain appropriate training for all staff.',
+          asks:['Training matrix','Completion records','Role-specific training'] }
+      ]},
+      { id:'C', name:'C — Detecting cyber security events', controls: [
+        { id:'C1.a', name:'Monitoring coverage',
+          what:'Monitor security of networks and information systems supporting operation of essential functions.',
+          asks:['Log source inventory vs critical systems','Monitoring coverage matrix','Gap analysis'] },
+        { id:'C1.b', name:'Securing logs',
+          what:'Hold log data securely and grant appropriate access only to accountable individuals.',
+          asks:['Log storage architecture','Log access controls','Retention period','Integrity protection'] },
+        { id:'C1.c', name:'Generating alerts',
+          what:'Evidence of potential security incidents contained in monitoring data is reliably identified and triggers alerts.',
+          asks:['Detection rule catalogue','Recent alert volume metrics','False-positive rate'] },
+        { id:'C1.d', name:'Identifying security incidents',
+          what:'Contextualise alerts with knowledge of threat and systems to identify those security incidents that require some form of response.',
+          asks:['Triage runbooks','Enrichment sources','Recent incident classification evidence'] },
+        { id:'C1.e', name:'Monitoring tools and skills',
+          what:'Monitoring staff have the tools, training and freedom to identify and address security incidents.',
+          asks:['SOC tooling stack','Analyst training records','Authority/escalation matrix'] },
+        { id:'C2.a', name:'System abnormalities for attack detection',
+          what:'Define examples of abnormalities in system behaviour that provide practical ways of detecting cyber attack.',
+          asks:['Behavioural baselines','Anomaly detection rules','Recent detection examples'] },
+        { id:'C2.b', name:'Proactive attack discovery',
+          what:'Use monitoring data and threat intelligence to proactively discover cyber attack.',
+          asks:['Threat hunting programme','TI integration','Recent hunt outputs'] }
+      ]},
+      { id:'D', name:'D — Minimising the impact of cyber incidents', controls: [
+        { id:'D1.a', name:'Response plan',
+          what:'Have an up-to-date incident response plan grounded in a thorough risk assessment.',
+          asks:['IR plan','Last review/test date','Risk assessment underpinning the plan'] },
+        { id:'D1.b', name:'Response and recovery capability',
+          what:'Capabilities to enable response and recovery activities.',
+          asks:['IR team roster','Tooling','Retainer with external DFIR'] },
+        { id:'D1.c', name:'Testing and exercising',
+          what:'Outcomes of incident management plans and processes regularly tested.',
+          asks:['Exercise schedule','Recent tabletop/live exercise records','Lessons learned from exercises'] },
+        { id:'D2.a', name:'Incident root cause analysis',
+          what:'When incidents occur, take steps to understand root causes and ensure appropriate remediating action.',
+          asks:['RCA procedure','Recent RCA examples','Remediation tracking'] },
+        { id:'D2.b', name:'Using incidents to drive improvements',
+          what:'Use incidents as drivers to improve security and resilience measures.',
+          asks:['Post-incident review records','Resulting policy/control changes','Metrics over time'] }
+      ]}
+    ]
+  },
+
+  /* ===========================================================
+     NHS DSPT v8 (2025/26) — 10 NDG standards, structured by
+     assertion. Built for Cat 3 (general) — pragmatic mapping.
+     =========================================================== */
+  dspt: {
+    id: 'dspt',
+    name: 'NHS Data Security & Protection Toolkit',
+    short: 'DSPT v8',
+    version: 'v8 (2025/26)',
+    link: 'https://www.dsptoolkit.nhs.uk',
+    intro: 'DSPT v8 (Sept 2025) restructures around Outcomes, Assertions and Evidence items aligned with the 10 National Data Guardian standards. Category 1 organisations are assessed against CAF v3.4 (use the CAF framework above instead). This view covers the general assertion set used by most Category 2–4 organisations.',
+    themes: [
+      { id:'NDG1', name:'Standard 1 — Personal confidential data', controls: [
+        { id:'1.1', name:'Data Flows',
+          what:'All transfers of personal confidential data are recorded and reviewed.',
+          asks:['Data flow map / register','Recent review evidence','Inbound and outbound flows'] },
+        { id:'1.2', name:'Information Asset Register',
+          what:'A register of information assets containing personal data is maintained.',
+          asks:['IAR with owners and classifications','Last reviewed date','Linked to data flows'] },
+        { id:'1.3', name:'Confidentiality clauses',
+          what:'Staff contracts include confidentiality clauses appropriate to roles handling personal data.',
+          asks:['Standard contract clauses','Sample contracts','HR confirmation of coverage'] }
+      ]},
+      { id:'NDG2', name:'Standard 2 — Staff responsibilities', controls: [
+        { id:'2.1', name:'Senior responsible person',
+          what:'A named senior person is responsible for data and cyber security.',
+          asks:['Named SIRO and Caldicott Guardian','Reporting line to board','Recent board paper'] },
+        { id:'2.2', name:'Staff awareness',
+          what:'All staff understand their personal responsibility for safeguarding personal data.',
+          asks:['Awareness communications','Induction materials','Acceptance records'] }
+      ]},
+      { id:'NDG3', name:'Standard 3 — Training', controls: [
+        { id:'3.1', name:'Annual training',
+          what:'All staff complete annual data security awareness training appropriate to their role.',
+          asks:['Training completion rate (95% minimum target)','Training content','Records by role'] },
+        { id:'3.2', name:'Role-specific training',
+          what:'Staff with specialist roles receive additional appropriate training.',
+          asks:['Role-specific training records','Sysadmin / DPO / SIRO training','Recent refresher evidence'] }
+      ]},
+      { id:'NDG4', name:'Standard 4 — Managing data access', controls: [
+        { id:'4.1', name:'Access controls',
+          what:'Personal confidential data is only accessed by those who need to.',
+          asks:['Access control matrix','RBAC configuration','Joiner/mover/leaver evidence'] },
+        { id:'4.2', name:'Access reviews',
+          what:'Access rights are regularly reviewed.',
+          asks:['Review schedule','Last review records','Action on findings'] },
+        { id:'4.3', name:'Privileged access',
+          what:'Privileged user access is closely controlled and monitored.',
+          asks:['Privileged account inventory','MFA on privileged accounts','Privileged session logs'] }
+      ]},
+      { id:'NDG5', name:'Standard 5 — Process reviews', controls: [
+        { id:'5.1', name:'Incident investigation',
+          what:'Data breaches and near-misses are investigated and lessons learned.',
+          asks:['Incident log','Investigation records','Action tracker for lessons learned'] },
+        { id:'5.2', name:'NIS / breach reporting',
+          what:'Incidents meeting reportable thresholds are notified to ICO and other authorities within 72 hours.',
+          asks:['Reporting procedure with timelines','Recent notifications (sanitised)','Decision rationale for non-reportable events'] }
+      ]},
+      { id:'NDG6', name:'Standard 6 — Responding to incidents', controls: [
+        { id:'6.1', name:'Incident response plan',
+          what:'An incident response plan exists, is tested, and reflects current threats.',
+          asks:['IR plan with version control','Last test/exercise date','Test outputs and lessons'] },
+        { id:'6.2', name:'Reporting channels',
+          what:'Staff know how to report incidents.',
+          asks:['Internal reporting procedure','Awareness records','Reporting metrics'] }
+      ]},
+      { id:'NDG7', name:'Standard 7 — Continuity planning', controls: [
+        { id:'7.1', name:'Business continuity',
+          what:'A continuity plan is in place and regularly tested for incidents affecting personal data systems.',
+          asks:['BCP / DR plan','Test records (last 12 months)','RTO/RPO definitions'] },
+        { id:'7.2', name:'Backup integrity',
+          what:'Backups are taken, secured and tested.',
+          asks:['Backup policy','Backup success rate','Restore test evidence','Offline/immutable copy'] }
+      ]},
+      { id:'NDG8', name:'Standard 8 — Unsupported systems', controls: [
+        { id:'8.1', name:'Unsupported software inventory',
+          what:'Unsupported operating systems, browsers and applications are identified and mitigated.',
+          asks:['Inventory of unsupported software','Risk assessment','Mitigation or replacement plan'] }
+      ]},
+      { id:'NDG9', name:'Standard 9 — IT protection', controls: [
+        { id:'9.1', name:'Network security',
+          what:'A strategy for protecting IT systems from cyber threats is in place.',
+          asks:['Network security architecture','Firewall rule reviews','Segmentation evidence'] },
+        { id:'9.2', name:'Anti-malware',
+          what:'Anti-virus and anti-malware are deployed across all systems.',
+          asks:['Coverage report','Update cadence','Recent detection evidence'] },
+        { id:'9.3', name:'Vulnerability management',
+          what:'Vulnerabilities are scanned for and remediated.',
+          asks:['Scan schedule','SLA for remediation','Recent scan summary'] },
+        { id:'9.4', name:'Patch management',
+          what:'Operating system and application patches are applied promptly.',
+          asks:['Patch policy','Patch compliance reporting','Critical-patch SLA evidence'] },
+        { id:'9.5', name:'Cyber Essentials',
+          what:'Cyber Essentials (Plus where mandated) certification is maintained.',
+          asks:['Current CE / CE+ certificate','Renewal record','Findings closed'] }
+      ]},
+      { id:'NDG10', name:'Standard 10 — Accountable suppliers', controls: [
+        { id:'10.1', name:'Supplier assurance',
+          what:'IT suppliers handling personal data are held to the same standards.',
+          asks:['Supplier list with DSPT/ISO/CE evidence','Supplier risk assessments','Contract security clauses'] },
+        { id:'10.2', name:'Supplier monitoring',
+          what:'Supplier compliance is monitored.',
+          asks:['Review cadence','Recent supplier review records','Issues raised and resolved'] }
+      ]}
+    ]
+  }
+});
+</script>
+
+<script>
+/* ================================================================
+   APP LOGIC — depends on FRAMEWORKS being populated
+   ================================================================ */
+
+function recordKey(fwId, ctrlId){ return fwId + ':' + ctrlId; }
+
+function getRecord(fwId, ctrlId){
+  const k = recordKey(fwId, ctrlId);
+  if(!state.records[k]){
+    state.records[k] = {
+      status: 'notstarted',
+      evidence: [],
+      gaps: '',
+      notes: '',
+      na_rationale: ''
+    };
+  }
+  return state.records[k];
+}
+
+function setRecord(fwId, ctrlId, partial){
+  const r = getRecord(fwId, ctrlId);
+  Object.assign(r, partial);
+  state.records[recordKey(fwId,ctrlId)] = r;
+  persist();
+}
+
+function pickFramework(id){
+  state.framework = id;
+  state.filters.search = '';
+  state.filters.flag = null;
+  document.getElementById('ctrlSearch').value = '';
+  persist();
+  renderAll();
+  // scroll to controls
+  setTimeout(()=> document.getElementById('controlsContainer').scrollIntoView({behavior:'smooth', block:'start'}), 50);
+}
+
+function setFilter(group, value){
+  if(group === 'status') state.filters.status = value;
+  else if(group === 'flag'){
+    state.filters.flag = (state.filters.flag === value) ? null : value;
+  }
+  persist();
+  renderControls();
+  renderFilterChips();
+}
+
+function onSearch(){
+  state.filters.search = document.getElementById('ctrlSearch').value.toLowerCase().trim();
+  persist();
+  renderControls();
+}
+
+function renderFilterChips(){
+  document.querySelectorAll('.filter-chip').forEach(chip=>{
+    const g = chip.getAttribute('data-filter');
+    const v = chip.getAttribute('data-value');
+    let active = false;
+    if(g === 'status'){
+      active = (state.filters.status === v) || (state.filters.status === 'all' && v === 'all');
+      chip.classList.remove('st-ready','st-inprogress','st-notstarted','st-na');
+      if(active && v !== 'all') chip.classList.add('st-'+v);
+    } else if(g === 'flag'){
+      active = state.filters.flag === v;
+    }
+    chip.classList.toggle('active', active);
+  });
+}
+
+/* ================================================================
+   FRAMEWORK PICKER
+   ================================================================ */
+function renderFwPicker(){
+  const el = document.getElementById('fwPicker');
+  el.innerHTML = '';
+  Object.values(FRAMEWORKS).forEach(fw=>{
+    const total = fw.themes.reduce((s,t)=>s+t.controls.length,0);
+    const records = countByFramework(fw.id);
+    const btn = document.createElement('button');
+    btn.className = 'fw-chip' + (state.framework === fw.id ? ' active' : '');
+    btn.onclick = ()=> pickFramework(fw.id);
+    btn.innerHTML = `
+      <span class="fw-name">${fw.short}</span>
+      <span class="fw-meta">${total} CONTROLS · ${records.ready}/${total} READY</span>
+    `;
+    el.appendChild(btn);
+  });
+}
+
+function countByFramework(fwId){
+  const fw = FRAMEWORKS[fwId];
+  let total = 0, ready = 0, inprogress = 0, notstarted = 0, na = 0;
+  fw.themes.forEach(t=>{
+    t.controls.forEach(c=>{
+      total++;
+      const r = state.records[recordKey(fwId, c.id)];
+      const s = r ? r.status : 'notstarted';
+      if(s === 'ready') ready++;
+      else if(s === 'inprogress') inprogress++;
+      else if(s === 'na') na++;
+      else notstarted++;
+    });
+  });
+  return {total, ready, inprogress, notstarted, na};
+}
+
+/* ================================================================
+   READINESS DASHBOARD
+   ================================================================ */
+function renderDashboard(){
+  const fw = FRAMEWORKS[state.framework];
+  document.getElementById('dash-fwname').textContent = fw.short + ' · ' + fw.version;
+  const c = countByFramework(state.framework);
+  document.getElementById('dash-ready').textContent = c.ready;
+  document.getElementById('dash-total').textContent = c.total;
+  const denom = c.total - c.na;
+  const pct = denom > 0 ? Math.round((c.ready / denom) * 100) : 0;
+  document.getElementById('dash-pct').textContent = pct + '%';
+
+  // Progress bar segments
+  const pb = document.getElementById('dash-pb');
+  pb.innerHTML = '';
+  const segs = [
+    {cls:'pb-ready', n:c.ready},
+    {cls:'pb-inprogress', n:c.inprogress},
+    {cls:'pb-notstarted', n:c.notstarted},
+    {cls:'pb-na', n:c.na}
+  ];
+  segs.forEach(s=>{
+    if(s.n > 0){
+      const d = document.createElement('div');
+      d.className = 'pb-seg ' + s.cls;
+      d.style.width = ((s.n/c.total)*100) + '%';
+      pb.appendChild(d);
+    }
+  });
+
+  // Flags
+  const flags = document.getElementById('dash-flags');
+  flags.innerHTML = '';
+  const stale = countStaleEvidence();
+  const noOwner = countNoOwner();
+  const naWithoutRationale = countNaNoRationale();
+  if(stale > 0){
+    flags.insertAdjacentHTML('beforeend', `<div class="alert warn"><span class="num">${stale}</span><span class="lbl">evidence items >12 months old</span></div>`);
+  }
+  if(noOwner > 0){
+    flags.insertAdjacentHTML('beforeend', `<div class="alert"><span class="num">${noOwner}</span><span class="lbl">evidence items with no owner</span></div>`);
+  }
+  if(naWithoutRationale > 0){
+    flags.insertAdjacentHTML('beforeend', `<div class="alert warn"><span class="num">${naWithoutRationale}</span><span class="lbl">N/A controls without rationale</span></div>`);
+  }
+  if(stale === 0 && noOwner === 0 && naWithoutRationale === 0){
+    flags.insertAdjacentHTML('beforeend', `<div class="alert empty">No flags — looking good for audit.</div>`);
+  }
+
+  // By theme
+  const themesEl = document.getElementById('dash-themes');
+  themesEl.innerHTML = '';
+  fw.themes.forEach(t=>{
+    let tReady = 0, tTotal = t.controls.length;
+    t.controls.forEach(ctrl=>{
+      const r = state.records[recordKey(fw.id, ctrl.id)];
+      if(r && r.status === 'ready') tReady++;
+    });
+    const tPct = Math.round((tReady / tTotal) * 100);
+    themesEl.insertAdjacentHTML('beforeend', `
+      <div class="alert">
+        <span class="num">${tReady}/${tTotal}</span>
+        <span class="lbl">${t.name}</span>
+        <span class="mono" style="color:var(--text-dim);font-size:.74rem">${tPct}%</span>
+      </div>
+    `);
+  });
+
+  // Hero stats
+  document.getElementById('stat-total').textContent = c.total;
+  document.getElementById('stat-ready').textContent = c.ready;
+  document.getElementById('stat-inprogress').textContent = c.inprogress;
+  document.getElementById('stat-stale').textContent = stale;
+  document.getElementById('stat-owner').textContent = noOwner;
+}
+
+function countStaleEvidence(){
+  let n = 0;
+  const cutoff = new Date(); cutoff.setMonth(cutoff.getMonth() - 12);
+  const fw = FRAMEWORKS[state.framework];
+  fw.themes.forEach(t=>{
+    t.controls.forEach(ctrl=>{
+      const r = state.records[recordKey(fw.id, ctrl.id)];
+      if(!r || !r.evidence) return;
+      r.evidence.forEach(e=>{
+        if(e.last_reviewed){
+          const d = new Date(e.last_reviewed);
+          if(!isNaN(d) && d < cutoff) n++;
+        }
+      });
+    });
+  });
+  return n;
+}
+
+function countNoOwner(){
+  let n = 0;
+  const fw = FRAMEWORKS[state.framework];
+  fw.themes.forEach(t=>{
+    t.controls.forEach(ctrl=>{
+      const r = state.records[recordKey(fw.id, ctrl.id)];
+      if(!r || !r.evidence) return;
+      r.evidence.forEach(e=>{
+        if(!e.owner || !e.owner.trim()) n++;
+      });
+    });
+  });
+  return n;
+}
+
+function countNaNoRationale(){
+  let n = 0;
+  const fw = FRAMEWORKS[state.framework];
+  fw.themes.forEach(t=>{
+    t.controls.forEach(ctrl=>{
+      const r = state.records[recordKey(fw.id, ctrl.id)];
+      if(r && r.status === 'na' && (!r.na_rationale || !r.na_rationale.trim())) n++;
+    });
+  });
+  return n;
+}
+
+/* ================================================================
+   CONTROLS LIST
+   ================================================================ */
+function renderControls(){
+  const fw = FRAMEWORKS[state.framework];
+  const container = document.getElementById('controlsContainer');
+  container.innerHTML = '';
+
+  let totalShown = 0;
+
+  fw.themes.forEach(theme=>{
+    const matching = theme.controls.filter(ctrl => controlMatchesFilters(fw.id, ctrl));
+    if(matching.length === 0) return;
+    let tReady = 0;
+    theme.controls.forEach(c=>{
+      const r = state.records[recordKey(fw.id, c.id)];
+      if(r && r.status === 'ready') tReady++;
+    });
+    const tPct = Math.round((tReady/theme.controls.length)*100);
+
+    const group = document.createElement('div');
+    group.className = 'theme-group';
+    group.innerHTML = `
+      <div class="theme-head">
+        <span class="id">${theme.id}</span>
+        <h3>${theme.name}</h3>
+        <span class="meta">${matching.length} of ${theme.controls.length} shown · <span class="pct">${tReady}/${theme.controls.length} ready (${tPct}%)</span></span>
+      </div>
+      <div class="controls-list" data-theme="${theme.id}"></div>
+    `;
+    const list = group.querySelector('.controls-list');
+    matching.forEach(ctrl=>{
+      list.appendChild(buildControlRow(fw.id, ctrl));
+      totalShown++;
+    });
+    container.appendChild(group);
+  });
+
+  document.getElementById('emptyState').classList.toggle('show', totalShown === 0);
+}
+
+function controlMatchesFilters(fwId, ctrl){
+  const r = state.records[recordKey(fwId, ctrl.id)];
+  const status = r ? r.status : 'notstarted';
+  const f = state.filters;
+
+  if(f.status !== 'all' && status !== f.status) return false;
+
+  if(f.flag === 'stale'){
+    if(!r || !r.evidence || r.evidence.length === 0) return false;
+    const cutoff = new Date(); cutoff.setMonth(cutoff.getMonth() - 12);
+    const hasStale = r.evidence.some(e=>{
+      if(!e.last_reviewed) return false;
+      const d = new Date(e.last_reviewed);
+      return !isNaN(d) && d < cutoff;
+    });
+    if(!hasStale) return false;
+  }
+  if(f.flag === 'noowner'){
+    if(!r || !r.evidence || r.evidence.length === 0) return false;
+    const hasNoOwner = r.evidence.some(e=> !e.owner || !e.owner.trim());
+    if(!hasNoOwner) return false;
+  }
+
+  if(f.search){
+    const blob = (ctrl.id + ' ' + ctrl.name + ' ' + (ctrl.what||'') + ' ' + (ctrl.asks||[]).join(' ')).toLowerCase();
+    if(!blob.includes(f.search)) return false;
+  }
+
+  return true;
+}
+
+function buildControlRow(fwId, ctrl){
+  const r = getRecord(fwId, ctrl.id);
+  const row = document.createElement('div');
+  row.className = 'ctrl' + (r._open ? ' open' : '');
+  row.setAttribute('data-ctrl', ctrl.id);
+
+  const asksList = (ctrl.asks||[]).map(a => `<li>${escapeHtml(a)}</li>`).join('');
+
+  row.innerHTML = `
+    <div class="ctrl-head" onclick="toggleControl('${fwId}','${ctrl.id}')">
+      <span class="ctrl-id">${escapeHtml(ctrl.id)}</span>
+      <span class="ctrl-title">${escapeHtml(ctrl.name)}</span>
+      <span class="ctrl-status ${r.status}"><span class="dotsym"></span>${statusLabel(r.status)}</span>
+      <span class="ctrl-chev">▾</span>
+    </div>
+    <div class="ctrl-body">
+      <div class="assessor-want">
+        <strong>What assessors typically ask for</strong>
+        <div>${escapeHtml(ctrl.what||'')}</div>
+        ${asksList ? `<ul>${asksList}</ul>` : ''}
+      </div>
+
+      <div class="ctrl-row">
+        <div class="ctrl-field">
+          <label>Status</label>
+          <select onchange="updateStatus('${fwId}','${ctrl.id}', this.value)">
+            <option value="notstarted" ${r.status==='notstarted'?'selected':''}>Not started</option>
+            <option value="inprogress" ${r.status==='inprogress'?'selected':''}>In progress</option>
+            <option value="ready" ${r.status==='ready'?'selected':''}>Ready</option>
+            <option value="na" ${r.status==='na'?'selected':''}>Not applicable</option>
+          </select>
+        </div>
+        <div class="ctrl-field ${r.status==='na' ? '' : 'hidden'}" id="na-${fwId}-${cssSafe(ctrl.id)}" ${r.status==='na'?'':'style="display:none"'}>
+          <label>N/A rationale <span class="hint">(required for SoA)</span></label>
+          <input type="text" value="${escapeAttr(r.na_rationale||'')}" placeholder="e.g. No physical premises (cloud-only operation)" oninput="updateField('${fwId}','${ctrl.id}','na_rationale', this.value)">
+        </div>
+      </div>
+
+      <div class="ctrl-field">
+        <label>Evidence pointers <span class="hint">— where the assessor will look. Don't paste files; link to your repo (SharePoint, Drive, Confluence, GitHub).</span></label>
+        <div class="ev-header">
+          <span>Name</span>
+          <span>Location / link</span>
+          <span>Owner</span>
+          <span>Last reviewed</span>
+          <span></span>
+        </div>
+        <div class="evidence-list" id="ev-${fwId}-${cssSafe(ctrl.id)}">
+          ${(r.evidence||[]).map((e,i) => buildEvidenceRow(fwId, ctrl.id, i, e)).join('')}
+        </div>
+        <button class="btn sm ev-add" onclick="addEvidence('${fwId}','${ctrl.id}')">+ ADD EVIDENCE</button>
+      </div>
+
+      <div class="ctrl-row">
+        <div class="ctrl-field">
+          <label>Known gaps or weaknesses</label>
+          <textarea placeholder="What's missing or partial? What would the assessor note as a finding?" oninput="updateField('${fwId}','${ctrl.id}','gaps', this.value)">${escapeHtml(r.gaps||'')}</textarea>
+        </div>
+        <div class="ctrl-field">
+          <label>Internal notes <span class="hint">(not exported)</span></label>
+          <textarea placeholder="For your team only — won't appear in the assessor pack" oninput="updateField('${fwId}','${ctrl.id}','notes', this.value)">${escapeHtml(r.notes||'')}</textarea>
+        </div>
+      </div>
+    </div>
+  `;
+  return row;
+}
+
+function buildEvidenceRow(fwId, ctrlId, idx, e){
+  const age = evidenceAge(e.last_reviewed);
+  const ageClass = age.cls ? ' '+age.cls : '';
+  return `
+    <div class="ev-row">
+      <input type="text" placeholder="e.g. Information Security Policy v3" value="${escapeAttr(e.name||'')}" oninput="updateEvidence('${fwId}','${ctrlId}',${idx},'name',this.value)">
+      <input type="text" placeholder="SharePoint / Confluence / Drive link or path" value="${escapeAttr(e.location||'')}" oninput="updateEvidence('${fwId}','${ctrlId}',${idx},'location',this.value)">
+      <input type="text" placeholder="Owner" value="${escapeAttr(e.owner||'')}" oninput="updateEvidence('${fwId}','${ctrlId}',${idx},'owner',this.value)">
+      <input type="date" value="${escapeAttr(e.last_reviewed||'')}" oninput="updateEvidence('${fwId}','${ctrlId}',${idx},'last_reviewed',this.value)" title="${age.label}">
+      <button class="ev-del" onclick="removeEvidence('${fwId}','${ctrlId}',${idx})" title="Remove">×</button>
+    </div>
+  `;
+}
+
+function evidenceAge(dateStr){
+  if(!dateStr) return {cls:'', label:''};
+  const d = new Date(dateStr);
+  if(isNaN(d)) return {cls:'', label:''};
+  const monthsAgo = (Date.now() - d.getTime()) / (1000*60*60*24*30.5);
+  if(monthsAgo > 18) return {cls:'old', label:Math.round(monthsAgo)+' months old'};
+  if(monthsAgo > 12) return {cls:'stale', label:Math.round(monthsAgo)+' months old'};
+  return {cls:'', label:Math.round(monthsAgo)+' months old'};
+}
+
+function statusLabel(s){
+  return ({'notstarted':'Not started','inprogress':'In progress','ready':'Ready','na':'N/A'})[s] || s;
+}
+function cssSafe(s){ return String(s).replace(/[^a-zA-Z0-9_-]/g,'_'); }
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escapeAttr(s){ return escapeHtml(s); }
+
+function toggleControl(fwId, ctrlId){
+  const r = getRecord(fwId, ctrlId);
+  r._open = !r._open;
+  // partial re-render: just toggle classes on the affected row
+  const row = document.querySelector(`.ctrl[data-ctrl="${ctrlId}"]`);
+  if(row) row.classList.toggle('open', r._open);
+}
+
+function updateStatus(fwId, ctrlId, status){
+  setRecord(fwId, ctrlId, {status});
+  // toggle N/A rationale field visibility
+  const naField = document.getElementById(`na-${fwId}-${cssSafe(ctrlId)}`);
+  if(naField) naField.style.display = (status === 'na') ? '' : 'none';
+  // update status pill in row head
+  const row = document.querySelector(`.ctrl[data-ctrl="${ctrlId}"]`);
+  if(row){
+    const pill = row.querySelector('.ctrl-status');
+    pill.className = 'ctrl-status ' + status;
+    pill.innerHTML = '<span class="dotsym"></span>' + statusLabel(status);
+  }
+  renderDashboard();
+  renderFwPicker();
+}
+
+function updateField(fwId, ctrlId, field, value){
+  const r = getRecord(fwId, ctrlId);
+  r[field] = value;
+  setRecord(fwId, ctrlId, r);
+  // dashboard updates for fields that affect counts
+  if(field === 'na_rationale') renderDashboard();
+}
+
+function updateEvidence(fwId, ctrlId, idx, field, value){
+  const r = getRecord(fwId, ctrlId);
+  if(!r.evidence[idx]) return;
+  r.evidence[idx][field] = value;
+  setRecord(fwId, ctrlId, r);
+  // for date changes, update the age tooltip cheaply by replacing the row
+  if(field === 'last_reviewed' || field === 'owner'){
+    renderDashboard();
+  }
+}
+
+function addEvidence(fwId, ctrlId){
+  const r = getRecord(fwId, ctrlId);
+  if(!r.evidence) r.evidence = [];
+  r.evidence.push({name:'', location:'', owner:'', last_reviewed:''});
+  r._open = true;
+  setRecord(fwId, ctrlId, r);
+  // re-render the body of this control
+  const row = document.querySelector(`.ctrl[data-ctrl="${ctrlId}"]`);
+  if(row){
+    const list = row.querySelector('.evidence-list');
+    const idx = r.evidence.length - 1;
+    list.insertAdjacentHTML('beforeend', buildEvidenceRow(fwId, ctrlId, idx, r.evidence[idx]));
+  }
+  renderDashboard();
+}
+
+function removeEvidence(fwId, ctrlId, idx){
+  const r = getRecord(fwId, ctrlId);
+  if(!r.evidence || !r.evidence[idx]) return;
+  r.evidence.splice(idx, 1);
+  setRecord(fwId, ctrlId, r);
+  // re-render this control's evidence list cleanly to fix indices
+  const row = document.querySelector(`.ctrl[data-ctrl="${ctrlId}"]`);
+  if(row){
+    const list = row.querySelector('.evidence-list');
+    list.innerHTML = (r.evidence||[]).map((e,i) => buildEvidenceRow(fwId, ctrlId, i, e)).join('');
+  }
+  renderDashboard();
+}
+
+/* ================================================================
+   EXPORT — Markdown evidence index
+   ================================================================ */
+function exportMarkdown(){
+  const md = buildMarkdown();
+  document.getElementById('exportContent').textContent = md;
+  document.getElementById('exportModal').classList.add('show');
+}
+
+function closeModal(){
+  document.getElementById('exportModal').classList.remove('show');
+}
+
+function buildMarkdown(){
+  const fw = FRAMEWORKS[state.framework];
+  const s = state.setup || {};
+  const c = countByFramework(state.framework);
+  const denom = c.total - c.na;
+  const pct = denom > 0 ? Math.round((c.ready / denom) * 100) : 0;
+  const today = new Date().toISOString().slice(0,10);
+
+  let md = `# Audit Evidence Pack — ${fw.short}\n\n`;
+  if(s.org) md += `**Organisation:** ${s.org}  \n`;
+  if(s.assessor) md += `**Assessor:** ${s.assessor}  \n`;
+  if(s.audit_date) md += `**Audit date:** ${s.audit_date}  \n`;
+  if(s.scope) md += `**Scope:** ${s.scope}  \n`;
+  md += `**Generated:** ${today}  \n`;
+  md += `**Framework:** ${fw.name} (${fw.version})  \n`;
+  md += `**Readiness:** ${c.ready}/${denom} in-scope controls ready (${pct}%) — ${c.inprogress} in progress, ${c.notstarted} not started, ${c.na} N/A\n\n`;
+  md += `---\n\n`;
+  md += `> This pack contains pointers to evidence held in the organisation's document repositories.\n`;
+  md += `> Each pointer names the document, its location, the responsible owner, and last review date.\n`;
+  md += `> Assessors should follow each pointer to retrieve the underlying artefact.\n\n`;
+  md += `---\n\n`;
+
+  fw.themes.forEach(theme=>{
+    md += `## ${theme.id} — ${theme.name}\n\n`;
+    theme.controls.forEach(ctrl=>{
+      const r = state.records[recordKey(fw.id, ctrl.id)];
+      if(!r || (r.status === 'notstarted' && (!r.evidence || r.evidence.length === 0))){
+        md += `### ${ctrl.id} — ${ctrl.name}\n`;
+        md += `**Status:** Not started\n\n`;
+        return;
+      }
+      md += `### ${ctrl.id} — ${ctrl.name}\n`;
+      md += `**Status:** ${statusLabel(r.status)}`;
+      if(r.status === 'na' && r.na_rationale) md += ` — ${r.na_rationale}`;
+      md += `\n\n`;
+      md += `*${ctrl.what}*\n\n`;
+      if(r.evidence && r.evidence.length > 0){
+        md += `**Evidence:**\n\n`;
+        md += `| Document | Location | Owner | Last reviewed |\n`;
+        md += `|---|---|---|---|\n`;
+        r.evidence.forEach(e=>{
+          const name = (e.name||'—').replace(/\|/g,'\\|');
+          const loc = (e.location||'—').replace(/\|/g,'\\|');
+          const own = (e.owner||'—').replace(/\|/g,'\\|');
+          const dt = e.last_reviewed || '—';
+          md += `| ${name} | ${loc} | ${own} | ${dt} |\n`;
+        });
+        md += `\n`;
+      }
+      if(r.gaps && r.gaps.trim()){
+        md += `**Known gaps:** ${r.gaps.replace(/\n/g,' ')}\n\n`;
+      }
+    });
+  });
+
+  md += `---\n\n`;
+  md += `_Generated with the Audit Evidence Pack Builder from danhowett.github.io/useful_\n`;
+  return md;
+}
+
+function copyExport(){
+  const txt = document.getElementById('exportContent').textContent;
+  navigator.clipboard.writeText(txt).then(()=>{
+    toast('Copied to clipboard');
+  }).catch(()=>{
+    toast('Copy failed — select and copy manually');
+  });
+}
+
+function downloadExport(){
+  const md = buildMarkdown();
+  const fw = FRAMEWORKS[state.framework];
+  const blob = new Blob([md], {type:'text/markdown'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `audit-evidence-${fw.id}-${new Date().toISOString().slice(0,10)}.md`;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 0);
+  toast('Downloaded');
+}
+
+/* ================================================================
+   SETUP FIELDS
+   ================================================================ */
+function onSetupChange(){
+  state.setup = {
+    org: document.getElementById('org-name').value,
+    assessor: document.getElementById('assessor-name').value,
+    audit_date: document.getElementById('audit-date').value,
+    scope: document.getElementById('scope-notes').value
+  };
+  persist();
+}
+
+function fillSetupFields(){
+  const s = state.setup || {};
+  document.getElementById('org-name').value = s.org || '';
+  document.getElementById('assessor-name').value = s.assessor || '';
+  document.getElementById('audit-date').value = s.audit_date || '';
+  document.getElementById('scope-notes').value = s.scope || '';
+}
+
+/* ================================================================
+   FULL RENDER
+   ================================================================ */
+function renderAll(){
+  renderFwPicker();
+  renderDashboard();
+  renderFilterChips();
+  renderControls();
+}
+
+/* ================================================================
+   INIT
+   ================================================================ */
+(function(){
+  restore();
+  fillSetupFields();
+  renderAll();
+})();
+</script>
+
+</body>
+</html>
