@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Offline Email Header Analyser</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #EEF1F5;
+    --surface: #FFFFFF;
+    --surface-alt: #F6F8FA;
+    --border: #E1E6EC;
+    --border-strong: #C7D0DA;
+    --text-primary: #16202B;
+    --text-secondary: #56677A;
+    --text-muted: #8B98A7;
+    --blue: #2E6BA8;
+    --blue-dark: #1E4E80;
+    --blue-bg: #E7F0FA;
+    --blue-text: #1E4E80;
+    --green: #1F8A5F;
+    --green-bg: #E4F6ED;
+    --green-text: #176B49;
+    --red: #C4483F;
+    --red-bg: #FBEAE8;
+    --red-text: #9A3931;
+    --amber: #B0791E;
+    --amber-bg: #FBF1DE;
+    --amber-text: #8C5F14;
+    --grey-bg: #EDEFF2;
+    --grey-text: #5B6673;
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text-primary);
+    font-family:'Inter', sans-serif;
+    line-height:1.55;
+    min-height:100vh;
+  }
+  .wrap{ max-width:900px; margin:0 auto; padding:2.5rem 1.5rem 5rem; }
+
+  header.top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:1rem;
+    margin-bottom:2rem;
+    flex-wrap:wrap;
+  }
+  h1{
+    font-size:26px;
+    font-weight:700;
+    letter-spacing:-0.01em;
+    margin:0 0 0.35rem;
+  }
+  .sub{ font-size:14px; color:var(--text-secondary); margin:0; max-width:520px; }
+  .local-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:0.4rem;
+    font-size:12px;
+    font-weight:500;
+    color:var(--green-text);
+    background:var(--green-bg);
+    border:1px solid #C8E7D7;
+    border-radius:999px;
+    padding:0.3rem 0.7rem;
+    white-space:nowrap;
+  }
+  .local-pill::before{
+    content:"";
+    width:6px; height:6px; border-radius:50%;
+    background:var(--green);
+    display:inline-block;
+  }
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:1.25rem 1.4rem;
+    margin-bottom:1.25rem;
+  }
+
+  .dropzone{
+    border:1.5px dashed var(--border-strong);
+    border-radius:var(--radius);
+    background:var(--surface-alt);
+    padding:0.5rem;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .dropzone.dragover{
+    border-color:var(--blue);
+    background:var(--blue-bg);
+  }
+  .intake-label{
+    font-size:12px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--text-secondary);
+    margin:0 0 0.6rem;
+  }
+  textarea{
+    width:100%;
+    min-height:190px;
+    resize:vertical;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    line-height:1.6;
+    padding:0.85rem 0.9rem;
+    border:1px solid var(--border);
+    border-radius:8px;
+    background:var(--surface);
+    color:var(--text-primary);
+  }
+  textarea:focus{ outline:none; border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-bg); }
+
+  .intake-actions{
+    display:flex;
+    gap:0.6rem;
+    margin-top:0.9rem;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  button{
+    font-family:'Inter', sans-serif;
+    font-weight:500;
+    font-size:13px;
+    padding:0.55rem 1rem;
+    border-radius:8px;
+    cursor:pointer;
+    border:1px solid var(--border-strong);
+    background:var(--surface);
+    color:var(--text-primary);
+  }
+  button:hover{ background:var(--surface-alt); border-color:var(--text-muted); }
+  button.primary{ background:var(--blue); border-color:var(--blue); color:#fff; }
+  button.primary:hover{ background:var(--blue-dark); border-color:var(--blue-dark); }
+  button.ghost{ border-color:transparent; background:transparent; color:var(--text-secondary); }
+  button.ghost:hover{ background:var(--surface-alt); color:var(--text-primary); }
+  button.small{ padding:0.4rem 0.75rem; font-size:12.5px; }
+  input[type=file]{ display:none; }
+  .hint{ font-size:12px; color:var(--text-muted); margin-left:auto; }
+
+  .empty{ text-align:center; padding:3rem 1rem; color:var(--text-secondary); font-size:13.5px; }
+  .empty .big{ font-size:15px; font-weight:600; color:var(--text-primary); margin-bottom:0.4rem; }
+
+  section.report{ display:none; }
+  section.report.show{ display:block; }
+
+  .section-label{
+    font-size:12px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--text-secondary);
+    margin:0 0 0.75rem;
+    padding-bottom:0.5rem;
+    border-bottom:1px solid var(--border);
+  }
+
+  .export-row{ display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1.25rem; }
+
+  .verdict{ display:flex; align-items:flex-start; gap:1rem; flex-wrap:wrap; }
+  .badge{
+    display:inline-flex;
+    align-items:center;
+    gap:0.35rem;
+    font-size:13px;
+    font-weight:600;
+    padding:0.35rem 0.75rem;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  .badge::before{ content:""; width:7px; height:7px; border-radius:50%; }
+  .badge.pass{ color:var(--green-text); background:var(--green-bg); }
+  .badge.pass::before{ background:var(--green); }
+  .badge.fail{ color:var(--red-text); background:var(--red-bg); }
+  .badge.fail::before{ background:var(--red); }
+  .badge.warn{ color:var(--amber-text); background:var(--amber-bg); }
+  .badge.warn::before{ background:var(--amber); }
+  .badge.na{ color:var(--grey-text); background:var(--grey-bg); }
+  .badge.na::before{ background:var(--text-muted); }
+  .verdict-text{ font-size:13.5px; color:var(--text-primary); flex:1; min-width:220px; }
+  .verdict-text b{ font-weight:600; }
+
+  .identity-grid{ display:grid; grid-template-columns:130px 1fr; row-gap:0.6rem; column-gap:0.75rem; font-size:13.5px; }
+  .identity-grid dt{ color:var(--text-secondary); font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.03em; padding-top:0.2rem; }
+  .identity-grid dd{ margin:0; font-family:'IBM Plex Mono', monospace; font-size:12.5px; word-break:break-all; }
+  .note-line{
+    display:block;
+    margin-top:0.3rem;
+    font-family:'Inter', sans-serif;
+    font-size:12px;
+    color:var(--red-text);
+    background:var(--red-bg);
+    border-radius:6px;
+    padding:0.3rem 0.55rem;
+  }
+  .note-line.warn{ color:var(--amber-text); background:var(--amber-bg); }
+  .note-line.info{ color:var(--blue-text); background:var(--blue-bg); }
+
+  .stamp-row{ display:flex; gap:0.6rem; flex-wrap:wrap; margin-bottom:0.9rem; }
+  .auth-raw{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    color:var(--text-secondary);
+    background:var(--surface-alt);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:0.6rem 0.75rem;
+    margin-top:0.5rem;
+    max-height:110px;
+    overflow-y:auto;
+    white-space:pre-wrap;
+    word-break:break-all;
+  }
+
+  .subsection{ margin-top:1.1rem; padding-top:1rem; border-top:1px solid var(--border); }
+  .subsection-title{ font-size:12.5px; font-weight:600; color:var(--text-primary); margin:0 0 0.6rem; }
+  .subsection-sub{ font-size:12px; color:var(--text-muted); margin:-0.4rem 0 0.7rem; }
+
+  .align-row{
+    display:flex; align-items:center; justify-content:space-between; gap:0.75rem;
+    padding:0.55rem 0.7rem; background:var(--surface-alt); border:1px solid var(--border); border-radius:8px; margin-bottom:0.5rem;
+    font-size:12.5px; flex-wrap:wrap;
+  }
+  .align-row .domains{ font-family:'IBM Plex Mono', monospace; color:var(--text-primary); word-break:break-all; }
+
+  .hops{ list-style:none; margin:0; padding:0; }
+  .hop{ position:relative; padding:0 0 1.1rem 1.6rem; border-left:2px solid var(--border); margin-left:0.5rem; }
+  .hop:last-child{ border-left-color:transparent; padding-bottom:0; }
+  .hop::before{ content:""; position:absolute; left:-6px; top:2px; width:10px; height:10px; border-radius:50%; background:var(--surface); border:2px solid var(--border-strong); }
+  .hop.origin::before{ background:var(--blue); border-color:var(--blue); }
+  .hop-head{ font-size:11.5px; font-weight:600; letter-spacing:0.03em; text-transform:uppercase; color:var(--text-muted); margin-bottom:0.3rem; }
+  .hop.origin .hop-head{ color:var(--blue-dark); }
+  .hop-body{ font-family:'IBM Plex Mono', monospace; font-size:12.5px; background:var(--surface-alt); border:1px solid var(--border); border-radius:8px; padding:0.55rem 0.7rem; }
+  .hop-line{ margin:0 0 0.2rem; word-break:break-all; }
+  .hop-line:last-child{ margin-bottom:0; }
+  .hop-line .k{ color:var(--text-muted); }
+  .ip-note{ display:inline-block; margin-top:0.3rem; font-family:'Inter', sans-serif; font-size:11px; color:var(--amber-text); }
+
+  table.meta{ width:100%; border-collapse:collapse; font-size:13px; }
+  table.meta td{ padding:0.5rem 0.5rem; border-bottom:1px solid var(--border); vertical-align:top; }
+  table.meta td:first-child{ width:130px; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.03em; color:var(--text-secondary); }
+  table.meta td:last-child{ font-family:'IBM Plex Mono', monospace; font-size:12px; word-break:break-all; }
+
+  details.raw-source{ margin-top:0; }
+  details.raw-source summary{
+    cursor:pointer; font-size:12.5px; font-weight:500; color:var(--blue-dark);
+    padding:0.3rem 0; list-style:none;
+  }
+  details.raw-source summary::-webkit-details-marker{ display:none; }
+  details.raw-source summary::before{ content:"▸ "; }
+  details.raw-source[open] summary::before{ content:"▾ "; }
+  .raw-box{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    line-height:1.7;
+    background:var(--surface-alt);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:0.8rem 0.9rem;
+    margin-top:0.6rem;
+    max-height:360px;
+    overflow:auto;
+    white-space:pre-wrap;
+    word-break:break-all;
+  }
+  .hl-identity{ background:var(--blue-bg); }
+  .hl-auth-pass{ background:var(--green-bg); }
+  .hl-auth-fail{ background:var(--red-bg); }
+  .hl-trace{ background:var(--grey-bg); }
+  .hl-dkim{ background:#F1E9FA; }
+  .legend{ display:flex; gap:0.9rem; flex-wrap:wrap; margin-top:0.6rem; font-size:11px; color:var(--text-muted); }
+  .legend span{ display:inline-flex; align-items:center; gap:0.35rem; }
+  .legend i{ width:9px; height:9px; border-radius:2px; display:inline-block; }
+
+  .ref-grid{ display:grid; grid-template-columns:1fr; gap:0; margin-top:0.75rem; }
+  .ref-entry{ padding:0.75rem 0; border-bottom:1px solid var(--border); }
+  .ref-entry:last-child{ border-bottom:none; padding-bottom:0; }
+  .ref-term{
+    font-size:12.5px; font-weight:600; color:var(--blue-dark);
+    font-family:'IBM Plex Mono', monospace; margin-bottom:0.35rem;
+  }
+  .ref-def{ font-size:13px; color:var(--text-secondary); line-height:1.6; }
+  .ref-sub{ margin-top:0.45rem; display:grid; grid-template-columns:90px 1fr; gap:0.2rem 0.5rem; }
+  .ref-sub dt{ font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:var(--text-muted); font-weight:500; padding-top:1px; }
+  .ref-sub dd{ margin:0; font-size:12px; color:var(--text-secondary); }
+  .ref-badge{ display:inline-block; font-size:10.5px; font-weight:600; border-radius:4px; padding:1px 6px; margin-right:4px; }
+  .ref-badge.pass{ color:var(--green-text); background:var(--green-bg); }
+  .ref-badge.fail{ color:var(--red-text); background:var(--red-bg); }
+  .ref-badge.warn{ color:var(--amber-text); background:var(--amber-bg); }
+  .ref-badge.na{ color:var(--grey-text); background:var(--grey-bg); }
+
+  footer.note{ font-size:11.5px; color:var(--text-muted); border-top:1px solid var(--border); padding-top:1rem; margin-top:0.5rem; }
+
+  .forensic-panel{ display:none; }
+  .forensic-panel.show{ display:block; }
+  .forensic-header{
+    display:flex; align-items:center; justify-content:space-between; gap:0.75rem;
+    flex-wrap:wrap; margin-bottom:0.75rem;
+  }
+  .forensic-header h3{ margin:0; font-size:14px; font-weight:600; color:var(--text-primary); }
+  .forensic-header p{ margin:0; font-size:12px; color:var(--text-muted); }
+  textarea.forensic-out{
+    width:100%; min-height:520px; resize:vertical;
+    font-family:'IBM Plex Mono', monospace; font-size:12px; line-height:1.75;
+    padding:1rem 1rem; border:1px solid var(--border); border-radius:8px;
+    background:var(--surface-alt); color:var(--text-primary);
+  }
+  textarea.forensic-out:focus{ outline:none; border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-bg); }
+  .forensic-actions{ display:flex; gap:0.5rem; margin-top:0.6rem; flex-wrap:wrap; }
+
+  @media (max-width:520px){
+    .identity-grid{ grid-template-columns:1fr; }
+    .identity-grid dt{ padding-top:0.5rem; }
+  }
+  @media print{
+    body{ background:#fff; }
+    .intake, .export-row, header .local-pill, .dropzone{ display:none !important; }
+    .card{ border:1px solid #ccc; break-inside:avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Offline Email Header Analyser</h1>
+      <p class="sub">Paste or drop the raw source of an email to trace who it claims to be from against who actually sent it, its delivery path, and its authentication results.</p>
+    </div>
+    <span class="local-pill">Runs locally — nothing leaves this page</span>
+  </header>
+
+  <div class="card dropzone" id="dropzone">
+    <p class="intake-label">Message source</p>
+    <textarea id="rawInput" placeholder="Received: from mail.example.com...&#10;From: &quot;Some Sender&quot; &lt;sender@example.com&gt;&#10;Authentication-Results: mx.example.com; spf=pass...&#10;&#10;Paste the full header block from your email client's 'show original' or 'view source' option, or drop a .eml file here."></textarea>
+    <div class="intake-actions">
+      <button class="primary" id="analyzeBtn">Analyse header</button>
+      <button id="uploadBtn">Upload .eml file</button>
+      <input type="file" id="fileInput" accept=".eml,.txt,message/rfc822">
+      <button class="ghost" id="sampleBtn">Load a sample</button>
+      <button class="ghost" id="clearBtn">Clear</button>
+      <span class="hint" id="statusHint"></span>
+    </div>
+  </div>
+
+  <div class="empty" id="emptyState">
+    <p class="big">No header analysed yet</p>
+    <p>Paste or drop raw headers above to see the claimed sender, the real delivery path, and whether the message passed authentication.</p>
+  </div>
+
+  <section class="report" id="report">
+
+    <div class="export-row">
+      <button class="small" id="copyBtn">Copy summary</button>
+      <button class="small" id="downloadBtn">Download .txt</button>
+      <button class="small" id="printBtn">Print / save as PDF</button>
+      <button class="small primary" id="forensicBtn">Generate forensic report</button>
+    </div>
+
+    <div class="card">
+      <p class="section-label">Verdict</p>
+      <div class="verdict" id="verdictBox"></div>
+    </div>
+
+    <div class="card">
+      <p class="section-label">Claimed identity</p>
+      <dl class="identity-grid" id="identityGrid"></dl>
+    </div>
+
+    <div class="card">
+      <p class="section-label">Authentication</p>
+      <div class="stamp-row" id="stampRow"></div>
+      <div class="auth-raw" id="authRaw" style="display:none;"></div>
+
+      <div class="subsection" id="dkimSection" style="display:none;">
+        <p class="subsection-title">DKIM signing domain alignment</p>
+        <p class="subsection-sub">Checks whether the domain that actually cryptographically signed the message (d=) matches the domain shown in the From address.</p>
+        <div id="dkimRows"></div>
+      </div>
+
+      <div class="subsection" id="arcSection" style="display:none;">
+        <p class="subsection-title">ARC chain</p>
+        <p class="subsection-sub">Present when a mailing list or forwarding service relayed this message — preserves the authentication result seen by earlier hops.</p>
+        <div id="arcRows"></div>
+      </div>
+    </div>
+
+    <div class="card" id="lookalikeCard" style="display:none;">
+      <p class="section-label">Lookalike domain warnings</p>
+      <div id="lookalikeRows"></div>
+    </div>
+
+    <div class="card">
+      <p class="section-label">Delivery trace</p>
+      <ul class="hops" id="hopsList"></ul>
+    </div>
+
+    <div class="card">
+      <p class="section-label">Message metadata</p>
+      <table class="meta" id="metaTable"></table>
+    </div>
+
+    <div class="card">
+      <details class="raw-source">
+        <summary>View raw source with highlights</summary>
+        <div class="raw-box" id="rawBox"></div>
+        <div class="legend">
+          <span><i class="hl-identity"></i>Identity</span>
+          <span><i class="hl-auth-pass"></i>Auth pass</span>
+          <span><i class="hl-auth-fail"></i>Auth fail/other</span>
+          <span><i class="hl-dkim"></i>DKIM signature</span>
+          <span><i class="hl-trace"></i>Delivery trace</span>
+        </div>
+      </details>
+    </div>
+
+    <div class="card">
+      <details class="raw-source">
+        <summary>Reference — what these terms mean</summary>
+        <div class="ref-grid">
+
+          <div class="ref-entry">
+            <div class="ref-term">SPF — Sender Policy Framework</div>
+            <div class="ref-def">A DNS record that lists which mail servers are authorised to send on behalf of a domain. The receiving server checks the sending IP against this list.</div>
+            <dl class="ref-sub">
+              <dt><span class="ref-badge pass">pass</span></dt><dd>Sending IP is authorised by the domain's SPF record.</dd>
+              <dt><span class="ref-badge fail">fail</span></dt><dd>Sending IP is NOT authorised — the domain explicitly disowns it.</dd>
+              <dt><span class="ref-badge warn">softfail</span></dt><dd>Not authorised, but the domain hasn't requested hard rejection (~all).</dd>
+              <dt><span class="ref-badge na">neutral</span></dt><dd>Domain publishes no opinion on this IP (?all).</dd>
+              <dt><span class="ref-badge na">none</span></dt><dd>No SPF record found for the domain.</dd>
+              <dt><span class="ref-badge warn">temperror</span></dt><dd>Temporary DNS failure — result is inconclusive.</dd>
+              <dt><span class="ref-badge fail">permerror</span></dt><dd>Permanent error, e.g. malformed SPF record.</dd>
+            </dl>
+          </div>
+
+          <div class="ref-entry">
+            <div class="ref-term">DKIM — DomainKeys Identified Mail</div>
+            <div class="ref-def">A cryptographic signature added by the sending server. The receiving server retrieves the public key from DNS and verifies it. A valid signature confirms the signed headers were not altered in transit.</div>
+            <dl class="ref-sub">
+              <dt><span class="ref-badge pass">pass</span></dt><dd>Signature is valid; message was not tampered with for the signed headers.</dd>
+              <dt><span class="ref-badge fail">fail</span></dt><dd>Signature invalid — message may have been modified, or key has been rotated.</dd>
+              <dt><span class="ref-badge na">none</span></dt><dd>No DKIM signature was present.</dd>
+              <dt>d=</dt><dd>The signing domain. Should align with the From domain for DMARC to pass.</dd>
+              <dt>s=</dt><dd>Selector — identifies which DNS key record to look up.</dd>
+            </dl>
+          </div>
+
+          <div class="ref-entry">
+            <div class="ref-term">DMARC — Domain-based Message Authentication, Reporting and Conformance</div>
+            <div class="ref-def">Builds on SPF and DKIM. Requires at least one to pass AND the result to "align" with the visible From domain. The domain owner publishes a policy (p=) specifying what receivers should do on failure.</div>
+            <dl class="ref-sub">
+              <dt><span class="ref-badge pass">pass</span></dt><dd>At least one aligned mechanism (SPF or DKIM) passed.</dd>
+              <dt><span class="ref-badge fail">fail</span></dt><dd>Neither SPF nor DKIM aligned with the From domain.</dd>
+              <dt>p=none</dt><dd>Monitor only — no action taken on failure.</dd>
+              <dt>p=quarantine</dt><dd>Failing messages should be treated as spam.</dd>
+              <dt>p=reject</dt><dd>Failing messages should be blocked outright.</dd>
+              <dt>dis=</dt><dd>Disposition actually applied by the receiving server.</dd>
+            </dl>
+          </div>
+
+          <div class="ref-entry">
+            <div class="ref-term">ARC — Authenticated Received Chain</div>
+            <div class="ref-def">Preserves authentication results when a message is forwarded or passes through a mailing list. Each relay adds a numbered ARC set so the final receiver can see what authentication looked like before forwarding.</div>
+            <dl class="ref-sub">
+              <dt>i=</dt><dd>Instance number — position in the chain (1 = first forwarder).</dd>
+              <dt>cv=none</dt><dd>First ARC hop; no prior chain to validate.</dd>
+              <dt>cv=pass</dt><dd>All previous ARC entries are intact and valid.</dd>
+              <dt>cv=fail</dt><dd>The chain has been broken — a previous entry was modified.</dd>
+            </dl>
+          </div>
+
+          <div class="ref-entry">
+            <div class="ref-term">SRS — Sender Rewriting Scheme</div>
+            <div class="ref-def">Used by forwarding services to rewrite the envelope Return-Path so that SPF passes at the next hop. Addresses follow the pattern <code>SRS0=hash=tt=original-domain=local@forwarder</code>. Its presence indicates forwarding, not spoofing.</div>
+          </div>
+
+          <div class="ref-entry">
+            <div class="ref-term">Return-Path (Envelope-From)</div>
+            <div class="ref-def">The address to which bounce and delivery-failure notifications are sent. Set separately from the visible From header. Legitimate mail usually has a Return-Path in the same or a clearly related domain as From. A Return-Path in an unrelated domain can indicate spoofing — SRS encoding is a common legitimate exception.</div>
+          </div>
+
+          <div class="ref-entry">
+            <div class="ref-term">Reply-To</div>
+            <div class="ref-def">Overrides the address used when a recipient clicks Reply. If Reply-To differs from the From domain, replies go to a different address than the apparent sender. This is a common phishing technique used to redirect responses to an attacker-controlled mailbox.</div>
+          </div>
+
+          <div class="ref-entry">
+            <div class="ref-term">client-ip</div>
+            <div class="ref-def">The public IP address of the connecting SMTP client as seen by the receiving MTA. Set by the receiving server in Authentication-Results and Received-SPF headers — not by the sender — making it the most reliable source of the connecting server's real IP address.</div>
+          </div>
+
+          <div class="ref-entry">
+            <div class="ref-term">compauth — Composite Authentication (Microsoft 365 / Exchange Online)</div>
+            <div class="ref-def">A Microsoft-proprietary verdict combining SPF, DKIM, DMARC and additional signals into a single result. Appears in Authentication-Results headers on mail processed by Exchange Online Protection.</div>
+            <dl class="ref-sub">
+              <dt><span class="ref-badge pass">pass</span></dt><dd>Sufficient authentication signals passed.</dd>
+              <dt><span class="ref-badge fail">fail</span></dt><dd>Explicit authentication failure.</dd>
+              <dt><span class="ref-badge warn">softpass</span></dt><dd>Partial pass — some signals were positive.</dd>
+              <dt>reason=</dt><dd>Numeric code providing further detail on the result.</dd>
+            </dl>
+          </div>
+
+          <div class="ref-entry">
+            <div class="ref-term">DARA — Domain Alignment Result Assertion (Google)</div>
+            <div class="ref-def">A Google-proprietary field indicating whether the DKIM signing domain aligns with the From domain. Appears in Authentication-Results on mail processed by Gmail.</div>
+            <dl class="ref-sub">
+              <dt><span class="ref-badge pass">pass</span></dt><dd>Signing domain aligns with the From domain.</dd>
+              <dt><span class="ref-badge na">neutral</span></dt><dd>Alignment was not evaluated — common in forwarded mail.</dd>
+              <dt><span class="ref-badge fail">fail</span></dt><dd>Signing domain does not align with From.</dd>
+            </dl>
+          </div>
+
+        </div>
+      </details>
+    </div>
+
+    <div class="card forensic-panel" id="forensicPanel">
+      <div class="forensic-header">
+        <div>
+          <h3>Forensic report</h3>
+          <p>Ready to paste into a technical report or incident ticket. Edit as needed before use.</p>
+        </div>
+      </div>
+      <textarea class="forensic-out" id="forensicOut" spellcheck="false"></textarea>
+      <div class="forensic-actions">
+        <button class="small primary" id="copyForensicBtn">Copy report</button>
+        <button class="small" id="downloadForensicBtn">Download .txt</button>
+        <button class="small ghost" id="closeForensicBtn">Close</button>
+      </div>
+    </div>
+
+    <footer class="note">
+      All parsing happens locally in your browser — the pasted or dropped header is never uploaded anywhere. Received-header hostnames and "from" fields are self-reported by each relay and can be forged; treat the earliest hop as a lead to investigate, not final proof. Lookalike-domain checks are heuristic (edit-distance against a short list of commonly spoofed brands) and can miss or over-flag — verify manually. No IP geolocation, reverse-DNS, or WHOIS lookups are performed offline.
+    </footer>
+  </section>
+</div>
+
+<script>
+(function(){
+  const rawInput = document.getElementById('rawInput');
+  const analyzeBtn = document.getElementById('analyzeBtn');
+  const sampleBtn = document.getElementById('sampleBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const fileInput = document.getElementById('fileInput');
+  const dropzone = document.getElementById('dropzone');
+  const statusHint = document.getElementById('statusHint');
+  const emptyState = document.getElementById('emptyState');
+  const report = document.getElementById('report');
+  const copyBtn = document.getElementById('copyBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const printBtn = document.getElementById('printBtn');
+  const forensicBtn = document.getElementById('forensicBtn');
+  const forensicPanel = document.getElementById('forensicPanel');
+  const forensicOut = document.getElementById('forensicOut');
+  const copyForensicBtn = document.getElementById('copyForensicBtn');
+  const downloadForensicBtn = document.getElementById('downloadForensicBtn');
+  const closeForensicBtn = document.getElementById('closeForensicBtn');
+
+  let lastSummaryText = '';
+  let lastForensicText = '';
+
+  const SAMPLE = "Delivered-To: victim@example.com\n" +
+"Received: by 10.28.55.10 with SMTP id abc123; Mon, 15 Jun 2026 08:12:44 -0700 (PDT)\n" +
+"Received: from mail-relay-99.suspicious-host.net (mail-relay-99.suspicious-host.net. [185.220.101.47])\n" +
+"        by mx.example.com with ESMTPS id xyz987\n" +
+"        for <victim@example.com>;\n" +
+"        Mon, 15 Jun 2026 08:12:41 -0700 (PDT)\n" +
+"Received: from internal-relay.paypal-secure-mail.com (unknown [10.2.4.18])\n" +
+"        by mail-relay-99.suspicious-host.net with SMTP id qq11;\n" +
+"        Mon, 15 Jun 2026 15:12:30 +0000\n" +
+"ARC-Seal: i=1; a=rsa-sha256; cv=none; d=suspicious-host.net; s=arc1;\n" +
+"ARC-Authentication-Results: i=1; mx.example.com; spf=fail smtp.mailfrom=billing@paypal-secure-mail.com; dkim=fail header.i=@xn--pypal-4ve.com; dmarc=fail header.from=paypal.com\n" +
+"DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=xn--pypal-4ve.com; s=selector1; h=from:to:subject; bh=abc; b=def\n" +
+"Authentication-Results: mx.example.com;\n" +
+"        spf=fail (google.com: domain of billing@paypal-secure-mail.com does not designate 185.220.101.47 as permitted sender) smtp.mailfrom=billing@paypal-secure-mail.com;\n" +
+"        dkim=fail header.i=@xn--pypal-4ve.com header.s=selector1;\n" +
+"        dmarc=fail (p=REJECT sp=REJECT dis=none) header.from=paypal.com\n" +
+"Received-SPF: fail client-ip=185.220.101.47;\n" +
+"Return-Path: <billing@paypal-secure-mail.com>\n" +
+"Reply-To: \"PayPal Support\" <support-case-4471@secure-alerts.net>\n" +
+"From: \"PayPal\" <service@paypal.com>\n" +
+"To: victim@example.com\n" +
+"Subject: Urgent: Your account has been limited\n" +
+"Date: Mon, 15 Jun 2026 15:12:29 +0000\n" +
+"Message-ID: <20260615151229.99887.QQXX@suspicious-host.net>\n";
+
+  sampleBtn.addEventListener('click', () => { rawInput.value = SAMPLE; runAnalysis(); });
+  clearBtn.addEventListener('click', () => {
+    rawInput.value = '';
+    report.classList.remove('show');
+    emptyState.style.display = 'block';
+    statusHint.textContent = '';
+  });
+  analyzeBtn.addEventListener('click', runAnalysis);
+  uploadBtn.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (f) readFile(f);
+  });
+  ['dragenter','dragover'].forEach(evt => dropzone.addEventListener(evt, (e) => {
+    e.preventDefault(); e.stopPropagation(); dropzone.classList.add('dragover');
+  }));
+  ['dragleave','drop'].forEach(evt => dropzone.addEventListener(evt, (e) => {
+    e.preventDefault(); e.stopPropagation(); dropzone.classList.remove('dragover');
+  }));
+  dropzone.addEventListener('drop', (e) => {
+    const f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) readFile(f);
+  });
+  function readFile(file){
+    const reader = new FileReader();
+    reader.onload = () => { rawInput.value = String(reader.result || ''); runAnalysis(); };
+    reader.onerror = () => { statusHint.textContent = 'Could not read that file.'; };
+    reader.readAsText(file);
+  }
+
+  copyBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(lastSummaryText).then(() => {
+      const old = copyBtn.textContent; copyBtn.textContent = 'Copied';
+      setTimeout(() => { copyBtn.textContent = old; }, 1400);
+    }).catch(() => { statusHint.textContent = 'Copy failed — select and copy manually.'; });
+  });
+  downloadBtn.addEventListener('click', () => {
+    const blob = new Blob([lastSummaryText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'header-analysis-' + new Date().toISOString().slice(0,19).replace(/[:T]/g,'-') + '.txt';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+  printBtn.addEventListener('click', () => window.print());
+
+  forensicBtn.addEventListener('click', () => {
+    forensicOut.value = lastForensicText;
+    forensicPanel.classList.add('show');
+    forensicPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  closeForensicBtn.addEventListener('click', () => {
+    forensicPanel.classList.remove('show');
+  });
+  copyForensicBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(forensicOut.value).then(() => {
+      const old = copyForensicBtn.textContent; copyForensicBtn.textContent = 'Copied';
+      setTimeout(() => { copyForensicBtn.textContent = old; }, 1400);
+    });
+  });
+  downloadForensicBtn.addEventListener('click', () => {
+    const blob = new Blob([forensicOut.value], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'forensic-report-' + new Date().toISOString().slice(0,19).replace(/[:T]/g,'-') + '.txt';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  // ── parsing helpers ──────────────────────────────────────────────────────────
+
+  function unfold(raw){
+    const lines = raw.replace(/\r\n/g, '\n').split('\n');
+    const out = [];
+    for (const line of lines) {
+      if (/^[ \t]/.test(line) && out.length) out[out.length - 1] += ' ' + line.trim();
+      else out.push(line);
+    }
+    return out;
+  }
+
+  function parseHeaders(raw){
+    const lines = unfold(raw);
+    const entries = [];
+    for (const line of lines) {
+      const m = line.match(/^([A-Za-z][A-Za-z0-9-]*):\s?(.*)$/);
+      if (m) entries.push({ name: m[1].toLowerCase(), original: m[1], value: m[2].trim() });
+      if (line.trim() === '' && entries.length) break;
+    }
+    return entries;
+  }
+
+  function getAll(entries, name){ return entries.filter(e => e.name === name).map(e => e.value); }
+  function getFirst(entries, name){ const all = getAll(entries, name); return all.length ? all[0] : null; }
+
+  function extractEmail(str){
+    if (!str) return { display: '', address: '' };
+    const m = str.match(/<([^<>@\s]+@[^<>\s]+)>/);
+    if (m) {
+      const display = str.slice(0, str.indexOf('<')).trim().replace(/^"|"$/g, '');
+      return { display, address: m[1] };
+    }
+    const bare = str.match(/[^\s<>@]+@[^\s<>@]+/);
+    if (bare) return { display: '', address: bare[0] };
+    return { display: str.trim(), address: '' };
+  }
+
+  function domainOf(address){
+    const at = (address || '').lastIndexOf('@');
+    return at === -1 ? '' : address.slice(at + 1).toLowerCase();
+  }
+
+  // Detect SRS-encoded addresses used by forwarding services
+  // SRS0=hash=tt=original-domain=local@forwarder  or  SRS0=...@forwarder
+  function isSRS(address){
+    return /^SRS[01]=/i.test(address || '');
+  }
+
+  function isPrivateIP(ip){
+    if (!ip) return false;
+    if (/^10\./.test(ip)) return true;
+    if (/^192\.168\./.test(ip)) return true;
+    if (/^172\.(1[6-9]|2\d|3[0-1])\./.test(ip)) return true;
+    if (/^127\./.test(ip)) return true;
+    if (ip === '::1') return true;
+    if (/^fe[89ab][0-9a-f]:/i.test(ip)) return true;
+    if (/^f[cd][0-9a-f]{2}:/i.test(ip)) return true;
+    return false;
+  }
+
+  // Parse a single Received: header value into structured fields
+  function parseReceived(value){
+    // IP in brackets — standard RFC format, optional IPv6: prefix
+    var ipMatch = value.match(/\[(?:IPv6:)?([0-9a-fA-F:]+(?:\.[0-9]{1,3})*)\]/i);
+    // Fallback: bare IPv4 in parentheses e.g. (1.2.3.4)
+    if (!ipMatch) ipMatch = value.match(/\(([0-9]{1,3}(?:\.[0-9]{1,3}){3})\)/);
+    // Fallback: bare IPv4 anywhere (avoid matching port numbers like :587)
+    if (!ipMatch) ipMatch = value.match(/(?:^|[\s,;])([0-9]{1,3}(?:\.[0-9]{1,3}){3})(?:[\s,;]|$)/);
+    let from = null, by = null;
+    const fromMatch = value.match(/^from\s+(.+?)(?=\s+by\s+|\s+with\s+|\s+id\s+|;|$)/i);
+    if (fromMatch) from = fromMatch[1].trim();
+    const byMatch = value.match(/\sby\s+(.+?)(?=\s+with\s+|\s+id\s+|;|$)/i);
+    if (byMatch) by = byMatch[1].trim();
+    const dateMatch = value.match(/;\s*([^;]+)$/);
+    const date = dateMatch ? dateMatch[1].trim() : null;
+    return { raw: value, from, by, ip: ipMatch ? ipMatch[1] : null, date };
+  }
+
+  // Extract client-ip= set by the outermost receiving MTA — most reliable connecting-IP source
+  function extractClientIP(entries){
+    const sources = [
+      ...getAll(entries, 'received-spf'),
+      ...getAll(entries, 'authentication-results')
+    ];
+    for (const v of sources) {
+      const m = v.match(/client-ip=([0-9a-fA-F:.]+)/i);
+      if (m) return m[1];
+    }
+    return null;
+  }
+
+  // Extract IP from "designates X as permitted sender" in SPF result strings
+  function extractDesignatesIP(entries){
+    const sources = [
+      ...getAll(entries, 'received-spf'),
+      ...getAll(entries, 'authentication-results'),
+      ...getAll(entries, 'arc-authentication-results')
+    ];
+    for (const v of sources) {
+      const m = v.match(/designates\s+([0-9a-fA-F:.]+)\s+as\s+permitted\s+sender/i);
+      if (m) return m[1];
+    }
+    return null;
+  }
+
+  // Extract CIP: from Microsoft's X-Forefront-Antispam-Report header
+  function extractMSCIP(entries){
+    const v = getFirst(entries, 'x-forefront-antispam-report');
+    if (!v) return null;
+    const m = v.match(/\bCIP:([0-9a-fA-F:.]+)/i);
+    return m ? m[1] : null;
+  }
+
+  function parseAuthFields(v){
+    const spf    = v.match(/\bspf=([a-zA-Z]+)/i);
+    const dkim   = v.match(/\bdkim=([a-zA-Z]+)/i);
+    const dmarc  = v.match(/\bdmarc=([a-zA-Z]+)/i);
+    const compauth = v.match(/\bcompauth=([a-zA-Z]+)/i);
+    const dara   = v.match(/\bdara=([a-zA-Z]+)/i);
+    return {
+      spf:      spf      ? spf[1].toLowerCase()      : null,
+      dkim:     dkim     ? dkim[1].toLowerCase()     : null,
+      dmarc:    dmarc    ? dmarc[1].toLowerCase()    : null,
+      compauth: compauth ? compauth[1].toLowerCase() : null,
+      dara:     dara     ? dara[1].toLowerCase()     : null
+    };
+  }
+
+  function parseAuthResults(values){
+    const combined = { spf: null, dkim: null, dmarc: null, compauth: null, dara: null };
+    for (const v of values) {
+      const f = parseAuthFields(v);
+      if (f.spf      && !combined.spf)      combined.spf      = f.spf;
+      if (f.dkim     && !combined.dkim)     combined.dkim     = f.dkim;
+      if (f.dmarc    && !combined.dmarc)    combined.dmarc    = f.dmarc;
+      if (f.compauth && !combined.compauth) combined.compauth = f.compauth;
+      if (f.dara     && !combined.dara)     combined.dara     = f.dara;
+    }
+    return combined;
+  }
+
+  function parseDKIMSignatures(entries){
+    return getAll(entries, 'dkim-signature').map(v => {
+      const d = v.match(/\bd=([^;]+)/i);
+      const s = v.match(/\bs=([^;]+)/i);
+      return { domain: d ? d[1].trim().toLowerCase() : null, selector: s ? s[1].trim() : null, raw: v };
+    }).filter(x => x.domain);
+  }
+
+  function parseARC(entries){
+    const results = getAll(entries, 'arc-authentication-results').map(v => {
+      const inst = v.match(/\bi=(\d+)/);
+      const fields = parseAuthFields(v);
+      return { instance: inst ? parseInt(inst[1], 10) : null, ...fields, raw: v };
+    });
+    const seals = getAll(entries, 'arc-seal').map(v => {
+      const inst = v.match(/\bi=(\d+)/);
+      const cv = v.match(/\bcv=([a-zA-Z]+)/i);
+      return { instance: inst ? parseInt(inst[1], 10) : null, cv: cv ? cv[1].toLowerCase() : null };
+    });
+    results.sort((a, b) => (a.instance || 0) - (b.instance || 0));
+    return { results, seals };
+  }
+
+  function hasPunycode(domain){
+    return (domain || '').split('.').some(l => l.toLowerCase().startsWith('xn--'));
+  }
+
+  const WATCHED_BRANDS = ['paypal.com','microsoft.com','apple.com','amazon.com','google.com',
+    'bankofamerica.com','wellsfargo.com','chase.com','netflix.com','docusign.com','facebook.com',
+    'instagram.com','linkedin.com','dropbox.com','adobe.com','irs.gov','usps.com','fedex.com','dhl.com'];
+
+  function levenshtein(a, b){
+    const m = a.length, n = b.length;
+    const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+    for (let i = 0; i <= m; i++) dp[i][0] = i;
+    for (let j = 0; j <= n; j++) dp[0][j] = j;
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        const cost = a[i-1] === b[j-1] ? 0 : 1;
+        dp[i][j] = Math.min(dp[i-1][j] + 1, dp[i][j-1] + 1, dp[i-1][j-1] + cost);
+      }
+    }
+    return dp[m][n];
+  }
+
+  function lookalikeCheck(domain){
+    if (!domain) return null;
+    const d = domain.toLowerCase();
+    if (WATCHED_BRANDS.includes(d)) return null;
+    let best = null;
+    for (const brand of WATCHED_BRANDS) {
+      const dist = levenshtein(d, brand);
+      if (dist <= 2 && Math.abs(d.length - brand.length) <= 3) {
+        if (!best || dist < best.dist) best = { brand, dist };
+      }
+    }
+    return best;
+  }
+
+  function stampClass(result){
+    if (!result) return 'na';
+    if (result === 'pass') return 'pass';
+    if (result === 'fail') return 'fail';
+    return 'warn';
+  }
+
+  function el(tag, cls, text){
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  function escapeHtml(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function buildHighlightedRaw(raw){
+    const lines = raw.replace(/\r\n/g, '\n').split('\n');
+    const idNames = ['from','to','reply-to','return-path'];
+    const authNames = ['authentication-results','received-spf','arc-authentication-results'];
+    const traceNames = ['received','x-received','x-originating-ip'];
+    const html = lines.map(line => {
+      const m = line.match(/^([A-Za-z][A-Za-z0-9-]*):/);
+      const esc = escapeHtml(line);
+      if (!m) return esc;
+      const name = m[1].toLowerCase();
+      if (idNames.includes(name)) return '<span class="hl-identity">' + esc + '</span>';
+      if (name === 'dkim-signature' || name === 'arc-message-signature' || name === 'arc-seal') return '<span class="hl-dkim">' + esc + '</span>';
+      if (authNames.includes(name)) {
+        const cls = /\bfail\b/i.test(line) ? 'hl-auth-fail' : (/\bpass\b/i.test(line) ? 'hl-auth-pass' : 'hl-auth-fail');
+        return '<span class="' + cls + '">' + esc + '</span>';
+      }
+      if (traceNames.includes(name)) return '<span class="hl-trace">' + esc + '</span>';
+      return esc;
+    });
+    return html.join('\n');
+  }
+
+  // ── glossary definitions (used in forensic report) ──────────────────────────
+
+  const GLOSSARY = {
+    spf: {
+      term: 'SPF (Sender Policy Framework)',
+      body: [
+        'A DNS record that lists which mail servers are authorised to send on behalf of a domain.',
+        'The receiving server checks the sending IP against this list.',
+        '  pass      = sending IP is authorised by the domain\'s SPF record',
+        '  fail      = sending IP is NOT authorised — the domain explicitly disowns it',
+        '  softfail  = not authorised, but the domain has not requested hard rejection (~all)',
+        '  neutral   = domain publishes no opinion on this IP (?all)',
+        '  none      = no SPF record found for the domain',
+        '  temperror = temporary DNS failure — result is inconclusive',
+        '  permerror = permanent error, e.g. malformed SPF record'
+      ]
+    },
+    dkim: {
+      term: 'DKIM (DomainKeys Identified Mail)',
+      body: [
+        'A cryptographic signature added by the sending server. The receiving server retrieves',
+        'the public key from DNS (via the d= domain and s= selector) and verifies the signature.',
+        'A valid signature confirms the signed headers were not altered in transit.',
+        '  pass = signature is valid; message was not tampered with for the signed headers',
+        '  fail = signature invalid — message may have been modified, or the key has rotated',
+        '  none = no DKIM signature was present',
+        '  d=   = signing domain; should align with the From domain for DMARC to pass',
+        '  s=   = selector; identifies which DNS key record to retrieve'
+      ]
+    },
+    dmarc: {
+      term: 'DMARC (Domain-based Message Authentication, Reporting and Conformance)',
+      body: [
+        'Builds on SPF and DKIM. Requires at least one to pass AND the result to "align" with',
+        'the visible From domain. The domain owner publishes a policy (p=) specifying what',
+        'receivers should do when a message fails.',
+        '  pass         = at least one aligned mechanism (SPF or DKIM) passed',
+        '  fail         = neither SPF nor DKIM aligned with the From domain',
+        '  p=none       = monitor only; no action taken on failure',
+        '  p=quarantine = failing messages should be treated as spam/junk',
+        '  p=reject     = failing messages should be blocked outright',
+        '  dis=         = disposition actually applied by the receiving server'
+      ]
+    },
+    arc: {
+      term: 'ARC (Authenticated Received Chain)',
+      body: [
+        'Preserves authentication results when a message is forwarded or relayed through a',
+        'mailing list. Each intermediary adds a numbered ARC set so the final receiver can',
+        'see what authentication looked like before forwarding occurred.',
+        '  i=       = instance number — position in the chain (1 = first forwarder)',
+        '  cv=none  = first ARC hop; no prior chain to validate',
+        '  cv=pass  = all previous ARC entries are intact and valid',
+        '  cv=fail  = the chain has been broken — a prior entry was modified'
+      ]
+    },
+    srs: {
+      term: 'SRS (Sender Rewriting Scheme)',
+      body: [
+        'Used by forwarding services to rewrite the envelope Return-Path so that SPF passes at',
+        'the next hop. Addresses follow the pattern:',
+        '  SRS0=hash=timestamp=original-domain=local@forwarder',
+        'Its presence indicates legitimate forwarding, not spoofing.'
+      ]
+    },
+    compauth: {
+      term: 'compauth — Composite Authentication (Microsoft 365 / Exchange Online)',
+      body: [
+        'A Microsoft-proprietary verdict combining SPF, DKIM, DMARC and additional signals.',
+        'Appears in Authentication-Results headers on mail processed by Exchange Online Protection.',
+        '  pass     = sufficient authentication signals passed',
+        '  fail     = explicit authentication failure',
+        '  softpass = partial pass — some signals were positive',
+        '  reason=  = numeric code providing further detail on the result'
+      ]
+    },
+    dara: {
+      term: 'DARA — Domain Alignment Result Assertion (Google)',
+      body: [
+        'A Google-proprietary field indicating whether the DKIM signing domain aligns with the',
+        'From domain. Appears in Authentication-Results on mail processed by Gmail.',
+        '  pass    = signing domain aligns with From',
+        '  neutral = alignment not evaluated (common in forwarded mail)',
+        '  fail    = signing domain does not align with From'
+      ]
+    },
+    returnpath: {
+      term: 'Return-Path (Envelope-From)',
+      body: [
+        'The address to which bounce and delivery-failure notifications are sent. Set separately',
+        'from the visible From header. Legitimate mail usually has a Return-Path in the same or',
+        'a clearly related domain as From. A Return-Path in an unrelated domain can indicate',
+        'spoofing — SRS encoding is a common legitimate exception.'
+      ]
+    },
+    replyto: {
+      term: 'Reply-To',
+      body: [
+        'Overrides the address used when a recipient clicks Reply. If Reply-To differs from the',
+        'From domain, replies go to a different address than the apparent sender. This is a',
+        'common phishing technique used to redirect responses to an attacker-controlled mailbox.'
+      ]
+    },
+    clientip: {
+      term: 'client-ip',
+      body: [
+        'The public IP address of the connecting SMTP client as seen by the receiving MTA. Set',
+        'by the receiving server in Received-SPF and Authentication-Results headers — not by the',
+        'sender — making it the most reliable source of the connecting server\'s real IP address.'
+      ]
+    }
+  };
+
+  // ── main analysis ────────────────────────────────────────────────────────────
+
+  function runAnalysis(){
+    const raw = rawInput.value;
+    if (!raw || !raw.trim()) { statusHint.textContent = 'Paste or drop a header first.'; return; }
+    statusHint.textContent = '';
+
+    const entries = parseHeaders(raw);
+    if (!entries.length) {
+      statusHint.textContent = 'Could not find any header lines — check the pasted text includes lines like "From:" or "Received:".';
+      return;
+    }
+
+    // ── basic fields ──
+    const singularNames = ['from','subject','date','message-id','reply-to','return-path','to'];
+    const duplicates = singularNames.filter(n => getAll(entries, n).length > 1);
+
+    const fromRaw    = getFirst(entries, 'from');
+    const from       = extractEmail(fromRaw);
+    const replyToRaw = getFirst(entries, 'reply-to');
+    const replyTo    = extractEmail(replyToRaw);
+    const returnPathRaw = getFirst(entries, 'return-path');
+    const returnPath = extractEmail(returnPathRaw || '');
+    const subject    = getFirst(entries, 'subject')    || '(none)';
+    const date       = getFirst(entries, 'date')       || '(none)';
+    const messageId  = getFirst(entries, 'message-id') || '(none)';
+    const toHeader   = getFirst(entries, 'to')         || '(none)';
+
+    // Gmail-specific metadata
+    const notifType  = getFirst(entries, 'x-account-notification-type');
+    const feedbackId = getFirst(entries, 'feedback-id');
+    const xReceivedVals = getAll(entries, 'x-received');
+
+    // ── authentication ──
+    const authResultsValues = getAll(entries, 'authentication-results');
+    const auth = parseAuthResults(authResultsValues);
+    // Supplement SPF from Received-SPF if not found in Authentication-Results
+    if (!auth.spf) {
+      const spfHeader = getFirst(entries, 'received-spf');
+      if (spfHeader) { const m = spfHeader.match(/^(\w+)/); if (m) auth.spf = m[1].toLowerCase(); }
+    }
+
+    const dkimSigs = parseDKIMSignatures(entries);
+    const arc      = parseARC(entries);
+
+    // ── originating IP — four sources tried in priority order ──
+    //
+    // 1. client-ip= in Received-SPF or Authentication-Results
+    //    Set by the FIRST external MTA that received the message. Most reliable.
+    // 2. First Received header that carries a public IP
+    //    Received headers are prepended newest-first; scan until we find a public IP.
+    // 3. X-Originating-IP (set by some webmail systems for the submitting client)
+    // 4. CIP: in X-Forefront-Antispam-Report (Microsoft 365 / Outlook.com)
+    // 5. "designates X as permitted sender" in SPF result strings
+
+    const receivedValues = getAll(entries, 'received');
+    const hops = receivedValues.map(parseReceived);
+
+    const clientIP      = extractClientIP(entries);
+    const msCIP         = extractMSCIP(entries);
+    const designatesIP  = extractDesignatesIP(entries);
+    const xOrigIP       = getFirst(entries, 'x-originating-ip');
+    const xOrigIPClean  = xOrigIP ? xOrigIP.replace(/[\[\]]/g, '').replace(/^IPv6:/i, '') : null;
+
+    // First hop (hops[0] = newest) scanning down to find a public IP
+    let firstPublicHopIP = null, firstPublicHopIdx = -1;
+    for (let i = 0; i < hops.length; i++) {
+      if (hops[i].ip && !isPrivateIP(hops[i].ip)) {
+        firstPublicHopIP = hops[i].ip;
+        firstPublicHopIdx = i;
+        break;
+      }
+    }
+
+    let originIP = null, originIPSource = '';
+    if (clientIP) {
+      originIP = clientIP;
+      originIPSource = 'client-ip (Received-SPF / Authentication-Results)';
+    } else if (firstPublicHopIP) {
+      originIP = firstPublicHopIP;
+      originIPSource = 'first public IP in Received headers';
+    } else if (xOrigIPClean) {
+      originIP = xOrigIPClean;
+      originIPSource = 'X-Originating-IP';
+    } else if (msCIP) {
+      originIP = msCIP;
+      originIPSource = 'CIP field (X-Forefront-Antispam-Report)';
+    } else if (designatesIP) {
+      originIP = designatesIP;
+      originIPSource = 'SPF "designates … as permitted sender"';
+    }
+
+    // Which hop index carries the origin IP (for highlighting in the trace)
+    const originHopIdx = (firstPublicHopIdx >= 0 && originIP === firstPublicHopIP)
+      ? firstPublicHopIdx
+      : (hops.length ? hops.length - 1 : -1);
+
+    // ── domain comparisons ──
+    const fromDomain   = domainOf(from.address);
+    const returnDomain = domainOf(returnPath.address);
+    const replyDomain  = domainOf(replyTo.address);
+
+    // Detect forwarding: SRS Return-Path, or Return-Path domain ≠ From domain but DMARC passes
+    const returnIsSRS     = isSRS(returnPath.address);
+    const arcPresent      = arc.results.length > 0;
+    const likelyForwarded = returnIsSRS || arcPresent;
+
+    // ── identity panel ──
+    const grid = document.getElementById('identityGrid');
+    grid.innerHTML = '';
+    function addRow(label, value, note, noteType){
+      const dt = el('dt', null, label);
+      const dd = el('dd');
+      dd.appendChild(document.createTextNode(value));
+      if (note) { dd.appendChild(document.createElement('br')); dd.appendChild(el('span', 'note-line' + (noteType ? ' ' + noteType : ''), note)); }
+      grid.appendChild(dt); grid.appendChild(dd);
+    }
+
+    addRow('From claims',
+      (from.display ? from.display + ' — ' : '') + (from.address || '(not found)'));
+
+    const returnPathDisplay = returnPath.address || '(not present)';
+    const returnNote = returnIsSRS
+      ? 'SRS-encoded (Sender Rewriting Scheme) — this is normal for forwarded mail; the original bounce domain is encoded inside.'
+      : null;
+    addRow('Return-Path', returnPathDisplay, returnNote, 'info');
+
+    addRow('Reply-To',
+      replyTo.address || '(same as From / not set)');
+
+    if (originIP) {
+      const privateNote = isPrivateIP(originIP)
+        ? 'Private/internal address — true public origin is further up the chain or not disclosed.'
+        : null;
+      addRow('Connecting IP', originIP + '  ·  via ' + originIPSource, privateNote, 'warn');
+    } else {
+      addRow('Connecting IP', '(none found — check delivery trace below)');
+    }
+
+    if (duplicates.length) {
+      addRow('Integrity', 'Duplicate header(s): ' + duplicates.join(', '),
+        'Possible header injection — legitimate mail rarely repeats these.', null);
+    }
+
+    if (likelyForwarded) {
+      addRow('Forwarding', arcPresent
+        ? 'ARC chain present — this message passed through a forwarder or mailing list before delivery.'
+        : 'SRS Return-Path detected — message was rewritten by a forwarding service.');
+    }
+
+    // Mismatch warnings — suppress Return-Path mismatch when SRS or forwarding is detected
+    const mismatches = [];
+    if (returnDomain && fromDomain && returnDomain !== fromDomain && !likelyForwarded) {
+      mismatches.push('Return-Path domain (' + returnDomain + ') differs from the From domain (' + fromDomain + ').');
+    }
+    if (replyDomain && fromDomain && replyDomain !== fromDomain) {
+      mismatches.push('Reply-To domain (' + replyDomain + ') differs from the From domain — replies would go to ' + replyDomain + '.');
+    }
+    if (mismatches.length) {
+      const dt = el('dt', null, 'Mismatch');
+      const dd = el('dd');
+      mismatches.forEach(m => dd.appendChild(el('span', 'note-line warn', m)));
+      grid.appendChild(dt); grid.appendChild(dd);
+    }
+
+    // ── auth stamps ──
+    const stampRow = document.getElementById('stampRow');
+    stampRow.innerHTML = '';
+    function addStamp(label, result){
+      stampRow.appendChild(el('span', 'badge ' + stampClass(result),
+        label + ': ' + (result ? result.toUpperCase() : 'NOT FOUND')));
+    }
+    addStamp('SPF', auth.spf);
+    addStamp('DKIM', auth.dkim);
+    addStamp('DMARC', auth.dmarc);
+    if (auth.compauth) addStamp('Composite (MS)', auth.compauth);
+    if (auth.dara)     addStamp('DARA (Google)', auth.dara);
+
+    const authRawBox = document.getElementById('authRaw');
+    if (authResultsValues.length) {
+      authRawBox.style.display = 'block';
+      authRawBox.textContent = authResultsValues.join('\n\n');
+    } else { authRawBox.style.display = 'none'; }
+
+    // ── DKIM alignment ──
+    const dkimSection = document.getElementById('dkimSection');
+    const dkimRows = document.getElementById('dkimRows');
+    dkimRows.innerHTML = '';
+    if (dkimSigs.length) {
+      dkimSection.style.display = 'block';
+      dkimSigs.forEach(sig => {
+        const aligned = fromDomain && (sig.domain === fromDomain || fromDomain.endsWith('.' + sig.domain));
+        const row = el('div', 'align-row');
+        row.appendChild(el('span', 'domains', 'Signed by ' + sig.domain + '  →  From: ' + (fromDomain || 'unknown')));
+        row.appendChild(el('span', 'badge ' + (aligned ? 'pass' : 'warn'), aligned ? 'ALIGNED' : 'NOT ALIGNED'));
+        dkimRows.appendChild(row);
+      });
+    } else { dkimSection.style.display = 'none'; }
+
+    // ── ARC chain ──
+    const arcSection = document.getElementById('arcSection');
+    const arcRows    = document.getElementById('arcRows');
+    arcRows.innerHTML = '';
+    if (arc.results.length) {
+      arcSection.style.display = 'block';
+      arc.results.forEach(r => {
+        const row = el('div', 'align-row');
+        row.appendChild(el('span', 'domains', 'ARC hop ' + (r.instance != null ? r.instance : '?')));
+        const badges = el('span');
+        badges.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;';
+        badges.appendChild(el('span', 'badge ' + stampClass(r.spf),   'SPF '   + (r.spf   || 'n/a')));
+        badges.appendChild(el('span', 'badge ' + stampClass(r.dkim),  'DKIM '  + (r.dkim  || 'n/a')));
+        badges.appendChild(el('span', 'badge ' + stampClass(r.dmarc), 'DMARC ' + (r.dmarc || 'n/a')));
+        row.appendChild(badges);
+        arcRows.appendChild(row);
+      });
+    } else { arcSection.style.display = 'none'; }
+
+    // ── lookalike domain warnings ──
+    const lookalikeCard = document.getElementById('lookalikeCard');
+    const lookalikeRows = document.getElementById('lookalikeRows');
+    lookalikeRows.innerHTML = '';
+    const domainsToCheck = [
+      { label: 'From',        domain: fromDomain },
+      { label: 'Return-Path', domain: returnDomain },
+      { label: 'Reply-To',    domain: replyDomain }
+    ].concat(dkimSigs.map(s => ({ label: 'DKIM d=', domain: s.domain })));
+    let lookalikeFound = false;
+    const seen = new Set();
+    domainsToCheck.forEach(item => {
+      if (!item.domain || seen.has(item.label + item.domain)) return;
+      seen.add(item.label + item.domain);
+      if (hasPunycode(item.domain)) {
+        lookalikeFound = true;
+        lookalikeRows.appendChild(el('div', 'note-line warn',
+          item.label + ' domain "' + item.domain + '" is internationalized (punycode) — verify carefully, this is commonly used to impersonate familiar brands.'));
+      }
+      const la = lookalikeCheck(item.domain);
+      if (la) {
+        lookalikeFound = true;
+        lookalikeRows.appendChild(el('div', 'note-line warn',
+          item.label + ' domain "' + item.domain + '" closely resembles "' + la.brand + '" (edit distance ' + la.dist + ') — possible lookalike domain.'));
+      }
+    });
+    lookalikeCard.style.display = lookalikeFound ? 'block' : 'none';
+
+    // ── delivery trace ──
+    const hopsList = document.getElementById('hopsList');
+    hopsList.innerHTML = '';
+    if (!hops.length) {
+      hopsList.appendChild(el('li', null,
+        'No "Received" headers found — delivery path could not be traced.'));
+    } else {
+      hops.forEach((hop, i) => {
+        const isOriginHop = i === originHopIdx;
+        const li = el('li', 'hop' + (isOriginHop ? ' origin' : ''));
+        // Label: newest first (i=0) → oldest (i=hops.length-1)
+        const label = i === 0
+          ? 'Most recent hop (recipient MTA)'
+          : isOriginHop
+            ? 'First external connection — connecting IP'
+            : 'Hop ' + (i + 1) + ' of ' + hops.length;
+        li.appendChild(el('div', 'hop-head', label));
+        const body = el('div', 'hop-body');
+        if (hop.from) {
+          const p = el('p', 'hop-line');
+          p.appendChild(el('span', 'k', 'from  '));
+          p.appendChild(document.createTextNode(hop.from));
+          body.appendChild(p);
+        }
+        if (hop.ip) {
+          const p = el('p', 'hop-line');
+          p.appendChild(el('span', 'k', 'ip    '));
+          p.appendChild(document.createTextNode(hop.ip));
+          body.appendChild(p);
+          if (isPrivateIP(hop.ip)) body.appendChild(el('span', 'ip-note', 'private / internal address'));
+        }
+        if (hop.by) {
+          const p = el('p', 'hop-line');
+          p.appendChild(el('span', 'k', 'by    '));
+          p.appendChild(document.createTextNode(hop.by));
+          body.appendChild(p);
+        }
+        if (hop.date) {
+          const p = el('p', 'hop-line');
+          p.appendChild(el('span', 'k', 'time  '));
+          p.appendChild(document.createTextNode(hop.date));
+          body.appendChild(p);
+        }
+        if (!hop.from && !hop.ip && !hop.by) body.appendChild(el('p', 'hop-line', hop.raw));
+        li.appendChild(body);
+        hopsList.appendChild(li);
+      });
+    }
+
+    // ── metadata ──
+    const metaTable = document.getElementById('metaTable');
+    metaTable.innerHTML = '';
+    function addMetaRow(label, value){
+      if (!value || value === '(none)') return;
+      const tr = document.createElement('tr');
+      const td1 = document.createElement('td'); td1.textContent = label;
+      const td2 = document.createElement('td'); td2.textContent = value;
+      tr.appendChild(td1); tr.appendChild(td2);
+      metaTable.appendChild(tr);
+    }
+    addMetaRow('Subject', subject);
+    addMetaRow('Date', date);
+    addMetaRow('To', toHeader);
+    addMetaRow('Message-ID', messageId);
+    addMetaRow('Total hops', String(hops.length) + (xReceivedVals.length ? ' Received + ' + xReceivedVals.length + ' X-Received (Google internal)' : ''));
+    if (notifType)  addMetaRow('Notification type', notifType);
+    if (feedbackId) addMetaRow('Feedback-ID', feedbackId);
+
+    // ── raw source viewer ──
+    document.getElementById('rawBox').innerHTML = buildHighlightedRaw(raw);
+
+    // ── verdict ──
+    const verdictBox = document.getElementById('verdictBox');
+    verdictBox.innerHTML = '';
+    let verdictClass = 'warn', verdictTitle = 'MIXED SIGNAL', verdictText = '';
+    const failCount = [auth.spf, auth.dkim].filter(r => r === 'fail').length;
+    const dmarcFail = auth.dmarc === 'fail';
+    const dmarcPass = auth.dmarc === 'pass';
+    const anyAuthFound = auth.spf || auth.dkim || auth.dmarc;
+
+    if (!anyAuthFound) {
+      verdictClass = 'warn'; verdictTitle = 'NO AUTH DATA';
+      verdictText = "No SPF, DKIM, or DMARC results were found in this header. That doesn't prove anything either way — some legitimate internal mail lacks these — but authenticity can't be confirmed from this header alone.";
+    } else if (dmarcPass && failCount === 0) {
+      verdictClass = 'pass'; verdictTitle = 'LIKELY AUTHENTIC';
+      verdictText = 'DMARC passed and no SPF/DKIM failures were found. The domain in the From address is likely the true sender, though passing authentication does not rule out a compromised legitimate account.';
+    } else if (dmarcFail || failCount > 0) {
+      verdictClass = 'fail'; verdictTitle = 'SUSPICIOUS';
+      verdictText = 'One or more authentication checks failed' + (dmarcFail ? ' (DMARC fail)' : '') + '. The message may not have come from the domain shown in the From address. Treat links, attachments, and requests in this message with caution.';
+    } else {
+      verdictClass = 'warn'; verdictTitle = 'INCONCLUSIVE';
+      verdictText = 'Authentication results are present but not clearly pass or fail (e.g. neutral, softfail, or none). Review the domains and hop trace below manually before trusting this message.';
+    }
+    if (mismatches.length) verdictText += ' Note: ' + mismatches.join(' ');
+    if (lookalikeFound) verdictText += ' A lookalike-domain pattern was also flagged — worth a closer look.';
+
+    verdictBox.appendChild(el('span', 'badge ' + verdictClass, verdictTitle));
+    const text = el('div', 'verdict-text');
+    const strong = document.createElement('b');
+    strong.textContent = (from.display || from.address || 'This message') + ' ';
+    text.appendChild(strong);
+    text.appendChild(document.createTextNode(verdictText));
+    verdictBox.appendChild(text);
+
+    // ── export text ──
+    const lines = [];
+    lines.push('OFFLINE EMAIL HEADER ANALYSER — ANALYSIS SUMMARY');
+    lines.push('Generated: ' + new Date().toString());
+    lines.push('');
+    lines.push('VERDICT: ' + verdictTitle);
+    lines.push(verdictText);
+    lines.push('');
+    lines.push('CLAIMED IDENTITY');
+    lines.push('From: ' + (from.display ? from.display + ' — ' : '') + (from.address || '(not found)'));
+    lines.push('Return-Path: ' + (returnPath.address || '(not present)') + (returnIsSRS ? ' [SRS-encoded]' : ''));
+    lines.push('Reply-To: ' + (replyTo.address || '(not set)'));
+    lines.push('Connecting IP: ' + (originIP || '(none found)') + (originIPSource ? '  [via ' + originIPSource + ']' : ''));
+    if (mismatches.length) lines.push('Mismatches: ' + mismatches.join(' '));
+    if (likelyForwarded) lines.push('Note: message appears to have been forwarded.');
+    lines.push('');
+    lines.push('AUTHENTICATION');
+    lines.push('SPF: '   + (auth.spf   || 'not found'));
+    lines.push('DKIM: '  + (auth.dkim  || 'not found'));
+    lines.push('DMARC: ' + (auth.dmarc || 'not found'));
+    if (auth.compauth) lines.push('Composite auth (MS): ' + auth.compauth);
+    if (auth.dara)     lines.push('DARA (Google): ' + auth.dara);
+    if (dkimSigs.length) lines.push('DKIM signing domains: ' + dkimSigs.map(s => s.domain).join(', '));
+    if (arc.results.length) lines.push('ARC chain hops: ' + arc.results.length);
+    if (lookalikeFound) lines.push('Lookalike domain warnings present — see full report.');
+    lines.push('');
+    lines.push('DELIVERY TRACE (' + hops.length + ' hop(s), newest first)');
+    hops.forEach((h, i) => {
+      const marker = i === originHopIdx ? '[connecting IP] ' : '[hop ' + (i + 1) + '] ';
+      lines.push(marker + (h.from || '?') + (h.ip ? ' [' + h.ip + ']' : '') + (h.date ? ' — ' + h.date : ''));
+    });
+    lines.push('');
+    lines.push('METADATA');
+    lines.push('Subject: ' + subject);
+    lines.push('Date: ' + date);
+    lines.push('To: ' + toHeader);
+    lines.push('Message-ID: ' + messageId);
+    if (notifType)  lines.push('Notification type: ' + notifType);
+    if (feedbackId) lines.push('Feedback-ID: ' + feedbackId);
+    lastSummaryText = lines.join('\n');
+
+    // ── forensic report ──
+    const DIV = '━'.repeat(52);
+    const fr = [];
+    fr.push('FORENSIC EMAIL HEADER ANALYSIS');
+    fr.push(DIV);
+    fr.push('Prepared:    ' + new Date().toUTCString());
+    fr.push('Subject:     ' + subject);
+    fr.push('Message-ID:  ' + messageId);
+    fr.push('Analyst:     ');
+    fr.push('Reference:   ');
+    fr.push(DIV);
+    fr.push('');
+
+    // 1. Assessment
+    const assessWord = verdictClass === 'pass' ? 'LIKELY LEGITIMATE'
+                     : verdictClass === 'fail' ? 'SUSPICIOUS / POTENTIALLY MALICIOUS'
+                     : 'INCONCLUSIVE';
+    fr.push('1. ASSESSMENT');
+    fr.push('');
+    fr.push('After investigating the message header, we deem the email to be ' + assessWord + '.');
+    fr.push('');
+
+    // 2. Sender identity
+    fr.push('2. SENDER IDENTITY');
+    fr.push('');
+    const senderStr = from.display
+      ? '"' + from.display + '" <' + (from.address || 'unknown') + '>'
+      : (from.address || '(not found)');
+    fr.push('The email purports to originate from ' + senderStr + '.');
+    if (returnPath.address) {
+      if (returnIsSRS) {
+        fr.push('');
+        fr.push('The Return-Path address is SRS-encoded (' + returnPath.address + '), consistent');
+        fr.push('with a legitimate email forwarding service. This does not indicate spoofing.');
+      } else if (returnDomain && fromDomain && returnDomain !== fromDomain) {
+        fr.push('');
+        fr.push('The Return-Path is set to <' + returnPath.address + '>, which belongs to a');
+        fr.push('different domain (' + returnDomain + ') than the From address (' + fromDomain + ').');
+        fr.push('This discrepancy may indicate the message was sent through a third-party service');
+        fr.push('or could be indicative of spoofing — authentication results should be consulted.');
+      }
+    }
+    if (replyTo.address && replyDomain && fromDomain && replyDomain !== fromDomain) {
+      fr.push('');
+      fr.push('The Reply-To address is set to <' + replyTo.address + '>, which differs from the');
+      fr.push('From domain. Any replies to this message would be directed to ' + replyDomain + '');
+      fr.push('rather than ' + fromDomain + '. This warrants scrutiny.');
+    }
+    if (likelyForwarded && !returnIsSRS) {
+      fr.push('');
+      fr.push('ARC (Authenticated Received Chain) headers are present, indicating this message');
+      fr.push('was relayed through a forwarding service or mailing list before final delivery.');
+    }
+    fr.push('');
+
+    // 3. Originating IP
+    fr.push('3. ORIGINATING IP ADDRESS');
+    fr.push('');
+    if (originIP) {
+      fr.push('The connecting IP address recorded by the receiving mail server is ' + originIP + '.');
+      fr.push('Source: ' + originIPSource + '.');
+      if (isPrivateIP(originIP)) {
+        fr.push('');
+        fr.push('Note: this is a private/internal address. The true public-facing origin IP could');
+        fr.push('not be determined from the available header data alone.');
+      } else {
+        fr.push('');
+        fr.push('┌─────────────────────────────────────────────────────┐');
+        fr.push('│  !! RECOMMENDED ACTION !!                           │');
+        fr.push('│                                                     │');
+        fr.push('│  Perform WHOIS/rDNS and threat intelligence         │');
+        fr.push('│  lookups on ' + (originIP + ' using:').padEnd(41) + '│');
+        fr.push('│                                                     │');
+        fr.push('│  AbuseIPDB:                                         │');
+        fr.push('│  https://www.abuseipdb.com/check/' + originIP);
+        fr.push('│                                                     │');
+        fr.push('│  Scamalytics:                                       │');
+        fr.push('│  https://scamalytics.com/ip/' + originIP);
+        fr.push('└─────────────────────────────────────────────────────┘');
+        fr.push('');
+        fr.push('[COMPLETE AFTER LOOKUP]');
+        fr.push('The IP address ' + originIP + ' resolves to the ISP [ISP NAME] located in');
+        fr.push('[COUNTRY]. There are [no / N recent] reports of malicious activity associated');
+        fr.push('with this IP address. [Add any further context from lookup results.]');
+      }
+    } else {
+      fr.push('No originating IP address could be extracted from the available header data.');
+      fr.push('Manual inspection of the raw headers is recommended.');
+    }
+    fr.push('');
+
+    // 4. Authentication
+    fr.push('4. AUTHENTICATION');
+    fr.push('');
+    function authLine(name, result, passDesc, failDesc){
+      fr.push(name + ': ' + (result ? result.toUpperCase() : 'NOT FOUND'));
+      if (result === 'pass' && passDesc)   fr.push('  → ' + passDesc);
+      if (result === 'fail' && failDesc)   fr.push('  → ' + failDesc);
+      if (!result)                          fr.push('  → No ' + name + ' result was present in this header.');
+      if (result && result !== 'pass' && result !== 'fail')
+        fr.push('  → Result is "' + result + '" — neither a clear pass nor a hard failure. Manual review advised.');
+    }
+    authLine('SPF',
+      auth.spf,
+      'The sending IP is authorised to send on behalf of the envelope-from domain.',
+      'The sending IP is NOT authorised by the envelope-from domain\'s SPF record.');
+    fr.push('');
+    authLine('DKIM',
+      auth.dkim,
+      'A valid cryptographic signature was verified. Message content was not altered in transit for signed headers.',
+      'The DKIM signature did not verify. The message may have been tampered with, or the signature is invalid.');
+    if (dkimSigs.length) {
+      dkimSigs.forEach(sig => {
+        const aligned = fromDomain && (sig.domain === fromDomain || fromDomain.endsWith('.' + sig.domain));
+        fr.push('  Signing domain: ' + sig.domain + (aligned ? ' (aligned with From domain)' : ' (NOT aligned with From domain)'));
+      });
+    }
+    fr.push('');
+    authLine('DMARC',
+      auth.dmarc,
+      'The message satisfies the domain owner\'s published authentication policy.',
+      'The message FAILED the domain\'s published DMARC policy.');
+    if (auth.compauth) {
+      fr.push('');
+      fr.push('Composite Auth (Microsoft): ' + auth.compauth.toUpperCase());
+    }
+    if (auth.dara) {
+      fr.push('DARA / Domain Alignment (Google): ' + auth.dara.toUpperCase());
+    }
+    fr.push('');
+
+    // Overall auth summary
+    if (verdictClass === 'pass') {
+      fr.push('All authentication mechanisms passed. This provides reasonable evidence the message');
+      fr.push('originated from the stated domain. Note: a passing result does not rule out a');
+      fr.push('compromised sending account.');
+    } else if (verdictClass === 'fail') {
+      fr.push('One or more authentication checks failed. This indicates the message may not have');
+      fr.push('originated from the domain stated in the From address and should be treated with');
+      fr.push('caution.');
+    } else {
+      fr.push('Authentication results are mixed or incomplete. Manual verification is advised');
+      fr.push('before drawing conclusions about the message\'s legitimacy.');
+    }
+    fr.push('');
+
+    // 5. Delivery path
+    fr.push('5. DELIVERY PATH');
+    fr.push('');
+    fr.push('The message traversed ' + hops.length + ' recorded relay hop(s) (newest first):');
+    fr.push('');
+    hops.forEach((h, i) => {
+      const marker = i === originHopIdx ? '[connecting IP]' : '[hop ' + (i + 1) + ']';
+      const parts = [marker];
+      if (h.from) parts.push('from ' + h.from);
+      if (h.ip)   parts.push('[' + h.ip + ']' + (isPrivateIP(h.ip) ? ' (private)' : ''));
+      if (h.by)   parts.push('via ' + h.by);
+      if (h.date) parts.push('at ' + h.date);
+      fr.push('  ' + parts.join('  '));
+    });
+    if (likelyForwarded) {
+      fr.push('');
+      fr.push('  Note: forwarding was detected. Some relay hops belong to the forwarding');
+      fr.push('  infrastructure and do not represent the original sender\'s infrastructure.');
+    }
+    fr.push('');
+
+    // 6. Anomalies
+    fr.push('6. ANOMALIES AND FLAGS');
+    fr.push('');
+    const anomalies = [];
+    if (mismatches.length) anomalies.push(...mismatches);
+    if (duplicates.length) anomalies.push('Duplicate singular headers found: ' + duplicates.join(', ') + '. This may indicate header injection.');
+    if (lookalikeFound) anomalies.push('One or more domains in the header closely resemble well-known brand domains (lookalike/homograph pattern). See full header analysis for details.');
+    if (anomalies.length) {
+      anomalies.forEach(a => fr.push('  • ' + a));
+    } else {
+      fr.push('  No anomalies were identified during header analysis.');
+    }
+    fr.push('');
+
+    // 7. Conclusion
+    fr.push('7. CONCLUSION');
+    fr.push('');
+    if (verdictClass === 'pass') {
+      fr.push('Based on header analysis, the message from ' + senderStr + ' appears to be');
+      fr.push('legitimate. All authentication checks passed and no anomalies were identified.');
+      if (originIP) fr.push('The message connected from IP ' + originIP + '.');
+      if (likelyForwarded) fr.push('The message was forwarded before delivery, which is consistent with the authentication findings.');
+    } else if (verdictClass === 'fail') {
+      fr.push('Based on header analysis, the message purporting to be from ' + senderStr);
+      fr.push('is assessed as SUSPICIOUS. Authentication failures indicate the message did not');
+      fr.push('originate from the stated sender domain.');
+      if (originIP) fr.push('The connecting IP was ' + originIP + ', which should be investigated further.');
+      if (anomalies.length) fr.push('Additional anomalies were identified — see Section 6.');
+      fr.push('It is recommended that this message be treated as potentially malicious and that');
+      fr.push('recipients do not click links, open attachments, or act on any requests within it.');
+    } else {
+      fr.push('Based on header analysis, the legitimacy of this message is INCONCLUSIVE.');
+      fr.push('Authentication results did not provide a clear pass or fail. Further investigation');
+      if (originIP) fr.push('of the connecting IP (' + originIP + ') and sender domain is recommended.');
+      fr.push('Exercise caution with any links, attachments, or requests in this message.');
+    }
+    fr.push('');
+    fr.push(DIV);
+    fr.push('Report generated by Offline Email Header Analyser (client-side only).');
+    fr.push('All findings are based on header data. Authentication passing does not guarantee');
+    fr.push('the sending account was not compromised. Findings should be verified by a');
+    fr.push('qualified analyst before formal conclusions are drawn.');
+    fr.push(DIV);
+
+    // ── conditional glossary ──
+    // Only include terms that are actually referenced in this analysis
+    const glossaryEntries = [];
+    if (auth.spf)                                   glossaryEntries.push(GLOSSARY.spf);
+    if (auth.dkim || dkimSigs.length)               glossaryEntries.push(GLOSSARY.dkim);
+    if (auth.dmarc)                                 glossaryEntries.push(GLOSSARY.dmarc);
+    if (arc.results.length)                         glossaryEntries.push(GLOSSARY.arc);
+    if (returnIsSRS)                                glossaryEntries.push(GLOSSARY.srs);
+    if (auth.compauth)                              glossaryEntries.push(GLOSSARY.compauth);
+    if (auth.dara)                                  glossaryEntries.push(GLOSSARY.dara);
+                                                    glossaryEntries.push(GLOSSARY.returnpath);
+    if (replyTo.address)                            glossaryEntries.push(GLOSSARY.replyto);
+    if (originIPSource && originIPSource.includes('client-ip')) glossaryEntries.push(GLOSSARY.clientip);
+
+    if (glossaryEntries.length) {
+      fr.push('');
+      fr.push('GLOSSARY OF TERMS');
+      fr.push(DIV);
+      glossaryEntries.forEach(entry => {
+        fr.push('');
+        fr.push(entry.term);
+        fr.push('─'.repeat(Math.min(entry.term.length, 52)));
+        entry.body.forEach(line => fr.push(line));
+      });
+      fr.push('');
+      fr.push(DIV);
+    }
+
+    lastForensicText = fr.join('\n');
+    forensicPanel.classList.remove('show');
+
+    emptyState.style.display = 'none';
+    report.classList.add('show');
+  }
+})();
+</script>
+</body>
+</html>

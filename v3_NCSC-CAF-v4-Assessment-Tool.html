@@ -1,0 +1,1916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>NCSC CAF v4.0 Assessment Tool</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F3F5F8;--surface:#FFFFFF;--surface2:#F8F9FB;--border:#E2E6EC;--border2:#D0D6DF;
+  --text:#1A2130;--muted:#6B7A90;--faint:#B8C4D0;
+  --green:#0A7A50;--amber:#B35C00;--red:#C0283A;--blue:#1456CC;
+  --sidebar-bg:#1C2333;--sidebar-text:#C8D4E8;--sidebar-muted:#7A8FA8;--sidebar-border:#2A3548;--sidebar-hover:#253047;--sidebar-active:#2D3A55;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;line-height:1.5}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* LAYOUT */
+#app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:230px;min-width:230px;background:var(--sidebar-bg);border-right:1px solid var(--sidebar-border);display:flex;flex-direction:column;overflow:hidden}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar-logo{padding:18px 16px 14px;border-bottom:1px solid var(--sidebar-border)}
+.logo-badge{display:inline-block;background:linear-gradient(135deg,#1456CC,#0A7A50);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:1.5px;margin-bottom:8px}
+.logo-title{font-size:16px;font-weight:700;letter-spacing:-0.3px;color:#E8EEF8}
+.logo-sub{font-size:10px;color:var(--sidebar-muted);letter-spacing:0.5px;margin-top:3px}
+.sidebar-progress{padding:12px 16px;border-bottom:1px solid var(--sidebar-border)}
+.prog-label{font-size:10px;color:var(--sidebar-muted);margin-bottom:6px;display:flex;justify-content:space-between;letter-spacing:0.3px}
+.prog-bar{height:3px;background:#2A3548;border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--blue),#0A7A50);border-radius:2px;transition:width .4s}
+.prog-warn{font-size:9.5px;color:#F0A8B0;margin-top:7px;letter-spacing:0.2px;line-height:1.4}
+.sidebar-nav{flex:1;overflow-y:auto;padding:6px 0}
+.nav-section{font-size:9px;color:var(--sidebar-muted);letter-spacing:1.5px;padding:10px 16px 4px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 16px;cursor:pointer;transition:background .15s;font-size:12px;color:var(--sidebar-muted);border-left:2px solid transparent;user-select:none}
+.nav-item:hover{background:var(--sidebar-hover);color:var(--sidebar-text)}
+.nav-item.active{background:var(--sidebar-active);color:#E8EEF8;border-left-color:#4A90E2}
+.nav-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--sidebar-border);display:flex;flex-direction:column;gap:6px}
+.btn{padding:7px 12px;border-radius:6px;border:1px solid var(--sidebar-border);background:transparent;color:var(--sidebar-muted);font-size:11px;cursor:pointer;font-family:inherit;transition:all .15s;width:100%;text-align:left}
+.btn:hover{background:var(--sidebar-hover);color:var(--sidebar-text);border-color:#3A4D65}
+.btn-primary{background:#1456CC;border-color:#1456CC;color:#fff}
+.btn-primary:hover{background:#0F48B0;color:#fff}
+.btn-row{display:flex;gap:6px}
+.btn-half{flex:1;text-align:center}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:#1C2333;color:#E8EEF8;font-size:12px;padding:11px 18px;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,0.28);z-index:2000;opacity:0;transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .28s;display:flex;align-items:center;gap:9px;max-width:min(560px,88vw);line-height:1.5}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.err{background:#5C1620}
+.toast-dot{width:7px;height:7px;border-radius:50%;background:#4ADE80;flex-shrink:0}
+.toast.err .toast-dot{background:#F0A8B0}
+
+/* TOPBAR & TABS */
+.topbar{height:46px;min-height:46px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.topbar-title{font-size:14px;font-weight:600;color:var(--text)}
+.topbar-meta{font-size:11px;color:var(--muted);display:flex;gap:10px;align-items:center}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:0.5px}
+.content{flex:1;overflow-y:auto;padding:24px;background:var(--bg)}
+
+/* RISK BADGES */
+.risk-LOW{background:#DCFAEE;color:#076B40;border:1px solid #A8E8C8}
+.risk-MEDIUM{background:#FFF5D6;color:#8A4A00;border:1px solid #F5D580}
+.risk-HIGH{background:#FFF0E0;color:#9A3A00;border:1px solid #F5C088}
+.risk-CRITICAL{background:#FDEDF0;color:#A81828;border:1px solid #F0A8B0}
+.risk-UNRATED{background:#F0F3F7;color:var(--muted);border:1px solid var(--border2)}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
+.card-header{padding:13px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;background:var(--surface)}
+.card-header:hover{background:#F5F7FA}
+.card-body{padding:0 16px 16px;background:var(--surface)}
+.principle-tag{font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:0.5px;font-family:monospace}
+.principle-title{font-size:14px;font-weight:600;flex:1;color:var(--text)}
+.principle-desc{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6;padding-top:2px}
+.chevron{color:var(--muted);font-size:11px;transition:transform .2s;flex-shrink:0}
+.chevron.open{transform:rotate(90deg)}
+
+/* CONTRIBUTING OUTCOMES */
+.co-block{background:#FAFBFC;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden}
+.co-header{padding:10px 14px;display:flex;align-items:center;gap:9px;cursor:pointer;user-select:none}
+.co-header:hover{background:#F2F4F8}
+.co-ref{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.3px;font-family:monospace;min-width:36px}
+.co-name{font-size:12px;font-weight:500;flex:1;color:var(--text)}
+.co-desc{font-size:11px;color:#4A5568;line-height:1.65;padding:0 14px 12px;background:#FAFBFC}
+.co-new{font-size:9px;background:#E8F5EE;color:#076B40;border:1px solid #A8D8BC;padding:2px 6px;border-radius:3px;letter-spacing:0.5px;flex-shrink:0;font-weight:700}
+.co-status{width:19px;height:19px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;font-weight:700}
+.cs-unset{border-color:var(--border2);color:var(--faint);background:#FFFFFF}
+.cs-nap{border-color:#8A9BB0;background:#EEF1F5;color:#4A5A6E}
+.cs-not{border-color:#C0283A;background:#FDEDF0;color:#C0283A}
+.cs-par{border-color:#B35C00;background:#FFF5D6;color:#B35C00}
+.cs-ach{border-color:#0A7A50;background:#DCFAEE;color:#076B40}
+.co-binary{font-size:9px;background:#F0F3F7;color:#5A6B80;border:1px solid var(--border2);padding:2px 6px;border-radius:3px;letter-spacing:0.5px;flex-shrink:0;font-weight:700}
+.co-binary-note{font-size:11px;color:#4A5568;background:#F5F7FA;border-left:2px solid var(--border2);margin:0 14px 10px;padding:8px 12px;border-radius:0 6px 6px 0;line-height:1.6}
+
+/* SCORE BUTTONS */
+.score-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--border);background:#F8F9FB;gap:10px;flex-wrap:wrap}
+.score-label{font-size:11px;color:var(--muted);font-weight:500}
+.score-btns{display:flex;gap:4px}
+.sb{padding:5px 10px;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Segoe UI',system-ui,sans-serif;letter-spacing:0.3px;border:1px solid transparent;transition:all .12s;white-space:nowrap}
+.sb-nap{background:#F4F6F9;border-color:var(--border2);color:#5A6B80}
+.sb-nap.on,.sb-nap:hover{background:#E4E9F0;color:#3A4A5E;border-color:#8A9BB0}
+.sb-not{background:#FDF2F3;border-color:#ECA8B0;color:#B03040}
+.sb-not.on,.sb-not:hover{background:#FDEDF0;color:#A81828;border-color:#C0283A}
+.sb-par{background:#FFF8E8;border-color:#F5D580;color:#9A5000}
+.sb-par.on,.sb-par:hover{background:#FFF5D6;color:#8A4A00;border-color:#B35C00}
+.sb-ach{background:#EDFAF3;border-color:#A8D8BC;color:#0A6040}
+.sb-ach.on,.sb-ach:hover{background:#DCFAEE;color:#076B40;border-color:#0A7A50}
+
+/* JUSTIFICATION & EVIDENCE */
+.just-box{padding:12px 14px;background:#FBF9F4;border-top:1px solid #E8DFC8}
+.ev-box{padding:12px 14px;background:#FAFBFC;border-top:1px solid var(--border)}
+.just-lbl{display:block;font-size:11px;font-weight:600;color:var(--text);margin-bottom:3px;letter-spacing:0.2px}
+.just-hint{font-size:10px;color:var(--muted);line-height:1.55;margin-bottom:7px}
+.just-input{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:6px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:12px;line-height:1.6;outline:none;resize:vertical}
+.just-input:focus{border-color:var(--blue)}
+.just-warn{display:flex;align-items:center;gap:7px;background:#FDEDF0;border:1px solid #F0A8B0;color:#A81828;font-size:11px;font-weight:600;padding:7px 10px;border-radius:6px;margin-bottom:10px;line-height:1.5}
+
+/* VALIDATION */
+.validation-panel{background:#FDF6F7;border:1px solid #F0A8B0;border-radius:10px;margin-bottom:14px;overflow:hidden}
+.validation-panel.ok{background:#F2FBF6;border-color:#A8D8BC}
+.val-head{padding:11px 14px;font-size:12px;font-weight:700;color:#A81828;display:flex;align-items:center;gap:9px;border-bottom:1px solid #F5C4CB}
+.validation-panel.ok .val-head{color:#076B40;border-bottom-color:#C0E8D2}
+.val-icon{width:18px;height:18px;border-radius:50%;background:#C0283A;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.val-icon.ok{background:#0A7A50}
+.val-icon.sm{width:15px;height:15px;font-size:9px}
+.val-body{padding:4px 14px 12px}
+.val-row{font-size:11px;color:#6B3038;line-height:1.7;padding-top:8px}
+.validation-panel.ok .val-row{color:#2D6B4A}
+.val-count{display:inline-block;background:#C0283A;color:#fff;font-family:monospace;font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;margin-right:5px}
+.validation-panel.ok .val-count{background:#0A7A50}
+
+/* GUIDANCE CARD */
+.guidance-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
+.guidance-head{padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+.guidance-head:hover{background:#F5F7FA}
+.guidance-tag{font-size:9px;font-weight:700;letter-spacing:1px;background:#EEF2FF;color:#3730A3;border:1px solid #C0C8F8;padding:3px 7px;border-radius:4px;flex-shrink:0}
+.guidance-title{font-size:12.5px;font-weight:600;flex:1;color:var(--text)}
+.guidance-inner{padding:2px 18px 18px;font-size:12px;color:#3A4658;line-height:1.75}
+.guidance-inner p{margin-bottom:11px}
+.guidance-inner ul,.guidance-inner ol{margin:0 0 12px 20px}
+.guidance-inner li{margin-bottom:7px}
+.guidance-sub{font-size:11px;font-weight:700;color:var(--text);letter-spacing:0.4px;text-transform:uppercase;margin:16px 0 8px}
+.guidance-warn{background:#FDF6F7;border:1px solid #F0A8B0;border-radius:6px;padding:9px 12px;font-size:11.5px;color:#8A2030;line-height:1.65;margin-top:6px}
+
+/* NOT APPLICABLE REGISTER */
+.nap-entry{padding:12px 16px;border-bottom:1px solid var(--border)}
+.nap-entry:last-child{border-bottom:none}
+.nap-head{display:flex;align-items:center;gap:9px;margin-bottom:7px;flex-wrap:wrap}
+.nap-just{font-size:11.5px;color:#3A4658;line-height:1.7;background:#F8F9FB;border-left:2px solid #8A9BB0;padding:9px 12px;border-radius:0 6px 6px 0;white-space:pre-wrap}
+.nap-missing{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:600;color:#A81828;background:#FDEDF0;border:1px solid #F0A8B0;border-radius:6px;padding:8px 11px}
+
+/* DASHBOARD */
+.summary-row{display:grid;grid-template-columns:1fr auto;gap:12px;margin-bottom:16px}
+.overall-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;display:flex;align-items:center;gap:20px}
+.ring-wrap{position:relative;flex-shrink:0}
+.ring-pct{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:18px;font-weight:700;font-family:monospace}
+.overall-info h2{font-size:24px;font-weight:700;font-family:monospace}
+.stats-grid{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;min-width:180px}
+.stat{text-align:center}
+.stat-val{font-size:22px;font-weight:700;font-family:monospace;line-height:1}
+.stat-lbl{font-size:9px;color:var(--muted);margin-top:3px;letter-spacing:0.5px}
+.obj-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.obj-card{background:var(--surface);border:1px solid var(--border);border-top:3px solid;border-radius:10px;padding:14px}
+.obj-id{font-size:11px;font-weight:700;font-family:monospace;letter-spacing:0.5px}
+.obj-label{font-size:11px;color:var(--muted);margin:2px 0 8px}
+.obj-pct{font-size:26px;font-weight:700;font-family:monospace;line-height:1}
+.mini-bar{height:3px;background:var(--border2);border-radius:2px;margin:8px 0 6px;overflow:hidden}
+.mini-fill{height:100%;border-radius:2px;transition:width .4s}
+.obj-footer{display:flex;justify-content:space-between;align-items:center}
+
+/* HEATMAP */
+.heatmap{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px}
+.hm-row{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.hm-id{font-family:monospace;font-size:11px;font-weight:700;min-width:28px}
+.hm-name{font-size:11px;flex:1;color:var(--muted)}
+.hm-bar{width:70px;height:5px;background:var(--border2);border-radius:3px;overflow:hidden;flex-shrink:0}
+.hm-fill{height:100%;border-radius:3px;transition:width .4s}
+.hm-pct{font-family:monospace;font-size:10px;min-width:32px;text-align:right;color:var(--muted)}
+
+/* PRIORITY */
+.priority-panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
+.panel-head{padding:11px 16px;border-bottom:1px solid var(--border);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:space-between;background:#F8F9FB;color:var(--text)}
+.priority-item{padding:9px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;font-size:12px}
+.priority-item:last-child{border-bottom:none}
+.p-rank{font-family:monospace;font-size:10px;color:var(--muted);min-width:18px}
+.p-co{font-family:monospace;font-size:10px;font-weight:700;min-width:38px}
+.p-name{flex:1;color:var(--text)}
+.p-prin{font-size:10px;color:var(--muted)}
+
+/* NOTICE */
+.notice{background:#EFF8F4;border:1px solid #A8D8BC;border-radius:8px;padding:10px 14px;font-size:11px;color:#2D6B4A;margin-bottom:14px;line-height:1.7}
+.notice strong{color:#076B40}
+
+/* REPORT */
+.report-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
+.report-head{padding:11px 16px;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.5px;background:#F8F9FB}
+.meta-row{display:grid;grid-template-columns:repeat(3,1fr)}
+.meta-cell{padding:12px 16px;border-right:1px solid var(--border)}
+.meta-cell:last-child{border-right:none}
+.meta-lbl{font-size:10px;color:var(--muted);margin-bottom:3px;letter-spacing:0.3px}
+.meta-val{font-size:13px;font-weight:600;color:var(--text)}
+.meta-input{background:transparent;border:none;border-bottom:1px solid transparent;color:var(--text);font-size:13px;font-weight:600;font-family:inherit;outline:none;width:100%;transition:border-color .15s}
+.meta-input:focus{border-bottom-color:var(--blue)}
+.rtable{width:100%;border-collapse:collapse;font-size:11px}
+.rtable th{padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);color:var(--muted);font-weight:600;letter-spacing:0.3px;background:#F8F9FB}
+.rtable td{padding:7px 12px;border-bottom:1px solid var(--border);color:var(--text)}
+.rtable tr:last-child td{border-bottom:none}
+.rtable tr:hover td{background:#F5F7FA}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:999;display:flex;align-items:center;justify-content:center}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:24px;width:400px;max-width:92vw;box-shadow:0 8px 32px rgba(0,0,0,0.15)}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:18px;color:var(--text)}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px;letter-spacing:0.3px}
+.field input{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:8px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none}
+.field input:focus{border-color:var(--blue)}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+.mbn{padding:7px 16px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit}
+.mbn:hover{background:var(--bg);color:var(--text)}
+.mbp{padding:7px 16px;border-radius:6px;border:1px solid var(--blue);background:var(--blue);color:#fff;font-size:12px;cursor:pointer;font-family:inherit}
+.mbp:hover{background:#0F48B0}
+
+/* RISK MATRIX */
+.matrix-wrap{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.05);margin-bottom:16px}
+.matrix-grid{display:grid;grid-template-columns:36px repeat(5,1fr);grid-template-rows:repeat(5,1fr) 36px;gap:3px;height:480px;margin:0 0 8px}
+.matrix-cell{border-radius:4px;position:relative;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:3px;padding:4px;min-height:0}
+.matrix-cell-label{display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);font-weight:600;writing-mode:initial}
+.matrix-cell-label.vertical{writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px;letter-spacing:0.5px}
+.matrix-axis-title{font-size:11px;font-weight:600;color:var(--muted);text-align:center;margin-top:4px;letter-spacing:0.3px}
+.matrix-bubble{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;cursor:pointer;font-family:monospace;border:2px solid rgba(255,255,255,0.6);transition:transform .15s,box-shadow .15s;position:relative;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+.matrix-bubble:hover{transform:scale(1.25);box-shadow:0 3px 10px rgba(0,0,0,0.25);z-index:10}
+.matrix-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+.legend-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.matrix-tooltip{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#1C2333;color:#E8EEF8;font-size:10px;padding:6px 10px;border-radius:6px;white-space:nowrap;z-index:100;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.3);min-width:160px;text-align:left;line-height:1.5}
+.matrix-tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#1C2333}
+.matrix-bubble:hover .matrix-tooltip{display:block}
+.co-detail-card{background:#F8F9FB;border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;font-size:12px;cursor:pointer;transition:background .12s}
+.co-detail-card:hover{background:#EEF1F6}
+
+/* IMPROVEMENT PLAN */
+.imp-section{margin-bottom:20px}
+.imp-section-title{font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px;color:var(--text)}
+.imp-section-title span{font-size:11px;font-weight:400;color:var(--muted)}
+.imp-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.05);margin-bottom:8px}
+.imp-card-head{padding:12px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
+.imp-rank-badge{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:monospace;flex-shrink:0}
+.imp-card-body{padding:10px 16px 14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.imp-metric{font-size:11px;color:var(--muted)}
+.imp-metric strong{display:block;font-size:13px;font-weight:600;color:var(--text);margin-top:2px}
+.effort-bar{height:6px;border-radius:3px;background:var(--border2);overflow:hidden;margin-top:4px}
+.effort-fill{height:100%;border-radius:3px}
+.imp-action{background:#F0F4FF;border:1px solid #C5D4F5;border-radius:6px;padding:8px 12px;font-size:11px;color:#1A3580;margin-top:10px;line-height:1.6}
+.imp-action strong{color:#1456CC}
+.quick-win-badge{font-size:9px;background:#FFFBE6;color:#8A5A00;border:1px solid #F0D060;padding:2px 7px;border-radius:10px;font-weight:700;letter-spacing:0.3px}
+.foundation-badge{font-size:9px;background:#EEF2FF;color:#3730A3;border:1px solid #C0C8F8;padding:2px 7px;border-radius:10px;font-weight:700;letter-spacing:0.3px}
+.strategic-badge{font-size:9px;background:#FDF4FF;color:#7E22CE;border:1px solid #DDB8F8;padding:2px 7px;border-radius:10px;font-weight:700;letter-spacing:0.3px}
+.radar-wrap{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.05);margin-bottom:16px}
+.imp-summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.imp-summary-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
+.imp-summary-val{font-size:28px;font-weight:700;font-family:monospace}
+.imp-summary-lbl{font-size:11px;color:var(--muted);margin-top:3px}
+.imp-summary-sub{font-size:10px;color:var(--muted);margin-top:4px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.fu{animation:fadeUp .18s ease}
+@media print{.sidebar,.topbar,.no-print{display:none!important}.main,.content{overflow:visible;height:auto}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-badge">NCSC</div>
+      <div class="logo-title">CAF Assessment</div>
+      <div class="logo-sub">Cyber Assessment Framework v4.0 · August 2025</div>
+    </div>
+    <div class="sidebar-progress">
+      <div class="prog-label"><span>Outcomes Addressed</span><span id="prog-text">0 / 41</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      <div class="prog-warn" id="prog-warn" style="display:none">41 outcomes unaddressed</div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section">Views</div>
+      <div class="nav-item active" onclick="navigate('dashboard')" id="nav-dashboard">
+        <div class="nav-dot" style="background:#3B82F6"></div>Dashboard
+      </div>
+      <div class="nav-section">Objectives</div>
+      <div class="nav-item" onclick="navigate('A')" id="nav-A">
+        <div class="nav-dot" style="background:#3B82F6"></div>
+        <span>A — Managing Risk</span>
+        <span class="badge risk-UNRATED" id="risk-A" style="margin-left:auto;padding:1px 5px;font-size:9px">—</span>
+      </div>
+      <div class="nav-item" onclick="navigate('B')" id="nav-B">
+        <div class="nav-dot" style="background:#8B5CF6"></div>
+        <span>B — Protecting</span>
+        <span class="badge risk-UNRATED" id="risk-B" style="margin-left:auto;padding:1px 5px;font-size:9px">—</span>
+      </div>
+      <div class="nav-item" onclick="navigate('C')" id="nav-C">
+        <div class="nav-dot" style="background:#F59E0B"></div>
+        <span>C — Detecting</span>
+        <span class="badge risk-UNRATED" id="risk-C" style="margin-left:auto;padding:1px 5px;font-size:9px">—</span>
+      </div>
+      <div class="nav-item" onclick="navigate('D')" id="nav-D">
+        <div class="nav-dot" style="background:#EF4444"></div>
+        <span>D — Minimising</span>
+        <span class="badge risk-UNRATED" id="risk-D" style="margin-left:auto;padding:1px 5px;font-size:9px">—</span>
+      </div>
+      <div class="nav-section">Analysis</div>
+      <div class="nav-item" onclick="navigate('matrix')" id="nav-matrix">
+        <div class="nav-dot" style="background:#7C3AED"></div>Risk Matrix
+      </div>
+      <div class="nav-item" onclick="navigate('improvements')" id="nav-improvements">
+        <div class="nav-dot" style="background:#D97706"></div>Improvement Plan
+      </div>
+      <div class="nav-section">Output</div>
+      <div class="nav-item" onclick="navigate('report')" id="nav-report">
+        <div class="nav-dot" style="background:#5A7A9A"></div>Full Report
+      </div>
+    </div>
+    <div class="sidebar-footer no-print">
+      <button class="btn" onclick="showSetup()">⚙ Assessment Setup</button>
+      <div class="btn-row">
+        <button class="btn btn-half" onclick="exportJSON()" title="Save full assessment state — re-importable">⬇ JSON</button>
+        <button class="btn btn-half" onclick="exportCSV()" title="Export ratings, justifications and evidence for Excel">⬇ CSV</button>
+      </div>
+      <button class="btn" onclick="document.getElementById('import-file').click()">⬆ Import JSON</button>
+      <input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importJSON(this)"/>
+      <button class="btn btn-primary" onclick="window.print()">🖨 Print / PDF</button>
+      <button class="btn" onclick="resetScores()">↺ Reset All Scores</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar no-print">
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-meta">
+        <span id="topbar-org"></span>
+        <span class="badge risk-UNRATED" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border2)">CAF v4.0 · 41 COs · Achieved / Partially Achieved / Not Achieved</span>
+      </div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<!-- Setup Modal -->
+<div class="overlay" id="setup-modal" style="display:none" onclick="if(event.target===this)hideSetup()">
+  <div class="modal">
+    <h3>Assessment Setup</h3>
+    <div class="field"><label>Organisation Name</label><input type="text" id="f-org" placeholder="Enter organisation name…"/></div>
+    <div class="field"><label>Lead Assessor</label><input type="text" id="f-assessor" placeholder="Enter assessor name…"/></div>
+    <div class="field"><label>Assessment Date</label><input type="date" id="f-date"/></div>
+    <div class="field"><label>Essential Function / System in Scope</label><input type="text" id="f-function" placeholder="e.g. Electricity generation, Water treatment…"/></div>
+    <div class="field"><label>CAF Profile (set by your regulator / Competent Authority)</label><input type="text" id="f-profile" placeholder="e.g. Basic, Enhanced, or sector-specific profile"/>
+      <div style="font-size:10px;color:var(--muted);margin-top:5px;line-height:1.5">Your regulator's profile determines which outcomes are mandatory, which must reach Achieved, and which may be marked Not Applicable. Confirm before assessing.</div>
+    </div>
+    <div class="modal-actions">
+      <button class="mbn" onclick="hideSetup()">Cancel</button>
+      <button class="mbp" onclick="saveSetup()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// CAF v4.0 DATA — 4 Objectives, 14 Principles, 41 Contributing Outcomes
+// Source: NCSC CAF v4.0 (Published 6 August 2025) — verified against the
+// official PDF (ncsc.gov.uk/files/NCSC-Cyber-Assessment-Framework-4.0.pdf).
+// Contains public sector information licensed under the Open Government Licence v3.0.
+// v4.0 changes vs v3.2:
+//   NEW: A2.b Understanding Threat
+//   NEW: A4.b Secure Software Development and Support
+//   A2.b (old Assurance) → renamed A2.c
+//   C2 renamed "Threat Hunting", reduced to single CO C2.a
+//   NEW: C1.f Understanding User's and System's Behaviour, and Threat Intelligence
+//   C1.a/C1.d/C1.e renamed; D2.a renamed Post Incident Analysis;
+//   D2.b renamed Using Incidents to Drive Improvements
+// hasPa flags match the official IGP tables. Nine COs have NO 'Partially
+// Achieved' column in CAF v4.0 and are rated Achieved / Not Achieved only:
+//   A1.a, A1.b, A1.c, A2.c, A3.a, D1.b, D1.c, D2.a, D2.b
+// ═══════════════════════════════════════════════════
+const CAF = [
+{
+  id:'A', title:'Managing Security Risk', color:'#3B82F6',
+  desc:'Appropriate organisational structures, policies, processes and procedures in place to understand, assess and systematically manage security risks to the network and information systems supporting essential functions.',
+  principles:[
+    {
+      id:'A1', title:'Governance',
+      desc:'The organisation has appropriate management policies, processes and procedures in place to govern its approach to the security of network and information systems.',
+      cos:[
+        {id:'A1.a',name:'Board Direction',hasPa:false,
+         desc:'You have effective organisational security management led at board level and articulated clearly in corresponding policies.'},
+        {id:'A1.b',name:'Roles and Responsibilities',hasPa:false,
+         desc:'Your organisation has established roles and responsibilities for the security of network and information systems at all levels, with clear and well-understood channels for communicating and escalating risks.'},
+        {id:'A1.c',name:'Decision-making',hasPa:false,
+         desc:'You have senior-level accountability for the security of network and information systems, and delegate decision-making authority appropriately and effectively. Risks to network and information systems related to the operation of your essential function(s) are considered in the context of other organisational risks.'},
+      ]
+    },
+    {
+      id:'A2', title:'Risk Management',
+      desc:'The organisation takes appropriate steps to identify, assess and understand security risks to the network and information systems supporting the operation of essential functions. This includes an overall organisational approach to risk management.',
+      cos:[
+        {id:'A2.a',name:'Risk Management Process',hasPa:true,
+         desc:'Your organisation has effective internal processes for managing risks to the security of network and information systems related to the operation of your essential function(s) and communicating associated activities. Assessments consider new and emergent technologies and technological developments.'},
+        {id:'A2.b',name:'Understanding Threat',hasPa:true,isNew:true,
+         desc:'You understand the capabilities, methods and techniques of threat actors and what network and information systems they may compromise to adversely impact your essential function(s). This information is used to inform security and resilience risk management decisions, adjusting, enhancing or adding security measures to better defend against threats.'},
+        {id:'A2.c',name:'Assurance',hasPa:false,
+         desc:'You have gained confidence in the effectiveness of the security of your technology, people, and processes relevant to your essential function(s). Security deficiencies uncovered by assurance activities are assessed, prioritised and remedied in a timely and effective way.'},
+      ]
+    },
+    {
+      id:'A3', title:'Asset Management',
+      desc:'Everything required to deliver, maintain or support network and information systems necessary for the operation of essential functions is determined and understood. This includes data, people and systems, as well as any supporting infrastructure (such as power or cooling).',
+      cos:[
+        {id:'A3.a',name:'Asset Management',hasPa:false,
+         desc:'All assets relevant to the secure operation of essential function(s) are identified and inventoried at a suitable level of detail. The inventory is kept up-to-date. Dependencies on supporting infrastructure are recognised and recorded. Assets are managed with cyber security in mind throughout their lifecycle.'},
+      ]
+    },
+    {
+      id:'A4', title:'Supply Chain',
+      desc:'The organisation understands and manages security risks to network and information systems supporting the operation of essential functions that arise as a result of dependencies on external suppliers. This includes ensuring that appropriate measures are employed where third party services are used.',
+      cos:[
+        {id:'A4.a',name:'Supply Chain',hasPa:true,
+         desc:'Your organisation understands and manages security risks arising from dependencies on external suppliers, including sub-contractors. You consider factors such as supplier partnerships, nationality and other organisations with which they sub-contract. Appropriate security obligations are included in relevant contracts and all third-party connections are managed effectively.'},
+        {id:'A4.b',name:'Secure Software Development and Support',hasPa:true,isNew:true,
+         desc:'Your organisation ensures that software used to support your essential function(s) — whether internally developed or procured — is developed and maintained securely. This includes code provenance (software bill of materials / SBOM), static and dynamic code analysis, secure software distribution channels, and securing open source components. Suppliers must evidence use of recognised secure software development frameworks such as NIST SSDF or Microsoft SDL.'},
+      ]
+    },
+  ]
+},
+{
+  id:'B', title:'Protecting Against Cyber Attack', color:'#8B5CF6',
+  desc:'Proportionate security measures are in place to protect the network and information systems supporting essential functions from cyber attack.',
+  principles:[
+    {
+      id:'B1', title:'Service Protection Policies, Processes and Procedures',
+      desc:'The organisation defines, implements, communicates and enforces appropriate policies, processes and procedures that direct its overall approach to securing systems and data that support operation of essential functions.',
+      cos:[
+        {id:'B1.a',name:'Policy, Process and Procedure Development',hasPa:true,
+         desc:'You have developed and continue to improve a set of cyber security and resilience policies, processes and procedures that manage and mitigate the risk of adverse impact on your essential function(s). Policies are reviewed at suitably regular intervals and following major changes or incidents.'},
+        {id:'B1.b',name:'Policy, Process and Procedure Implementation',hasPa:true,
+         desc:'You have successfully implemented your security policies, processes and procedures and can demonstrate the security benefits achieved. All policies are followed and their correct application and security effectiveness is evaluated.'},
+      ]
+    },
+    {
+      id:'B2', title:'Identity and Access Control',
+      desc:'The organisation understands, documents and manages access to network and information systems supporting the operation of essential functions. Users (or automated functions) that can access data or systems are appropriately verified, authenticated and authorised.',
+      cos:[
+        {id:'B2.a',name:'Identity Verification, Authentication and Authorisation',hasPa:true,
+         desc:'You robustly verify, authenticate and authorise access to the network and information systems supporting your essential function(s). Multi-factor authentication (MFA) is used for all user access including remote access. Access lists are reviewed at least every six months.'},
+        {id:'B2.b',name:'Device Management',hasPa:true,
+         desc:'You fully know and have trust in the devices that are used to access your networks, information systems and data that support your essential function(s). Certificate-based device identity management is used and only known devices can access systems necessary for the operation of your essential function(s).'},
+        {id:'B2.c',name:'Privileged User Management',hasPa:true,
+         desc:'You closely manage privileged user access to network and information systems supporting your essential function(s). All privileged user activity is routinely reviewed, validated and recorded for offline analysis and investigation. Time-bound rights for privileged access are in place.'},
+        {id:'B2.d',name:'Identity and Access Management (IdAM)',hasPa:true,
+         desc:'You closely manage and maintain identity and access control for users, devices and systems accessing the network and information systems supporting your essential function(s). You regularly review access logs and correlate data with other access records and expected activity.'},
+      ]
+    },
+    {
+      id:'B3', title:'Data Security',
+      desc:'Data stored or transmitted electronically is protected from actions such as unauthorised access, modification, or deletion that may cause an adverse impact on essential functions.',
+      cos:[
+        {id:'B3.a',name:'Understanding Data',hasPa:true,
+         desc:'You have a good understanding of data important to the operation of your essential function(s), where it is stored, where it travels and how unavailability or unauthorised access, modification or deletion would adversely impact the essential function(s). Impact statements are validated regularly, at least annually.'},
+        {id:'B3.b',name:'Data in Transit',hasPa:true,
+         desc:'You have protected the transit of data important to the operation of your essential function(s). This includes the transfer of data to third parties. Suitable alternative transmission paths are available where there is significant risk due to resource limitation.'},
+        {id:'B3.c',name:'Stored Data',hasPa:true,
+         desc:'You have protected stored soft and hard copy data important to the operation of your essential function(s). You have suitable, secured backups including off-line or segregated backups. Historic and archive data is suitably secured.'},
+        {id:'B3.d',name:'Mobile Data',hasPa:true,
+         desc:'You have protected data important to the operation of your essential function(s) on mobile devices. Mobile devices are catalogued, under organisational control, configured to best practice, and can be remotely wiped.'},
+        {id:'B3.e',name:'Media / Equipment Sanitisation',hasPa:true,
+         desc:'Before reuse and/or disposal you appropriately sanitise devices, equipment and removable media holding data important to the operation of your essential function(s) using an assured product or service.'},
+      ]
+    },
+    {
+      id:'B4', title:'System Security',
+      desc:'Network and information systems and technology critical for the operation of essential functions are protected from cyber attack. An organisational understanding of risk to essential functions informs the use of robust and reliable protective security measures.',
+      cos:[
+        {id:'B4.a',name:'Secure by Design',hasPa:true,
+         desc:'You design security into the network and information systems that support the operation of your essential function(s). Systems are segregated into appropriate security zones. Automated decision-making technologies are designed and implemented in a way which prevents them from being exploited to conduct hostile acts against critical systems.'},
+        {id:'B4.b',name:'Secure Configuration',hasPa:true,
+         desc:'You securely configure the network and information systems that support the operation of your essential function(s). All platforms conform to a secure defined baseline build. Only permitted software can be installed. If automated decision-making technologies are in use, their operation is well understood and decisions can be replicated.'},
+        {id:'B4.c',name:'Secure Management',hasPa:true,
+         desc:'You manage your organisation\'s network and information systems that support the operation of your essential function(s) to enable and maintain security. Systems are only administered from highly trusted devices such as Privileged Access Workstations dedicated solely to those operations.'},
+        {id:'B4.d',name:'Vulnerability Management',hasPa:true,
+         desc:'You manage known vulnerabilities in your network and information systems to prevent adverse impact on your essential function(s). All announced vulnerabilities are tracked, prioritised and mitigated promptly. You regularly test to understand vulnerabilities and verify understanding with third-party testing.'},
+      ]
+    },
+    {
+      id:'B5', title:'Resilient Networks and Systems',
+      desc:'The organisation builds resilience against cyber attack and system failure into the design, implementation, operation and management of systems that support the operation of essential functions.',
+      cos:[
+        {id:'B5.a',name:'Resilience Preparation',hasPa:true,
+         desc:'You are prepared to restore the operation of your essential function(s) following adverse impact. Business continuity and disaster recovery plans have been tested for practicality, effectiveness and completeness using appropriate test methods (e.g. manual fail-over, table-top exercises, red-teaming).'},
+        {id:'B5.b',name:'Design for Resilience',hasPa:true,
+         desc:'You design the network and information systems supporting your essential function(s) to be resilient to cyber security incidents. Operational systems are segregated from business and external systems by appropriate technical and physical means. All resource limitations are identified and mitigated.'},
+        {id:'B5.c',name:'Backups',hasPa:true,
+         desc:'You hold accessible and secured current backups of data and information needed to recover operation of your essential function(s). Backups are comprehensive, automatic, tested, documented, and routinely reviewed. Backups are secured at centrally accessible or secondary sites.'},
+      ]
+    },
+    {
+      id:'B6', title:'Staff Awareness and Training',
+      desc:'Staff have appropriate awareness, knowledge and skills to carry out their organisational roles effectively in relation to the security of network and information systems supporting the operation of essential functions.',
+      cos:[
+        {id:'B6.a',name:'Cyber Security Culture',hasPa:true,
+         desc:'You develop and maintain a positive cyber security culture. Executive management understand and widely communicate the importance of a positive cyber security culture. All staff understand the contribution they make to the cyber security of the essential function(s).'},
+        {id:'B6.b',name:'Cyber Security Training',hasPa:true,
+         desc:'You provide appropriate cyber security training for staff who are responsible for or who have access to network and information systems that support the operation of your essential function(s). Training is relevant, regularly updated and its effectiveness is assessed.'},
+      ]
+    },
+  ]
+},
+{
+  id:'C', title:'Detecting Cyber Security Events', color:'#F59E0B',
+  desc:'Capabilities to ensure that security defences remain effective and to detect cyber security events affecting, or with the potential to affect, essential functions.',
+  principles:[
+    {
+      id:'C1', title:'Security Monitoring',
+      desc:'The organisation monitors the security status of the network and information systems supporting the operation of essential functions to detect potential security problems and track the effectiveness of security measures.',
+      cos:[
+        {id:'C1.a',name:'Sources and Tools for Logging and Monitoring',hasPa:true,
+         desc:'The data sources and tools that you include in your logging and monitoring allow for timely identification of events which might adversely affect the security or resiliency of network and information system(s) supporting the operation of your essential function(s).'},
+        {id:'C1.b',name:'Securing Logs',hasPa:true,
+         desc:'You hold log data securely and grant appropriate user and system access only to accounts with a business need. Log data is held for a suitable retention period, after which it is deleted. Log integrity is protected and all actions involving log data can be traced back to a unique user or system.'},
+        {id:'C1.c',name:'Generating Alerts',hasPa:true,
+         desc:'Evidence of potential security incidents contained in your monitoring data is reliably identified and where appropriate triggers alerts. Alerts and underlying detection rules are reviewed, tested and tuned to reduce false positives and optimise responses.'},
+        {id:'C1.d',name:'Triage of Security Alerts',hasPa:true,
+         desc:'You contextualise alerts with knowledge of the threat and your systems, to identify security incidents as well as responding to all alerts appropriately. Triage activity is documented and used to drive improvements.'},
+        {id:'C1.e',name:'Personnel Skills for Monitoring and Detection',hasPa:true,
+         desc:'Monitoring and detection personnel skills and roles, including those outsourced, reflect governance and reporting requirements, expected threats and the complexities of the network or system data they need to use. Personnel have sufficient knowledge of the network and information systems and the essential function(s) they need to protect.'},
+        {id:'C1.f',name:"Understanding User's and System's Behaviour, and Threat Intelligence",hasPa:true,isNew:true,
+         desc:"You analyse user and system behaviour to identify abnormal activity indicative of a security incident. You integrate and actively use threat intelligence to improve detection and your understanding of risks to your essential function(s). You proactively share relevant threat intelligence with the wider community where appropriate."},
+      ]
+    },
+    {
+      id:'C2', title:'Threat Hunting',
+      desc:'The organisation takes a proactive and intelligence-led approach to searching for attacker activity within their networks and information systems. (Note: In CAF v4.0 this principle was comprehensively rewritten from the previous \'Anomaly Detection\' / \'Proactive Attack Discovery\' approach.)',
+      cos:[
+        {id:'C2.a',name:'Threat Hunting',hasPa:true,
+         desc:'Your organisation proactively and systematically hunts for hostile activity in the network and information systems supporting your essential function(s). Threat hunting is purposeful, follows a structured approach, and is risk- and intelligence-led. It proactively searches for hostile tactics, techniques and procedures (TTPs) rather than being limited to basic indicators of compromise such as hostile IP addresses.'},
+      ]
+    },
+  ]
+},
+{
+  id:'D', title:'Minimising Impact of Cyber Security Incidents', color:'#EF4444',
+  desc:'Capabilities to minimise the adverse impact of a cyber security incident on the operation of essential functions, including the restoration of those functions where necessary.',
+  principles:[
+    {
+      id:'D1', title:'Response and Recovery Planning',
+      desc:'There are well-defined and tested incident management processes in place, that aim to ensure continuity of essential function(s) in the event of system or service failure. Mitigation activities designed to contain or limit the impact of compromise are also in place.',
+      cos:[
+        {id:'D1.a',name:'Response Plan',hasPa:true,
+         desc:'You have an up-to-date incident response plan that is grounded in a thorough risk assessment that takes account of network and information systems supporting the operation of your essential function(s) and covers a range of incident scenarios, including your supply chain.'},
+        {id:'D1.b',name:'Response and Recovery Capability',hasPa:false,
+         desc:'You have the capability to enact your incident response plan, including effective limitation of impact on the operation of your essential function(s). During an incident, you have access to timely information on which to base your response decisions. Back-up mechanisms can be readily activated and arrangements exist to augment your capability with external support (e.g. specialist cyber incident responders) if necessary.'},
+        {id:'D1.c',name:'Testing and Exercising',hasPa:false,
+         desc:'Your organisation carries out exercises to test response plans, using past incidents that affected your (and other) organisation, and scenarios that draw on threat intelligence and your risk assessment. Exercises test all parts of your response cycle and findings are used to refine incident response plans and protective security.'},
+      ]
+    },
+    {
+      id:'D2', title:'Lessons Learned',
+      desc:'When cyber security incidents occur, steps are taken to understand their causes and ensure appropriate remediating action is taken. Lessons are learned and applied to improve cyber resilience.',
+      cos:[
+        {id:'D2.a',name:'Post Incident Analysis',hasPa:false,
+         desc:'When an incident occurs, your organisation takes steps to understand its causes, informing appropriate remediating action. Analysis is comprehensive, considering organisational, technical and human factors as well as any changes to threat, and considers what could have happened under plausible alternative circumstances.'},
+        {id:'D2.b',name:'Using Incidents to Drive Improvements',hasPa:false,
+         desc:'Your organisation uses lessons learned from incidents, including near misses, to improve your security measures. Improvements are prioritised, response plans are updated and retested, and analysis is fed to senior management. You also learn from incidents reported in your sector and the wider national infrastructure.'},
+      ]
+    },
+  ]
+},
+];
+
+// Flatten for lookups
+const ALL_COS = CAF.flatMap(o=>o.principles.flatMap(p=>p.cos.map(c=>({...c,pId:p.id,pTitle:p.title,oId:o.id,oColor:o.color}))));
+const ALL_PRINCIPLES = CAF.flatMap(o=>o.principles.map(p=>({...p,oId:o.id,oColor:o.color})));
+const OBJ_COLORS = {A:'#3B82F6',B:'#8B5CF6',C:'#F59E0B',D:'#EF4444'};
+
+// State
+// Rating values:
+//   'UNSET' — not yet addressed. NOT a valid submission state.
+//   'ACH'   — Achieved
+//   'PAR'   — Partially Achieved (only where the CO has an amber IGP column)
+//   'NOT'   — Not Achieved
+//   'NAP'   — Not Applicable. Requires a written, defensible justification.
+let scores = {};
+let justifications = {};   // coId -> free-text justification (required for NAP)
+let evidence = {};         // coId -> free-text evidence / commentary
+let meta = {org:'',assessor:'',date:new Date().toISOString().split('T')[0],fn:'',profile:''};
+let currentPage = 'dashboard';
+
+function score(id){ return scores[id]||'UNSET'; }
+function isRated(id){ const v=score(id); return v==='ACH'||v==='PAR'||v==='NOT'; }
+function isUnset(id){ return score(id)==='UNSET'; }
+function isNap(id){ return score(id)==='NAP'; }
+// A CO marked Not Applicable without a written justification is an incomplete submission.
+function napUnjustified(id){ return isNap(id) && !(justifications[id]||'').trim(); }
+
+const STATUS_META = {
+  UNSET:{cls:'cs-unset',sym:'–',label:'Not Addressed',col:'#8A9BB0'},
+  NAP  :{cls:'cs-nap', sym:'N',label:'Not Applicable',col:'#5A6B80'},
+  NOT  :{cls:'cs-not', sym:'✗',label:'Not Achieved',col:'#C0283A'},
+  PAR  :{cls:'cs-par', sym:'~',label:'Partially Achieved',col:'#B35C00'},
+  ACH  :{cls:'cs-ach', sym:'✓',label:'Achieved',col:'#0A7A50'}
+};
+
+function setScore(id,val){
+  scores[id]=val;
+
+  const dotEl = document.getElementById('dot-'+id.replace('.','_'));
+  if(dotEl){
+    dotEl.className = 'co-status '+STATUS_META[val].cls;
+    dotEl.textContent = STATUS_META[val].sym;
+  }
+
+  document.querySelectorAll('[data-co="'+id+'"]').forEach(function(btn){
+    btn.classList.toggle('on', btn.dataset.val===val);
+  });
+
+  // Show / hide the mandatory justification box for Not Applicable
+  const jb = document.getElementById('just-'+id.replace('.','_'));
+  if(jb) jb.style.display = val==='NAP' ? 'block' : 'none';
+  const jw = document.getElementById('justwarn-'+id.replace('.','_'));
+  if(jw) jw.style.display = napUnjustified(id) ? 'flex' : 'none';
+
+  updateMeta();
+}
+
+function setJustification(id,txt){
+  justifications[id]=txt;
+  const jw = document.getElementById('justwarn-'+id.replace('.','_'));
+  if(jw) jw.style.display = napUnjustified(id) ? 'flex' : 'none';
+  updateMeta();
+}
+
+function setEvidence(id,txt){ evidence[id]=txt; }
+
+function calcPts(cos){
+  // Rated = Achieved / Partially Achieved / Not Achieved. These score.
+  // Not Applicable is out of scope by design and is EXCLUDED from the denominator.
+  // Not Addressed is an incomplete submission and also excluded, but flagged.
+  const rated = cos.filter(c=>isRated(c.id));
+  const pts = rated.reduce((a,c)=>a+(score(c.id)==='ACH'?3:score(c.id)==='PAR'?2:1),0);
+  const maxPts = rated.length*3;
+  return {
+    rated:rated.length,
+    total:cos.length,
+    nap:cos.filter(c=>isNap(c.id)).length,
+    unset:cos.filter(c=>isUnset(c.id)).length,
+    inScope:cos.filter(c=>!isNap(c.id)).length,
+    pts,maxPts,
+    pct:maxPts>0?Math.round(pts/maxPts*100):0
+  };
+}
+function calcObj(oid){ return calcPts(ALL_COS.filter(c=>c.oId===oid)); }
+function calcPrinciple(pid){ return calcPts(ALL_COS.filter(c=>c.pId===pid)); }
+function calcAll(){ return calcPts(ALL_COS); }
+
+function riskFromPct(pct,hasRated){
+  if(!hasRated) return 'UNRATED';
+  if(pct>=80) return 'LOW';
+  if(pct>=60) return 'MEDIUM';
+  if(pct>=40) return 'HIGH';
+  return 'CRITICAL';
+}
+
+function riskColor(risk){
+  return risk==='LOW'?'#0A7A50':risk==='MEDIUM'?'#B35C00':risk==='HIGH'?'#D4600A':risk==='CRITICAL'?'#C0283A':'#8A9BB0';
+}
+
+// An objective with every outcome marked Not Applicable has no score, not 0%.
+function pctOrDash(s){ return s.rated>0 ? s.pct+'%' : '—'; }
+
+// ══════════════ RENDER PAGES ══════════════
+
+function renderDashboard(){
+  const all = calcAll();
+  const risk = riskFromPct(all.pct, all.rated>0);
+  const ach = ALL_COS.filter(c=>score(c.id)==='ACH').length;
+  const par = ALL_COS.filter(c=>score(c.id)==='PAR').length;
+  const not = ALL_COS.filter(c=>score(c.id)==='NOT').length;
+  const nap = ALL_COS.filter(c=>isNap(c.id)).length;
+  const unset = ALL_COS.filter(c=>isUnset(c.id)).length;
+  const unjust = ALL_COS.filter(c=>napUnjustified(c.id));
+
+  const priorities = ALL_COS
+    .filter(c=>score(c.id)==='NOT'||score(c.id)==='PAR')
+    .sort((a,b)=>(score(a.id)==='NOT'?0:1)-(score(b.id)==='NOT'?0:1))
+    .slice(0,15);
+
+  const ringColor = riskColor(risk);
+  const circ = 2*Math.PI*36;
+  const dash = circ*all.pct/100;
+
+  let html = `<div class="fu">`;
+
+  html += `<div class="notice"><strong>NCSC CAF v4.0</strong> — published 6 August 2025. This tool covers all <strong>4 objectives, 14 principles and 41 contributing outcomes</strong>. Each contributing outcome is rated <strong>Achieved</strong>, <strong>Not Achieved</strong> or — where the IGP table has an amber column — <strong>Partially Achieved</strong>. Nine outcomes (A1.a, A1.b, A1.c, A2.c, A3.a, D1.b, D1.c, D2.a, D2.b) have <em>no</em> partially achieved level and are binary. IGPs inform expert judgement; they are not individually scored. Source: ncsc.gov.uk/collection/cyber-assessment-framework</div>`;
+
+  // ─── Completeness / validation banner ───────────────────────────
+  if(unset>0 || unjust.length>0){
+    html += `<div class="validation-panel">
+      <div class="val-head"><span class="val-icon">!</span> Submission not yet complete</div>
+      <div class="val-body">`;
+    if(unset>0){
+      html += `<div class="val-row"><span class="val-count">${unset}</span> contributing outcome${unset===1?'':'s'} not yet addressed. Every outcome must carry an explicit rating — including <strong>Not Applicable</strong>. Leaving an outcome blank will fail validation with your reviewing auditor or Competent Authority.</div>`;
+    }
+    if(unjust.length>0){
+      html += `<div class="val-row"><span class="val-count">${unjust.length}</span> outcome${unjust.length===1?'':'s'} marked <strong>Not Applicable</strong> without a written justification: <span style="font-family:monospace">${unjust.map(c=>c.id).join(', ')}</span>. A "not applicable" claim needs a defensible position, not a blank field.</div>`;
+    }
+    html += `</div></div>`;
+  } else if(all.rated+nap===41){
+    html += `<div class="validation-panel ok">
+      <div class="val-head"><span class="val-icon ok">✓</span> All 41 contributing outcomes explicitly addressed</div>
+      <div class="val-body"><div class="val-row">${all.rated} rated · ${nap} justified as not applicable. Review the Not Applicable register before submission.</div></div>
+    </div>`;
+  }
+
+  // ─── Guidance: what "Not Applicable" actually means ─────────────
+  html += `<div class="guidance-card">
+    <div class="guidance-head" onclick="toggleGuidance()">
+      <span class="guidance-tag">GUIDANCE</span>
+      <span class="guidance-title">Not every outcome needs an "Achieved" — but every outcome needs an answer</span>
+      <span class="chevron" id="chev-guidance">▸</span>
+    </div>
+    <div id="guidance-body" style="display:none">
+      <div class="guidance-inner">
+        <p>The CAF is an <strong>outcomes-focused, risk-based framework</strong>. It recognises that different critical systems face different threats, so a full house of "Achieved" is not the expectation and certain outcomes may legitimately be <strong>Not Applicable</strong>. What you cannot do is skip a section. You must explicitly declare an outcome as not applicable and formally justify why.</p>
+
+        <div class="guidance-sub">How "Not Applicable" works in practice</div>
+        <ul>
+          <li><strong>Scope is system-specific.</strong> You assess against specific critical systems or essential functions, not the organisation as a whole. If a system does not use a given technology, the corresponding contributing outcome is not applicable to it.</li>
+          <li><strong>Worked example.</strong> A critical system completely isolated from the internet, running entirely on hardwired localised legacy hardware, may reasonably classify certain cloud security or remote access monitoring outcomes as Not Applicable.</li>
+          <li><strong>Regulator profiles define the rules.</strong> Your sector's regulator or Competent Authority sets a CAF Profile. That profile pre-determines which outcomes are mandatory for your sector, which must reach "Achieved", which may sit at "Partially Achieved", and which can safely be marked not applicable. Confirm before you assume.</li>
+        </ul>
+
+        <div class="guidance-sub">You must provide a defensible position</div>
+        <p>Even where a section does not apply, document it. Your written summary for the outcome should cover three things:</p>
+        <ol>
+          <li><strong>The exemption</strong> — state clearly that the control does not apply to the specific system in scope.</li>
+          <li><strong>The justification</strong> — explain why. For example: "this network has no wireless capability, therefore wireless intrusion detection is not applicable."</li>
+          <li><strong>Alternative controls</strong> — if the underlying risk exists but is handled differently, explain your compensating controls.</li>
+        </ol>
+
+        <div class="guidance-warn">Leaving any section blank will result in a failed validation by your reviewing auditor or Competent Authority. This tool will flag unaddressed outcomes and unjustified "Not Applicable" claims until they are resolved.</div>
+      </div>
+    </div>
+  </div>`;
+
+  // Overall ring + stats
+  html += `<div class="summary-row"><div class="overall-card">
+    <div class="ring-wrap">
+      <svg width="90" height="90" viewBox="0 0 80 80">
+        <circle cx="40" cy="40" r="36" fill="none" stroke="var(--border2)" stroke-width="7"/>
+        <circle cx="40" cy="40" r="36" fill="none" stroke="${ringColor}" stroke-width="7"
+          stroke-dasharray="${dash.toFixed(1)} ${circ.toFixed(1)}" stroke-linecap="round"
+          transform="rotate(-90 40 40)" style="transition:stroke-dasharray .5s"/>
+      </svg>
+      <div class="ring-pct" style="color:${ringColor}">${all.pct}%</div>
+    </div>
+    <div class="overall-info">
+      <h2>${all.pct}% Maturity</h2>
+      <div style="font-size:11px;color:var(--muted);margin:4px 0 8px">${all.rated} rated · ${nap} not applicable · ${unset} outstanding</div>
+      <span class="badge risk-${risk}">${risk} RISK</span>
+      ${meta.org?`<div style="font-size:11px;color:var(--muted);margin-top:6px">${meta.org}</div>`:''}
+    </div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat"><div class="stat-val" style="color:#0A7A50">${ach}</div><div class="stat-lbl">ACHIEVED</div></div>
+    <div class="stat"><div class="stat-val" style="color:#B35C00">${par}</div><div class="stat-lbl">PARTIAL</div></div>
+    <div class="stat"><div class="stat-val" style="color:#C0283A">${not}</div><div class="stat-lbl">NOT ACH</div></div>
+    <div class="stat"><div class="stat-val" style="color:#5A6B80">${nap}</div><div class="stat-lbl">NOT APPLIC</div></div>
+  </div></div>`;
+
+  html += `<div style="font-size:10px;color:var(--muted);margin:-6px 0 16px;letter-spacing:.2px">Maturity % is calculated over rated outcomes only. Outcomes justified as Not Applicable are excluded from the denominator, not scored as failures.</div>`;
+
+  // Objective cards
+  html += `<div class="obj-grid">`;
+  CAF.forEach(o=>{
+    const s = calcObj(o.id);
+    const r = riskFromPct(s.pct, s.rated>0);
+    html += `<div class="obj-card" style="border-top-color:${o.color}">
+      <div class="obj-id" style="color:${o.color}">${o.id}</div>
+      <div class="obj-label">${o.title}</div>
+      <div class="obj-pct" style="color:${o.color}">${s.pct}%</div>
+      <div class="mini-bar"><div class="mini-fill" style="width:${s.pct}%;background:${o.color}"></div></div>
+      <div class="obj-footer"><span class="badge risk-${r}">${r}</span><span style="font-family:monospace;font-size:10px;color:var(--muted)">${s.rated}/${s.total}</span></div>
+    </div>`;
+  });
+  html += `</div>`;
+
+  // Principle heatmap
+  html += `<div style="font-size:12px;font-weight:600;margin-bottom:10px;letter-spacing:.3px">Principle Heat Map</div>`;
+  html += `<div class="heatmap">`;
+  ALL_PRINCIPLES.forEach(p=>{
+    const s = calcPrinciple(p.id);
+    const r = riskFromPct(s.pct, s.rated>0);
+    const col = riskColor(r);
+    html += `<div class="hm-row">
+      <span class="hm-id" style="color:${OBJ_COLORS[p.oId]}">${p.id}</span>
+      <span class="hm-name">${p.title}</span>
+      <div class="hm-bar"><div class="hm-fill" style="width:${s.pct}%;background:${col}"></div></div>
+      <span class="hm-pct">${s.rated>0?s.pct+'%':'—'}</span>
+      <span class="badge risk-${r}" style="padding:1px 5px;font-size:9px">${r}</span>
+    </div>`;
+  });
+  html += `</div>`;
+
+  // Priority actions
+  if(priorities.length>0){
+    html += `<div class="priority-panel"><div class="panel-head"><span>Priority Actions — Not Achieved &amp; Partially Achieved outcomes</span><span style="font-size:10px;color:var(--muted);font-family:monospace">${priorities.length} items</span></div>`;
+    priorities.forEach((co,i)=>{
+      const v = score(co.id);
+      html += `<div class="priority-item">
+        <span class="p-rank">${i+1}</span>
+        <span class="p-co" style="color:${OBJ_COLORS[co.oId]}">${co.id}</span>
+        <span class="p-name">${co.name}</span>
+        ${co.isNew?'<span class="co-new">NEW</span>':''}
+        <span class="badge ${v==='NOT'?'risk-CRITICAL':'risk-HIGH'}" style="padding:1px 6px;font-size:9px">${v==='NOT'?'NOT ACHIEVED':'PARTIAL'}</span>
+        <span class="p-prin">${co.pTitle}</span>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  html += `</div>`;
+  return html;
+}
+
+function renderObjective(oid){
+  const obj = CAF.find(o=>o.id===oid);
+  if(!obj) return '';
+  const s = calcObj(oid);
+  const risk = riskFromPct(s.pct, s.rated>0);
+  let html = `<div class="fu">`;
+  html += `<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:12px">
+    <div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+        <span style="font-family:monospace;font-size:14px;font-weight:700;color:${obj.color}">Objective ${obj.id}</span>
+        <h2 style="font-size:18px;font-weight:700">${obj.title}</h2>
+        <span class="badge risk-${risk}">${risk}</span>
+      </div>
+      <p style="font-size:12px;color:var(--muted);max-width:680px;line-height:1.65">${obj.desc}</p>
+    </div>
+    <div style="text-align:right;flex-shrink:0">
+      <div style="font-family:monospace;font-size:28px;font-weight:700;color:${obj.color}">${s.pct}%</div>
+      <div style="font-size:10px;color:var(--muted)">${s.rated} rated · ${s.nap} N/A</div>
+      ${s.unset>0?`<div style="font-size:10px;color:#C0283A;font-weight:600;margin-top:2px">${s.unset} outstanding</div>`:''}
+    </div>
+  </div>`;
+
+  obj.principles.forEach(p=>{
+    const ps = calcPrinciple(p.id);
+    const pr = riskFromPct(ps.pct, ps.rated>0);
+    const pid = 'p-'+p.id;
+    html += `<div class="card">
+      <div class="card-header" onclick="togglePrinciple('${pid}')">
+        <span class="principle-tag" style="background:${obj.color}22;color:${obj.color};border:1px solid ${obj.color}44">${p.id}</span>
+        <span class="principle-title">${p.title}</span>
+        <span class="badge risk-${pr}" style="margin-right:8px">${pr}</span>
+        <span style="font-family:monospace;font-size:11px;color:var(--muted);margin-right:8px">${ps.pct}%</span>
+        <span class="chevron" id="chev-${pid}">▸</span>
+      </div>
+      <div id="${pid}" style="display:none">
+        <div class="card-body">
+          <p class="principle-desc">${p.desc}</p>`;
+
+    p.cos.forEach(co=>{
+      const v = score(co.id);
+      const cid = 'co-'+co.id.replace('.','_');
+      const uid = co.id.replace('.','_');
+      const sm = STATUS_META[v];
+
+      // Achieved / Not Achieved always present. Partially Achieved only where
+      // the official CAF v4.0 IGP table has an amber column.
+      // Not Applicable is always available but demands a written justification.
+      const btns = co.hasPa
+        ? [['NOT','NOT ACHIEVED','sb-not'],['PAR','PARTIAL','sb-par'],['ACH','ACHIEVED','sb-ach'],['NAP','N/A','sb-nap']]
+        : [['NOT','NOT ACHIEVED','sb-not'],['ACH','ACHIEVED','sb-ach'],['NAP','N/A','sb-nap']];
+
+      html += `<div class="co-block">
+        <div class="co-header" onclick="toggleCo('${cid}')">
+          <div class="co-status ${sm.cls}" id="dot-${uid}">${sm.sym}</div>
+          <span class="co-ref">${co.id}</span>
+          <span class="co-name">${co.name}</span>
+          ${co.isNew?'<span class="co-new">NEW v4.0</span>':''}
+          ${!co.hasPa?'<span class="co-binary" title="This contributing outcome has no Partially Achieved column in CAF v4.0">NO PA</span>':''}
+          <span class="chevron" id="chev-${cid}" style="font-size:10px">▸</span>
+        </div>
+        <div id="${cid}" style="display:none">
+          <div class="co-desc">${co.desc}</div>
+          ${!co.hasPa?`<div class="co-binary-note">CAF v4.0 provides no <em>Partially Achieved</em> column for this outcome. It is rated <strong>Achieved</strong> or <strong>Not Achieved</strong> only. The presence of any single "not achieved" indicator is normally sufficient to justify a Not Achieved rating.</div>`:''}
+          <div class="score-row">
+            <span class="score-label">Contributing Outcome Assessment</span>
+            <div class="score-btns">`;
+      btns.forEach(([val,lbl,cls])=>{
+        html += `<button class="sb ${cls}${v===val?' on':''}" data-co="${co.id}" data-val="${val}" onclick="setScore('${co.id}','${val}');event.stopPropagation()">${lbl}</button>`;
+      });
+      html += `</div></div>
+
+          <div class="just-box" id="just-${uid}" style="display:${v==='NAP'?'block':'none'}">
+            <div class="just-warn" id="justwarn-${uid}" style="display:${napUnjustified(co.id)?'flex':'none'}">
+              <span class="val-icon sm">!</span> A "Not Applicable" claim without a written justification will fail validation.
+            </div>
+            <label class="just-lbl">Defensible position — required for Not Applicable</label>
+            <div class="just-hint">State the exemption, justify why the control does not apply to the system in scope, and describe any compensating controls where the underlying risk still exists.</div>
+            <textarea class="just-input" rows="4" placeholder="e.g. This network has no wireless capability, therefore wireless intrusion detection is not applicable. Physical port security and 802.1X on all wired ports provide compensating control against unauthorised device connection."
+              oninput="setJustification('${co.id}',this.value)" onclick="event.stopPropagation()">${(justifications[co.id]||'').replace(/</g,'&lt;')}</textarea>
+          </div>
+
+          <div class="ev-box">
+            <label class="just-lbl">Evidence &amp; commentary</label>
+            <div class="just-hint">Reference the verifiable artefact — policy version, configuration file, scan output, board minute. Narrative without artefact is a finding waiting to happen.</div>
+            <textarea class="just-input" rows="3" placeholder="Evidence supporting this rating…"
+              oninput="setEvidence('${co.id}',this.value)" onclick="event.stopPropagation()">${(evidence[co.id]||'').replace(/</g,'&lt;')}</textarea>
+          </div>
+        </div></div>`;
+    });
+
+    html += `</div></div></div>`;
+  });
+
+  html += `</div>`;
+  return html;
+}
+
+function renderReport(){
+  const all = calcAll();
+  const risk = riskFromPct(all.pct, all.rated>0);
+  const ach = ALL_COS.filter(c=>score(c.id)==='ACH').length;
+  const par = ALL_COS.filter(c=>score(c.id)==='PAR').length;
+  const not = ALL_COS.filter(c=>score(c.id)==='NOT').length;
+  const nap = ALL_COS.filter(c=>isNap(c.id)).length;
+  const unset = ALL_COS.filter(c=>isUnset(c.id)).length;
+  const unjust = ALL_COS.filter(c=>napUnjustified(c.id));
+
+  let html = `<div class="fu">`;
+
+  // Submission readiness
+  if(unset>0||unjust.length>0){
+    html += `<div class="validation-panel"><div class="val-head"><span class="val-icon">!</span> Not ready for submission</div>
+      <div class="val-body">
+        ${unset>0?`<div class="val-row"><span class="val-count">${unset}</span> outcome${unset===1?'':'s'} left blank: <span style="font-family:monospace">${ALL_COS.filter(c=>isUnset(c.id)).map(c=>c.id).join(', ')}</span></div>`:''}
+        ${unjust.length>0?`<div class="val-row"><span class="val-count">${unjust.length}</span> Not Applicable claim${unjust.length===1?'':'s'} lacking justification: <span style="font-family:monospace">${unjust.map(c=>c.id).join(', ')}</span></div>`:''}
+      </div></div>`;
+  }
+
+  // Meta
+  html += `<div class="report-card">
+    <div class="meta-row">
+      <div class="meta-cell"><div class="meta-lbl">ORGANISATION</div><input class="meta-input" value="${meta.org}" oninput="meta.org=this.value;renderPage()" placeholder="—"/></div>
+      <div class="meta-cell"><div class="meta-lbl">LEAD ASSESSOR</div><input class="meta-input" value="${meta.assessor}" oninput="meta.assessor=this.value;renderPage()" placeholder="—"/></div>
+      <div class="meta-cell"><div class="meta-lbl">DATE</div><input class="meta-input" value="${meta.date}" oninput="meta.date=this.value;renderPage()" placeholder="—"/></div>
+    </div>
+    <div class="meta-row" style="border-top:1px solid var(--border)">
+      <div class="meta-cell" style="grid-column:span 2"><div class="meta-lbl">ESSENTIAL FUNCTION / SYSTEM IN SCOPE</div><div class="meta-val">${meta.fn||'—'}</div></div>
+      <div class="meta-cell"><div class="meta-lbl">CAF PROFILE (SET BY REGULATOR)</div><div class="meta-val">${meta.profile||'—'}</div></div>
+    </div>
+    <div style="padding:10px 16px;border-top:1px solid var(--border);display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+      <span style="font-size:11px;color:var(--muted)">Framework:</span>
+      <span style="font-size:12px;font-weight:600">NCSC Cyber Assessment Framework v4.0 (August 2025) — 4 Objectives · 14 Principles · 41 Contributing Outcomes</span>
+      <span class="badge risk-${risk}" style="margin-left:auto">Overall: ${risk} (${all.pct}%)</span>
+    </div>
+  </div>`;
+
+  // Objective summary
+  html += `<div class="report-card"><div class="report-head">OBJECTIVE SUMMARY — % calculated over rated outcomes only; Not Applicable excluded from denominator</div>
+    <table class="rtable"><thead><tr>
+      <th>Objective</th><th>Principles</th><th>Total COs</th><th>Rated</th><th>Achieved</th><th>Partial</th><th>Not Achieved</th><th>N/A</th><th>Blank</th><th>Score %</th><th>Risk</th>
+    </tr></thead><tbody>`;
+
+  CAF.forEach(o=>{
+    const cos = ALL_COS.filter(c=>c.oId===o.id);
+    const s = calcPts(cos);
+    const a = cos.filter(c=>score(c.id)==='ACH').length;
+    const p = cos.filter(c=>score(c.id)==='PAR').length;
+    const n = cos.filter(c=>score(c.id)==='NOT').length;
+    const r = riskFromPct(s.pct,s.rated>0);
+    html += `<tr>
+      <td><span style="font-weight:700;color:${o.color}">${o.id}</span> — ${o.title}</td>
+      <td style="font-family:monospace;font-size:11px">${o.principles.length}</td>
+      <td style="font-family:monospace;font-size:11px">${cos.length}</td>
+      <td style="font-family:monospace;font-size:11px">${s.rated}</td>
+      <td style="font-family:monospace;font-size:11px;color:#0A7A50">${a}</td>
+      <td style="font-family:monospace;font-size:11px;color:#B35C00">${p}</td>
+      <td style="font-family:monospace;font-size:11px;color:#C0283A">${n}</td>
+      <td style="font-family:monospace;font-size:11px;color:#5A6B80">${s.nap}</td>
+      <td style="font-family:monospace;font-size:11px;color:${s.unset>0?'#C0283A':'var(--muted)'};font-weight:${s.unset>0?'700':'400'}">${s.unset}</td>
+      <td style="font-family:monospace;font-size:11px">${pctOrDash(s)}</td>
+      <td><span class="badge risk-${r}">${r}</span></td>
+    </tr>`;
+  });
+
+  // Total row
+  html += `<tr style="border-top:1px solid var(--border2)">
+    <td style="font-weight:700">TOTAL</td>
+    <td style="font-family:monospace;font-size:11px">14</td>
+    <td style="font-family:monospace;font-size:11px">41</td>
+    <td style="font-family:monospace;font-size:11px">${all.rated}</td>
+    <td style="font-family:monospace;font-size:11px;color:#0A7A50">${ach}</td>
+    <td style="font-family:monospace;font-size:11px;color:#B35C00">${par}</td>
+    <td style="font-family:monospace;font-size:11px;color:#C0283A">${not}</td>
+    <td style="font-family:monospace;font-size:11px;color:#5A6B80">${nap}</td>
+    <td style="font-family:monospace;font-size:11px;color:${unset>0?'#C0283A':'var(--muted)'};font-weight:${unset>0?'700':'400'}">${unset}</td>
+    <td style="font-family:monospace;font-size:11px">${all.pct}%</td>
+    <td><span class="badge risk-${risk}">${risk}</span></td>
+  </tr>`;
+  html += `</tbody></table></div>`;
+
+  // ─── Not Applicable register ───────────────────────────────────
+  const napCos = ALL_COS.filter(c=>isNap(c.id));
+  if(napCos.length>0){
+    html += `<div class="report-card"><div class="report-head">NOT APPLICABLE REGISTER — ${napCos.length} outcome${napCos.length===1?'':'s'} declared out of scope</div>
+      <div style="padding:10px 16px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border);line-height:1.6">Each entry below is an explicit declaration that the control does not apply to the system in scope. Your reviewing auditor or Competent Authority will read these. Confirm against your sector's CAF Profile that the outcome is genuinely permitted to be marked not applicable.</div>`;
+    napCos.forEach(co=>{
+      const j = (justifications[co.id]||'').trim();
+      html += `<div class="nap-entry">
+        <div class="nap-head">
+          <span style="font-family:monospace;font-size:11px;font-weight:700;color:${OBJ_COLORS[co.oId]}">${co.id}</span>
+          <span style="font-size:12px;font-weight:600">${co.name}</span>
+          <span style="font-size:10px;color:var(--muted);margin-left:auto">${co.pTitle} · Obj ${co.oId}</span>
+        </div>
+        ${j
+          ? `<div class="nap-just">${j.replace(/</g,'&lt;')}</div>`
+          : `<div class="nap-missing"><span class="val-icon sm">!</span> No justification recorded. This will fail validation.</div>`}
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Full CO detail
+  html += `<div class="report-card"><div class="report-head">CONTRIBUTING OUTCOME DETAIL — ALL 41 COs</div>
+    <table class="rtable"><thead><tr>
+      <th>Ref</th><th>Objective</th><th>Principle</th><th>Contributing Outcome</th><th>PA available?</th><th>v4.0</th><th>Rating</th><th>Evidence recorded</th>
+    </tr></thead><tbody>`;
+
+  ALL_COS.forEach(co=>{
+    const v = score(co.id);
+    const sm = STATUS_META[v];
+    const hasEv = (evidence[co.id]||'').trim().length>0;
+    html += `<tr>
+      <td style="font-family:monospace;font-size:10px;font-weight:700;color:${OBJ_COLORS[co.oId]}">${co.id}</td>
+      <td style="font-size:11px;color:var(--muted)">${co.oId}</td>
+      <td style="font-size:11px;color:var(--muted)">${co.pId}</td>
+      <td style="font-size:12px">${co.name}${co.isNew?'<span class="co-new" style="margin-left:6px">NEW</span>':''}</td>
+      <td style="font-family:monospace;font-size:10px;color:var(--muted)">${co.hasPa?'Yes':'No — binary'}</td>
+      <td style="font-family:monospace;font-size:10px;color:${co.isNew?'#0A7A50':'#8A9BB0'}">${co.isNew?'NEW':''}</td>
+      <td style="font-size:10px;font-weight:700;color:${sm.col}">${sm.label}</td>
+      <td style="font-family:monospace;font-size:10px;color:${hasEv?'#0A7A50':'#B8C4D0'}">${hasEv?'✓':'—'}</td>
+    </tr>`;
+  });
+  html += `</tbody></table></div>`;
+
+  html += `<div style="font-size:10px;color:var(--muted);padding:4px 2px 12px;line-height:1.6">Contains public sector information licensed under the Open Government Licence v3.0. CAF content © Crown copyright 2025. This tool supports self-assessment and does not constitute a regulatory determination — target levels are set by your relevant cyber oversight body.</div>`;
+
+  html += `</div>`;
+  return html;
+}
+
+// ══════════════ IMPACT / LIKELIHOOD MODEL ══════════════
+// Each CO has an inherent impact weight (1-5) based on its principle
+// and a likelihood modifier based on the objective area.
+// These drive placement on the risk matrix.
+
+const CO_IMPACT = {
+  // A - Governance / Risk (high impact if gaps exist - foundational)
+  'A1.a':5,'A1.b':4,'A1.c':4,'A2.a':5,'A2.b':4,'A2.c':3,'A3.a':4,'A4.a':4,'A4.b':4,
+  // B - Protection (direct technical controls)
+  'B1.a':3,'B1.b':4,'B2.a':5,'B2.b':4,'B2.c':5,'B2.d':4,'B3.a':3,'B3.b':4,'B3.c':4,
+  'B3.d':3,'B3.e':2,'B4.a':5,'B4.b':4,'B4.c':4,'B4.d':5,'B5.a':4,'B5.b':4,'B5.c':5,
+  'B6.a':3,'B6.b':3,
+  // C - Detection (high impact - knowing you're breached)
+  'C1.a':5,'C1.b':4,'C1.c':5,'C1.d':5,'C1.e':4,'C1.f':4,'C2.a':4,
+  // D - Response (high impact - minimising damage)
+  'D1.a':5,'D1.b':5,'D1.c':4,'D2.a':4,'D2.b':3
+};
+
+const CO_LIKELIHOOD = {
+  // Likelihood of threat exploiting a gap in this area (1=unlikely, 5=very likely)
+  'A1.a':2,'A1.b':2,'A1.c':2,'A2.a':3,'A2.b':3,'A2.c':2,'A3.a':3,'A4.a':4,'A4.b':4,
+  'B1.a':2,'B1.b':3,'B2.a':5,'B2.b':4,'B2.c':5,'B2.d':4,'B3.a':3,'B3.b':4,'B3.c':4,
+  'B3.d':3,'B3.e':2,'B4.a':4,'B4.b':4,'B4.c':3,'B4.d':5,'B5.a':3,'B5.b':3,'B5.c':4,
+  'B6.a':3,'B6.b':3,
+  'C1.a':4,'C1.b':3,'C1.c':4,'C1.d':4,'C1.e':3,'C1.f':4,'C2.a':3,
+  'D1.a':3,'D1.b':3,'D1.c':2,'D2.a':2,'D2.b':2
+};
+
+// Effort to fix (1=low effort, 5=high effort)
+const CO_EFFORT = {
+  'A1.a':3,'A1.b':2,'A1.c':2,'A2.a':3,'A2.b':4,'A2.c':3,'A3.a':3,'A4.a':4,'A4.b':5,
+  'B1.a':2,'B1.b':2,'B2.a':3,'B2.b':3,'B2.c':3,'B2.d':3,'B3.a':2,'B3.b':3,'B3.c':3,
+  'B3.d':2,'B3.e':1,'B4.a':5,'B4.b':3,'B4.c':3,'B4.d':3,'B5.a':3,'B5.b':4,'B5.c':2,
+  'B6.a':2,'B6.b':2,
+  'C1.a':3,'C1.b':2,'C1.c':3,'C1.d':3,'C1.e':4,'C1.f':4,'C2.a':5,
+  'D1.a':2,'D1.b':3,'D1.c':2,'D2.a':2,'D2.b':2
+};
+
+// Effective risk = base impact * likelihood * gap penalty
+// Only rated outcomes carry risk. A justified Not Applicable is genuinely out of
+// scope for the system under assessment. An unaddressed outcome is unknown risk,
+// not zero risk — it is surfaced separately in the completeness banner.
+function coRiskScore(coId) {
+  const v = score(coId);
+  if(v==='NAP'||v==='UNSET') return null;
+  const impact = CO_IMPACT[coId]||3;
+  const likelihood = CO_LIKELIHOOD[coId]||3;
+  // Gap penalty: NOT=1.0 (full risk), PAR=0.5, ACH=0.1 (residual)
+  const gap = v==='NOT'?1.0:v==='PAR'?0.5:0.1;
+  return Math.round(impact * likelihood * gap * 10) / 10;
+}
+
+// Effective likelihood for matrix (adjusted down if achieved)
+function coMatrixL(coId) {
+  const v = score(coId);
+  const base = CO_LIKELIHOOD[coId]||3;
+  if(v==='ACH') return Math.max(1, base-2);
+  if(v==='PAR') return Math.max(1, base-1);
+  return base;
+}
+
+function coMatrixI(coId) {
+  return CO_IMPACT[coId]||3;
+}
+
+// ══════════════ RISK MATRIX ══════════════
+function renderMatrix() {
+  const ratedCos = ALL_COS.filter(c=>isRated(c.id));
+  const unrated = ALL_COS.filter(c=>isUnset(c.id)).length;
+  const napCount = ALL_COS.filter(c=>isNap(c.id)).length;
+
+  // Group COs into 5x5 grid cells [likelihood(1-5)][impact(1-5)]
+  const grid = {};
+  for(let l=1;l<=5;l++) for(let i=1;i<=5;i++) grid[`${l}_${i}`]=[];
+  ratedCos.forEach(co=>{
+    const l = coMatrixL(co.id);
+    const i = coMatrixI(co.id);
+    grid[`${l}_${i}`].push(co);
+  });
+
+  const cellColors = {
+    // [likelihood][impact] background — standard risk matrix colouring
+    '1_1':'#F0FBF5','1_2':'#F0FBF5','1_3':'#FDFDF0','1_4':'#FFF8E8','1_5':'#FFF3E0',
+    '2_1':'#F0FBF5','2_2':'#FDFDF0','2_3':'#FFF8E8','2_4':'#FFF3E0','2_5':'#FFF0E8',
+    '3_1':'#FDFDF0','3_2':'#FFF8E8','3_3':'#FFF0E8','3_4':'#FFF0E8','3_5':'#FDEDF0',
+    '4_1':'#FFF8E8','4_2':'#FFF0E8','4_3':'#FDEDF0','4_4':'#FDEDF0','4_5':'#FDE8EA',
+    '5_1':'#FFF0E8','5_2':'#FDEDF0','5_3':'#FDE8EA','5_4':'#FDE8EA','5_5':'#FBDDE0',
+  };
+
+  const likelihoodLabels = ['','Very Low','Low','Medium','High','Very High'];
+  const impactLabels = ['','Minimal','Minor','Moderate','Major','Critical'];
+
+  let html = `<div class="fu">`;
+
+  if(ratedCos.length === 0) {
+    html += `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:40px;text-align:center;color:var(--muted)">
+      <div style="font-size:32px;margin-bottom:12px">📊</div>
+      <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">No assessments yet</div>
+      <div style="font-size:12px">Rate some Contributing Outcomes in the Objectives tabs to populate the risk matrix. Outcomes marked Not Applicable are excluded by design.</div>
+    </div></div>`;
+    return html;
+  }
+
+  // Summary stats
+  const criticalZone = ratedCos.filter(c=>coMatrixL(c.id)>=4&&coMatrixI(c.id)>=4);
+  const highZone = ratedCos.filter(c=>{const l=coMatrixL(c.id),i=coMatrixI(c.id);return(l+i)>=7&&!(l>=4&&i>=4)});
+  const notAch = ratedCos.filter(c=>score(c.id)==='NOT');
+
+  html += `<div class="imp-summary-grid">
+    <div class="imp-summary-card">
+      <div class="imp-summary-val" style="color:#C0283A">${criticalZone.length}</div>
+      <div class="imp-summary-lbl">Critical / High Zone COs</div>
+      <div class="imp-summary-sub">High impact + high likelihood</div>
+    </div>
+    <div class="imp-summary-card">
+      <div class="imp-summary-val" style="color:#B35C00">${notAch.length}</div>
+      <div class="imp-summary-lbl">Not Achieved COs</div>
+      <div class="imp-summary-sub">Unmitigated control gaps</div>
+    </div>
+    <div class="imp-summary-card">
+      <div class="imp-summary-val" style="color:${unrated>0?'#C0283A':'#6B7A90'}">${unrated}</div>
+      <div class="imp-summary-lbl">Outcomes Not Addressed</div>
+      <div class="imp-summary-sub">${unrated>0?'Unknown risk — must be rated':`All addressed · ${napCount} out of scope`}</div>
+    </div>
+  </div>`;
+
+  // Matrix
+  html += `<div class="matrix-wrap">
+    <div style="font-size:14px;font-weight:700;margin-bottom:4px">Risk Matrix — Contributing Outcomes</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:16px">Each bubble represents a Contributing Outcome. Position reflects inherent impact vs current likelihood of exploitation. Hover for details.</div>
+    <div style="display:flex;gap:16px;align-items:flex-start">
+      <div style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.5px;padding:0 4px;align-self:center">← LIKELIHOOD →</div>
+      <div style="flex:1">
+        <div class="matrix-grid">`;
+
+  // Build grid rows (likelihood 5→1, impact 1→5)
+  for(let l=5;l>=1;l--) {
+    // Row label
+    html += `<div class="matrix-cell-label vertical">${likelihoodLabels[l]}</div>`;
+    for(let i=1;i<=5;i++) {
+      const key = `${l}_${i}`;
+      const cellCos = grid[key];
+      const bg = cellColors[key]||'#FAFAFA';
+      html += `<div class="matrix-cell" style="background:${bg};border-radius:6px">`;
+      cellCos.forEach(co=>{
+        const v = score(co.id);
+        const bg2 = v==='NOT'?'#C0283A':v==='PAR'?'#B35C00':'#0A7A50';
+        const objCol = OBJ_COLORS[co.oId];
+        html += `<div class="matrix-bubble" style="background:${bg2};border-color:rgba(255,255,255,0.7)" title="${co.id}">
+          ${co.id.replace(/[A-D]/,'')}
+          <div class="matrix-tooltip">
+            <strong style="color:#fff">${co.id} — ${co.name}</strong><br>
+            Objective: ${co.oId} · ${co.pTitle}<br>
+            Rating: ${STATUS_META[v].label}<br>
+            Impact: ${impactLabels[i]} · Likelihood: ${likelihoodLabels[l]}
+            ${co.isNew?'<br><span style="color:#6EE7B7">★ New in v4.0</span>':''}
+          </div>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+  }
+
+  // Bottom axis labels
+  html += `<div></div>`; // corner
+  for(let i=1;i<=5;i++) {
+    html += `<div class="matrix-cell-label" style="font-size:9px;padding-top:4px;color:var(--muted)">${impactLabels[i]}</div>`;
+  }
+
+  html += `</div>`; // matrix-grid
+  html += `<div class="matrix-axis-title">← IMPACT →</div>`;
+
+  // Legend
+  html += `<div class="matrix-legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#C0283A"></div>Not Achieved</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#B35C00"></div>Partially Achieved</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#0A7A50"></div>Achieved</div>
+    <div class="legend-item" style="margin-left:auto;font-size:10px;color:var(--muted)">Hover bubbles for details · Numbers = CO ref (e.g. "2.a" = B2.a) · Not Applicable outcomes are not plotted</div>
+  </div>`;
+
+  html += `</div></div>`; // matrix-wrap
+
+  // Top risks table
+  const topRisks = ratedCos
+    .filter(c=>score(c.id)!=='ACH')
+    .map(c=>({co:c, score:coRiskScore(c.id)||0, l:coMatrixL(c.id), i:coMatrixI(c.id)}))
+    .sort((a,b)=>b.score-a.score)
+    .slice(0,10);
+
+  if(topRisks.length>0){
+    html += `<div class="report-card"><div class="report-head">TOP RISK EXPOSURES — Highest combined impact × likelihood × gap</div>
+      <table class="rtable"><thead><tr>
+        <th>#</th><th>CO Ref</th><th>Contributing Outcome</th><th>Status</th><th>Impact</th><th>Likelihood</th><th>Risk Score</th>
+      </tr></thead><tbody>`;
+    topRisks.forEach(({co,score:rs,l,i},idx)=>{
+      const v = score(co.id);
+      const vcol = STATUS_META[v].col;
+      const riskLevel = rs>=15?'CRITICAL':rs>=8?'HIGH':rs>=4?'MEDIUM':'LOW';
+      html += `<tr>
+        <td style="font-family:monospace;font-size:10px;color:var(--muted)">${idx+1}</td>
+        <td style="font-family:monospace;font-size:10px;font-weight:700;color:${OBJ_COLORS[co.oId]}">${co.id}</td>
+        <td style="font-size:12px">${co.name}${co.isNew?'<span class="co-new" style="margin-left:6px">NEW</span>':''}</td>
+        <td><span style="font-size:10px;font-weight:700;color:${vcol}">${STATUS_META[v].label}</span></td>
+        <td style="font-family:monospace;font-size:10px">${impactLabels[i]}</td>
+        <td style="font-family:monospace;font-size:10px">${likelihoodLabels[l]}</td>
+        <td><span class="badge risk-${riskLevel}">${riskLevel} (${rs})</span></td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+
+  html += `</div>`;
+  return html;
+}
+
+// ══════════════ IMPROVEMENT PLAN ══════════════
+function renderImprovements() {
+  const gaps = ALL_COS.filter(c=>score(c.id)==='NOT'||score(c.id)==='PAR');
+
+  let html = `<div class="fu">`;
+
+  if(gaps.length === 0) {
+    const allRated = ALL_COS.filter(c=>isRated(c.id)).length;
+    if(allRated===0){
+      html += `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:40px;text-align:center;color:var(--muted)">
+        <div style="font-size:32px;margin-bottom:12px">🎯</div>
+        <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">No assessments yet</div>
+        <div style="font-size:12px">Rate Contributing Outcomes in the Objectives tabs to generate your improvement plan.</div>
+      </div></div>`;
+    } else {
+      html += `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:40px;text-align:center">
+        <div style="font-size:32px;margin-bottom:12px">✅</div>
+        <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">No gaps identified</div>
+        <div style="font-size:12px;color:var(--muted)">All rated Contributing Outcomes are Achieved. Confirm any outcomes marked Not Applicable carry a written justification before submission.</div>
+      </div></div>`;
+    }
+    return html;
+  }
+
+  // Score each gap by priority = (impact * likelihood) / effort
+  const scored = gaps.map(co=>{
+    const impact = CO_IMPACT[co.id]||3;
+    const likelihood = CO_LIKELIHOOD[co.id]||3;
+    const effort = CO_EFFORT[co.id]||3;
+    const v = score(co.id);
+    const gapPenalty = v==='NOT'?2:1;
+    const priority = Math.round((impact * likelihood * gapPenalty) / effort * 10) / 10;
+    const category = effort<=2 && priority>=4 ? 'quickwin'
+                   : impact>=4 && likelihood>=4 ? 'critical'
+                   : effort>=4 ? 'strategic' : 'foundation';
+    return {co, impact, likelihood, effort, priority, v, category};
+  }).sort((a,b)=>b.priority-a.priority);
+
+  const quickWins = scored.filter(s=>s.category==='quickwin');
+  const critical = scored.filter(s=>s.category==='critical');
+  const foundation = scored.filter(s=>s.category==='foundation');
+  const strategic = scored.filter(s=>s.category==='strategic');
+
+  // Summary
+  html += `<div class="imp-summary-grid">
+    <div class="imp-summary-card">
+      <div class="imp-summary-val" style="color:#B35C00">${quickWins.length}</div>
+      <div class="imp-summary-lbl">Quick Wins</div>
+      <div class="imp-summary-sub">Low effort, high value</div>
+    </div>
+    <div class="imp-summary-card">
+      <div class="imp-summary-val" style="color:#C0283A">${critical.length}</div>
+      <div class="imp-summary-lbl">Critical Gaps</div>
+      <div class="imp-summary-sub">High risk, prioritise now</div>
+    </div>
+    <div class="imp-summary-card">
+      <div class="imp-summary-val" style="color:#7C3AED">${strategic.length}</div>
+      <div class="imp-summary-lbl">Strategic Investments</div>
+      <div class="imp-summary-sub">High effort, plan carefully</div>
+    </div>
+  </div>`;
+
+  // Radar chart using SVG
+  const objScores = CAF.map(o=>{
+    const s = calcObj(o.id);
+    return s.rated>0 ? s.pct/100 : 0;
+  });
+  const radarPoints = objScores.map((v,i)=>{
+    const angle = (i/4)*2*Math.PI - Math.PI/2;
+    const r = v*80;
+    return [150+r*Math.cos(angle), 150+r*Math.sin(angle)];
+  });
+  const radarPath = radarPoints.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')+'Z';
+
+  const axisPoints = [0,1,2,3].map(i=>{
+    const angle = (i/4)*2*Math.PI - Math.PI/2;
+    return [150+90*Math.cos(angle), 150+90*Math.sin(angle)];
+  });
+  const objLabels = CAF.map((o,i)=>{
+    const angle = (i/4)*2*Math.PI - Math.PI/2;
+    const r = 110;
+    return {x:150+r*Math.cos(angle), y:150+r*Math.sin(angle), label:o.id, color:o.color};
+  });
+
+  html += `<div class="radar-wrap">
+    <div style="font-size:14px;font-weight:700;margin-bottom:4px">Maturity Radar — By Objective</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:16px">Current assessed maturity across the four CAF objectives</div>
+    <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+      <svg width="300" height="300" viewBox="0 0 300 300">
+        <!-- Background rings -->
+        ${[20,40,60,80].map(r=>`<circle cx="150" cy="150" r="${r}" fill="none" stroke="#E2E6EC" stroke-width="1"/>`).join('')}
+        <!-- Axis lines -->
+        ${axisPoints.map(p=>`<line x1="150" y1="150" x2="${p[0].toFixed(1)}" y2="${p[1].toFixed(1)}" stroke="#E2E6EC" stroke-width="1"/>`).join('')}
+        <!-- Data polygon -->
+        <path d="${radarPath}" fill="#1456CC22" stroke="#1456CC" stroke-width="2" stroke-linejoin="round"/>
+        <!-- Data points -->
+        ${radarPoints.map((p,i)=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4" fill="${CAF[i].color}" stroke="white" stroke-width="1.5"/>`).join('')}
+        <!-- Labels -->
+        ${objLabels.map(l=>`<text x="${l.x.toFixed(1)}" y="${l.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="700" fill="${l.color}" font-family="monospace">${l.label}</text>`).join('')}
+        <!-- % labels on rings -->
+        ${[25,50,75,100].map((pct,i)=>`<text x="152" y="${150-(i+1)*20+4}" font-size="8" fill="#B8C4D0" font-family="monospace">${pct}%</text>`).join('')}
+      </svg>
+      <div style="flex:1;min-width:200px">
+        ${CAF.map(o=>{
+          const s=calcObj(o.id);
+          const r=riskFromPct(s.pct,s.rated>0);
+          return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+            <div style="width:32px;height:32px;border-radius:8px;background:${o.color}18;border:1.5px solid ${o.color};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:${o.color};font-family:monospace;flex-shrink:0">${o.id}</div>
+            <div style="flex:1">
+              <div style="font-size:11px;font-weight:600;color:var(--text)">${o.title}</div>
+              <div style="height:5px;background:var(--border2);border-radius:3px;margin-top:4px;overflow:hidden"><div style="height:100%;width:${s.pct}%;background:${o.color};border-radius:3px"></div></div>
+            </div>
+            <div style="font-family:monospace;font-size:13px;font-weight:700;color:${o.color};min-width:36px;text-align:right">${s.pct}%</div>
+            <span class="badge risk-${r}" style="font-size:9px;padding:1px 5px">${r}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>`;
+
+  // Improvement action cards per category
+  const sections = [
+    {items:quickWins, title:'⚡ Quick Wins', sub:'Address these first — low effort with immediate security benefit', badgeFn:()=>'<span class="quick-win-badge">QUICK WIN</span>'},
+    {items:critical, title:'🔴 Critical Gaps', sub:'High risk exposures requiring urgent attention regardless of effort', badgeFn:()=>'<span class="badge risk-CRITICAL" style="font-size:9px">CRITICAL</span>'},
+    {items:foundation, title:'🏗 Foundation Improvements', sub:'Core controls that underpin broader security capability', badgeFn:()=>'<span class="foundation-badge">FOUNDATION</span>'},
+    {items:strategic, title:'🎯 Strategic Investments', sub:'Longer-term programmes requiring planning, resource and expertise', badgeFn:()=>'<span class="strategic-badge">STRATEGIC</span>'},
+  ];
+
+  const effortLabel = e=>e<=1?'Very Low':e<=2?'Low':e<=3?'Medium':e<=4?'High':'Very High';
+  const impactLabel = i=>i<=1?'Minimal':i<=2?'Minor':i<=3?'Moderate':i<=4?'Major':'Critical';
+
+  const actionGuide = {
+    'A1.a':'Establish board-level ownership; schedule regular security briefings with board sponsor.',
+    'A1.b':'Define and document security roles; assign named owners; review annually.',
+    'A1.c':'Establish risk appetite statement; implement risk-based decision framework.',
+    'A2.a':'Implement formal risk management process with regular review cycles.',
+    'A2.b':'Adopt threat analysis methodology (e.g. attack trees); integrate threat intelligence feeds.',
+    'A2.c':'Define assurance programme; conduct penetration testing and independent reviews.',
+    'A3.a':'Conduct asset discovery; maintain live CMDB; classify by criticality.',
+    'A4.a':'Conduct supply chain review; add security clauses to contracts; assess 4th-party risk.',
+    'A4.b':'Implement SBOM process; require NIST SSDF or SDL evidence from software suppliers.',
+    'B1.a':'Develop comprehensive security policy suite aligned to risk; review schedule.',
+    'B1.b':'Implement policy compliance monitoring; integrate into HR processes.',
+    'B2.a':'Deploy MFA for all users; enforce privileged access controls; review access lists.',
+    'B2.b':'Implement certificate-based device management; deploy NAC solution.',
+    'B2.c':'Establish PAM solution; implement just-in-time privileged access.',
+    'B2.d':'Conduct access rights review; implement IGA tool; automate JML process.',
+    'B3.a':'Complete data discovery exercise; classify and catalogue sensitive data assets.',
+    'B3.b':'Audit data-in-transit protection; deploy TLS everywhere; review backup transmission.',
+    'B3.c':'Implement encryption at rest; test backup restoration; segment backup storage.',
+    'B3.d':'Deploy MDM solution; enforce device encryption; implement remote wipe capability.',
+    'B3.e':'Implement formal sanitisation process using NCSC-approved methods; track devices.',
+    'B4.a':'Conduct network architecture review; implement security zones; minimise attack surface.',
+    'B4.b':'Implement baseline hardening; deploy configuration management; remove default creds.',
+    'B4.c':'Establish PAW programme; implement change management; update network diagrams.',
+    'B4.d':'Deploy vulnerability scanning; establish patch SLAs; prioritise internet-facing systems.',
+    'B5.a':'Test BCP/DR plans; conduct tabletop exercises; document recovery procedures.',
+    'B5.b':'Implement network segmentation; mitigate single points of failure; redundancy review.',
+    'B5.c':'Implement 3-2-1 backup strategy; test restoration regularly; air-gap critical backups.',
+    'B6.a':'Launch security awareness programme; embed security in culture; leadership messaging.',
+    'B6.b':'Deploy role-based security training; include phishing simulation; track completion.',
+    'C1.a':'Define monitoring scope; deploy SIEM; ensure logging of critical systems.',
+    'C1.b':'Centralise log collection; implement log integrity controls; extend retention period.',
+    'C1.c':'Tune detection rules; reduce false positives; implement alert triage workflow.',
+    'C1.d':'Define incident classification criteria; implement triage process; train SOC analysts.',
+    'C1.e':'Assess tooling gaps; invest in EDR/NDR; upskill or augment SOC capability.',
+    'C1.f':'Deploy UEBA; integrate CTI feeds; establish threat intel sharing relationships.',
+    'C2.a':'Establish threat hunting programme; adopt structured methodology (e.g. PEAK); train hunters.',
+    'D1.a':'Develop and test incident response plan; ground it in risk assessment; cover known and previously unseen attack patterns; integrate with supply chain response plans.',
+    'D1.b':'Confirm response resources and decision-making authority; duplicate key roles; test back-up mechanisms; retain external IR support (specialist responders) on standby.',
+    'D1.c':'Schedule regular IR exercises drawing on threat intelligence and past incidents; test all parts of the response cycle including restoration; feed findings into lessons learned.',
+    'D2.a':'Implement post-incident analysis covering organisational, technical and human factors; consider plausible alternative circumstances; make all incident data available to analysts.',
+    'D2.b':'Create improvement register including near misses; prioritise and track implementation; feed analysis to senior management; learn from sector incidents.'
+  };
+
+  sections.forEach(({items,title,sub,badgeFn})=>{
+    if(items.length===0) return;
+    html += `<div class="imp-section">
+      <div class="imp-section-title">${title} <span>${sub}</span></div>`;
+    items.forEach(({co,impact,likelihood,effort,priority,v},rank)=>{
+      const vcol = v==='NOT'?'#C0283A':'#B35C00';
+      const rankBg = v==='NOT'?'#FDEDF0':'#FFF5D6';
+      const rankCol = v==='NOT'?'#C0283A':'#B35C00';
+      html += `<div class="imp-card">
+        <div class="imp-card-head">
+          <div class="imp-rank-badge" style="background:${rankBg};color:${rankCol}">${rank+1}</div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+              <span style="font-family:monospace;font-size:11px;font-weight:700;color:${OBJ_COLORS[co.oId]}">${co.id}</span>
+              <span style="font-size:13px;font-weight:600;color:var(--text)">${co.name}</span>
+              ${co.isNew?'<span class="co-new">NEW v4.0</span>':''}
+              ${badgeFn()}
+            </div>
+            <div style="font-size:11px;color:var(--muted)">${co.pTitle} · Obj ${co.oId}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <span style="font-size:10px;font-weight:700;color:${vcol}">${STATUS_META[v].label}</span>
+            <div style="font-family:monospace;font-size:18px;font-weight:700;color:${rankCol}">${priority}</div>
+            <div style="font-size:9px;color:var(--muted)">priority score</div>
+          </div>
+        </div>
+        <div style="padding:0 16px 14px">
+          <div class="imp-card-body">
+            <div class="imp-metric">Impact
+              <strong>${impactLabel(impact)}</strong>
+              <div style="height:5px;background:var(--border2);border-radius:3px;margin-top:4px;overflow:hidden">
+                <div style="height:100%;width:${impact*20}%;background:#C0283A;border-radius:3px"></div>
+              </div>
+            </div>
+            <div class="imp-metric">Threat Likelihood
+              <strong>${['','Very Low','Low','Medium','High','Very High'][likelihood]}</strong>
+              <div style="height:5px;background:var(--border2);border-radius:3px;margin-top:4px;overflow:hidden">
+                <div style="height:100%;width:${likelihood*20}%;background:#B35C00;border-radius:3px"></div>
+              </div>
+            </div>
+            <div class="imp-metric">Remediation Effort
+              <strong>${effortLabel(effort)}</strong>
+              <div style="height:5px;background:var(--border2);border-radius:3px;margin-top:4px;overflow:hidden">
+                <div style="height:100%;width:${effort*20}%;background:#1456CC;border-radius:3px"></div>
+              </div>
+            </div>
+          </div>
+          ${actionGuide[co.id]?`<div class="imp-action"><strong>Recommended action:</strong> ${actionGuide[co.id]}</div>`:''}
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+
+  html += `</div>`;
+  return html;
+}
+
+// ══════════════ EXPORT / IMPORT ══════════════
+// JSON is the round-trip format: it restores ratings, justifications, evidence
+// and assessment metadata exactly. CSV is a flat, one-row-per-outcome extract
+// intended for auditors, Competent Authorities and spreadsheet analysis.
+
+const SCHEMA_VERSION = 1;
+
+function toast(msg, isErr){
+  const existing = document.getElementById('toast');
+  if(existing) existing.remove();
+  const t = document.createElement('div');
+  t.id = 'toast';
+  t.className = 'toast'+(isErr?' err':'');
+  t.innerHTML = '<span class="toast-dot"></span><span></span>';
+  t.lastChild.textContent = msg;
+  document.body.appendChild(t);
+  requestAnimationFrame(()=>t.classList.add('show'));
+  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),300); }, isErr?5200:3400);
+}
+
+function slug(s){
+  return (s||'').trim().replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40) || 'assessment';
+}
+function stamp(){ return (meta.date||new Date().toISOString().split('T')[0]); }
+
+function download(filename, mime, text){
+  const blob = new Blob([text], {type:mime+';charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+
+// ─── Completeness summary reused by both formats ────────────────
+function completeness(){
+  const unset = ALL_COS.filter(c=>isUnset(c.id)).map(c=>c.id);
+  const unjustified = ALL_COS.filter(c=>napUnjustified(c.id)).map(c=>c.id);
+  return {
+    addressed: 41 - unset.length,
+    outstanding: unset,
+    unjustifiedNotApplicable: unjustified,
+    readyForSubmission: unset.length===0 && unjustified.length===0
+  };
+}
+
+// ─── JSON EXPORT ────────────────────────────────────────────────
+function buildJSON(){
+  const all = calcAll();
+  const comp = completeness();
+
+  return {
+    schemaVersion: SCHEMA_VERSION,
+    framework: {
+      name: 'NCSC Cyber Assessment Framework',
+      version: '4.0',
+      published: '2025-08-06',
+      objectives: 4, principles: 14, contributingOutcomes: 41,
+      source: 'https://www.ncsc.gov.uk/collection/cyber-assessment-framework',
+      licence: 'Contains public sector information licensed under the Open Government Licence v3.0. CAF content © Crown copyright 2025.'
+    },
+    assessment: {
+      organisation: meta.org || null,
+      leadAssessor: meta.assessor || null,
+      date: meta.date || null,
+      essentialFunction: meta.fn || null,
+      cafProfile: meta.profile || null,
+      exportedAt: new Date().toISOString()
+    },
+    completeness: comp,
+    summary: {
+      note: 'Maturity percentages are calculated over rated outcomes only (Achieved / Partially Achieved / Not Achieved). Outcomes justified as Not Applicable are excluded from the denominator. Outcomes not yet addressed are excluded and flagged under completeness.',
+      overallPercent: all.rated>0 ? all.pct : null,
+      rated: all.rated,
+      achieved:      ALL_COS.filter(c=>score(c.id)==='ACH').length,
+      partiallyAchieved: ALL_COS.filter(c=>score(c.id)==='PAR').length,
+      notAchieved:   ALL_COS.filter(c=>score(c.id)==='NOT').length,
+      notApplicable: ALL_COS.filter(c=>isNap(c.id)).length,
+      notAddressed:  ALL_COS.filter(c=>isUnset(c.id)).length,
+      byObjective: CAF.map(o=>{
+        const s = calcObj(o.id);
+        return {
+          id:o.id, title:o.title,
+          percent: s.rated>0 ? s.pct : null,
+          rated:s.rated, notApplicable:s.nap, notAddressed:s.unset
+        };
+      })
+    },
+    contributingOutcomes: ALL_COS.map(co=>{
+      const v = score(co.id);
+      return {
+        ref: co.id,
+        objective: co.oId,
+        principle: co.pId,
+        principleTitle: co.pTitle,
+        name: co.name,
+        newInV4: !!co.isNew,
+        partiallyAchievedAvailable: !!co.hasPa,
+        rating: v,
+        ratingLabel: STATUS_META[v].label,
+        justification: (justifications[co.id]||'').trim() || null,
+        evidence: (evidence[co.id]||'').trim() || null,
+        justificationRequired: v==='NAP',
+        justificationMissing: napUnjustified(co.id)
+      };
+    })
+  };
+}
+
+function exportJSON(){
+  try{
+    const data = buildJSON();
+    download(`CAF-v4-${slug(meta.org)}-${stamp()}.json`, 'application/json', JSON.stringify(data,null,2));
+    const c = data.completeness;
+    toast(c.readyForSubmission
+      ? 'JSON exported — all 41 outcomes addressed.'
+      : `JSON exported — ${c.outstanding.length} outcome(s) unaddressed, ${c.unjustifiedNotApplicable.length} N/A without justification.`);
+  }catch(e){
+    toast('Export failed: '+e.message, true);
+  }
+}
+
+// ─── CSV EXPORT ─────────────────────────────────────────────────
+// RFC 4180 quoting: wrap every field, double any embedded quote.
+// Justification and evidence are free text and will contain commas and newlines.
+function csvCell(v){
+  const s = (v===null||v===undefined) ? '' : String(v);
+  return '"' + s.replace(/"/g,'""') + '"';
+}
+function csvRow(cells){ return cells.map(csvCell).join(','); }
+
+function buildCSV(){
+  const rows = [];
+
+  // Header block — context an auditor needs without opening another file.
+  rows.push(csvRow(['NCSC Cyber Assessment Framework v4.0 — Self-Assessment Export']));
+  rows.push(csvRow(['Organisation', meta.org||'—']));
+  rows.push(csvRow(['Lead Assessor', meta.assessor||'—']));
+  rows.push(csvRow(['Assessment Date', meta.date||'—']));
+  rows.push(csvRow(['Essential Function / System in Scope', meta.fn||'—']));
+  rows.push(csvRow(['CAF Profile (set by regulator)', meta.profile||'—']));
+  rows.push(csvRow(['Exported At', new Date().toISOString()]));
+
+  const all = calcAll();
+  const comp = completeness();
+  rows.push(csvRow(['Overall Maturity %', all.rated>0?all.pct+'%':'—']));
+  rows.push(csvRow(['Outcomes Addressed', comp.addressed+' of 41']));
+  rows.push(csvRow(['Ready for Submission', comp.readyForSubmission?'Yes':'No']));
+  if(comp.outstanding.length)
+    rows.push(csvRow(['Outcomes Not Addressed', comp.outstanding.join(' ')]));
+  if(comp.unjustifiedNotApplicable.length)
+    rows.push(csvRow(['Not Applicable Without Justification', comp.unjustifiedNotApplicable.join(' ')]));
+  rows.push(csvRow(['Scoring Note','Percentages are calculated over rated outcomes only. Outcomes justified as Not Applicable are excluded from the denominator, not scored as failures.']));
+  rows.push('');
+
+  // Main table
+  rows.push(csvRow([
+    'CO Ref','Objective','Objective Title','Principle','Principle Title',
+    'Contributing Outcome','New in v4.0','Partially Achieved Available',
+    'Rating','Rating Label','Justification (required for Not Applicable)',
+    'Justification Missing','Evidence & Commentary'
+  ]));
+
+  ALL_COS.forEach(co=>{
+    const v = score(co.id);
+    const obj = CAF.find(o=>o.id===co.oId);
+    rows.push(csvRow([
+      co.id, co.oId, obj?obj.title:'', co.pId, co.pTitle,
+      co.name,
+      co.isNew?'Yes':'No',
+      co.hasPa?'Yes':'No — binary (Achieved / Not Achieved only)',
+      v, STATUS_META[v].label,
+      justifications[co.id]||'',
+      napUnjustified(co.id)?'YES — WILL FAIL VALIDATION':'',
+      evidence[co.id]||''
+    ]));
+  });
+
+  rows.push('');
+  rows.push(csvRow(['Objective Summary']));
+  rows.push(csvRow(['Objective','Title','Rated','Achieved','Partially Achieved','Not Achieved','Not Applicable','Not Addressed','Score %']));
+  CAF.forEach(o=>{
+    const cos = ALL_COS.filter(c=>c.oId===o.id);
+    const s = calcPts(cos);
+    rows.push(csvRow([
+      o.id, o.title, s.rated,
+      cos.filter(c=>score(c.id)==='ACH').length,
+      cos.filter(c=>score(c.id)==='PAR').length,
+      cos.filter(c=>score(c.id)==='NOT').length,
+      s.nap, s.unset,
+      s.rated>0 ? s.pct+'%' : '—'
+    ]));
+  });
+
+  rows.push('');
+  rows.push(csvRow(['Contains public sector information licensed under the Open Government Licence v3.0. CAF content © Crown copyright 2025.']));
+
+  // BOM so Excel reads UTF-8 (the © and — characters) correctly.
+  return '\ufeff' + rows.join('\r\n');
+}
+
+function exportCSV(){
+  try{
+    download(`CAF-v4-${slug(meta.org)}-${stamp()}.csv`, 'text/csv', buildCSV());
+    toast('CSV exported — 41 contributing outcomes with ratings, justifications and evidence.');
+  }catch(e){
+    toast('Export failed: '+e.message, true);
+  }
+}
+
+// ─── JSON IMPORT ────────────────────────────────────────────────
+const VALID_RATINGS = ['UNSET','NAP','NOT','PAR','ACH'];
+
+function importJSON(input){
+  const file = input.files && input.files[0];
+  input.value = '';                      // allow re-importing the same file
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onerror = ()=>toast('Could not read file.', true);
+  reader.onload = e=>{
+    let data;
+    try{ data = JSON.parse(e.target.result); }
+    catch(err){ return toast('Not valid JSON — could not parse the file.', true); }
+
+    if(!data || !Array.isArray(data.contributingOutcomes))
+      return toast('Unrecognised file. Expected a CAF assessment JSON export.', true);
+
+    if(data.framework && data.framework.version && data.framework.version !== '4.0')
+      return toast(`This file is for CAF v${data.framework.version}. This tool assesses v4.0 — ratings are not directly transferable.`, true);
+
+    if(!confirm('Import will replace all current ratings, justifications and evidence. Continue?')) return;
+
+    const validRefs = new Set(ALL_COS.map(c=>c.id));
+    const nextScores = {}, nextJust = {}, nextEv = {};
+    let applied = 0;
+    const unknown = [], coerced = [];
+
+    data.contributingOutcomes.forEach(row=>{
+      if(!row || !validRefs.has(row.ref)){ if(row&&row.ref) unknown.push(row.ref); return; }
+      const co = ALL_COS.find(c=>c.id===row.ref);
+
+      let r = VALID_RATINGS.includes(row.rating) ? row.rating : 'UNSET';
+      // Guard: a PAR rating on a binary outcome is not valid under CAF v4.0.
+      if(r==='PAR' && !co.hasPa){ r='NOT'; coerced.push(row.ref); }
+
+      if(r!=='UNSET') nextScores[row.ref] = r;
+      if(row.justification) nextJust[row.ref] = String(row.justification);
+      if(row.evidence)      nextEv[row.ref]  = String(row.evidence);
+      applied++;
+    });
+
+    scores = nextScores; justifications = nextJust; evidence = nextEv;
+
+    if(data.assessment){
+      meta.org      = data.assessment.organisation      || '';
+      meta.assessor = data.assessment.leadAssessor      || '';
+      meta.date     = data.assessment.date              || meta.date;
+      meta.fn       = data.assessment.essentialFunction || '';
+      meta.profile  = data.assessment.cafProfile        || '';
+    }
+
+    update();
+
+    let msg = `Imported ${applied} of 41 contributing outcomes.`;
+    if(coerced.length) msg += ` ${coerced.length} "Partially Achieved" rating(s) on binary outcomes (${coerced.join(', ')}) were reset to Not Achieved.`;
+    if(unknown.length) msg += ` ${unknown.length} unrecognised ref(s) ignored.`;
+    toast(msg, coerced.length>0 || unknown.length>0);
+  };
+  reader.readAsText(file);
+}
+
+// ══════════════ NAVIGATION & UPDATE ══════════════
+
+function navigate(page){
+  currentPage = page;
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  const el = document.getElementById('nav-'+page);
+  if(el) el.classList.add('active');
+  const titles = {
+    dashboard:'Dashboard',
+    A:'Objective A — Managing Security Risk',
+    B:'Objective B — Protecting Against Cyber Attack',
+    C:'Objective C — Detecting Cyber Security Events',
+    D:'Objective D — Minimising Impact of Cyber Security Incidents',
+    matrix:'Risk Matrix',
+    improvements:'Improvement Plan',
+    report:'Full Assessment Report'
+  };
+  document.getElementById('topbar-title').textContent = titles[page]||page;
+  renderPage();
+  document.getElementById('content').scrollTop=0;
+}
+
+function renderPage(){
+  const content = document.getElementById('content');
+  if(currentPage==='dashboard') content.innerHTML = renderDashboard();
+  else if(['A','B','C','D'].includes(currentPage)) content.innerHTML = renderObjective(currentPage);
+  else if(currentPage==='matrix') content.innerHTML = renderMatrix();
+  else if(currentPage==='improvements') content.innerHTML = renderImprovements();
+  else if(currentPage==='report') content.innerHTML = renderReport();
+}
+
+// updateMeta: sidebar/progress only - does NOT re-render the page (preserves open state)
+function updateMeta(){
+  // Progress = outcomes explicitly addressed. A justified Not Applicable counts
+  // as addressed. A blank does not.
+  const addressed = ALL_COS.filter(c=>!isUnset(c.id)).length;
+  const unset = ALL_COS.length - addressed;
+  const unjust = ALL_COS.filter(c=>napUnjustified(c.id)).length;
+  const pct = Math.round(addressed/ALL_COS.length*100);
+  document.getElementById('prog-fill').style.width = pct+'%';
+  document.getElementById('prog-text').textContent = addressed+' / '+ALL_COS.length;
+
+  const warnEl = document.getElementById('prog-warn');
+  if(warnEl){
+    if(unset>0){
+      warnEl.style.display='block';
+      warnEl.textContent = unset+' outcome'+(unset===1?'':'s')+' unaddressed';
+    } else if(unjust>0){
+      warnEl.style.display='block';
+      warnEl.textContent = unjust+' N/A missing justification';
+    } else {
+      warnEl.style.display='none';
+    }
+  }
+
+  CAF.forEach(o=>{
+    const s = calcObj(o.id);
+    const r = riskFromPct(s.pct,s.rated>0);
+    const el = document.getElementById('risk-'+o.id);
+    if(el){
+      el.className = 'badge risk-'+r;
+      el.textContent = r==='UNRATED'?'\u2014':r;
+    }
+  });
+
+  const orgEl = document.getElementById('topbar-org');
+  if(orgEl) orgEl.textContent = meta.org||'';
+}
+
+// update: full re-render (used on navigation and reset only)
+function update(){
+  updateMeta();
+  renderPage();
+}
+
+function togglePrinciple(pid){
+  const el = document.getElementById(pid);
+  const chev = document.getElementById('chev-'+pid);
+  if(!el) return;
+  const open = el.style.display!=='none';
+  el.style.display = open?'none':'block';
+  if(chev) chev.classList.toggle('open',!open);
+}
+
+function toggleCo(cid){
+  const el = document.getElementById(cid);
+  const chev = document.getElementById('chev-'+cid);
+  if(!el) return;
+  const open = el.style.display!=='none';
+  el.style.display = open?'none':'block';
+  if(chev) chev.classList.toggle('open',!open);
+}
+
+function toggleGuidance(){
+  const el = document.getElementById('guidance-body');
+  const chev = document.getElementById('chev-guidance');
+  if(!el) return;
+  const open = el.style.display!=='none';
+  el.style.display = open?'none':'block';
+  if(chev) chev.classList.toggle('open',!open);
+}
+
+function showSetup(){
+  document.getElementById('f-org').value = meta.org;
+  document.getElementById('f-assessor').value = meta.assessor;
+  document.getElementById('f-date').value = meta.date;
+  document.getElementById('f-function').value = meta.fn||'';
+  document.getElementById('f-profile').value = meta.profile||'';
+  document.getElementById('setup-modal').style.display='flex';
+}
+function hideSetup(){ document.getElementById('setup-modal').style.display='none'; }
+function saveSetup(){
+  meta.org = document.getElementById('f-org').value;
+  meta.assessor = document.getElementById('f-assessor').value;
+  meta.date = document.getElementById('f-date').value;
+  meta.fn = document.getElementById('f-function').value;
+  meta.profile = document.getElementById('f-profile').value;
+  hideSetup();
+  update();
+}
+function resetScores(){
+  if(confirm('Reset all 41 Contributing Outcome ratings, justifications and evidence? This cannot be undone.')) {
+    scores={}; justifications={}; evidence={};
+    update();
+  }
+}
+
+// Init
+navigate('dashboard');
+</script>
+</body>
+</html>
