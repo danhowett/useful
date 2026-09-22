@@ -1,0 +1,2285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cyber Readiness Assessment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* ── SUNRISE (light) ── */
+    --bg: #F7F1E4;
+    --surface: #FFFFFF;
+    --surface-2: #EFE4CD;
+    --surface-3: #E7D9BC;
+    --border: #E1D2AE;
+    --border-2: #D0BD91;
+    --text: #2A2117;
+    --text-dim: #6C5B43;
+    --text-muted: #998763;
+    --accent: #C94E1B;
+    --accent-ink: #FFFFFF;
+    --accent-soft: rgba(201,78,27,0.10);
+    --accent-2: #1E7489;
+    --accent-2-soft: rgba(30,116,137,0.10);
+    --red: #AE3527;
+    --red-soft: rgba(174,53,39,0.09);
+    --amber: #93630C;
+    --amber-soft: rgba(147,99,12,0.10);
+    --green: #3C6E48;
+    --green-soft: rgba(60,110,72,0.10);
+    --tier1: #7048B0;
+    --tier2: #1E7489;
+    --tier3: #3C6E48;
+    --shadow: 0 1px 2px rgba(42,33,23,0.06), 0 6px 18px rgba(42,33,23,0.06);
+    --scrim: rgba(42,33,23,0.35);
+    --font-display: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-body: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      /* ── DUSK (dark, not black) ── */
+      --bg: #221D2C;
+      --surface: #2B2536;
+      --surface-2: #342C40;
+      --surface-3: #3C3449;
+      --border: #453B54;
+      --border-2: #554A66;
+      --text: #F1EAFA;
+      --text-dim: #BCAFD3;
+      --text-muted: #8A7EA0;
+      --accent: #FF9E5C;
+      --accent-ink: #2A1608;
+      --accent-soft: rgba(255,158,92,0.14);
+      --accent-2: #9C90F2;
+      --accent-2-soft: rgba(156,144,242,0.14);
+      --red: #FF8478;
+      --red-soft: rgba(255,132,120,0.14);
+      --amber: #FFC167;
+      --amber-soft: rgba(255,193,103,0.14);
+      --green: #7FD8A6;
+      --green-soft: rgba(127,216,166,0.14);
+      --tier1: #B9A2FF;
+      --tier2: #9C90F2;
+      --tier3: #7FD8A6;
+      --shadow: 0 1px 2px rgba(10,7,16,0.4), 0 10px 26px rgba(10,7,16,0.45);
+      --scrim: rgba(10,7,16,0.55);
+      color-scheme: dark;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #221D2C;
+    --surface: #2B2536;
+    --surface-2: #342C40;
+    --surface-3: #3C3449;
+    --border: #453B54;
+    --border-2: #554A66;
+    --text: #F1EAFA;
+    --text-dim: #BCAFD3;
+    --text-muted: #8A7EA0;
+    --accent: #FF9E5C;
+    --accent-ink: #2A1608;
+    --accent-soft: rgba(255,158,92,0.14);
+    --accent-2: #9C90F2;
+    --accent-2-soft: rgba(156,144,242,0.14);
+    --red: #FF8478;
+    --red-soft: rgba(255,132,120,0.14);
+    --amber: #FFC167;
+    --amber-soft: rgba(255,193,103,0.14);
+    --green: #7FD8A6;
+    --green-soft: rgba(127,216,166,0.14);
+    --tier1: #B9A2FF;
+    --tier2: #9C90F2;
+    --tier3: #7FD8A6;
+    --shadow: 0 1px 2px rgba(10,7,16,0.4), 0 10px 26px rgba(10,7,16,0.45);
+    --scrim: rgba(10,7,16,0.55);
+    color-scheme: dark;
+  }
+
+  :root[data-theme="corporate"] {
+    /* ── CORPORATE (white, blue/grey) ── */
+    --bg: #F4F6F8;
+    --surface: #FFFFFF;
+    --surface-2: #EEF1F5;
+    --surface-3: #E4E9EF;
+    --border: #D7DEE6;
+    --border-2: #C1CBD6;
+    --text: #1B2430;
+    --text-dim: #4E5C6E;
+    --text-muted: #7C8998;
+    --accent: #2554A3;
+    --accent-ink: #FFFFFF;
+    --accent-soft: rgba(37,84,163,0.10);
+    --accent-2: #55677D;
+    --accent-2-soft: rgba(85,103,125,0.12);
+    --red: #B3261E;
+    --red-soft: rgba(179,38,30,0.08);
+    --amber: #92600A;
+    --amber-soft: rgba(146,96,10,0.10);
+    --green: #1E7145;
+    --green-soft: rgba(30,113,69,0.09);
+    --tier1: #2554A3;
+    --tier2: #55677D;
+    --tier3: #1E7145;
+    --shadow: 0 1px 2px rgba(27,36,48,0.06), 0 6px 18px rgba(27,36,48,0.06);
+    --scrim: rgba(27,36,48,0.35);
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 { font-family: var(--font-display); }
+
+  /* ── HEADER ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 16px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(10px);
+    z-index: 100;
+    flex-wrap: wrap;
+  }
+
+  .logo { display: flex; align-items: center; gap: 12px; }
+
+  .logo-icon {
+    width: 34px; height: 34px;
+    border-radius: 9px;
+    background: linear-gradient(155deg, var(--accent) 0%, var(--accent-2) 130%);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: var(--shadow);
+  }
+  .logo-icon svg { width: 18px; height: 18px; }
+
+  .logo-text {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 16px;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    line-height: 1.15;
+  }
+  .logo-text small {
+    display: block;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .header-meta { display: flex; align-items: center; gap: 14px; }
+
+  .header-tag {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    padding: 5px 11px;
+    border: 1px solid var(--border-2);
+    border-radius: 999px;
+    background: var(--surface);
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .overall-score-chip {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 999px;
+  }
+
+  .io-actions { display: flex; gap: 6px; }
+  .io-btn {
+    font-family: var(--font-body);
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    padding: 7px 13px;
+    border-radius: 999px;
+    border: 1px solid var(--border-2);
+    background: var(--surface);
+    color: var(--text-dim);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: border-color .15s, color .15s;
+  }
+  .io-btn:hover { border-color: var(--accent-2); color: var(--accent-2); }
+  .io-btn svg { width: 12px; height: 12px; flex-shrink: 0; }
+  .score-value { font-size: 17px; font-weight: 600; color: var(--accent); }
+
+  /* ── LAYOUT ── */
+  .app {
+    display: grid;
+    grid-template-columns: 258px 1fr 300px;
+    min-height: calc(100vh - 66px);
+  }
+  @media (max-width: 980px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar, .right-panel { position: static; height: auto; border: none; }
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 22px 0;
+    position: sticky;
+    top: calc(66px + env(safe-area-inset-top, 0px));
+    height: calc(100vh - 66px);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-section { margin-bottom: 26px; }
+
+  .sidebar-sample-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: calc(100% - 40px);
+    margin: 0 20px;
+    font-family: var(--font-body);
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: transparent;
+    border: 1px dashed var(--border-2);
+    border-radius: 8px;
+    padding: 9px 12px;
+    cursor: pointer;
+    transition: color .15s, border-color .15s, background .15s;
+  }
+  .sidebar-sample-btn:hover { color: var(--accent-2); border-color: var(--accent-2); background: var(--accent-2-soft); }
+  .sidebar-sample-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+  .sidebar-label {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    padding: 0 20px;
+    margin-bottom: 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 20px;
+    cursor: pointer;
+    border-left: 2px solid transparent;
+    transition: background .15s, border-color .15s;
+  }
+  .nav-item:hover { background: var(--surface-2); }
+  .nav-item.active { background: var(--accent-soft); border-left-color: var(--accent); }
+  .nav-item.active .nav-name { color: var(--accent); font-weight: 600; }
+
+  .nav-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--border-2); flex-shrink: 0;
+  }
+  .nav-item.complete .nav-dot { background: var(--green); }
+  .nav-item.partial .nav-dot { background: var(--amber); }
+  .nav-item.active .nav-dot { background: var(--accent); }
+
+  .nav-name { font-size: 12.5px; color: var(--text-dim); flex: 1; }
+  .nav-score { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-muted); }
+
+  .results-cta {
+    width: calc(100% - 24px);
+    margin: 0 12px;
+    padding: 11px 12px;
+    border: 1px solid var(--border-2);
+    border-left: 2px solid var(--border-2);
+    border-radius: 9px;
+    background: var(--surface);
+    font-family: var(--font-body);
+    text-align: left;
+  }
+  .results-cta svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--text-muted); }
+  .results-cta-text { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+  .results-cta-text strong { font-size: 12.5px; font-weight: 600; color: var(--text-dim); }
+  .results-cta-text small { font-size: 10px; color: var(--text-muted); }
+  .results-cta:disabled { opacity: 0.55; cursor: not-allowed; }
+  .results-cta:disabled:hover { background: var(--surface); }
+  .results-cta:not(:disabled) {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    box-shadow: var(--shadow);
+  }
+  .results-cta:not(:disabled) svg,
+  .results-cta:not(:disabled) .results-cta-text strong { color: var(--accent); }
+  .results-cta:not(:disabled):hover { background: var(--accent); }
+  .results-cta:not(:disabled):hover svg,
+  .results-cta:not(:disabled):hover .results-cta-text strong,
+  .results-cta:not(:disabled):hover .results-cta-text small { color: var(--accent-ink); }
+  .results-cta.active { border-left-width: 2px; }
+
+  .nav-tier-badge {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+    border: 1px solid;
+  }
+  .tier-t1 { color: var(--tier1); border-color: var(--tier1); }
+  .tier-t2 { color: var(--tier2); border-color: var(--tier2); }
+  .tier-t3 { color: var(--tier3); border-color: var(--tier3); }
+
+  /* ── MAIN ── */
+  main { padding: 30px 34px 60px; overflow-y: auto; }
+  @media (max-width: 640px) { main { padding: 22px 16px 48px; } }
+
+  .intro-screen, .fw-screen { max-width: 760px; }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .intro-screen h1 {
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    margin: 0 0 10px;
+    line-height: 1.18;
+  }
+  .intro-screen h1 em { color: var(--accent); font-style: normal; }
+
+  .intro-subtitle {
+    font-size: 14.5px;
+    color: var(--text-dim);
+    margin-bottom: 28px;
+    max-width: 540px;
+  }
+
+  .intro-tiers {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 30px;
+  }
+  @media (max-width: 640px) { .intro-tiers { grid-template-columns: 1fr; } }
+
+  .tier-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    background: var(--surface);
+    position: relative;
+    box-shadow: var(--shadow);
+  }
+  .tier-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    border-radius: 10px 10px 0 0;
+  }
+  .tier-card.t1::before { background: var(--tier1); }
+  .tier-card.t2::before { background: var(--tier2); }
+  .tier-card.t3::before { background: var(--tier3); }
+
+  .tier-num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    margin-bottom: 6px;
+  }
+  .tier-card.t1 .tier-num { color: var(--tier1); }
+  .tier-card.t2 .tier-num { color: var(--tier2); }
+  .tier-card.t3 .tier-num { color: var(--tier3); }
+
+  .tier-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 5px; color: var(--text); }
+  .tier-card p { font-size: 11.5px; color: var(--text-dim); font-family: var(--font-body); line-height: 1.5; }
+
+  .fw-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 30px;
+  }
+  .fw-chip {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.03em;
+    padding: 7px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border-2);
+    background: var(--surface);
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+    transition: border-color .15s, color .15s;
+  }
+  .fw-chip:hover { border-color: var(--accent-2); color: var(--text); }
+  .fw-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+
+  .org-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 640px) { .org-form { grid-template-columns: 1fr; } }
+
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+
+  .form-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .form-input, .form-select {
+    background: var(--surface);
+    border: 1px solid var(--border-2);
+    border-radius: 7px;
+    color: var(--text);
+    padding: 9px 12px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  .form-input:focus, .form-select:focus {
+    border-color: var(--accent-2);
+    box-shadow: 0 0 0 3px var(--accent-2-soft);
+  }
+  .form-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23998763'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+    cursor: pointer;
+  }
+  .form-select option { background: var(--surface); color: var(--text); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border: none;
+    padding: 11px 22px;
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s, opacity .15s;
+    box-shadow: var(--shadow);
+  }
+  .btn-primary:hover { transform: translateY(-1px); opacity: .92; }
+  .btn-primary:focus-visible, .btn-secondary:focus-visible, .theme-btn:focus-visible, .rating-btn:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--text-dim);
+    border: 1px solid var(--border-2);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color .15s, color .15s;
+  }
+  .btn-secondary:hover { border-color: var(--accent-2); color: var(--accent-2); }
+
+  /* ── FRAMEWORK ALIGNMENT VIEW ── */
+  .fw-screen h1 { font-size: 26px; font-weight: 700; margin-bottom: 10px; }
+  .fw-lede { font-size: 14px; color: var(--text-dim); max-width: 620px; margin-bottom: 26px; }
+
+  .fw-callout {
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 28px;
+    font-size: 12.5px;
+    color: var(--text-dim);
+    line-height: 1.65;
+  }
+  .fw-callout strong { color: var(--text); }
+
+  .fw-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 28px; }
+  @media (max-width: 640px) { .fw-cards { grid-template-columns: 1fr; } }
+
+  .fw-card {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+  }
+  .fw-card-head { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; }
+  .fw-card .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .fw-card h3 { font-size: 14px; font-weight: 600; color: var(--text); }
+  .fw-card .fw-code { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); margin-bottom: 8px; display: flex; flex-wrap: wrap; gap: 2px 8px; }
+  .fw-card p { font-size: 12px; color: var(--text-dim); line-height: 1.55; }
+  .fw-link, .fw-card p a { color: var(--accent-2); text-decoration: none; border-bottom: 1px solid var(--accent-2-soft); transition: border-color .15s; }
+  .fw-link:hover, .fw-card p a:hover { border-color: var(--accent-2); }
+
+  .fw-table-wrap { overflow-x: auto; margin-bottom: 10px; border: 1px solid var(--border); border-radius: 10px; }
+  .fw-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 640px; }
+  .fw-table th {
+    font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-muted); text-align: left; padding: 10px 14px; background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+  }
+  .fw-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text-dim); vertical-align: top; }
+  .fw-table tr:last-child td { border-bottom: none; }
+  .fw-table td.fw-domain { color: var(--text); font-weight: 600; white-space: nowrap; }
+
+  /* ── DOMAIN VIEW ── */
+  .domain-header {
+    margin-bottom: 26px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .domain-title { font-size: 21px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .domain-desc { font-size: 12.5px; color: var(--text-dim); max-width: 480px; font-family: var(--font-body); }
+
+  .domain-progress { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+  .domain-score-big { font-family: var(--font-mono); font-size: 30px; font-weight: 600; line-height: 1; }
+  .domain-score-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; color: var(--text-muted); text-transform: uppercase; }
+
+  /* ── QUESTIONS ── */
+  .question-block {
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .question-block:hover { border-color: var(--border-2); box-shadow: var(--shadow); }
+
+  .question-header { padding: 15px 16px 12px; display: flex; align-items: flex-start; gap: 12px; }
+
+  .question-num {
+    font-family: var(--font-mono); font-size: 10px; color: var(--text-muted);
+    padding-top: 2px; flex-shrink: 0; width: 22px;
+  }
+
+  .question-content { flex: 1; min-width: 0; }
+  .question-text { font-size: 13.5px; color: var(--text); margin-bottom: 8px; font-weight: 500; line-height: 1.5; }
+
+  .question-meta { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+
+  .q-tier {
+    font-family: var(--font-mono); font-size: 9px; padding: 2px 6px; border-radius: 4px;
+    border: 1px solid; letter-spacing: 0.04em;
+  }
+  .q-weight { font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); }
+  .q-evidence-tag { font-family: var(--font-mono); font-size: 9px; color: var(--amber); letter-spacing: 0.03em; }
+
+  .q-fw-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin-top: 2px; }
+  .q-fw-tag {
+    font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.02em;
+    padding: 2px 6px; border-radius: 4px; background: var(--surface-2); color: var(--text-muted);
+    border: 1px solid var(--border);
+    cursor: help;
+  }
+
+  /* ── RATING SCALE ── */
+  .rating-row { padding: 0 16px 14px 50px; display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .rating-btn {
+    flex: 1; min-width: 58px;
+    padding: 8px 4px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--surface);
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 10px;
+    color: var(--text-muted);
+    transition: all .15s;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+  }
+  .rating-btn:hover { border-color: var(--border-2); color: var(--text); }
+  .rating-btn .r-num { font-family: var(--font-mono); font-size: 14px; font-weight: 600; }
+  .rating-btn .r-label { font-size: 8.5px; letter-spacing: 0.02em; line-height: 1.3; text-align: center; }
+
+  .rating-btn[data-val="1"].selected { border-color: var(--red); background: var(--red-soft); color: var(--red); }
+  .rating-btn[data-val="2"].selected { border-color: #C97438; background: rgba(201,116,56,0.12); color: #C97438; }
+  .rating-btn[data-val="3"].selected { border-color: var(--amber); background: var(--amber-soft); color: var(--amber); }
+  .rating-btn[data-val="4"].selected { border-color: #6E9E4C; background: rgba(110,158,76,0.12); color: #6E9E4C; }
+  .rating-btn[data-val="5"].selected { border-color: var(--green); background: var(--green-soft); color: var(--green); }
+
+  /* ── EVIDENCE / NOTES ── */
+  .evidence-row { padding: 0 16px 14px 50px; }
+
+  .evidence-toggle {
+    font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); cursor: pointer;
+    letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px; margin-bottom: 8px;
+    background: none; border: none; padding: 0; transition: color .15s;
+  }
+  .evidence-toggle:hover { color: var(--text); }
+  .evidence-toggle .toggle-icon { transition: transform .2s; display: inline-block; }
+  .evidence-toggle.open .toggle-icon { transform: rotate(90deg); }
+
+  .evidence-area { display: none; }
+  .evidence-area.open { display: block; }
+
+  .evidence-textarea {
+    width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 7px;
+    color: var(--text-dim); padding: 9px 11px; font-family: var(--font-mono); font-size: 11px;
+    resize: vertical; outline: none; min-height: 58px; line-height: 1.5; transition: border-color .15s;
+  }
+  .evidence-textarea:focus { border-color: var(--accent-2); color: var(--text); }
+  .evidence-textarea::placeholder { color: var(--text-muted); }
+
+  /* ── GAP INDICATOR ── */
+  .gap-indicator { padding: 6px 16px 14px 50px; display: none; }
+  .gap-indicator.visible { display: block; }
+
+  .gap-box { border-left: 3px solid var(--red); border-radius: 0 7px 7px 0; padding: 10px 13px; background: var(--red-soft); }
+  .gap-box.p2 { border-left-color: var(--amber); background: var(--amber-soft); }
+  .gap-box.p3 { border-left-color: var(--accent-2); background: var(--accent-2-soft); }
+
+  .gap-priority { font-family: var(--font-mono); font-size: 9px; font-weight: 600; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .gap-box .gap-priority { color: var(--red); }
+  .gap-box.p2 .gap-priority { color: var(--amber); }
+  .gap-box.p3 .gap-priority { color: var(--accent-2); }
+
+  .gap-text { font-size: 11.5px; color: var(--text-dim); margin-bottom: 5px; line-height: 1.5; }
+  .gap-remedy { font-size: 11.5px; color: var(--text-dim); line-height: 1.5; }
+  .gap-remedy strong { color: var(--green); font-weight: 600; }
+
+  /* ── NAV BUTTONS ── */
+  .domain-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+
+  /* ── RIGHT PANEL ── */
+  .right-panel {
+    border-left: 1px solid var(--border);
+    padding: 22px 18px;
+    position: sticky;
+    top: calc(66px + env(safe-area-inset-top, 0px));
+    height: calc(100vh - 66px);
+    overflow-y: auto;
+    display: flex; flex-direction: column; gap: 22px;
+  }
+
+  .panel-section-label { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.14em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; }
+
+  .score-bars { display: flex; flex-direction: column; gap: 9px; }
+  .score-bar-row { display: flex; flex-direction: column; gap: 3px; }
+  .score-bar-header { display: flex; justify-content: space-between; align-items: center; }
+  .score-bar-name { font-size: 10.5px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+  .score-bar-val { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); }
+  .score-bar-track { height: 4px; background: var(--surface-2); border-radius: 999px; position: relative; overflow: hidden; }
+  .score-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); border-radius: 999px; transition: width .5s ease; }
+
+  .gap-list { display: flex; flex-direction: column; gap: 7px; }
+  .gap-item { padding: 9px 11px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); display: flex; align-items: flex-start; gap: 9px; }
+  .gap-item-priority { font-family: var(--font-mono); font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
+  .p1-tag { background: var(--red-soft); color: var(--red); }
+  .p2-tag { background: var(--amber-soft); color: var(--amber); }
+  .p3-tag { background: var(--accent-2-soft); color: var(--accent-2); }
+  .gap-item-text { font-size: 10.5px; color: var(--text-dim); line-height: 1.45; }
+  .gap-item-domain { font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); margin-top: 3px; }
+  .empty-note { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); line-height: 1.5; }
+
+  /* ── RESULTS SCREEN ── */
+  .results-screen { max-width: 820px; }
+  .results-header { margin-bottom: 30px; }
+  .results-header h2 { font-size: 23px; color: var(--text); margin-bottom: 5px; font-weight: 700; }
+  .results-header p { color: var(--text-dim); font-size: 13px; }
+
+  .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 26px; }
+  @media (max-width: 640px) { .results-grid { grid-template-columns: 1fr; } }
+
+  .result-card { border: 1px solid var(--border); background: var(--surface); border-radius: 10px; padding: 18px; position: relative; overflow: hidden; box-shadow: var(--shadow); }
+  .result-card-label { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.12em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 9px; }
+  .result-card-score { font-family: var(--font-mono); font-size: 34px; font-weight: 600; line-height: 1; margin-bottom: 5px; }
+  .result-card-sub { font-size: 11.5px; color: var(--text-dim); }
+  .result-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent); }
+  .result-card.red::before { background: var(--red); }
+  .result-card.amber::before { background: var(--amber); }
+  .result-card.green::before { background: var(--green); }
+
+  .roadmap-table { width: 100%; border-collapse: collapse; margin-bottom: 22px; }
+  .roadmap-table th { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+  .roadmap-table td { padding: 10px 12px; font-size: 11.5px; color: var(--text-dim); border-bottom: 1px solid var(--border); vertical-align: top; }
+  .roadmap-table tr:last-child td { border-bottom: none; }
+  .roadmap-table tr:hover td { background: var(--surface-2); }
+
+  .phase-badge { font-family: var(--font-mono); font-size: 9px; padding: 3px 8px; border-radius: 999px; letter-spacing: 0.05em; white-space: nowrap; }
+  .phase-30 { background: var(--red-soft); color: var(--red); }
+  .phase-60 { background: var(--amber-soft); color: var(--amber); }
+  .phase-90 { background: var(--accent-2-soft); color: var(--accent-2); }
+
+  .result-domain-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .result-domain-row:last-child { border-bottom: none; }
+  .result-domain-name { font-size: 12.5px; flex: 1; color: var(--text); }
+  .result-domain-score { font-family: var(--font-mono); font-size: 12px; width: 38px; text-align: right; }
+  .result-domain-bar { width: 90px; height: 5px; background: var(--surface-2); border-radius: 999px; position: relative; overflow: hidden; flex-shrink: 0; }
+  .result-domain-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; transition: width .6s ease; }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+  .fade-in { animation: fadeIn .25s ease forwards; }
+  @media (prefers-reduced-motion: reduce) { .fade-in { animation: none; } * { transition-duration: .01ms !important; } }
+
+  .progress-bar-wrap { height: 3px; background: var(--surface-2); border-radius: 999px; margin-bottom: 22px; position: relative; overflow: hidden; }
+  .progress-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, var(--tier1), var(--tier2), var(--tier3)); border-radius: 999px; transition: width .4s ease; }
+  .progress-label { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 0.05em; }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .rating-description { padding: 2px 16px 10px 50px; font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); display: none; }
+  .rating-description.visible { display: block; }
+
+  /* ── RADAR CHART ── */
+  .radar-pair {
+    display: grid;
+    grid-template-columns: minmax(240px, 360px) 1fr;
+    gap: 28px;
+    align-items: center;
+    margin-bottom: 28px;
+  }
+  @media (max-width: 760px) { .radar-pair { grid-template-columns: 1fr; } }
+  .radar-card {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 18px 10px;
+    box-shadow: var(--shadow);
+  }
+  .radar-dot { cursor: pointer; }
+  .mini-radar-card {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 8px 2px 4px;
+  }
+
+  /* ── REPORT VIEW ── */
+  .report-shell { max-width: 980px; }
+  .report-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .report-paper {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 28px rgba(0,0,0,0.2);
+    padding: 30px 26px;
+    overflow-x: auto;
+  }
+
+  @media print {
+    header, .sidebar, .right-panel, .domain-nav, .no-print { display: none !important; }
+    .app { display: block; }
+    body { background: #fff; color: #1a1a1a; }
+    .view { display: none !important; }
+    .view#view-report.active { display: block !important; }
+    main { padding: 0; }
+    .report-shell { max-width: none; }
+    .report-paper { box-shadow: none !important; padding: 0 !important; border-radius: 0 !important; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7 1L13 4V7C13 10.3 10.3 13 7 13C3.7 13 1 10.3 1 7V4L7 1Z" stroke="white" stroke-width="1.3"/>
+        <path d="M4 7L6.5 9.5L10 5" stroke="white" stroke-width="1.3" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="logo-text">
+      Cyber Readiness Assessment
+      <small>Tiered IR maturity, mapped to NIST&nbsp;CSF&nbsp;2.0 · NCSC&nbsp;CAF · ISO/IEC&nbsp;27035 · CIS&nbsp;v8.1</small>
+    </div>
+  </div>
+  <div class="header-meta">
+    <div class="header-tag" id="orgNameTag">NEW ASSESSMENT</div>
+    <div class="overall-score-chip">
+      <span style="color:var(--text-muted);font-size:10px;letter-spacing:0.08em">OVERALL</span>
+      <span class="score-value" id="headerScore">–</span>
+      <span style="color:var(--text-muted);font-size:10px">/5.0</span>
+    </div>
+    <div class="io-actions">
+      <button class="io-btn" onclick="saveToFile()" title="Save this assessment's scores, notes and details to a JSON file">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Save
+      </button>
+      <button class="io-btn" onclick="loadFromFile()" title="Load a previously saved assessment JSON file">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Load
+      </button>
+    </div>
+    <button class="io-btn" id="btn-theme" onclick="cycleTheme()" title="Switch theme">
+      <svg id="theme-icon" viewBox="0 0 16 16" fill="none"></svg>
+      <span id="theme-label">Theme</span>
+    </button>
+  </div>
+</header>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Navigation</div>
+      <div class="nav-item active" data-view="intro" onclick="showView('intro')">
+        <div class="nav-dot" id="dot-intro"></div>
+        <span class="nav-name">Overview</span>
+      </div>
+      <div class="nav-item" data-view="frameworks" onclick="showView('frameworks')">
+        <div class="nav-dot" id="dot-frameworks"></div>
+        <span class="nav-name">Framework Alignment</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Assessment Domains</div>
+      <div id="domainNav"></div>
+    </div>
+    <div class="sidebar-section">
+      <button class="nav-item results-cta" data-view="results" onclick="showResults()" id="resultsNavItem" disabled>
+        <svg viewBox="0 0 16 16" fill="none"><path d="M2.5 13.5V2M2.5 13.5h11M5.3 13.5V8.4M8 13.5V5.6M10.7 13.5V9.8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="results-cta-text">
+          <strong>Results &amp; Roadmap</strong>
+          <small id="resultsCtaSub">Score 5+ controls to unlock</small>
+        </span>
+      </button>
+    </div>
+    <div class="sidebar-section" style="margin-top:auto;margin-bottom:0;padding-top:14px;border-top:1px solid var(--border)">
+      <button class="sidebar-sample-btn" onclick="loadSampleData()" title="Load a demo assessment to explore the tool">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M6 2h4M7 2v4.3L3.4 12a1.4 1.4 0 001.2 2.1h6.8a1.4 1.4 0 001.2-2.1L9 6.3V2" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+        Load sample assessment
+      </button>
+    </div>
+  </aside>
+
+  <main id="mainContent">
+    <!-- INTRO -->
+    <div class="view active" id="view-intro">
+      <div class="intro-screen fade-in">
+        <span class="eyebrow">Incident Readiness · 8 Domains · 40 Controls</span>
+        <h1>Incident response readiness, measured against <em>four recognised standards</em>.</h1>
+        <p class="intro-subtitle">Score each control on a 1–5 maturity scale, capture evidence as you go, and get a prioritised 30/60/90-day remediation roadmap at the end. Every control below is cross-referenced against four official standards — see <a href="#" onclick="showView('frameworks');return false;" style="color:var(--accent-2)">Framework Alignment</a> for the full mapping.</p>
+
+        <div class="intro-tiers">
+          <div class="tier-card t1">
+            <div class="tier-num">TIER 1 · FOUNDATIONAL</div>
+            <h3>Foundational Controls</h3>
+            <p>Core hygiene and policy controls — the baseline every framework below treats as non-negotiable.</p>
+          </div>
+          <div class="tier-card t2">
+            <div class="tier-num">TIER 2 · OPERATIONAL</div>
+            <h3>Operational Capability</h3>
+            <p>People, process, and tooling capability under pressure — the difference between a contained incident and a crisis.</p>
+          </div>
+          <div class="tier-card t3">
+            <div class="tier-num">TIER 3 · ADVANCED</div>
+            <h3>Continuous Improvement</h3>
+            <p>Continuous improvement, metrics, and threat-intel feedback loops — sustaining readiness over time.</p>
+          </div>
+        </div>
+
+        <div class="fw-strip">
+          <div class="fw-chip" onclick="showView('frameworks')"><span class="dot" style="background:var(--tier1)"></span>NIST CSF 2.0</div>
+          <div class="fw-chip" onclick="showView('frameworks')"><span class="dot" style="background:var(--tier2)"></span>NCSC CAF v4.0</div>
+          <div class="fw-chip" onclick="showView('frameworks')"><span class="dot" style="background:var(--accent)"></span>ISO/IEC 27035:2023</div>
+          <div class="fw-chip" onclick="showView('frameworks')"><span class="dot" style="background:var(--tier3)"></span>CIS Controls v8.1</div>
+        </div>
+
+        <div class="org-form">
+          <div class="form-group">
+            <label class="form-label" for="orgName">Organisation Name</label>
+            <input class="form-input" id="orgName" type="text" placeholder="Acme Corp Ltd">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="orgSector">Sector</label>
+            <select class="form-select" id="orgSector">
+              <option value="">Select sector...</option>
+              <option>Financial Services</option>
+              <option>Healthcare</option>
+              <option>Critical National Infrastructure</option>
+              <option>Manufacturing</option>
+              <option>Technology</option>
+              <option>Retail &amp; E-Commerce</option>
+              <option>Legal &amp; Professional Services</option>
+              <option>Education</option>
+              <option>Central Government</option>
+              <option>Local Government</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="orgSize">Organisation Size</label>
+            <select class="form-select" id="orgSize">
+              <option value="">Select size...</option>
+              <option>SME (&lt;250 employees)</option>
+              <option>Mid-market (250–2,000)</option>
+              <option>Enterprise (2,000+)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="assessDate">Assessment Date</label>
+            <input class="form-input" id="assessDate" type="date">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="assessorName">Assessor Name</label>
+            <input class="form-input" id="assessorName" type="text" placeholder="J. Smith">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="assessMethod">Assessment Method</label>
+            <select class="form-select" id="assessMethod">
+              <option>Interview + Evidence Review</option>
+              <option>Tabletop + Assessment</option>
+              <option>Technical Validation</option>
+              <option>Hybrid</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <button class="btn-primary" onclick="startAssessment()">Begin assessment →</button>
+          <span style="font-size:11.5px;color:var(--text-muted)">Already have a saved assessment? Use <strong style="color:var(--text-dim)">Load</strong> in the header above, or try the <strong style="color:var(--text-dim)">sample assessment</strong> in the sidebar.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- FRAMEWORK ALIGNMENT -->
+    <div class="view" id="view-frameworks">
+      <div class="fw-screen fade-in">
+        <span class="eyebrow">Methodology</span>
+        <h1>The standards behind this assessment</h1>
+        <p class="fw-lede">Every control in this assessment is cross-mapped to four recognised frameworks, so a finding can be defended to an auditor, a board, or a regulator on standards-based grounds, rather than organisational judgement alone.</p>
+
+        <div class="fw-callout">
+          <strong>Lifecycle basis:</strong> domain structure follows the PICERL incident lifecycle (Preparation → Identification → Containment → Eradication → Recovery → Lessons Learned) and references MITRE ATT&amp;CK for detection coverage, alongside UK-specific regulatory language (ICO/UK GDPR 72-hour rule, NIS2, FCA/PRA) where relevant. <strong>Framework tagging:</strong> each of the 40 questions below carries a tag for NIST CSF&nbsp;2.0, NCSC CAF, ISO/IEC 27035, and CIS Controls v8.1 — hover any tag in a domain view for the full reference. Where a framework simply has no equivalent control (shown as "—"), that's a genuine coverage gap worth knowing about, not an oversight in the tagging.
+        </div>
+
+        <div class="fw-callout">
+          <strong>How scores are calculated:</strong> each control is scored 1–5 (Not In Place → Optimised &amp; Evidenced). A domain's score is the weighted average of its <em>answered</em> controls only — unanswered controls are excluded, not counted as zero — where weight (1 or 2) reflects how foundational that control is within the domain. The overall readiness score is a plain average of the eight domain scores, so every domain counts equally regardless of how many controls it contains. <strong>Gap priority</strong> is fixed per control at design time, not derived from the score: a control becomes a gap once scored at or below its own threshold (usually ≤3), and its priority (P1/P2/P3, mapping to the 30/60/90-day roadmap phases) reflects how critical that control is to incident response — not how low it scored.
+        </div>
+
+        <div class="fw-cards">
+          <div class="fw-card">
+            <div class="fw-card-head"><span class="dot" style="background:var(--tier1)"></span><h3>NIST CSF 2.0</h3></div>
+            <div class="fw-code"><a class="fw-link" href="https://www.nist.gov/cyberframework" target="_blank" rel="noopener noreferrer">nist.gov/cyberframework</a><a class="fw-link" href="https://csf.tools" target="_blank" rel="noopener noreferrer">csf.tools</a></div>
+            <p>The de-facto international baseline. Six functions — Govern, Identify, Protect, Detect, Respond, Recover — organise every control in this tool. Paired with <a href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-61r3.pdf" target="_blank" rel="noopener noreferrer"><strong>SP&nbsp;800-61 Rev.&nbsp;3</strong></a> (April 2025), NIST's own incident-response profile written specifically against CSF&nbsp;2.0, which replaced the older Preparation/Detection/Containment phase model with function-aligned guidance.</p>
+          </div>
+          <div class="fw-card">
+            <div class="fw-card-head"><span class="dot" style="background:var(--tier2)"></span><h3>UK NCSC CAF v4.0</h3></div>
+            <div class="fw-code"><a class="fw-link" href="https://www.ncsc.gov.uk/collection/cyber-assessment-framework" target="_blank" rel="noopener noreferrer">ncsc.gov.uk/collection/cyber-assessment-framework</a></div>
+            <p>Outcome-based, and the natural anchor given this tool's ICO/FCA/NIS2 references. Four objectives — A: Managing Security Risk, B: Protecting Against Cyber Attacks, C: Detecting Cyber Security Events, D: Minimising Impact of Incidents — with Objective D mapping almost one-to-one onto this tool's own IR-specific domains.</p>
+          </div>
+          <div class="fw-card">
+            <div class="fw-card-head"><span class="dot" style="background:var(--accent)"></span><h3>ISO/IEC 27035:2023</h3></div>
+            <div class="fw-code"><a class="fw-link" href="https://www.iso.org/standard/78973.html" target="_blank" rel="noopener noreferrer">Part 1 · iso.org/78973</a><a class="fw-link" href="https://www.iso.org/standard/78974.html" target="_blank" rel="noopener noreferrer">Part 2 · iso.org/78974</a></div>
+            <p>The auditable, certifiable route if a client or contract requires ISO alignment. Five phases — Plan &amp; Prepare, Detect &amp; Report, Assess &amp; Decide, Respond &amp; Recover, Learn Lessons — map cleanly onto PICERL, consistent with the phase language used elsewhere in this tool.</p>
+          </div>
+          <div class="fw-card">
+            <div class="fw-card-head"><span class="dot" style="background:var(--tier3)"></span><h3>CIS Controls v8.1</h3></div>
+            <div class="fw-code"><a class="fw-link" href="https://www.cisecurity.org/controls/v8-1" target="_blank" rel="noopener noreferrer">cisecurity.org/controls/v8-1</a><span>18 controls</span></div>
+            <p>The most prescriptive of the four — useful for turning a maturity score into a specific technical safeguard. Control 17 (Incident Response Management) is the anchor for most Tier&nbsp;1/2 domains; Controls 5, 6, 8, 11, 12 &amp; 13 cover identity, logging, backup, and network response.</p>
+          </div>
+        </div>
+
+        <div class="panel-section-label">Domain → primary framework anchor</div>
+        <div class="fw-table-wrap">
+          <table class="fw-table">
+            <thead><tr><th>Domain</th><th>NIST CSF 2.0</th><th>NCSC CAF</th><th>ISO/IEC 27035</th><th>CIS v8.1</th></tr></thead>
+            <tbody id="fwSummaryBody"></tbody>
+          </table>
+        </div>
+        <p class="fw-lede" style="margin-top:14px;font-size:12px">Note: regulatory notification obligations (question CC4 — ICO/UK&nbsp;GDPR 72-hour rule, NIS2, FCA/PRA) sit outside all four security frameworks above by design — they're legal deadlines, not control objectives. Track them against the actual statutory text and your legal team's guidance, not against a security standard.</p>
+      </div>
+    </div>
+
+    <div id="domainViews"></div>
+
+    <div class="view" id="view-results">
+      <div class="results-screen fade-in" id="resultsContent"></div>
+    </div>
+
+    <div class="view" id="view-report">
+      <div class="report-shell fade-in">
+        <div class="report-toolbar no-print">
+          <button class="btn-secondary" onclick="showView('results')">← Back to results</button>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn-primary" onclick="window.print()">Print / Save PDF</button>
+            <button class="btn-secondary" onclick="downloadReportHTML()">Download report (HTML)</button>
+          </div>
+        </div>
+        <div id="reportPaper" class="report-paper"></div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="right-panel">
+    <div>
+      <div class="panel-section-label">Maturity Profile</div>
+      <div class="mini-radar-card" id="miniRadar"></div>
+    </div>
+    <div>
+      <div class="panel-section-label">Domain Scores</div>
+      <div class="score-bars" id="scoreBars"></div>
+    </div>
+    <div>
+      <div class="panel-section-label">Gap Register</div>
+      <div class="gap-list" id="gapList">
+        <div class="empty-note">Gaps will appear as you score controls below threshold.</div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<input type="file" id="fileInput" accept=".json,application/json" style="display:none" onchange="handleFileLoad(event)">
+
+<script>
+// ─── FRAMEWORK REFERENCE DATA ───────────────────────────────────────────────
+const FW_LABELS = {
+  csf: (v) => v ? `NIST CSF 2.0 · ${v}` : 'NIST CSF 2.0 · no direct subcategory',
+  caf: (v) => v ? `NCSC CAF · Principle ${v}` : 'NCSC CAF · no direct principle',
+  iso: (v) => v ? `ISO/IEC 27035 · ${v}` : 'ISO/IEC 27035 · no direct phase',
+  cis: (v) => v ? `CIS Controls v8.1 · Control ${v}` : 'CIS Controls v8.1 · no direct control (coverage gap)'
+};
+
+// ─── DATA ───────────────────────────────────────────────────────────────────
+const DOMAINS = [
+  {
+    id: 'governance',
+    name: 'Governance & Accountability',
+    tier: 'T1',
+    desc: 'Policies, ownership, and board-level visibility of cyber risk.',
+    questions: [
+      { id:'g1', tier:'T1', text:'An Incident Response Policy exists, is formally approved, and reviewed within the last 12 months.', weight:2, evidence:true,
+        fw:{csf:'GV.PO', caf:'A1', iso:'Plan & Prepare', cis:'17'},
+        gap:{thresh:3, priority:'P1', risk:'No formal IRP means responders lack authority and process during an incident.', remedy:'Commission an IRP with named owner; schedule annual review cycle.'} },
+      { id:'g2', tier:'T1', text:'A named individual (CISO or equivalent) holds documented accountability for incident response.', weight:2, evidence:false,
+        fw:{csf:'GV.RR', caf:'A1', iso:'Plan & Prepare', cis:'17'},
+        gap:{thresh:3, priority:'P1', risk:'Without a clear owner, decisions stall and escalation paths are ambiguous.', remedy:'Assign named IR owner; document in org chart and RACI.'} },
+      { id:'g3', tier:'T2', text:'Board or senior leadership receive regular cyber risk reporting (at least quarterly).', weight:1, evidence:true,
+        fw:{csf:'GV.OV', caf:'A1', iso:'Plan & Prepare', cis:null},
+        gap:{thresh:3, priority:'P2', risk:'Lack of board visibility delays resource allocation during major incidents.', remedy:'Implement quarterly cyber risk dashboard reporting to board.'} },
+      { id:'g4', tier:'T2', text:'A formal risk register captures cyber risks with defined owners, scores, and treatment plans.', weight:1, evidence:true,
+        fw:{csf:'GV.RM', caf:'A2', iso:'Plan & Prepare', cis:null},
+        gap:{thresh:3, priority:'P2', risk:'Untracked risks mean gaps persist without accountability.', remedy:'Establish cyber risk register; integrate with enterprise risk management.'} },
+      { id:'g5', tier:'T3', text:'Lessons learned from incidents are formally captured and fed back into governance processes.', weight:1, evidence:true,
+        fw:{csf:'ID.IM', caf:'D2', iso:'Learn Lessons', cis:'17'},
+        gap:{thresh:3, priority:'P3', risk:'Without feedback loops, the same vulnerabilities are repeatedly exploited.', remedy:'Mandate PIR completion for P1/P2 incidents; track open actions.'} },
+    ]
+  },
+  {
+    id: 'detection',
+    name: 'Detection & Alerting',
+    tier: 'T1',
+    desc: 'Tooling, coverage, and signal quality for identifying incidents.',
+    questions: [
+      { id:'d1', tier:'T1', text:'EDR/AV is deployed and actively monitored across ≥95% of endpoints (servers and workstations).', weight:2, evidence:true,
+        fw:{csf:'PR.PS', caf:'B4', iso:'Detect & Report', cis:'10'},
+        gap:{thresh:3, priority:'P1', risk:'Unprotected endpoints are the primary initial access vector for ransomware and malware.', remedy:'Complete EDR deployment; automate coverage reporting; set alert on uncovered assets.'} },
+      { id:'d2', tier:'T1', text:'Centralised log collection (SIEM or equivalent) is in place with retention of ≥90 days.', weight:2, evidence:true,
+        fw:{csf:'DE.CM', caf:'C1', iso:'Detect & Report', cis:'8'},
+        gap:{thresh:3, priority:'P1', risk:'Insufficient logging means forensic evidence is unavailable for scoping an incident.', remedy:'Deploy SIEM; set 90-day hot log retention; define minimum log source set.'} },
+      { id:'d3', tier:'T2', text:'Alert triage SLAs are defined and monitored (e.g. P1 alerts acknowledged within 15 minutes).', weight:1, evidence:false,
+        fw:{csf:'DE.AE', caf:'C1', iso:'Assess & Decide', cis:'17'},
+        gap:{thresh:3, priority:'P2', risk:'Without SLAs, high-severity alerts may sit unworked during critical early hours.', remedy:'Define triage SLA tiers; implement alerting on SLA breach; report monthly.'} },
+      { id:'d4', tier:'T2', text:'Detection use cases are mapped to MITRE ATT&CK and regularly reviewed for relevance.', weight:1, evidence:true,
+        fw:{csf:'DE.AE', caf:'C2', iso:'Detect & Report', cis:'13'},
+        gap:{thresh:3, priority:'P2', risk:'Untuned detections produce alert fatigue and miss emerging TTPs.', remedy:'Map existing rules to ATT&CK; run quarterly use case review; retire or tune stale rules.'} },
+      { id:'d5', tier:'T3', text:'Threat intelligence (internal or external feed) is operationalised into detection logic.', weight:1, evidence:true,
+        fw:{csf:'ID.RA', caf:'C2', iso:'Detect & Report', cis:'13'},
+        gap:{thresh:3, priority:'P3', risk:'Without threat intel integration, detections lag attacker tooling evolution.', remedy:'Subscribe to a CTI feed; integrate IoCs into SIEM/EDR; implement TI-driven hunting cadence.'} },
+    ]
+  },
+  {
+    id: 'irplan',
+    name: 'IR Plan & Playbooks',
+    tier: 'T1',
+    desc: 'Documented, tested procedures for responding to common incident scenarios.',
+    questions: [
+      { id:'p1', tier:'T1', text:'A documented Incident Response Plan exists covering triage, escalation, containment, and recovery phases.', weight:2, evidence:true,
+        fw:{csf:'RS.MA', caf:'D1', iso:'Plan & Prepare', cis:'17'},
+        gap:{thresh:3, priority:'P1', risk:'Without a tested IRP, responders improvise under pressure, increasing dwell time and errors.', remedy:'Develop IRP with defined phases; assign phase owners; version-control the document.'} },
+      { id:'p2', tier:'T1', text:'Playbooks exist for the organisation\'s top 3 threat scenarios (e.g. ransomware, BEC, data exfiltration).', weight:2, evidence:true,
+        fw:{csf:'RS.MA', caf:'D1', iso:'Plan & Prepare', cis:'17'},
+        gap:{thresh:3, priority:'P1', risk:'Generic response to scenario-specific incidents leads to missed containment steps.', remedy:'Develop scenario playbooks using PICERL structure; validate with tabletop exercises.'} },
+      { id:'p3', tier:'T2', text:'The IRP has been exercised (tabletop or live-fire) within the last 12 months with documented findings.', weight:2, evidence:true,
+        fw:{csf:'RS.MA', caf:'D1', iso:'Plan & Prepare', cis:'17'},
+        gap:{thresh:3, priority:'P1', risk:'An untested plan will fail at exactly the wrong moment — especially for comms and escalation.', remedy:'Schedule annual tabletop; engage specialist facilitator; track all findings to closure.'} },
+      { id:'p4', tier:'T2', text:'Escalation thresholds and criteria for declaring a Major Incident are clearly defined and understood.', weight:1, evidence:false,
+        fw:{csf:'RS.MA', caf:'D1', iso:'Assess & Decide', cis:'17'},
+        gap:{thresh:3, priority:'P2', risk:'Ambiguous escalation leads to under-reporting or delayed senior engagement.', remedy:'Define tiered severity model (P1–P4); document escalation triggers and notification chains.'} },
+      { id:'p5', tier:'T3', text:'Playbooks are reviewed and updated after exercises or real incidents, and improvements tracked.', weight:1, evidence:true,
+        fw:{csf:'ID.IM', caf:'D2', iso:'Learn Lessons', cis:'17'},
+        gap:{thresh:3, priority:'P3', risk:'Stale playbooks reflect historic, not current, threat landscape and tooling.', remedy:'Mandate post-exercise playbook review; track version history; assign playbook owner.'} },
+    ]
+  },
+  {
+    id: 'containment',
+    name: 'Containment & Eradication',
+    tier: 'T2',
+    desc: 'Technical and procedural capability to isolate and eliminate threats.',
+    questions: [
+      { id:'c1', tier:'T1', text:'Network segmentation is in place and tested — critical systems (OT, DC, PII) are isolated from general users.', weight:2, evidence:true,
+        fw:{csf:'PR.IR', caf:'B5', iso:'Respond & Recover', cis:'12'},
+        gap:{thresh:3, priority:'P1', risk:'Flat networks allow ransomware to achieve full domain compromise within hours of initial access.', remedy:'Implement VLAN segmentation; enforce firewall policy between zones; test quarterly.'} },
+      { id:'c2', tier:'T1', text:'EDR endpoint isolation can be remotely triggered within minutes for any managed endpoint.', weight:2, evidence:false,
+        fw:{csf:'RS.MI', caf:'D1', iso:'Respond & Recover', cis:'13'},
+        gap:{thresh:3, priority:'P1', risk:'Without fast isolation capability, attackers continue lateral movement during response.', remedy:'Verify EDR isolation feature is enabled; create isolation runbook; test on non-prod endpoint.'} },
+      { id:'c3', tier:'T2', text:'Procedures exist to disable or reset compromised accounts (AD, Entra ID, cloud IAM) at scale.', weight:2, evidence:true,
+        fw:{csf:'RS.MI', caf:'B2', iso:'Respond & Recover', cis:'6'},
+        gap:{thresh:3, priority:'P1', risk:'Compromised privileged accounts with no revocation procedure expose the full environment.', remedy:'Create identity lockdown runbook; test bulk disable in staging; assign IAM incident lead.'} },
+      { id:'c4', tier:'T2', text:'The organisation has capability to block malicious C2/IoCs at the network perimeter within 1 hour.', weight:1, evidence:false,
+        fw:{csf:'RS.MI', caf:'B5', iso:'Respond & Recover', cis:'13'},
+        gap:{thresh:3, priority:'P2', risk:'Active C2 channels allow continued exfiltration and reinfection after initial response.', remedy:'Implement emergency block procedure on proxy/firewall; create IoC intake workflow for SOC.'} },
+      { id:'c5', tier:'T3', text:'Forensic imaging and evidence preservation procedures are defined and tools are pre-staged.', weight:1, evidence:true,
+        fw:{csf:'RS.AN', caf:'D1', iso:'Respond & Recover', cis:'17'},
+        gap:{thresh:3, priority:'P3', risk:'Poor evidence handling compromises forensic investigations and potential legal proceedings.', remedy:'Document evidence collection procedures; stage imaging tools; train at least 2 analysts.'} },
+    ]
+  },
+  {
+    id: 'comms',
+    name: 'Communications & Crisis Mgmt',
+    tier: 'T2',
+    desc: 'Internal escalation, external notification, and out-of-band communication capability.',
+    questions: [
+      { id:'cc1', tier:'T1', text:'A contact tree for incident escalation is documented, current, and accessible offline.', weight:2, evidence:true,
+        fw:{csf:'RS.CO', caf:'D1', iso:'Plan & Prepare', cis:'17'},
+        gap:{thresh:3, priority:'P1', risk:'If primary email or Slack are compromised, responders have no way to coordinate.', remedy:'Produce printed contact sheet; store in physical crisis folder; review quarterly.'} },
+      { id:'cc2', tier:'T2', text:'Out-of-band communication capability exists for use if primary systems are unavailable.', weight:2, evidence:false,
+        fw:{csf:'RS.CO', caf:'D1', iso:'Respond & Recover', cis:'17'},
+        gap:{thresh:3, priority:'P1', risk:'Ransomware operators typically target email and messaging — primary comms may be encrypted.', remedy:'Establish Signal/WhatsApp crisis group; provision emergency mobile numbers; test annually.'} },
+      { id:'cc3', tier:'T2', text:'Legal and PR teams have pre-agreed protocols for external communications during an incident.', weight:1, evidence:true,
+        fw:{csf:'RS.CO', caf:'D1', iso:'Plan & Prepare', cis:null},
+        gap:{thresh:3, priority:'P2', risk:'Unmanaged external communications can escalate reputational damage and regulatory risk.', remedy:'Pre-position legal hold template and draft holding statement; define media spokesperson.'} },
+      { id:'cc4', tier:'T2', text:'Regulatory notification timelines (e.g. ICO 72-hr GDPR, NIS2, FCA) are understood and tracked.', weight:2, evidence:true,
+        fw:{csf:'GV.OC', caf:'A1', iso:'Respond & Recover', cis:null},
+        gap:{thresh:3, priority:'P1', risk:'Missed regulatory notification windows attract significant fines and enforcement action.', remedy:'Map applicable notification obligations; build countdown into incident log; assign legal lead.'} },
+      { id:'cc5', tier:'T3', text:'A crisis communications exercise has been conducted within the last 18 months.', weight:1, evidence:true,
+        fw:{csf:'RS.CO', caf:'D1', iso:'Plan & Prepare', cis:'17'},
+        gap:{thresh:3, priority:'P3', risk:'Untested comms protocols fail under the pressure and time constraints of a real incident.', remedy:'Include comms scenario in annual tabletop; involve PR, legal, and senior leadership.'} },
+    ]
+  },
+  {
+    id: 'identity',
+    name: 'Identity & Access Resilience',
+    tier: 'T1',
+    desc: 'MFA coverage, privileged access controls, and emergency access procedures.',
+    questions: [
+      { id:'i1', tier:'T1', text:'MFA is enforced for all remote access (VPN, RDP, cloud portals) with no exceptions.', weight:2, evidence:true,
+        fw:{csf:'PR.AA', caf:'B2', iso:'Plan & Prepare', cis:'6'},
+        gap:{thresh:3, priority:'P1', risk:'MFA gaps on remote access are the leading initial access vector in ransomware incidents.', remedy:'Enforce Conditional Access / MFA policy; audit for gaps; remediate legacy systems urgently.'} },
+      { id:'i2', tier:'T1', text:'MFA is enforced for all administrative and privileged accounts without exception.', weight:2, evidence:true,
+        fw:{csf:'PR.AA', caf:'B2', iso:'Plan & Prepare', cis:'6'},
+        gap:{thresh:3, priority:'P1', risk:'Compromised admin accounts without MFA result in full environment compromise within minutes.', remedy:'Enforce phishing-resistant MFA (FIDO2/hardware token) for all privileged roles immediately.'} },
+      { id:'i3', tier:'T2', text:'A Privileged Access Management (PAM) solution or equivalent controls are in place for admin accounts.', weight:1, evidence:true,
+        fw:{csf:'PR.AA', caf:'B2', iso:'Plan & Prepare', cis:'5'},
+        gap:{thresh:3, priority:'P2', risk:'Unmanaged privileged credentials are routinely harvested and used for lateral movement.', remedy:'Implement PAM tooling (CyberArk, BeyondTrust, or native solutions); rotate admin passwords.'} },
+      { id:'i4', tier:'T2', text:'Break-glass accounts are documented, secured, tested, and access is alerted/logged.', weight:1, evidence:true,
+        fw:{csf:'PR.AA', caf:'B2', iso:'Plan & Prepare', cis:'5'},
+        gap:{thresh:3, priority:'P2', risk:'Absent or untested break-glass accounts leave the org unable to recover control of AD/Entra during an attack.', remedy:'Create documented break-glass procedure; secure credentials in offline safe; test quarterly.'} },
+      { id:'i5', tier:'T3', text:'Service accounts and non-human identities are inventoried, have minimal permissions, and are regularly reviewed.', weight:1, evidence:false,
+        fw:{csf:'PR.AA', caf:'B2', iso:'Plan & Prepare', cis:'5'},
+        gap:{thresh:3, priority:'P3', risk:'Overprivileged service accounts are commonly used for lateral movement and persistence.', remedy:'Audit service account inventory; apply least privilege; implement automated password rotation.'} },
+    ]
+  },
+  {
+    id: 'backup',
+    name: 'Backup & Recovery',
+    tier: 'T1',
+    desc: 'Backup integrity, immutability, and validated recovery capability.',
+    questions: [
+      { id:'b1', tier:'T1', text:'Backups exist for all critical systems and data, with frequency aligned to defined RPO.', weight:2, evidence:true,
+        fw:{csf:'PR.DS', caf:'B3', iso:'Plan & Prepare', cis:'11'},
+        gap:{thresh:3, priority:'P1', risk:'Without current backups, ransomware recovery requires full rebuild — weeks of downtime.', remedy:'Audit backup coverage; align frequency to RPO; implement monitoring for backup failures.'} },
+      { id:'b2', tier:'T1', text:'Backups are stored offline or in an immutable/air-gapped location inaccessible to domain compromise.', weight:2, evidence:true,
+        fw:{csf:'PR.DS', caf:'B3', iso:'Plan & Prepare', cis:'11'},
+        gap:{thresh:3, priority:'P1', risk:'Backups on the same domain are encrypted alongside production data in ransomware attacks.', remedy:'Implement 3-2-1-1 strategy: 3 copies, 2 media, 1 offsite, 1 offline/immutable.'} },
+      { id:'b3', tier:'T2', text:'Backup restoration has been successfully tested within the last 6 months for critical systems.', weight:2, evidence:true,
+        fw:{csf:'RC.RP', caf:'B3', iso:'Respond & Recover', cis:'11'},
+        gap:{thresh:3, priority:'P1', risk:'Untested backups frequently fail during actual recovery — the worst time to discover this.', remedy:'Schedule semi-annual restore tests; document results; include recovery validation in DR exercises.'} },
+      { id:'b4', tier:'T2', text:'RTO and RPO are formally defined, agreed with the business, and validated in testing.', weight:1, evidence:false,
+        fw:{csf:'GV.RM', caf:'D1', iso:'Plan & Prepare', cis:'11'},
+        gap:{thresh:3, priority:'P2', risk:'Without agreed RTO/RPO, recovery decisions are made under pressure with no benchmark.', remedy:'Conduct BIA to define RTO/RPO per system tier; document in BCP/DRP; review annually.'} },
+      { id:'b5', tier:'T3', text:'A full end-to-end DR exercise (not just backup restore) has been conducted within the last 12 months.', weight:1, evidence:true,
+        fw:{csf:'RC.RP', caf:'D1', iso:'Respond & Recover', cis:'11'},
+        gap:{thresh:3, priority:'P3', risk:'Backup restoration alone does not validate the full recovery chain including DNS, networking, and applications.', remedy:'Run annual DR exercise covering full recovery stack; measure against RTO; document gaps.'} },
+    ]
+  },
+  {
+    id: 'learning',
+    name: 'Post-Incident Learning',
+    tier: 'T3',
+    desc: 'Structured review, metrics, and continuous improvement after incidents.',
+    questions: [
+      { id:'l1', tier:'T2', text:'A Post-Incident Review (PIR) process is mandated for all P1 and P2 incidents with documented outputs.', weight:2, evidence:true,
+        fw:{csf:'ID.IM', caf:'D2', iso:'Learn Lessons', cis:'17'},
+        gap:{thresh:3, priority:'P2', risk:'Without PIRs, the same vulnerabilities are repeatedly exploited across incidents.', remedy:'Define PIR template (5 fields minimum); mandate for all major incidents; track actions to closure.'} },
+      { id:'l2', tier:'T2', text:'PIR findings result in tracked remediation actions with assigned owners and due dates.', weight:1, evidence:true,
+        fw:{csf:'ID.IM', caf:'D2', iso:'Learn Lessons', cis:'17'},
+        gap:{thresh:3, priority:'P2', risk:'Findings without owners and deadlines are rarely actioned, leaving gaps unresolved.', remedy:'Integrate PIR actions into risk register or issue tracker; include in monthly security review.'} },
+      { id:'l3', tier:'T3', text:'Key incident metrics (MTTD, MTTR, incident volume by type) are tracked and reported monthly.', weight:1, evidence:true,
+        fw:{csf:'ID.IM', caf:'D2', iso:'Learn Lessons', cis:null},
+        gap:{thresh:3, priority:'P3', risk:'Without metrics, maturity improvements cannot be measured or demonstrated to leadership.', remedy:'Define IR metrics set; implement in SIEM or reporting tool; report to security governance forum.'} },
+      { id:'l4', tier:'T3', text:'Threat intelligence is updated post-incident and shared (internally or with sector peers) as appropriate.', weight:1, evidence:false,
+        fw:{csf:'ID.RA', caf:'C2', iso:'Learn Lessons', cis:null},
+        gap:{thresh:3, priority:'P3', risk:'Incident insights trapped within the org miss the opportunity to improve collective defence.', remedy:'Implement TI sharing process (ISAC/ISAO); use STIX/TAXII or structured email sharing format.'} },
+      { id:'l5', tier:'T3', text:'The organisation participates in sector-specific threat intelligence sharing (ISAC, NCSC Alerts, etc).', weight:1, evidence:false,
+        fw:{csf:'ID.RA', caf:'C2', iso:'Learn Lessons', cis:null},
+        gap:{thresh:3, priority:'P3', risk:'Isolated organisations are often the last to learn about active campaigns targeting their sector.', remedy:'Join relevant ISAC; subscribe to NCSC Early Warning; assign TI ownership to named analyst.'} },
+    ]
+  }
+];
+
+const SCORE_LABELS = ['','Not In Place','Partial/Undoc','In Place, Untested','Tested, Minor Gaps','Optimised & Evidenced'];
+
+const DOMAIN_SHORT = {
+  governance: 'Governance', detection: 'Detection', irplan: 'IR Plan',
+  containment: 'Containment', comms: 'Comms', identity: 'Identity',
+  backup: 'Backup', learning: 'Learning'
+};
+
+// ─── SAMPLE ASSESSMENT (for demos — a fictional mid-market financial ─────────
+// services firm; deliberately uneven so the radar, gap register and roadmap
+// all have something to show) ─────────────────────────────────────────────
+const SAMPLE_ORG_INFO = {
+  "name": "Northbridge Financial Services",
+  "sector": "Financial Services",
+  "size": "Mid-market (250–2,000)",
+  "date": "2026-09-10",
+  "assessor": "M. Reyes — Security & Resilience",
+  "method": "Interview + Evidence Review"
+};
+
+const SAMPLE_SCORES = {
+  "g1": 2, "g2": 3, "g3": 2, "g4": 2, "g5": 1,
+  "d1": 4, "d2": 4, "d3": 3, "d4": 2, "d5": 2,
+  "p1": 3, "p2": 3, "p3": 2, "p4": 3, "p5": 2,
+  "c1": 4, "c2": 4, "c3": 3, "c4": 3, "c5": 2,
+  "cc1": 2, "cc2": 1, "cc3": 2, "cc4": 3, "cc5": 1,
+  "i1": 5, "i2": 5, "i3": 3, "i4": 2, "i5": 2,
+  "b1": 4, "b2": 4, "b3": 3, "b4": 3, "b5": 2,
+  "l1": 2, "l2": 2, "l3": 1, "l4": 1, "l5": 1
+};
+
+const SAMPLE_NOTES = {
+  "g1": "IR Policy last formally approved 2023; no evidence of review since. Draft update circulated to Legal for sign-off.",
+  "g5": "No structured lessons-learned process tying incident findings back to governance — actions currently live only in analyst notebooks.",
+  "d2": "Splunk Cloud deployed; hot retention currently 60 days, below the 90-day target. Ticket raised with IT to extend.",
+  "d4": "Detection rules not yet mapped to ATT&CK; SOC lead has flagged this as a Q4 priority.",
+  "i1": "Entra ID Conditional Access enforces MFA org-wide with no exceptions; verified via policy export dated 2026-08-14.",
+  "i4": "Break-glass accounts exist but credentials are not stored in an offline safe and access is not alerted — remediation ticket open.",
+  "b2": "Veeam immutable backups confirmed for Tier 1 systems. Tier 2/3 workloads still on standard replication, not yet air-gapped.",
+  "cc2": "No out-of-band channel currently exists. A Signal crisis group has been proposed but not yet provisioned — flagged urgent.",
+  "cc4": "NIS2 and UK GDPR/ICO deadlines mapped; FCA SUP 15.3 obligations still being confirmed with Compliance.",
+  "l3": "No formal MTTD/MTTR tracking in place — SOC currently reports raw incident counts only, on an ad hoc basis."
+};
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let scores = {};
+let notes = {};
+let orgInfo = {};
+
+// ─── THEME ───────────────────────────────────────────────────────────────────
+const THEME_ORDER = ['light', 'dark', 'corporate'];
+const THEME_META = {
+  light: { label: 'Sunrise', icon: '<circle cx="8" cy="9.5" r="3.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 2v1.4M2.6 6.4l1.2.7M13.4 6.4l-1.2.7M2 13h12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>' },
+  dark: { label: 'Dusk', icon: '<path d="M13.5 9.5A5.5 5.5 0 116.5 2.5a4.3 4.3 0 007 7z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>' },
+  corporate: { label: 'Corporate', icon: '<rect x="1.7" y="5.5" width="12.6" height="8" rx="1.2" stroke="currentColor" stroke-width="1.3"/><path d="M5.6 5.5V4.2a1.5 1.5 0 011.5-1.5h1.8a1.5 1.5 0 011.5 1.5v1.3" stroke="currentColor" stroke-width="1.3"/><line x1="1.7" y1="9.3" x2="14.3" y2="9.3" stroke="currentColor" stroke-width="1.3"/>' }
+};
+
+function currentThemeMode() {
+  let mode = document.documentElement.getAttribute('data-theme');
+  if (!mode) {
+    let prefersDark = false;
+    try { prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; } catch(e) {}
+    mode = prefersDark ? 'dark' : 'light';
+  }
+  return mode;
+}
+function setTheme(mode) {
+  if (!THEME_ORDER.includes(mode)) mode = 'light';
+  try {
+    document.documentElement.setAttribute('data-theme', mode);
+    localStorage.setItem('cira-theme', mode);
+  } catch(e) {
+    document.documentElement.setAttribute('data-theme', mode);
+  }
+  reflectTheme();
+}
+function cycleTheme() {
+  const idx = THEME_ORDER.indexOf(currentThemeMode());
+  const next = THEME_ORDER[(idx + 1) % THEME_ORDER.length];
+  setTheme(next);
+}
+function reflectTheme() {
+  const mode = currentThemeMode();
+  const meta = THEME_META[mode] || THEME_META.light;
+  const btn = document.getElementById('btn-theme');
+  const icon = document.getElementById('theme-icon');
+  if (icon) icon.innerHTML = meta.icon;
+  if (btn) btn.title = `Theme: ${meta.label} — click to switch`;
+}
+try {
+  if (window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if (!document.documentElement.getAttribute('data-theme')) reflectTheme();
+    });
+  }
+} catch(e) {}
+(function initTheme() {
+  let saved = null;
+  try { saved = localStorage.getItem('cira-theme'); } catch(e) {}
+  if (THEME_ORDER.includes(saved)) { document.documentElement.setAttribute('data-theme', saved); }
+})();
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  reflectTheme();
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('assessDate').value = today;
+  buildDomainNav();
+  buildDomainViews();
+  buildScoreBars();
+  buildFwSummary();
+  updateAll();
+});
+
+function buildDomainNav() {
+  const nav = document.getElementById('domainNav');
+  DOMAINS.forEach((d) => {
+    const el = document.createElement('div');
+    el.className = 'nav-item';
+    el.id = `nav-${d.id}`;
+    el.setAttribute('data-view', d.id);
+    el.onclick = () => showView(d.id);
+    el.innerHTML = `
+      <div class="nav-dot" id="dot-${d.id}"></div>
+      <span class="nav-name">${d.name}</span>
+      <span class="nav-score" id="navscore-${d.id}">–</span>
+      <span class="nav-tier-badge tier-${d.tier.toLowerCase()}">${d.tier}</span>
+    `;
+    nav.appendChild(el);
+  });
+}
+
+function fwSummaryData() {
+  return DOMAINS.map(d => ({
+    name: d.name,
+    csf: [...new Set(d.questions.map(q => q.fw.csf))].join(', '),
+    caf: [...new Set(d.questions.map(q => q.fw.caf))].join(', '),
+    iso: [...new Set(d.questions.map(q => q.fw.iso))].join(', '),
+    cis: [...new Set(d.questions.map(q => q.fw.cis).filter(Boolean))].join(', ') || '—'
+  }));
+}
+
+function buildFwSummary() {
+  const body = document.getElementById('fwSummaryBody');
+  if (!body) return;
+  body.innerHTML = fwSummaryData().map(r =>
+    `<tr><td class="fw-domain">${r.name}</td><td>${r.csf}</td><td>${r.caf}</td><td>${r.iso}</td><td>${r.cis}</td></tr>`
+  ).join('');
+}
+
+function buildDomainViews() {
+  const container = document.getElementById('domainViews');
+  DOMAINS.forEach((d, dIdx) => {
+    const view = document.createElement('div');
+    view.className = 'view';
+    view.id = `view-${d.id}`;
+
+    const totalQ = d.questions.length;
+    let questionsHtml = d.questions.map((q, qIdx) => {
+      const tierClass = q.tier.toLowerCase();
+      const ratingBtns = [1,2,3,4,5].map(v => `
+        <button class="rating-btn" data-val="${v}" onclick="setScore('${q.id}',${v},'${d.id}')" id="rb-${q.id}-${v}">
+          <span class="r-num">${v}</span>
+          <span class="r-label">${['','Not In Place','Partial','In Place\nUntested','Tested\nMinor Gaps','Optimised'][v]}</span>
+        </button>`).join('');
+
+      const fwTags = `
+        <div class="q-fw-row">
+          <span class="q-fw-tag" title="${FW_LABELS.csf(q.fw.csf)}">CSF ${q.fw.csf}</span>
+          <span class="q-fw-tag" title="${FW_LABELS.caf(q.fw.caf)}">CAF ${q.fw.caf}</span>
+          <span class="q-fw-tag" title="${FW_LABELS.iso(q.fw.iso)}">ISO 27035</span>
+          <span class="q-fw-tag" title="${FW_LABELS.cis(q.fw.cis)}">CIS ${q.fw.cis ? q.fw.cis : '—'}</span>
+        </div>`;
+
+      return `
+        <div class="question-block" id="qblock-${q.id}">
+          <div class="question-header">
+            <span class="question-num">Q${qIdx+1}</span>
+            <div class="question-content">
+              <div class="question-text">${q.text}</div>
+              <div class="question-meta">
+                <span class="q-tier tier-${tierClass}">${q.tier}</span>
+                <span class="q-weight">Weight: ${q.weight}x</span>
+                ${q.evidence ? '<span class="q-evidence-tag">EVIDENCE REQ.</span>' : ''}
+              </div>
+              ${fwTags}
+            </div>
+          </div>
+          <div class="rating-row">${ratingBtns}</div>
+          <div class="rating-description" id="rdesc-${q.id}"></div>
+          ${q.evidence ? `
+          <div class="evidence-row">
+            <button class="evidence-toggle" onclick="toggleEvidence('${q.id}')">
+              <span class="toggle-icon">▶</span> EVIDENCE / NOTES
+            </button>
+            <div class="evidence-area" id="ev-${q.id}">
+              <textarea class="evidence-textarea" placeholder="Document evidence references, artefact locations, or assessment notes..." oninput="saveNote('${q.id}',this.value)" id="note-${q.id}"></textarea>
+            </div>
+          </div>` : `
+          <div class="evidence-row">
+            <button class="evidence-toggle" onclick="toggleEvidence('${q.id}')">
+              <span class="toggle-icon">▶</span> NOTES
+            </button>
+            <div class="evidence-area" id="ev-${q.id}">
+              <textarea class="evidence-textarea" placeholder="Assessment notes..." oninput="saveNote('${q.id}',this.value)" id="note-${q.id}"></textarea>
+            </div>
+          </div>`}
+          <div class="gap-indicator" id="gap-${q.id}"></div>
+        </div>`;
+    }).join('');
+
+    const prevDomain = DOMAINS[dIdx - 1];
+    const nextDomain = DOMAINS[dIdx + 1];
+
+    view.innerHTML = `
+      <div class="fade-in">
+        <div class="progress-label" id="prog-label-${d.id}">Domain ${dIdx+1} of ${DOMAINS.length} — 0 of ${totalQ} answered</div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog-${d.id}" style="width:0%"></div></div>
+        <div class="domain-header">
+          <div>
+            <div class="domain-title">${d.name}</div>
+            <div class="domain-desc">${d.desc}</div>
+          </div>
+          <div class="domain-progress">
+            <div class="domain-score-big" id="dscore-${d.id}" style="color:var(--text-muted)">–</div>
+            <div class="domain-score-label">DOMAIN AVG</div>
+          </div>
+        </div>
+        ${questionsHtml}
+        <div class="domain-nav">
+          ${prevDomain ? `<button class="btn-secondary" onclick="showView('${prevDomain.id}')">← ${prevDomain.name}</button>` : '<div></div>'}
+          ${nextDomain ? `<button class="btn-primary" onclick="showView('${nextDomain.id}')">Next: ${nextDomain.name} →</button>` :
+            `<button class="btn-primary" onclick="showResults()">View results &amp; roadmap →</button>`}
+        </div>
+      </div>`;
+
+    container.appendChild(view);
+  });
+}
+
+function buildScoreBars() {
+  const el = document.getElementById('scoreBars');
+  el.innerHTML = DOMAINS.map(d => `
+    <div class="score-bar-row">
+      <div class="score-bar-header">
+        <span class="score-bar-name">${d.name}</span>
+        <span class="score-bar-val" id="sbarval-${d.id}">–</span>
+      </div>
+      <div class="score-bar-track">
+        <div class="score-bar-fill" id="sbarfill-${d.id}" style="width:0%"></div>
+      </div>
+    </div>`).join('');
+}
+
+// ─── SCORING ─────────────────────────────────────────────────────────────────
+function setScore(qId, val, domainId) {
+  scores[qId] = val;
+  for (let v = 1; v <= 5; v++) {
+    const btn = document.getElementById(`rb-${qId}-${v}`);
+    if (btn) btn.classList.toggle('selected', v === val);
+  }
+  const desc = document.getElementById(`rdesc-${qId}`);
+  if (desc) {
+    desc.textContent = `Score ${val}: ${SCORE_LABELS[val]}`;
+    desc.classList.add('visible');
+  }
+  updateGap(qId);
+  updateAll();
+}
+
+function updateGap(qId) {
+  const domain = DOMAINS.find(d => d.questions.some(q => q.id === qId));
+  if (!domain) return;
+  const q = domain.questions.find(q => q.id === qId);
+  if (!q || !q.gap) return;
+  const score = scores[qId] || 0;
+  const gapEl = document.getElementById(`gap-${qId}`);
+  if (!gapEl) return;
+  if (score > 0 && score <= q.gap.thresh) {
+    const pClass = q.gap.priority === 'P1' ? '' : q.gap.priority === 'P2' ? 'p2' : 'p3';
+    gapEl.innerHTML = `
+      <div class="gap-box ${pClass}">
+        <div class="gap-priority">${q.gap.priority} — GAP IDENTIFIED</div>
+        <div class="gap-text">${q.gap.risk}</div>
+        <div class="gap-remedy"><strong>Remedy:</strong> ${q.gap.remedy}</div>
+      </div>`;
+    gapEl.classList.add('visible');
+  } else {
+    gapEl.classList.remove('visible');
+    gapEl.innerHTML = '';
+  }
+}
+
+function saveNote(qId, val) { notes[qId] = val; }
+
+function toggleEvidence(qId) {
+  const area = document.getElementById(`ev-${qId}`);
+  const btn = area ? area.previousElementSibling : null;
+  if (area) area.classList.toggle('open');
+  if (btn) btn.classList.toggle('open');
+}
+
+// ─── CALCULATIONS ─────────────────────────────────────────────────────────────
+function domainScore(domain) {
+  let totalWeight = 0, totalScore = 0;
+  domain.questions.forEach(q => {
+    if (scores[q.id]) {
+      totalWeight += q.weight;
+      totalScore += scores[q.id] * q.weight;
+    }
+  });
+  return totalWeight > 0 ? totalScore / totalWeight : null;
+}
+
+function overallScore() {
+  let vals = DOMAINS.map(d => domainScore(d)).filter(v => v !== null);
+  return vals.length > 0 ? vals.reduce((a,b)=>a+b,0)/vals.length : null;
+}
+
+function scoreColor(s) {
+  if (s === null) return 'var(--text-muted)';
+  if (s < 2) return 'var(--red)';
+  if (s < 3) return '#C97438';
+  if (s < 3.5) return 'var(--amber)';
+  if (s < 4.5) return '#6E9E4C';
+  return 'var(--green)';
+}
+
+function answeredCount(domain) {
+  return domain.questions.filter(q => scores[q.id]).length;
+}
+
+function getGaps() {
+  let gaps = [];
+  DOMAINS.forEach(d => {
+    d.questions.forEach(q => {
+      const s = scores[q.id];
+      if (s && s <= q.gap.thresh) {
+        gaps.push({ domain: d.name, question: q.text, ...q.gap, score: s });
+      }
+    });
+  });
+  return gaps;
+}
+
+// ─── REPORT-SAFE COLOUR (fixed hex, independent of the app's live theme) ─────
+function reportColor(s) {
+  if (s === null || s === undefined) return '#9a9a9a';
+  if (s < 2) return '#c0392b';
+  if (s < 3) return '#d9642b';
+  if (s < 3.5) return '#c98a1b';
+  if (s < 4.5) return '#4c8c4a';
+  return '#1e7d4f';
+}
+
+function resolvedOrgInfo() {
+  if (orgInfo && orgInfo.name) return orgInfo;
+  return Object.assign({
+    name: 'Unknown Organisation', sector: 'Not specified', size: 'Not specified',
+    date: new Date().toISOString().slice(0,10), assessor: 'Not specified', method: 'Not specified'
+  }, orgInfo || {});
+}
+
+function escAttr(s) {
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+}
+
+function domainRadarItems() {
+  return DOMAINS.map(d => ({ label: d.name, shortLabel: DOMAIN_SHORT[d.id] || d.name, value: domainScore(d) }));
+}
+
+// ─── RADAR / SPIDER CHART ──────────────────────────────────────────────────
+// Single series (this assessment's own domain scores, 0–5). Renders as an SVG
+// so it inherits the live CSS theme by default (colours passed as var(...)),
+// or a fixed hex palette for the printed/exported report.
+function radarSVG(items, opts) {
+  opts = opts || {};
+  const size = opts.size || 380;
+  const pad = opts.pad || 60;
+  const cx = size / 2, cy = size / 2;
+  const R = size / 2 - pad;
+  const n = items.length;
+  const showLabels = opts.showLabels !== false;
+  const showRingLabels = opts.showRingLabels !== false;
+  const col = Object.assign({
+    grid: 'var(--border)', spoke: 'var(--border)', ring: 'var(--text-muted)',
+    label: 'var(--text-dim)', fill: 'var(--accent-soft)', stroke: 'var(--accent)',
+    dot: 'var(--accent)', dotRing: 'var(--surface)', empty: 'var(--border-2)'
+  }, opts.colors || {});
+  const labelFont = opts.labelFont || 'var(--font-body)';
+  const numFont = opts.numFont || 'var(--font-mono)';
+
+  function pt(i, frac) {
+    const angle = -Math.PI / 2 + i * (2 * Math.PI / n);
+    return [cx + Math.cos(angle) * R * frac, cy + Math.sin(angle) * R * frac];
+  }
+
+  const gridSvg = [1,2,3,4,5].map(lv => {
+    const pts = items.map((_, i) => pt(i, lv / 5).join(',')).join(' ');
+    return `<polygon points="${pts}" fill="none" stroke="${col.grid}" stroke-width="1" opacity="${lv===5?0.9:0.45}" />`;
+  }).join('');
+
+  const spokeSvg = items.map((_, i) => {
+    const [x,y] = pt(i, 1);
+    return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${col.spoke}" stroke-width="1" opacity="0.45" />`;
+  }).join('');
+
+  const ringLabels = showRingLabels ? [1,2,3,4,5].map(lv => {
+    const y = cy - R * (lv/5);
+    return `<text x="${cx+4}" y="${y-2}" font-size="9" font-family="${numFont}" fill="${col.ring}">${lv}</text>`;
+  }).join('') : '';
+
+  const dataPts = items.map((it, i) => pt(i, (it.value || 0) / 5));
+  const dataPolygon = dataPts.map(p => p.join(',')).join(' ');
+
+  const dotsSvg = items.map((it, i) => {
+    const [x,y] = dataPts[i];
+    const has = it.value !== null && it.value !== undefined;
+    return `<circle class="radar-dot" cx="${x}" cy="${y}" r="4.5" fill="${has ? col.dot : 'none'}" stroke="${has ? col.dotRing : col.empty}" stroke-width="2"${has ? '' : ' stroke-dasharray="2,2"'}><title>${escAttr(it.label)}: ${has ? it.value.toFixed(1)+'/5.0' : 'Not yet assessed'}</title></circle>`;
+  }).join('');
+
+  const labelSvg = showLabels ? items.map((it, i) => {
+    const [x,y] = pt(i, 1.16);
+    const angle = -Math.PI / 2 + i * (2 * Math.PI / n);
+    const cosA = Math.cos(angle);
+    let anchor = 'middle';
+    if (cosA > 0.3) anchor = 'start'; else if (cosA < -0.3) anchor = 'end';
+    return `<text x="${x}" y="${y}" font-size="10.5" font-family="${labelFont}" font-weight="600" fill="${col.label}" text-anchor="${anchor}" dominant-baseline="middle">${escAttr(it.shortLabel || it.label)}</text>`;
+  }).join('') : '';
+
+  return `<svg viewBox="0 0 ${size} ${size}" width="100%" height="${size}" style="max-width:${size}px;display:block;margin:0 auto" role="img" aria-label="Maturity radar across ${n} domains">${gridSvg}${spokeSvg}${ringLabels}<polygon points="${dataPolygon}" fill="${col.fill}" stroke="${col.stroke}" stroke-width="2" stroke-linejoin="round" />${dotsSvg}${labelSvg}</svg>`;
+}
+
+function updateMiniRadar() {
+  const el = document.getElementById('miniRadar');
+  if (!el) return;
+  el.innerHTML = radarSVG(domainRadarItems(), { size: 168, pad: 16, showLabels: false, showRingLabels: false });
+}
+
+// ─── UI UPDATES ───────────────────────────────────────────────────────────────
+function updateAll() {
+  updateScoreBars();
+  updateNavScores();
+  updateHeaderScore();
+  updateGapList();
+  updateDomainHeaders();
+  updateProgressBars();
+  checkResultsUnlock();
+  updateMiniRadar();
+}
+
+function updateScoreBars() {
+  DOMAINS.forEach(d => {
+    const s = domainScore(d);
+    const fill = document.getElementById(`sbarfill-${d.id}`);
+    const val = document.getElementById(`sbarval-${d.id}`);
+    if (fill) fill.style.width = s ? `${(s/5)*100}%` : '0%';
+    if (fill) fill.style.background = scoreColor(s);
+    if (val) { val.textContent = s ? s.toFixed(1) : '–'; val.style.color = scoreColor(s); }
+  });
+}
+
+function updateNavScores() {
+  DOMAINS.forEach(d => {
+    const s = domainScore(d);
+    const el = document.getElementById(`navscore-${d.id}`);
+    const dot = document.getElementById(`dot-${d.id}`);
+    const nav = document.getElementById(`nav-${d.id}`);
+    if (el) { el.textContent = s ? s.toFixed(1) : '–'; el.style.color = scoreColor(s); }
+    const answered = answeredCount(d);
+    if (dot && nav) {
+      if (answered === d.questions.length) { dot.style.background = 'var(--green)'; }
+      else if (answered > 0) { dot.style.background = 'var(--amber)'; }
+      else { dot.style.background = 'var(--border-2)'; }
+    }
+  });
+}
+
+function updateHeaderScore() {
+  const s = overallScore();
+  const el = document.getElementById('headerScore');
+  if (el) { el.textContent = s ? s.toFixed(2) : '–'; el.style.color = scoreColor(s); }
+}
+
+function updateDomainHeaders() {
+  DOMAINS.forEach(d => {
+    const s = domainScore(d);
+    const el = document.getElementById(`dscore-${d.id}`);
+    if (el) { el.textContent = s ? s.toFixed(2) : '–'; el.style.color = scoreColor(s); }
+  });
+}
+
+function updateProgressBars() {
+  DOMAINS.forEach((d, idx) => {
+    const answered = answeredCount(d);
+    const total = d.questions.length;
+    const pct = (answered/total)*100;
+    const fill = document.getElementById(`prog-${d.id}`);
+    const label = document.getElementById(`prog-label-${d.id}`);
+    if (fill) fill.style.width = `${pct}%`;
+    if (label) label.textContent = `Domain ${idx+1} of ${DOMAINS.length} — ${answered} of ${total} answered`;
+  });
+}
+
+function updateGapList() {
+  const gaps = getGaps();
+  const el = document.getElementById('gapList');
+  if (!el) return;
+  if (gaps.length === 0) {
+    el.innerHTML = '<div class="empty-note">No gaps identified yet.</div>';
+    return;
+  }
+  const sorted = [...gaps].sort((a,b) => {
+    const order = {P1:0,P2:1,P3:2};
+    return order[a.priority] - order[b.priority];
+  });
+  el.innerHTML = sorted.slice(0,8).map(g => `
+    <div class="gap-item">
+      <span class="gap-item-priority ${g.priority.toLowerCase()}-tag">${g.priority}</span>
+      <div>
+        <div class="gap-item-text">${g.remedy.substring(0,70)}...</div>
+        <div class="gap-item-domain">${g.domain}</div>
+      </div>
+    </div>`).join('');
+}
+
+function checkResultsUnlock() {
+  const totalAnswered = DOMAINS.reduce((acc, d) => acc + answeredCount(d), 0);
+  const totalQuestions = DOMAINS.reduce((acc, d) => acc + d.questions.length, 0);
+  const resultsItem = document.getElementById('resultsNavItem');
+  const sub = document.getElementById('resultsCtaSub');
+  if (!resultsItem) return;
+  if (totalAnswered >= 5) {
+    resultsItem.disabled = false;
+    if (sub) sub.textContent = `${totalAnswered} of ${totalQuestions} controls scored — view now →`;
+  } else {
+    resultsItem.disabled = true;
+    if (sub) sub.textContent = `Score 5+ controls to unlock (${totalAnswered}/5)`;
+  }
+}
+
+// ─── NAVIGATION ───────────────────────────────────────────────────────────────
+function showView(viewId) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const view = document.getElementById(`view-${viewId}`);
+  if (view) view.classList.add('active');
+  const navItem = document.querySelector(`[data-view="${viewId}"]`);
+  if (navItem) navItem.classList.add('active');
+  const main = document.getElementById('mainContent');
+  if (main) main.scrollTop = 0;
+}
+
+function startAssessment() {
+  orgInfo = {
+    name: document.getElementById('orgName').value || 'Unknown Organisation',
+    sector: document.getElementById('orgSector').value || 'Not specified',
+    size: document.getElementById('orgSize').value || 'Not specified',
+    date: document.getElementById('assessDate').value,
+    assessor: document.getElementById('assessorName').value || 'Not specified',
+    method: document.getElementById('assessMethod').value
+  };
+  document.getElementById('orgNameTag').textContent = orgInfo.name.toUpperCase();
+  showView(DOMAINS[0].id);
+}
+
+// ─── RESULTS ─────────────────────────────────────────────────────────────────
+function showResults() {
+  buildResults();
+  showView('results');
+  const resultsItem = document.getElementById('resultsNavItem');
+  if (resultsItem) resultsItem.disabled = false;
+}
+
+function maturityLabel(s) {
+  if (s === null) return 'Not Assessed';
+  if (s < 1.5) return 'Critical';
+  if (s < 2.5) return 'At Risk';
+  if (s < 3.5) return 'Developing';
+  if (s < 4.2) return 'Capable';
+  return 'Advanced';
+}
+
+function buildResults() {
+  orgInfo = resolvedOrgInfo();
+  const overall = overallScore();
+  const gaps = getGaps();
+  const p1 = gaps.filter(g => g.priority === 'P1');
+  const p2 = gaps.filter(g => g.priority === 'P2');
+  const p3 = gaps.filter(g => g.priority === 'P3');
+
+  const roadmapItems = [...p1.map(g=>({...g,phase:'30 days'})), ...p2.map(g=>({...g,phase:'60 days'})), ...p3.map(g=>({...g,phase:'90 days'}))];
+
+  const domainRows = DOMAINS.map(d => {
+    const s = domainScore(d);
+    const pct = s ? (s/5)*100 : 0;
+    return `
+      <div class="result-domain-row">
+        <span class="result-domain-name">${d.name}</span>
+        <div class="result-domain-bar">
+          <div class="result-domain-bar-fill" style="width:${pct}%;background:${scoreColor(s)}"></div>
+        </div>
+        <span class="result-domain-score" style="color:${scoreColor(s)}">${s ? s.toFixed(1) : '–'}</span>
+      </div>`;
+  }).join('');
+
+  const roadmapRows = roadmapItems.map(g => {
+    const phaseClass = g.phase === '30 days' ? 'phase-30' : g.phase === '60 days' ? 'phase-60' : 'phase-90';
+    return `
+      <tr>
+        <td><span class="phase-badge ${phaseClass}">${g.phase}</span></td>
+        <td><span class="gap-item-priority ${g.priority.toLowerCase()}-tag">${g.priority}</span></td>
+        <td>${g.domain}</td>
+        <td>${g.remedy}</td>
+      </tr>`;
+  }).join('');
+
+  const overallClass = overall && overall < 2 ? 'red' : overall && overall < 3.5 ? 'amber' : 'green';
+
+  document.getElementById('resultsContent').innerHTML = `
+    <div class="results-header">
+      <h2>Assessment Results: ${orgInfo.name || 'Organisation'}</h2>
+      <p>${orgInfo.sector} · ${orgInfo.size} · Assessed ${orgInfo.date} by ${orgInfo.assessor} · Method: ${orgInfo.method}</p>
+    </div>
+
+    <div class="results-grid">
+      <div class="result-card ${overallClass}">
+        <div class="result-card-label">Overall Readiness Score</div>
+        <div class="result-card-score" style="color:${scoreColor(overall)}">${overall ? overall.toFixed(2) : '–'}<span style="font-size:15px;color:var(--text-muted)">/5.0</span></div>
+        <div class="result-card-sub">Maturity Level: <strong style="color:${scoreColor(overall)}">${maturityLabel(overall)}</strong></div>
+      </div>
+      <div class="result-card ${p1.length > 0 ? 'red' : 'green'}">
+        <div class="result-card-label">Gaps Identified</div>
+        <div class="result-card-score" style="color:var(--red)">${p1.length}<span style="font-size:15px;color:var(--text-muted)"> P1</span></div>
+        <div class="result-card-sub" style="color:var(--text-dim)">${p2.length} P2 · ${p3.length} P3 · ${gaps.length} total</div>
+      </div>
+    </div>
+
+    <div class="radar-pair">
+      <div class="radar-card">${radarSVG(domainRadarItems(), { size: 320, pad: 58 })}</div>
+      <div>
+        <div class="panel-section-label" style="margin-bottom:14px">Domain Score Breakdown</div>
+        ${domainRows}
+      </div>
+    </div>
+
+    ${roadmapItems.length > 0 ? `
+    <div style="margin-bottom:26px">
+      <div class="panel-section-label" style="margin-bottom:14px">Remediation Roadmap</div>
+      <div class="fw-table-wrap" style="border:none">
+      <table class="roadmap-table">
+        <thead>
+          <tr>
+            <th>Phase</th><th>Priority</th><th>Domain</th><th>Recommended Action</th>
+          </tr>
+        </thead>
+        <tbody>${roadmapRows}</tbody>
+      </table>
+      </div>
+    </div>` : ''}
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn-primary" onclick="showReport()">Open formatted report →</button>
+      <button class="btn-secondary" onclick="exportCSV()">Export gap register CSV</button>
+      <button class="btn-secondary" onclick="resetAssessment()">New assessment</button>
+    </div>
+  `;
+}
+
+// ─── FORMATTED REPORT ───────────────────────────────────────────────────────
+// A fixed-palette, print-ready report (independent of the app's Sunrise/Dusk
+// theme) — cover page, executive summary, radar profile, roadmap and the
+// framework alignment appendix, in one shareable document.
+function rptStat(label, value, sub, accent) {
+  return '<div style="background:#f7f7f5;border:1px solid #e4e2da;border-radius:6px;padding:12px 14px;border-top:3px solid '+(accent||'#1a4fa0')+'">'+
+    '<div style="font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px">'+label+'</div>'+
+    '<div style="font-size:22px;font-weight:700;color:#111;margin-bottom:2px">'+value+'</div>'+
+    (sub ? '<div style="font-size:11px;color:#888">'+sub+'</div>' : '')+
+  '</div>';
+}
+
+function buildReadinessReportHTML() {
+  const org = resolvedOrgInfo();
+  const overall = overallScore();
+  const gaps = getGaps();
+  const p1 = gaps.filter(g => g.priority === 'P1');
+  const p2 = gaps.filter(g => g.priority === 'P2');
+  const p3 = gaps.filter(g => g.priority === 'P3');
+  const roadmapItems = [...p1.map(g=>({...g,phase:'0–30 days'})), ...p2.map(g=>({...g,phase:'30–60 days'})), ...p3.map(g=>({...g,phase:'60–90 days'}))];
+  const answeredTotal = DOMAINS.reduce((acc,d) => acc + answeredCount(d), 0);
+  const totalQ = DOMAINS.reduce((acc,d) => acc + d.questions.length, 0);
+  const genTs = new Date().toISOString().replace('T',' ').slice(0,16) + ' UTC';
+  const col = reportColor(overall);
+  const maturity = maturityLabel(overall);
+
+  const S = {
+    page: 'font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.6;color:#111;max-width:900px;margin:0 auto',
+    h2: 'font-size:15px;font-weight:700;margin:26px 0 10px;padding-bottom:5px;border-bottom:2px solid #111',
+    th: 'text-align:left;padding:7px 9px;background:#1a1a18;color:#fff;font-size:10.5px;font-weight:600;letter-spacing:0.04em',
+    td: 'padding:7px 9px;border-bottom:1px solid #e4e2da;vertical-align:top;font-size:11.5px;color:#333',
+    footer: 'border-top:1px solid #ccc;margin-top:32px;padding-top:10px;font-size:11px;color:#888;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px'
+  };
+  function nsec(n, title) { return '<h2 style="'+S.h2+'">'+n+'. '+title+'</h2>'; }
+  function pill(text, bg, fg) { return '<span style="display:inline-block;padding:4px 12px;border-radius:4px;font-size:12px;font-weight:700;background:'+bg+';color:'+fg+'">'+text+'</span>'; }
+
+  /* ── COVER PAGE — a dark-to-mid navy gradient front sheet, its own printed page ── */
+  function coverRow(label, val) {
+    if (!val) return '';
+    return '<tr>'+
+      '<td style="padding:11px 0;width:180px;vertical-align:top;font-size:10.5px;font-weight:700;color:rgba(255,255,255,0.62);text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid rgba(255,255,255,0.16)">'+label+'</td>'+
+      '<td style="padding:11px 0 11px 16px;vertical-align:top;font-size:13px;color:#fff;border-bottom:1px solid rgba(255,255,255,0.16)">'+val+'</td>'+
+    '</tr>';
+  }
+  const coverPage =
+  '<div style="page-break-after:always;background:linear-gradient(155deg,#0A1420 0%,#102544 30%,#153761 55%,#1C4E89 78%,#2564A8 100%);border-radius:8px;color:#fff;padding:44px 40px;display:flex;flex-direction:column;min-height:820px">'+
+    '<div style="display:flex;align-items:center;gap:11px;padding-bottom:20px;margin-bottom:auto;border-bottom:1px solid rgba(255,255,255,0.22)">'+
+      '<div style="width:36px;height:36px;border-radius:9px;background:rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center;flex-shrink:0">'+
+        '<svg width="20" height="20" viewBox="0 0 14 14" fill="none"><path d="M7 1L13 4V7C13 10.3 10.3 13 7 13C3.7 13 1 10.3 1 7V4L7 1Z" stroke="#fff" stroke-width="1.3"/><path d="M4 7L6.5 9.5L10 5" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></svg>'+
+      '</div>'+
+      '<div>'+
+        '<div style="font-size:16px;font-weight:700;letter-spacing:0.14em">CIRA</div>'+
+        '<div style="font-size:9px;letter-spacing:0.1em;color:rgba(255,255,255,0.68);text-transform:uppercase">Cyber Incident Readiness Assessment</div>'+
+      '</div>'+
+      '<div style="margin-left:auto;font-size:10px;letter-spacing:0.14em;color:rgba(255,255,255,0.55);text-transform:uppercase">Readiness Report</div>'+
+    '</div>'+
+    '<div style="padding:46px 0">'+
+      '<div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.75);letter-spacing:0.05em;margin-bottom:12px">'+escAttr(org.sector||'')+(org.size?' &middot; '+escAttr(org.size):'')+'</div>'+
+      '<div style="font-size:32px;font-weight:800;line-height:1.2;margin-bottom:20px">'+escAttr(org.name||'Organisation')+'</div>'+
+      '<div style="display:flex;gap:9px;align-items:center;flex-wrap:wrap">'+
+        pill(overall?overall.toFixed(2)+'/5.0 &middot; '+maturity.toUpperCase():'NOT YET SCORED', overall?col:'rgba(255,255,255,0.2)', '#fff')+
+        '<span style="font-size:12px;font-weight:600;padding:6px 15px;border-radius:4px;background:rgba(255,255,255,0.16);color:#fff">'+answeredTotal+' of '+totalQ+' controls assessed</span>'+
+      '</div>'+
+    '</div>'+
+    '<table style="width:100%;border-collapse:collapse;margin-top:auto">'+
+      coverRow('Assessment date', escAttr(org.date||'—'))+
+      coverRow('Assessor', escAttr(org.assessor||'—'))+
+      coverRow('Method', escAttr(org.method||'—'))+
+      coverRow('Standards mapped', 'NIST CSF 2.0 &middot; NCSC CAF v4.0 &middot; ISO/IEC 27035:2023 &middot; CIS Controls v8.1')+
+    '</table>'+
+    '<div style="border-top:1px solid rgba(255,255,255,0.22);padding-top:14px;margin-top:26px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:8px">'+
+      '<div style="font-size:10px;color:rgba(255,255,255,0.68);line-height:1.6">'+
+        '<div style="font-weight:700;color:#8FC1F2;letter-spacing:0.07em;font-size:11px;margin-bottom:3px">CONFIDENTIAL</div>'+
+        'Prepared for internal risk management use.<br>Handle and distribute in line with your organisation&rsquo;s classification policy.'+
+      '</div>'+
+      '<div style="font-size:10px;color:rgba(255,255,255,0.68);text-align:right;line-height:1.6">Report generated<br><strong style="color:#fff">'+genTs+'</strong></div>'+
+    '</div>'+
+  '</div>';
+
+  /* ── EXECUTIVE SUMMARY ── */
+  const statsRow =
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px">'+
+      rptStat('Overall readiness', overall?overall.toFixed(2)+'/5.0':'—', maturity, col)+
+      rptStat('P1 gaps', p1.length, 'critical priority', p1.length?'#c0392b':'#4c8c4a')+
+      rptStat('P2 gaps', p2.length, 'high priority', p2.length?'#c98a1b':'#4c8c4a')+
+      rptStat('P3 gaps', p3.length, 'medium priority', '#2f6f8f')+
+    '</div>';
+  const domainTableRows = DOMAINS.map(d => {
+    const s = domainScore(d);
+    return '<tr><td style="'+S.td+';font-weight:600;color:#111">'+d.name+'</td><td style="'+S.td+'">'+d.tier+'</td>'+
+      '<td style="'+S.td+';font-weight:700;color:'+reportColor(s)+'">'+(s?s.toFixed(1):'—')+'</td></tr>';
+  }).join('');
+  const execSummary =
+  nsec(1,'Executive summary')+
+  statsRow+
+  '<div style="display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:24px;align-items:center;margin-bottom:6px">'+
+    '<div style="text-align:center">'+radarSVG(domainRadarItems(), {
+      size:280, pad:52,
+      colors:{grid:'#e4e2da',spoke:'#e4e2da',ring:'#999',label:'#444',fill:'rgba(26,79,160,0.14)',stroke:'#1a4fa0',dot:'#1a4fa0',dotRing:'#fff',empty:'#ccc'},
+      labelFont:'Arial,Helvetica,sans-serif', numFont:'Arial,Helvetica,sans-serif'
+    })+'</div>'+
+    '<table style="width:100%;border-collapse:collapse"><thead><tr><th style="'+S.th+'">Domain</th><th style="'+S.th+';width:60px">Tier</th><th style="'+S.th+';width:60px">Score</th></tr></thead><tbody>'+domainTableRows+'</tbody></table>'+
+  '</div>'+
+  '<p style="font-size:10.5px;color:#888;margin-top:10px;line-height:1.5">Each control is scored 1&ndash;5. A domain score is the weighted average of its answered controls only (unanswered controls are excluded, not zeroed); the overall score is a plain average across the eight domains. Gap priority (P1/P2/P3) is fixed per control by its criticality to incident response, not derived from the score.</p>';
+
+  /* ── ROADMAP ── */
+  const roadmapRows = roadmapItems.map(g => {
+    const pc = g.priority==='P1'?'#c0392b':g.priority==='P2'?'#c98a1b':'#2f6f8f';
+    return '<tr><td style="'+S.td+';white-space:nowrap">'+g.phase+'</td><td style="'+S.td+';color:'+pc+';font-weight:700">'+g.priority+'</td><td style="'+S.td+'">'+escAttr(g.domain)+'</td><td style="'+S.td+'">'+escAttr(g.remedy)+'</td></tr>';
+  }).join('');
+  const roadmapSection = roadmapItems.length ?
+  nsec(2,'Remediation roadmap')+
+  '<table style="width:100%;border-collapse:collapse;margin-bottom:8px"><thead><tr><th style="'+S.th+';width:12%">Phase</th><th style="'+S.th+';width:8%">Pri.</th><th style="'+S.th+';width:24%">Domain</th><th style="'+S.th+'">Recommended action</th></tr></thead><tbody>'+roadmapRows+'</tbody></table>'
+  : nsec(2,'Remediation roadmap')+'<p style="color:#4c8c4a;font-style:italic">No outstanding gaps at time of report — all assessed controls meet threshold.</p>';
+
+  /* ── FRAMEWORK ALIGNMENT ── */
+  const fwRows = fwSummaryData().map(r =>
+    '<tr><td style="'+S.td+';font-weight:600;color:#111">'+r.name+'</td><td style="'+S.td+'">'+r.csf+'</td><td style="'+S.td+'">'+r.caf+'</td><td style="'+S.td+'">'+r.iso+'</td><td style="'+S.td+'">'+r.cis+'</td></tr>'
+  ).join('');
+  const fwSection =
+  nsec(3,'Framework alignment')+
+  '<p style="margin-bottom:12px;color:#333">Every control in this assessment is cross-mapped to four recognised standards, so findings can be defended to an auditor, a board, or a regulator on standards-based grounds.</p>'+
+  '<table style="width:100%;border-collapse:collapse"><thead><tr><th style="'+S.th+'">Domain</th><th style="'+S.th+'">NIST CSF 2.0</th><th style="'+S.th+'">NCSC CAF</th><th style="'+S.th+'">ISO/IEC 27035</th><th style="'+S.th+'">CIS v8.1</th></tr></thead><tbody>'+fwRows+'</tbody></table>';
+
+  const footer =
+  '<div style="'+S.footer+'">'+
+    '<span>'+escAttr(org.name)+' &#8212; CIRA &#8212; Confidential &#8212; Mapped to NIST CSF 2.0 / NCSC CAF v4.0 / ISO&#47;IEC 27035:2023 / CIS Controls v8.1</span>'+
+    '<span>Generated '+genTs+'</span>'+
+  '</div>';
+
+  return '<div style="'+S.page+'">'+coverPage+execSummary+roadmapSection+fwSection+footer+'</div>';
+}
+
+function showReport() {
+  const paper = document.getElementById('reportPaper');
+  if (paper) paper.innerHTML = buildReadinessReportHTML();
+  showView('report');
+}
+
+function buildStandaloneReportDoc() {
+  const org = resolvedOrgInfo();
+  const inner = buildReadinessReportHTML();
+  const title = escAttr((org.name||'Organisation') + ' — Cyber Readiness Report');
+  return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>'+title+'</title>'+
+    '<style>body{margin:0;background:#f2f0eb;font-family:Arial,Helvetica,sans-serif}.wrap{max-width:960px;margin:24px auto;background:#fff;padding:30px 26px;border-radius:8px;box-shadow:0 2px 24px rgba(0,0,0,0.18)}@media print{body{background:#fff}.wrap{box-shadow:none;padding:0;border-radius:0;margin:0;max-width:none}}</style>'+
+    '</head><body><div class="wrap">'+inner+'</div></body></html>';
+}
+
+async function downloadReportHTML() {
+  const org = resolvedOrgInfo();
+  const filename = `CIRA_Report_${(org.name||'org').replace(/\s/g,'_')}.html`;
+  const full = buildStandaloneReportDoc();
+  await offerDownload(filename, new Blob([full], {type:'text/html'}), 'text/html');
+}
+
+// ─── SAVE / LOAD ASSESSMENT (JSON) ─────────────────────────────────────────
+const SAVE_SCHEMA = 'cira-assessment';
+const SAVE_SCHEMA_VERSION = 1;
+
+function buildSaveState() {
+  return {
+    schema: SAVE_SCHEMA,
+    version: SAVE_SCHEMA_VERSION,
+    savedAt: new Date().toISOString(),
+    orgInfo: orgInfo,
+    scores: scores,
+    notes: notes
+  };
+}
+
+async function saveToFile() {
+  const org = resolvedOrgInfo();
+  const filename = `CIRA_Assessment_${(org.name||'org').replace(/\s/g,'_')}.json`;
+  const data = buildSaveState();
+  await offerDownload(filename, new Blob([JSON.stringify(data, null, 2)], {type:'application/json'}), 'application/json');
+}
+
+function loadFromFile() {
+  const el = document.getElementById('fileInput');
+  if (el) el.click();
+}
+
+function handleFileLoad(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const loaded = JSON.parse(ev.target.result);
+      if (!loaded || loaded.schema !== SAVE_SCHEMA || !loaded.scores) {
+        alert('This doesn\'t look like a CIRA assessment file.');
+        return;
+      }
+      const hasProgress = Object.keys(scores).length > 0;
+      if (hasProgress && !confirm('Loading this file will replace your current progress in this session. Continue?')) return;
+      scores = loaded.scores || {};
+      notes = loaded.notes || {};
+      orgInfo = loaded.orgInfo || {};
+      applyLoadedState();
+    } catch (ex) {
+      alert('Could not read that file — it may not be valid JSON.');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function loadSampleData() {
+  const hasProgress = Object.keys(scores).length > 0;
+  if (hasProgress && !confirm('Load the sample assessment? This will replace your current progress in this session.')) return;
+  scores = Object.assign({}, SAMPLE_SCORES);
+  notes = Object.assign({}, SAMPLE_NOTES);
+  orgInfo = Object.assign({}, SAMPLE_ORG_INFO);
+  applyLoadedState();
+}
+
+function applyLoadedState() {
+  if (orgInfo.name) document.getElementById('orgName').value = orgInfo.name;
+  if (orgInfo.sector) document.getElementById('orgSector').value = orgInfo.sector;
+  if (orgInfo.size) document.getElementById('orgSize').value = orgInfo.size;
+  if (orgInfo.date) document.getElementById('assessDate').value = orgInfo.date;
+  if (orgInfo.assessor) document.getElementById('assessorName').value = orgInfo.assessor;
+  if (orgInfo.method) document.getElementById('assessMethod').value = orgInfo.method;
+  document.getElementById('orgNameTag').textContent = (orgInfo.name || 'NEW ASSESSMENT').toUpperCase();
+
+  DOMAINS.forEach(d => d.questions.forEach(q => {
+    const val = scores[q.id];
+    if (val) {
+      for (let v = 1; v <= 5; v++) {
+        const btn = document.getElementById(`rb-${q.id}-${v}`);
+        if (btn) btn.classList.toggle('selected', v === val);
+      }
+      const desc = document.getElementById(`rdesc-${q.id}`);
+      if (desc) { desc.textContent = `Score ${val}: ${SCORE_LABELS[val]}`; desc.classList.add('visible'); }
+      updateGap(q.id);
+    }
+    const note = notes[q.id];
+    if (note) {
+      const ta = document.getElementById(`note-${q.id}`);
+      if (ta) ta.value = note;
+    }
+  }));
+
+  updateAll();
+  showView(orgInfo.name ? DOMAINS[0].id : 'intro');
+}
+
+let _downloadsNS = null;
+async function getDownloads() {
+  if (_downloadsNS) return _downloadsNS;
+  try { if (window.claude && window.claude.use) _downloadsNS = await window.claude.use('downloads'); } catch(e) { _downloadsNS = null; }
+  return _downloadsNS;
+}
+
+// True when this page is embedded inside the Claude chat's artifact viewer
+// (an iframe), where plain <a download>/blob-URL saves are silently ignored
+// and the `downloads` capability is the only way to save a file. When this
+// page is NOT framed — opened as its own top-level tab, or the standalone
+// export running in an ordinary browser — an ordinary blob+anchor download
+// works fine, which matters because the `downloads` capability currently
+// always resolves null for a top-level artifact page.
+function isFramed() {
+  try { return window.self !== window.top; } catch (e) { return true; }
+}
+
+// Shared save path for every export in this tool: use the `downloads`
+// capability when it's available (the normal case inside the chat's
+// artifact viewer); otherwise fall back to a native browser download,
+// which only works when this page isn't sandboxed inside that viewer.
+async function offerDownload(filename, data, mimeType) {
+  const downloads = await getDownloads();
+  if (downloads) {
+    try {
+      await downloads.save({ filename, data });
+      return;
+    } catch (e) {
+      if (e && e.code === 'declined') return;
+      if (e && e.code === 'rate_limited') { alert('A save prompt is already open — try again in a moment.'); return; }
+      // fall through to the blob fallback for any other error
+    }
+  }
+  if (!isFramed()) {
+    const blob = data instanceof Blob ? data : new Blob([data], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    return;
+  }
+  alert('Downloads aren\'t available in this embedded view yet. Open this assessment using the "Open in new tab" option on the artifact, or use the standalone HTML version, to save files.');
+}
+
+async function exportCSV() {
+  const gaps = getGaps();
+  const rows = [['Priority','Domain','Gap Risk','Remediation','Recommended Phase','NIST CSF 2.0','NCSC CAF','ISO/IEC 27035','CIS v8.1']];
+  gaps.sort((a,b) => ({P1:0,P2:1,P3:2}[a.priority] - {P1:0,P2:1,P3:2}[b.priority]));
+  gaps.forEach(g => {
+    const phase = g.priority === 'P1' ? '0–30 days' : g.priority === 'P2' ? '30–60 days' : '60–90 days';
+    const domain = DOMAINS.find(d => d.name === g.domain);
+    const q = domain ? domain.questions.find(q => q.gap && q.gap.risk === g.risk && q.gap.remedy === g.remedy) : null;
+    const fw = q ? q.fw : {csf:'',caf:'',iso:'',cis:''};
+    rows.push([g.priority, g.domain, `"${g.risk}"`, `"${g.remedy}"`, phase, fw.csf||'', fw.caf||'', fw.iso||'', fw.cis||'']);
+  });
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const filename = `CIRA_GapRegister_${(orgInfo.name||'org').replace(/\s/g,'_')}.csv`;
+  await offerDownload(filename, new Blob([csv], {type:'text/csv'}), 'text/csv');
+}
+
+function resetAssessment() {
+  if (!confirm('Reset the assessment? All scores and notes will be cleared.')) return;
+  scores = {}; notes = {}; orgInfo = {};
+  document.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('.gap-indicator').forEach(g => { g.classList.remove('visible'); g.innerHTML=''; });
+  document.querySelectorAll('.rating-description').forEach(d => { d.classList.remove('visible'); d.textContent=''; });
+  document.getElementById('orgNameTag').textContent = 'NEW ASSESSMENT';
+  updateAll();
+  showView('intro');
+}
+</script>
+
+</html>
