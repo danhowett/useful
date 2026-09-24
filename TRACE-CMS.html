@@ -343,6 +343,8 @@ select.inline{font-size:12px;padding:3px 6px;height:auto}
   .no-print{display:none!important}
   .pr-page{page-break-after:always}
   .pr-page:last-child{page-break-after:avoid}
+  .pr-cover{page-break-after:always}
+  #report-preview *,#report-paper *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
   #report-paper{box-shadow:none!important;padding:0!important;border-radius:0!important;background:#fff!important;margin:0!important}
   #report-preview{margin:0!important}
 }
@@ -1478,8 +1480,8 @@ function stamp(rec){
   if(!rec.addedAt)rec.addedAt=new Date().toISOString();
   return rec;
 }
-var TAB_LABELS={dashboard:'Dashboard',details:'Incident details',evidence:'Evidence',custody:'Custody',iocs:'IOCs',actions:'Actions',timeline:'Timeline',govern:'Governance context',escalation:'Severity log',notifications:'Notifications',closure:'Closure checklist',exec:'Exec summary',print:'Reports',reference:'IR Reference','host-timeline':'Host IOC timeline'};
-var PRIMARY_TABS=['dashboard','details','evidence','custody','iocs','actions','timeline','print'];
+var TAB_LABELS={dashboard:'Dashboard',details:'Incident details',evidence:'Evidence',custody:'Custody',hosts:'Host analysis',iocs:'IOCs',actions:'Actions',timeline:'Timeline',govern:'Governance context',escalation:'Severity log',notifications:'Notifications',closure:'Closure checklist',exec:'Exec summary',print:'Reports',reference:'IR Reference','host-timeline':'Host IOC timeline'};
+var PRIMARY_TABS=['dashboard','details','evidence','custody','hosts','iocs','actions','timeline','print'];
 var SECONDARY_GROUPS=[
   {label:'NIST context',tabs:['govern','escalation','notifications']},
   {label:'Close-out',tabs:['closure']},
@@ -1624,7 +1626,7 @@ function renderTab(){
   if(!el)return;
   if(state.activeTab==='reference'){el.innerHTML=renderReference();return;}
   var c=state.cases[state.activeCaseId];
-  var r={dashboard:renderDashboard,details:renderLog,evidence:renderEvidence,custody:renderCustody,iocs:renderIOCs,actions:renderActions,notifications:renderNotifications,timeline:renderTimeline,closure:renderClosure,exec:renderExec,print:renderPrint,reference:renderReference,govern:renderGovern,escalation:renderEscalation};
+  var r={dashboard:renderDashboard,details:renderLog,evidence:renderEvidence,custody:renderCustody,hosts:renderHosts,iocs:renderIOCs,actions:renderActions,notifications:renderNotifications,timeline:renderTimeline,closure:renderClosure,exec:renderExec,print:renderPrint,reference:renderReference,govern:renderGovern,escalation:renderEscalation};
   if(r[state.activeTab]) el.innerHTML=r[state.activeTab](c);
 }
 
@@ -1821,6 +1823,7 @@ function renderEvidence(c){
   var rows=_ev.map(function(e){
     var i=_allEv.indexOf(e);
     return '<tr><td>'+esc(e.name)+'</td><td>'+esc(e.type)+'</td><td class="mono">'+esc(e.hash)+'</td><td>'+esc(e.source)+'</td><td>'+esc(e.collectedBy)+'</td><td>'+fmtTs(e.collectedAt)+'</td>'+
+    '<td>'+(e.reviewed?'<span onclick="toggleEvidenceReviewed(\''+e.id+'\')" title="Reviewed'+(e.reviewedAt?' '+fmtTs(e.reviewedAt):'')+' — click to clear" style="cursor:pointer;color:var(--success-text,#5cd98a);font-weight:600;font-size:12px;white-space:nowrap">&#10003; Reviewed</span>':'<span onclick="toggleEvidenceReviewed(\''+e.id+'\')" title="Not yet reviewed — click to mark reviewed" style="cursor:pointer;color:var(--text3);font-size:12px;white-space:nowrap">&#9675; Outstanding</span>')+'</td>'+
     '<td><button class="del-btn" onclick="delItem(\'evidence\','+i+')" title="Delete">&#x2715;</button></td></tr>';
   }).join('');
   return '<div class="section-title">Evidence register <span class="nist-tag">NIST — Respond: Incident Analysis</span></div>'+
@@ -1965,6 +1968,190 @@ function filterBox(key,placeholder,shown,total){
     (q?'<span style="font-size:11.5px;color:var(--text3);font-family:var(--mono)">'+shown+' of '+total+' shown</span>':'')+
   '</div>';
 }
+
+/* ===== HOST ANALYSIS (per-host / per-source investigation notes) ===== */
+/* Free-text analytic workspace. IOCs still live in the IOCs tab; this is where
+   an analyst records what a host or log source told them. Evidence "reviewed"
+   state lives on the evidence record itself, so the Evidence tab and this tab
+   agree and the report can show what's still outstanding. */
+var HOST_STATUS=['Not started','In progress','Complete'];
+function hostStatusStyle(st){
+  if(st==='Complete') return 'background:var(--success-bg,#153a24);color:var(--success-text,#5cd98a)';
+  if(st==='In progress') return 'background:var(--warn-bg,#3d2d10);color:var(--warn-text,#f8bd52)';
+  return 'background:var(--bg3);color:var(--text3)';
+}
+
+/* Collect candidate host/source names already present in the case, for the dropdown */
+function knownHosts(c){
+  var set={};
+  (c.evidence||[]).forEach(function(e){var v=(e.source||'').trim();if(v)set[v]=1;});
+  (c.iocs||[]).forEach(function(i){var v=(i.source||'').trim();if(v)set[v]=1;});
+  (c.hostAnalysis||[]).forEach(function(h){var v=(h.host||'').trim();if(v)set[v]=1;});
+  return Object.keys(set).sort();
+}
+
+function renderHosts(c){
+  var analyses=c.hostAnalysis||[];
+  var evidence=c.evidence||[];
+
+  /* progress roll-up */
+  var hostsDone=analyses.filter(function(h){return h.status==='Complete';}).length;
+  var evReviewed=evidence.filter(function(e){return e.reviewed;}).length;
+  var hostPct=analyses.length?Math.round(hostsDone/analyses.length*100):0;
+  var evPct=evidence.length?Math.round(evReviewed/evidence.length*100):0;
+
+  var roll='<div class="db-grid" style="margin-bottom:16px">'+
+    '<div class="db-stat"><div class="db-stat-label">Hosts analysed</div><div class="db-stat-value">'+hostsDone+' / '+analyses.length+'</div>'+
+      '<div class="db-stat-sub">'+hostPct+'% complete</div></div>'+
+    '<div class="db-stat"><div class="db-stat-label">Evidence reviewed</div><div class="db-stat-value">'+evReviewed+' / '+evidence.length+'</div>'+
+      '<div class="db-stat-sub">'+(evidence.length-evReviewed)+' outstanding</div></div>'+
+    '<div class="db-stat"><div class="db-stat-label">Analysis entries</div><div class="db-stat-value">'+analyses.length+'</div>'+
+      '<div class="db-stat-sub">across '+knownHosts(c).length+' known host'+(knownHosts(c).length===1?'':'s')+'</div></div>'+
+  '</div>';
+
+  /* outstanding-evidence quick view */
+  var outstanding=evidence.filter(function(e){return !e.reviewed;});
+  var outHtml=evidence.length?('<div class="card" style="margin-bottom:16px"><div class="card-head">Evidence review status</div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:7px">'+
+      evidence.map(function(e){
+        var on=!!e.reviewed;
+        return '<span class="ev-pill'+(on?' on':'')+'" onclick="toggleEvidenceReviewed(\''+e.id+'\')" '+
+          'title="'+(on?'Reviewed — click to mark outstanding':'Outstanding — click to mark reviewed')+'" '+
+          'style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:5px 11px;border-radius:20px;'+
+          'border:1px solid '+(on?'var(--success-text,#5cd98a)':'var(--border2)')+';background:'+(on?'var(--success-bg,#153a24)':'transparent')+';'+
+          'color:'+(on?'var(--success-text,#5cd98a)':'var(--text3)')+'">'+
+          (on?'&#10003; ':'&#9675; ')+esc(e.name)+'</span>';
+      }).join('')+
+    '</div>'+
+    (outstanding.length?'<div class="section-sub" style="margin-top:10px;margin-bottom:0">'+outstanding.length+' item'+(outstanding.length===1?'':'s')+' not yet reviewed.</div>':
+      '<div class="section-sub" style="margin-top:10px;margin-bottom:0;color:var(--success-text,#5cd98a)">All evidence reviewed.</div>')+
+  '</div>'):'';
+
+  /* add / edit form */
+  var editing=window._hostEditIdx;
+  var e = (editing!=null && analyses[editing]) ? analyses[editing] : null;
+  var hostList=knownHosts(c);
+  var dl='<datalist id="host-known">'+hostList.map(function(h){return '<option value="'+esc(h)+'">';}).join('')+'</datalist>';
+
+  var evChecklist=evidence.length?('<div class="fg" style="flex:1 1 100%"><label>Evidence reviewed for this host <span style="color:var(--text3);font-weight:400">(ticking marks the item reviewed case-wide)</span></label>'+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;margin-top:6px">'+
+      evidence.map(function(ev){
+        var checked = e ? ((e.evidenceIds||[]).indexOf(ev.id)>-1) : false;
+        return '<label class="ev-check" style="display:flex;align-items:flex-start;gap:9px;font-size:12.5px;padding:10px 12px;border:1px solid '+(checked?'var(--accent)':'var(--border2)')+';border-radius:var(--radius);cursor:pointer;background:var(--field);line-height:1.4;text-transform:none;letter-spacing:0;font-weight:400;color:var(--text)">'+
+          '<input type="checkbox" class="ha-ev" value="'+ev.id+'"'+(checked?' checked':'')+' style="flex-shrink:0;width:15px;height:15px;margin:2px 0 0 0;padding:0">'+
+          '<span style="flex:1;min-width:0">'+esc(ev.name)+(ev.reviewed?' <span title="Reviewed case-wide" style="color:var(--success-text,#5cd98a)">&#10003;</span>':'')+'</span>'+
+        '</label>';
+      }).join('')+
+    '</div></div>'):'';
+
+  var form='<div class="card"><div class="card-head">'+(e?'Edit host analysis':'Add host analysis')+'</div>'+
+    dl+
+    '<div class="form-row">'+
+      '<div class="fg" style="flex:2"><label>Host / log source</label>'+
+        '<input id="ha-host" list="host-known" placeholder="e.g. FS-ENG01, DC-CORP01, Perimeter firewall" value="'+(e?esc(e.host):'')+'"></div>'+
+      '<div class="fg"><label>Analyst</label><input id="ha-analyst" placeholder="Name / role" value="'+(e?esc(e.analyst||''):'')+'"></div>'+
+      '<div class="fg"><label>Status</label><select id="ha-status">'+
+        HOST_STATUS.map(function(s){return '<option'+(e&&e.status===s?' selected':'')+'>'+s+'</option>';}).join('')+'</select></div>'+
+    '</div>'+
+    '<div class="form-row">'+
+      '<div class="fg" style="flex:1 1 100%"><label>Findings summary <span style="color:var(--text3);font-weight:400">— written professionally; appears in the incident report</span></label>'+
+        '<textarea id="ha-summary" rows="4" placeholder="A concise, report-ready summary of what this host or source showed and how it fits the incident. This text is included verbatim in the report.">'+(e?esc(e.summary||''):'')+'</textarea></div>'+
+    '</div>'+
+    '<div class="form-row">'+
+      '<div class="fg" style="flex:1 1 100%"><label>Working notes <span style="color:var(--text3);font-weight:400">— contemporaneous; stays in the tool, not in the report</span></label>'+
+        '<textarea id="ha-notes" rows="5" placeholder="Free contemporaneous notes as you work — commands run, dead ends, timestamps, things to check. Kept for your record; not exported to the report.">'+(e?esc(e.notes||''):'')+'</textarea></div>'+
+    '</div>'+
+    '<div class="form-row">'+evChecklist+'</div>'+
+    '<div style="margin-top:12px">'+
+      (e?'<button onclick="cancelHostEdit()" style="margin-right:8px">Cancel</button>':'')+
+      '<button class="primary" onclick="saveHostAnalysis()">'+(e?'Save changes':'Add analysis')+'</button>'+
+    '</div>'+
+  '</div>';
+
+  /* existing entries */
+  var list=analyses.length?analyses.map(function(h,i){
+    var badgeStyle=hostStatusStyle(h.status);
+    var evNames=(h.evidenceIds||[]).map(function(id){
+      var ev=evidence.find(function(x){return x.id===id;});
+      return ev?('<span class="ev-tag'+(ev.reviewed?' rev':'')+'" style="font-size:11px;padding:2px 8px;border-radius:10px;background:var(--bg3);color:var(--text2);margin:2px 3px 2px 0;display:inline-block">'+(ev.reviewed?'&#10003; ':'')+esc(ev.name)+'</span>'):'';
+    }).join('');
+    return '<div class="card" style="margin-top:14px">'+
+      '<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px">'+
+        '<span style="font-weight:600;font-size:15px">'+esc(h.host||'(unnamed host)')+'</span>'+
+        '<span class="badge" style="'+badgeStyle+'">'+esc(h.status||'Not started')+'</span>'+
+        (h.analyst?'<span style="font-size:12px;color:var(--text3)">'+esc(h.analyst)+'</span>':'')+
+        '<span style="flex:1"></span>'+
+        '<span style="font-size:11px;color:var(--text3)">'+(h.editedAt?'edited '+fmtTs(h.editedAt):(h.addedAt?fmtTs(h.addedAt):''))+'</span>'+
+        '<button class="del-btn" onclick="editHostAnalysis('+i+')" title="Edit" style="color:var(--accent)">&#9998;</button>'+
+        '<button class="del-btn" onclick="delItem(\'hostAnalysis\','+i+')" title="Delete">&#x2715;</button>'+
+      '</div>'+
+      (function(){
+        var sum=h.summary||h.findings||''; /* back-compat: old records stored a single 'findings' */
+        var out='';
+        if(sum){
+          out+='<div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);font-family:var(--mono,monospace);margin-bottom:4px">Findings summary <span style="text-transform:none;letter-spacing:0;color:var(--text3)">&middot; in report</span></div>'+
+            '<div style="font-size:13px;line-height:1.65;color:var(--text);white-space:pre-wrap;margin-bottom:'+(h.notes?'12px':'0')+'">'+esc(sum)+'</div>';
+        }
+        if(h.notes){
+          out+='<div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);font-family:var(--mono,monospace);margin-bottom:4px">Working notes <span style="text-transform:none;letter-spacing:0">&middot; not in report</span></div>'+
+            '<div style="font-size:12.5px;line-height:1.6;color:var(--text2);white-space:pre-wrap;background:var(--bg3);border-radius:var(--radius);padding:9px 11px">'+esc(h.notes)+'</div>';
+        }
+        if(!sum&&!h.notes) out='<div style="font-size:12px;color:var(--text3);font-style:italic">No findings recorded yet.</div>';
+        return out;
+      })()+
+      (evNames?'<div style="margin-top:10px"><span style="font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);font-family:var(--mono,monospace)">Evidence reviewed</span><div style="margin-top:5px">'+evNames+'</div></div>':'')+
+    '</div>';
+  }).join(''):'<div class="empty" style="margin-top:14px">No host analysis yet. Add your first host or log source above.</div>';
+
+  return '<div class="section-title">Host analysis <span class="nist-tag">NIST — Respond: Incident Analysis</span></div>'+
+    '<div class="section-sub">Per-host and per-source investigation notes. Record what each system told you; indicators themselves are logged in the IOCs tab. Each host summary appears in the incident report.</div>'+
+    roll+outHtml+form+list;
+}
+
+/* toggle evidence reviewed flag directly (from the status pills) */
+function toggleEvidenceReviewed(evId){
+  var c=state.cases[state.activeCaseId];
+  var ev=(c.evidence||[]).find(function(e){return e.id===evId;});
+  if(!ev)return;
+  ev.reviewed=!ev.reviewed;
+  ev.reviewedAt=ev.reviewed?new Date().toISOString():'';
+  ev.editedAt=new Date().toISOString();
+  persist();renderTab();
+}
+
+function saveHostAnalysis(){
+  var c=state.cases[state.activeCaseId];
+  var host=document.getElementById('ha-host').value.trim();
+  if(!host){alert('Host / log source name is required.');return;}
+  var evIds=Array.prototype.slice.call(document.querySelectorAll('.ha-ev:checked')).map(function(x){return x.value;});
+  /* ticking evidence here marks it reviewed case-wide */
+  evIds.forEach(function(id){
+    var ev=(c.evidence||[]).find(function(e){return e.id===id;});
+    if(ev&&!ev.reviewed){ev.reviewed=true;ev.reviewedAt=new Date().toISOString();ev.editedAt=new Date().toISOString();}
+  });
+  var rec={
+    host:host,
+    analyst:document.getElementById('ha-analyst').value.trim(),
+    status:document.getElementById('ha-status').value,
+    summary:document.getElementById('ha-summary').value,
+    notes:document.getElementById('ha-notes').value,
+    evidenceIds:evIds
+  };
+  var editing=window._hostEditIdx;
+  if(editing!=null && c.hostAnalysis[editing]){
+    var ex=c.hostAnalysis[editing];
+    ex.host=rec.host;ex.analyst=rec.analyst;ex.status=rec.status;ex.summary=rec.summary;ex.notes=rec.notes;ex.evidenceIds=rec.evidenceIds;
+    ex.editedAt=new Date().toISOString();
+    window._hostEditIdx=null;
+  } else {
+    if(!c.hostAnalysis)c.hostAnalysis=[];
+    c.hostAnalysis.push(stamp(Object.assign({id:uid()},rec)));
+  }
+  persist();renderTab();
+}
+function editHostAnalysis(i){window._hostEditIdx=i;renderTab();
+  var el=document.getElementById('tab-content');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
+function cancelHostEdit(){window._hostEditIdx=null;renderTab();}
 
 function renderIOCs(c){
   var _allIocs=c.iocs||[];
@@ -3013,7 +3200,28 @@ function notifStatus(notifications){
   return{sent:sent,overdue:overdue,pending:pending,total:notifications.length};
 }
 
+/* ===== REPORT COLOUR PALETTES =====
+   Applied to the report cover, section rules, table headers and accents only.
+   Semantic colours (severity, RAG, MITRE tactics) are never changed. "navy" reproduces the original look. */
+var REPORT_PALETTES={
+  navy:    {label:'Navy',    d:'#0a1f3c',m:'#123a75',g3:'#1f5aa8',g4:'#2f7bd1',a:'#1a4fa0',hi:'#8fc3ff',th:'#1a1a18',th2:'#3a3a36',rule:'#111111'},
+  teal:    {label:'Teal',    d:'#062b2a',m:'#0d4f4c',g3:'#0b7a75',g4:'#1a9e97',a:'#0b7a75',hi:'#8fe3dc',th:'#062b2a',th2:'#0d4f4c',rule:'#062b2a'},
+  graphite:{label:'Graphite',d:'#15191f',m:'#2f3640',g3:'#4e5b6e',g4:'#6b7a8f',a:'#4e5b6e',hi:'#c9d3e0',th:'#15191f',th2:'#2f3640',rule:'#15191f'},
+  burgundy:{label:'Burgundy',d:'#2a0b14',m:'#561a2b',g3:'#94243f',g4:'#b8405c',a:'#94243f',hi:'#f3b6c4',th:'#2a0b14',th2:'#561a2b',rule:'#2a0b14'}
+};
+function defaultReportPalette(){ try{ var k=localStorage.getItem('trace-report-palette'); return REPORT_PALETTES[k]?k:'navy'; }catch(e){ return 'navy'; } }
+function reportPaletteKey(c){ var k=c&&c.meta&&c.meta.reportPalette; return REPORT_PALETTES[k]?k:defaultReportPalette(); }
+function reportPalette(c){ return REPORT_PALETTES[reportPaletteKey(c)]; }
+function setReportPalette(k){
+  if(!REPORT_PALETTES[k])return;
+  var c=state.cases[state.activeCaseId]; if(!c)return;
+  c.meta.reportPalette=k;
+  try{ localStorage.setItem('trace-report-palette',k); }catch(e){}
+  persist(); renderTab();
+}
+
 function buildReportHTML(c,opts){
+  var P=reportPalette(c);
   var g=c.govern||{};
   var ll=c.lessons||{};
   var now=new Date();
@@ -3041,11 +3249,11 @@ function buildReportHTML(c,opts){
   var S={
     page:'font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.6;color:#111;max-width:900px;margin:0 auto',
     h1:'font-size:24px;font-weight:700;margin:0 0 4px 0',
-    h2:'font-size:15px;font-weight:700;margin:24px 0 8px;padding-bottom:4px;border-bottom:2px solid #111',
+    h2:'font-size:15px;font-weight:700;margin:24px 0 8px;padding-bottom:4px;border-bottom:2px solid '+P.rule,
     h3:'font-size:13px;font-weight:700;margin:14px 0 6px;color:#333',
     tbl:'width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px',
-    th:'text-align:left;padding:6px 8px;background:#1a1a18;color:#fff;font-size:11px;font-weight:600;letter-spacing:0.04em',
-    thalt:'text-align:left;padding:6px 8px;background:#3a3a36;color:#fff;font-size:11px;font-weight:600',
+    th:'text-align:left;padding:6px 8px;background:'+P.th+';color:#fff;font-size:11px;font-weight:600;letter-spacing:0.04em',
+    thalt:'text-align:left;padding:6px 8px;background:'+P.th2+';color:#fff;font-size:11px;font-weight:600',
     td:'padding:6px 8px;border-bottom:1px solid #e4e2da;vertical-align:top;word-break:break-word',
     tdalt:'padding:6px 8px;border-bottom:1px solid #e4e2da;vertical-align:top;background:#fafaf8;word-break:break-word',
     kv:'padding:5px 8px;font-size:12px',
@@ -3064,7 +3272,7 @@ function buildReportHTML(c,opts){
 
   /* stat box */
   function statBox(label,value,sub,accent){
-    return '<div style="background:#f7f7f5;border:1px solid #e4e2da;border-radius:6px;padding:12px 14px;border-top:3px solid '+(accent||'#1a4fa0')+'">'+
+    return '<div style="background:#f7f7f5;border:1px solid #e4e2da;border-radius:6px;padding:12px 14px;border-top:3px solid '+(accent||P.a)+'">'+
       '<div style="font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px">'+label+'</div>'+
       '<div style="font-size:22px;font-weight:700;color:#111;margin-bottom:2px">'+value+'</div>'+
       (sub?'<div style="font-size:11px;color:#888">'+sub+'</div>':'')+
@@ -3075,31 +3283,85 @@ function buildReportHTML(c,opts){
   function sec(title){return '<h2 style="'+S.h2+'">'+title+'</h2>';}
   function subsec(title){return '<h3 style="'+S.h3+'">'+title+'</h3>';}
 
+  /* ── COVER PAGE ── a formal front sheet, its own printed page ── */
+  var coverDates=[
+    c.meta.detectedAt?'Detected&nbsp;&nbsp;'+esc(fmtTs(c.meta.detectedAt)):'',
+    c.meta.reportedAt?'Reported&nbsp;&nbsp;'+esc(fmtTs(c.meta.reportedAt)):'',
+    c.meta.containedAt?'Contained&nbsp;&nbsp;'+esc(fmtTs(c.meta.containedAt)):'',
+    c.meta.resolvedAt?'Resolved&nbsp;&nbsp;'+esc(fmtTs(c.meta.resolvedAt)):''
+  ].filter(Boolean).join('<br>');
+  var coverPeople=[
+    c.meta.owner?'Lead analyst&nbsp;&nbsp;<strong>'+esc(c.meta.owner)+'</strong>':'',
+    g.commander?'Incident commander&nbsp;&nbsp;<strong>'+esc(g.commander)+'</strong>':'',
+    g.legal?'Legal&nbsp;&nbsp;<strong>'+esc(g.legal)+'</strong>':'',
+    g.dpo?'Data protection&nbsp;&nbsp;<strong>'+esc(g.dpo)+'</strong>':'',
+    g.sponsor?'Executive sponsor&nbsp;&nbsp;<strong>'+esc(g.sponsor)+'</strong>':''
+  ].filter(Boolean).join('<br>');
+
+  /* metadata rows styled for the blue field */
+  function coverRowB(label,val){
+    if(!val)return '';
+    return '<tr>'+
+      '<td style="padding:11px 0;width:190px;vertical-align:top;font-size:10.5px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid rgba(255,255,255,0.14)">'+label+'</td>'+
+      '<td style="padding:11px 0 11px 16px;vertical-align:top;font-size:13px;color:#fff;border-bottom:1px solid rgba(255,255,255,0.14)">'+val+'</td>'+
+    '</tr>';
+  }
+
+  var coverPage=
+  '<div class="pr-cover" style="page-break-after:always;background:linear-gradient(150deg,'+P.d+' 0%,'+P.m+' 45%,'+P.g3+' 78%,'+P.g4+' 100%);border-radius:8px;color:#fff;padding:44px 40px;display:flex;flex-direction:column;min-height:840px">'+
+    /* brand row */
+    '<div style="display:flex;align-items:center;gap:11px;padding-bottom:20px;margin-bottom:auto;border-bottom:1px solid rgba(255,255,255,0.2)">'+
+      '<svg width="32" height="32" viewBox="0 0 40 40" fill="none"><path d="M5 27 L13 27 L20 12 L27 22 L35 22" stroke="'+P.hi+'" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="13" cy="27" r="3.1" fill="'+P.d+'" stroke="#fff" stroke-width="2"/><circle cx="20" cy="12" r="3.1" fill="'+P.d+'" stroke="#fff" stroke-width="2"/><circle cx="27" cy="22" r="3.1" fill="'+P.hi+'"/></svg>'+
+      '<div>'+
+        '<div style="font-size:16px;font-weight:700;letter-spacing:0.16em">TRACE</div>'+
+        '<div style="font-size:9px;letter-spacing:0.12em;color:rgba(255,255,255,0.65);text-transform:uppercase">Threat Response &amp; Case Evidence System</div>'+
+      '</div>'+
+      '<div style="margin-left:auto;font-size:10px;letter-spacing:0.16em;color:rgba(255,255,255,0.55);text-transform:uppercase">Incident Report</div>'+
+    '</div>'+
+
+    /* title block — centred in the page */
+    '<div style="padding:48px 0">'+
+      '<div style="font-size:13px;font-weight:600;color:'+P.hi+';font-family:\'Courier New\',monospace;letter-spacing:0.04em;margin-bottom:12px">'+esc(c.meta.id||'')+'</div>'+
+      '<div style="font-size:34px;font-weight:800;line-height:1.2;margin-bottom:20px">'+esc(c.meta.title||'Untitled incident')+'</div>'+
+      '<div style="display:flex;gap:9px;align-items:center;flex-wrap:wrap">'+
+        '<span style="font-size:14px;font-weight:800;padding:6px 18px;border-radius:4px;background:'+sevColor[sev]+';color:#fff;letter-spacing:0.03em">'+sev.toUpperCase()+'</span>'+
+        '<span style="font-size:12px;font-weight:600;padding:6px 15px;border-radius:4px;background:rgba(255,255,255,0.16);color:#fff;text-transform:uppercase;letter-spacing:0.04em">'+esc((c.meta.status||'').toUpperCase())+'</span>'+
+        (c.meta.classification?'<span style="font-size:12px;color:rgba(255,255,255,0.8);padding-left:6px">'+esc(c.meta.classification)+'</span>':'')+
+      '</div>'+
+    '</div>'+
+
+    /* metadata table */
+    '<table style="width:100%;border-collapse:collapse;margin-top:auto">'+
+      coverRowB('Case reference', esc(c.meta.id||'—'))+
+      coverRowB('Affected systems', esc(c.meta.systems||'—'))+
+      coverRowB('Key dates', coverDates||'—')+
+      coverRowB('Response team', coverPeople||'—')+
+      (g.regs?coverRowB('Regulatory scope', esc(g.regs)):'')+
+    '</table>'+
+
+    /* confidential footer */
+    '<div style="border-top:1px solid rgba(255,255,255,0.2);padding-top:14px;margin-top:26px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:8px">'+
+      '<div style="font-size:10px;color:rgba(255,255,255,0.65);line-height:1.6">'+
+        '<div style="font-weight:700;color:#ff9b8f;letter-spacing:0.08em;font-size:11px;margin-bottom:3px">CONFIDENTIAL</div>'+
+        'Prepared under incident response. May contain legally privileged material.<br>Handle and distribute in accordance with your organisation&rsquo;s classification policy.'+
+      '</div>'+
+      '<div style="font-size:10px;color:rgba(255,255,255,0.65);text-align:right;line-height:1.6">'+
+        'Report generated<br><strong style="color:#fff">'+genTs+'</strong>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+
   /* ── PAGE 1: EXECUTIVE BRIEF ── */
   var page1Header=
-  /* header */
-  '<div style="background:#1a1a18;color:#fff;padding:24px 28px;border-radius:6px;margin-bottom:24px">'+
-    '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">'+
-      '<div>'+
-        '<div style="display:flex;align-items:center;gap:9px;margin-bottom:8px">'+
-          '<svg width="26" height="26" viewBox="0 0 40 40" fill="none"><path d="M5 27 L13 27 L20 12 L27 22 L35 22" stroke="#4a9eff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="13" cy="27" r="3.1" fill="#1a1a18" stroke="#fff" stroke-width="2"/><circle cx="20" cy="12" r="3.1" fill="#1a1a18" stroke="#fff" stroke-width="2"/><circle cx="27" cy="22" r="3.1" fill="#4a9eff"/></svg>'+
-          '<span style="font-size:11px;letter-spacing:0.1em;opacity:0.6">TRACE — INCIDENT REPORT — CONFIDENTIAL</span>'+
-        '</div>'+
-        '<div style="'+S.h1+'">'+esc(c.meta.id)+(c.meta.title?' &mdash; '+esc(c.meta.title):'')+'</div>'+
-        '<div style="font-size:13px;opacity:0.7;margin-top:4px">'+esc(c.meta.classification||'—')+'</div>'+
-      '</div>'+
-      '<div style="text-align:right">'+
-        '<div style="font-size:28px;font-weight:800;padding:6px 16px;border-radius:4px;background:'+sevColor[sev]+';color:#fff">'+sev.toUpperCase()+'</div>'+
-        '<div style="font-size:11px;opacity:0.6;margin-top:6px">'+esc(c.meta.status.toUpperCase())+'</div>'+
-      '</div>'+
+  /* slim running header — the cover already carries the full identity */
+  '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding-bottom:10px;margin-bottom:22px;border-bottom:2px solid '+P.a+'">'+
+    '<div style="display:flex;align-items:center;gap:8px">'+
+      '<svg width="20" height="20" viewBox="0 0 40 40" fill="none"><path d="M5 27 L13 27 L20 12 L27 22 L35 22" stroke="'+P.a+'" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="13" cy="27" r="3.1" fill="#fff" stroke="#1a1a18" stroke-width="2"/><circle cx="20" cy="12" r="3.1" fill="#fff" stroke="#1a1a18" stroke-width="2"/><circle cx="27" cy="22" r="3.1" fill="'+P.a+'"/></svg>'+
+      '<span style="font-size:11px;font-weight:600;letter-spacing:0.06em;color:#555">'+esc(c.meta.id||'')+' &mdash; TRACE Incident Report</span>'+
     '</div>'+
-    '<div style="margin-top:16px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px;opacity:0.8;border-top:1px solid rgba(255,255,255,0.15);padding-top:12px">'+
-      '<span>Lead analyst: <strong style="opacity:1">'+esc(c.meta.owner||'—')+'</strong></span>'+
-      (g.commander?'<span>Incident commander: <strong style="opacity:1">'+esc(g.commander)+'</strong></span>':'')+
-      (g.regs?'<span>Regulations: <strong style="opacity:1">'+esc(g.regs)+'</strong></span>':'')+
-      '<span>Report generated: <strong style="opacity:1">'+genTs+'</strong></span>'+
-    '</div>'+
+    '<span style="font-size:10px;letter-spacing:0.1em;color:#c0392b;font-weight:700">CONFIDENTIAL</span>'+
   '</div>'+
+  '<h2 style="'+S.h2+'">Executive summary</h2>'+
 
   /* timeline strip */
   '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#e4e2da;border-radius:6px;overflow:hidden;margin-bottom:24px;font-size:12px">'+
@@ -3202,7 +3464,7 @@ function buildReportHTML(c,opts){
   /* recommendations */
   var recsSection=(on('recommendations')&&ll.recs)?
   nsec('Recommendations')+
-  '<div style="background:#f7f7f5;border-left:4px solid #1a4fa0;padding:12px 16px;border-radius:0 4px 4px 0;font-size:13px;line-height:1.7;white-space:pre-wrap">'+esc(ll.recs)+'</div>'
+  '<div style="background:#f7f7f5;border-left:4px solid '+P.a+';padding:12px 16px;border-radius:0 4px 4px 0;font-size:13px;line-height:1.7;white-space:pre-wrap">'+esc(ll.recs)+'</div>'
   :'';
 
   var page1=page1Header+narrative+notifSection+openActionsSection+recsSection;
@@ -3295,6 +3557,31 @@ function buildReportHTML(c,opts){
     '</tr></thead><tbody>'+evRows+'</tbody></table>'
     :'<p style="color:#666;font-style:italic">No evidence items.</p>'):'';
 
+  /* Investigation — per-host analysis summaries + evidence review status */
+  var evReviewed=(c.evidence||[]).filter(function(e){return e.reviewed;}).length;
+  var evTotal=(c.evidence||[]).length;
+  var hostSection=on('hosts')?
+  nsec('Investigation &#8212; host analysis')+
+  ((c.hostAnalysis||[]).length?
+    (c.hostAnalysis||[]).map(function(h){
+      var stCol=h.status==='Complete'?'#2f7d4f':(h.status==='In progress'?'#9a6f1e':'#888');
+      var evNames=(h.evidenceIds||[]).map(function(id){
+        var ev=(c.evidence||[]).find(function(x){return x.id===id;});
+        return ev?(ev.name+(ev.reviewed?' \u2713':'')):null;
+      }).filter(Boolean);
+      return '<div style="margin-bottom:16px;padding:12px 14px;border:1px solid #e4e2da;border-left:3px solid '+stCol+';border-radius:4px">'+
+        '<div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:6px">'+
+          '<span style="font-weight:700;font-size:13px">'+esc(h.host||'(unnamed host)')+'</span>'+
+          '<span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:'+stCol+'">'+esc(h.status||'Not started')+'</span>'+
+          (h.analyst?'<span style="font-size:11px;color:#666">Analyst: '+esc(h.analyst)+'</span>':'')+
+        '</div>'+
+        (function(){ var sum=h.summary||h.findings||''; return sum?'<div style="font-size:12px;line-height:1.6;color:#222;white-space:pre-wrap">'+esc(sum)+'</div>':'<div style="font-size:11px;color:#888;font-style:italic">No findings summary recorded.</div>'; })()+
+        (evNames.length?'<div style="font-size:11px;color:#555;margin-top:8px"><strong>Evidence reviewed:</strong> '+esc(evNames.join(', '))+'</div>':'')+
+      '</div>';
+    }).join('')+
+    (evTotal?'<p style="font-size:11px;color:#666;margin-top:4px">Evidence review: '+evReviewed+' of '+evTotal+' item'+(evTotal===1?'':'s')+' reviewed'+(evReviewed<evTotal?' &#8212; '+(evTotal-evReviewed)+' outstanding':'')+'.</p>':'')
+    :'<p style="color:#666;font-style:italic">No host analysis recorded.</p>'):'';
+
   var custodySection=on('custody')?
   nsec('Chain of custody')+
   ((c.custody||[]).length?
@@ -3352,9 +3639,9 @@ function buildReportHTML(c,opts){
     (ll.training?'<p style="margin-bottom:8px"><strong>Training needs:</strong> '+esc(ll.training)+'</p>':'')
     :'';
 
-  var techSections=iocsSection+evidenceSection+custodySection+severitySection+fullActionsSection+lessonsSection;
+  var techSections=iocsSection+evidenceSection+hostSection+custodySection+severitySection+fullActionsSection+lessonsSection;
   var appendix=(techSections?
-  '<div style="margin-top:32px;padding-top:24px;border-top:3px solid #111">'+
+  '<div style="margin-top:32px;padding-top:24px;border-top:3px solid '+P.rule+'">'+
   '<div style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">Appendix &#8212; Technical Detail</div>'+
   '</div>':'')+
   techSections+
@@ -3363,7 +3650,7 @@ function buildReportHTML(c,opts){
     '<div style="font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px">Closure checklist status</div>'+
     '<div style="display:flex;align-items:center;gap:12px">'+
       '<div style="flex:1;height:8px;background:#e4e2da;border-radius:4px;overflow:hidden">'+
-        '<div style="width:'+closurePct+'%;background:'+(closurePct===100?'#27ae60':'#1a4fa0')+';height:100%;border-radius:4px"></div>'+
+        '<div style="width:'+closurePct+'%;background:'+(closurePct===100?'#27ae60':P.a)+';height:100%;border-radius:4px"></div>'+
       '</div>'+
       '<div style="font-size:13px;font-weight:600;white-space:nowrap">'+closureDone+' / '+CLOSURE_CHECKS.length+' ('+closurePct+'%)</div>'+
       (closurePct===100?'<span style="color:#27ae60;font-weight:600">&#10003; Ready to close</span>':'<span style="color:#e67e22">In progress</span>')+
@@ -3374,7 +3661,7 @@ function buildReportHTML(c,opts){
     '<span>Generated '+genTs+'</span>'+
   '</div>';
 
-  return '<div style="'+S.page+'">'+page1+appendix+'</div>';
+  return '<div style="'+S.page+'">'+coverPage+page1+appendix+'</div>';
 }
 
 /* ===== PRINT / EXPORT TAB ===== */
@@ -3384,6 +3671,7 @@ var REPORT_SECTIONS=[
   {key:'recommendations',label:'Recommendations'},
   {key:'iocs',label:'Indicators of compromise'},
   {key:'evidence',label:'Evidence register'},
+  {key:'hosts',label:'Investigation — host analysis'},
   {key:'custody',label:'Chain of custody'},
   {key:'severity',label:'Severity escalation log'},
   {key:'fullActions',label:'Full actions log'},
@@ -3481,6 +3769,15 @@ function renderPrint(c){
         '<button class="sm" onclick="setAllReportSections(false)">Clear all</button>'+
         '<span style="font-size:11.5px;color:var(--text3);margin-left:4px">The preview below updates as you change these.</span>'+
       '</div>'+
+      '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:13px;padding-top:12px;border-top:1px solid var(--border)">'+
+        '<span style="font-size:12px;font-weight:600;color:var(--text);margin-right:4px">Report colours</span>'+
+        Object.keys(REPORT_PALETTES).map(function(k){
+          var p=REPORT_PALETTES[k], on=reportPaletteKey(c)===k;
+          return '<button class="sm" onclick="setReportPalette(\''+k+'\')" aria-pressed="'+on+'" title="Use the '+p.label+' palette for the cover, headings and tables" style="display:inline-flex;align-items:center;gap:7px;'+(on?'border-color:var(--accent);background:var(--info-bg);color:var(--text)':'')+'">'+
+            '<span style="display:inline-block;width:26px;height:13px;border-radius:3px;background:linear-gradient(90deg,'+p.d+' 0%,'+p.g3+' 70%,'+p.g4+' 100%);border:1px solid rgba(0,0,0,0.15)"></span>'+p.label+'</button>';
+        }).join('')+
+        '<span style="font-size:11.5px;color:var(--text3);margin-left:4px">Saved with this case and used as the default for new ones. Severity and RAG colours are unchanged.</span>'+
+      '</div>'+
     '</div>'+
   '</div>'+
 
@@ -3509,7 +3806,7 @@ function exportReportHTML(){
   if(!c)return;
   var inner=buildReportHTML(c,window._reportOpts||{});
   var full='<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(c.meta.id)+' — Incident Report</title>'+
-  '<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.6;color:#111;background:#fff;padding:32px 24px}@media print{body{padding:0}}@page{margin:15mm}</style>'+
+  '<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.6;color:#111;background:#fff;padding:32px 24px;-webkit-print-color-adjust:exact;print-color-adjust:exact}@media print{body{padding:0}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}@page{margin:15mm}</style>'+
   '</head><body>'+inner+'</body></html>';
   var blob=new Blob([full],{type:'text/html'});
   var a=document.createElement('a');
@@ -4628,7 +4925,7 @@ function wizardCreate(){
       sponsor:d.people.sponsor,comms:d.people.comms,externalIR:d.people.externalIR,
       secureComms:d.people.secureComms,bizImpact:'',repRisk:'',insurance:'',riskNotes:''},
     evidence:[],custody:[],iocs:[],actions:[],escalations:[],notifications:notifs,
-    rootCauses:[],recurCompleted:{},closure:{checks:{},notes:{}},lessons:{},exec:{}
+    rootCauses:[],recurCompleted:{},hostAnalysis:[],closure:{checks:{},notes:{}},lessons:{},exec:{}
   };
 
   state.activeCaseId=cid;

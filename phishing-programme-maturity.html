@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Phishing Programme Maturity Assessment</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root,[data-theme="light"]{
+  --bg:#F3F5F8;--surface:#FFFFFF;--surface2:#F8F9FB;--surface3:#F1F4F8;--border:#E2E6EC;--border2:#D0D6DF;
+  --text:#1A2130;--text2:#3A4658;--muted:#6B7A90;--faint:#B8C4D0;
+  --accent:#1456CC;--accent-h:#0F48B0;--accent-soft:#EEF3FC;--accent-line:#C5D4F5;--on-accent:#FFFFFF;
+  --ok:#0A7A50;--ok-soft:#DCFAEE;--ok-line:#A8D8BC;--warn:#9A5000;--warn-soft:#FFF5D6;--warn-line:#F5D580;--bad:#C0283A;--bad-soft:#FDEDF0;--bad-line:#F0A8B0;
+  --sidebar-bg:#1C2333;--sidebar-text:#C8D4E8;--sidebar-muted:#7A8FA8;--sidebar-border:#2A3548;--sidebar-hover:#253047;--sidebar-active:#2D3A55;--sidebar-hi:#E8EEF8;--sidebar-accent:#4A90E2;
+  --shadow:0 1px 3px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.45);
+}
+[data-theme="dark"]{
+  --bg:#0E131B;--surface:#151B25;--surface2:#1A212D;--surface3:#202938;--border:#263042;--border2:#344058;
+  --text:#E4E9F2;--text2:#BAC5D6;--muted:#8796AE;--faint:#4B5871;
+  --accent:#4C8DF6;--accent-h:#6AA0F8;--accent-soft:#17243A;--accent-line:#2B4674;--on-accent:#FFFFFF;
+  --ok:#3DD68C;--ok-soft:#0F2A1F;--ok-line:#1F5A40;--warn:#F2B64C;--warn-soft:#2E2410;--warn-line:#6A4F18;--bad:#F2707F;--bad-soft:#321419;--bad-line:#6E2A34;
+  --sidebar-bg:#0A0E15;--sidebar-text:#C8D4E8;--sidebar-muted:#6F819B;--sidebar-border:#1C2433;--sidebar-hover:#151C29;--sidebar-active:#1B2436;--sidebar-hi:#EEF3FA;--sidebar-accent:#4C8DF6;
+  --shadow:0 1px 3px rgba(0,0,0,.35);--overlay:rgba(0,0,0,.6);
+}
+[data-theme="ocean"]{
+  --bg:#EFF5F5;--surface:#FFFFFF;--surface2:#F5F9F9;--surface3:#EAF2F2;--border:#D9E5E5;--border2:#C3D5D5;
+  --text:#152426;--text2:#334A4D;--muted:#5F7A7D;--faint:#AFC4C6;
+  --accent:#0B7A75;--accent-h:#086460;--accent-soft:#E6F4F3;--accent-line:#A9D9D5;--on-accent:#FFFFFF;
+  --ok:#0A7A50;--ok-soft:#DCFAEE;--ok-line:#A8D8BC;--warn:#9A5000;--warn-soft:#FFF5D6;--warn-line:#F5D580;--bad:#C0283A;--bad-soft:#FDEDF0;--bad-line:#F0A8B0;
+  --sidebar-bg:#0F2A2C;--sidebar-text:#C6DEDD;--sidebar-muted:#7EA3A3;--sidebar-border:#1E3F41;--sidebar-hover:#16383A;--sidebar-active:#1C4447;--sidebar-hi:#EAF6F5;--sidebar-accent:#3CC2BA;
+  --shadow:0 1px 3px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.45);
+}
+[data-theme="contrast"]{
+  --bg:#FFFFFF;--surface:#FFFFFF;--surface2:#F4F4F4;--surface3:#EAEAEA;--border:#6E6E6E;--border2:#3C3C3C;
+  --text:#000000;--text2:#111111;--muted:#2E2E2E;--faint:#6E6E6E;
+  --accent:#0033A0;--accent-h:#00226E;--accent-soft:#E3EAFB;--accent-line:#0033A0;--on-accent:#FFFFFF;
+  --ok:#005A32;--ok-soft:#D8F5E6;--ok-line:#005A32;--warn:#6B3500;--warn-soft:#FFF0C8;--warn-line:#6B3500;--bad:#9E0018;--bad-soft:#FDE2E6;--bad-line:#9E0018;
+  --sidebar-bg:#000000;--sidebar-text:#FFFFFF;--sidebar-muted:#D0D0D0;--sidebar-border:#555555;--sidebar-hover:#222222;--sidebar-active:#333333;--sidebar-hi:#FFFFFF;--sidebar-accent:#FFD400;
+  --shadow:none;--overlay:rgba(0,0,0,.7);
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+button,input,textarea,select{font-family:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.mono{font-family:'SF Mono',Consolas,'Liberation Mono',monospace}
+
+/* LAYOUT */
+#app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:236px;min-width:236px;background:var(--sidebar-bg);border-right:1px solid var(--sidebar-border);display:flex;flex-direction:column;overflow:hidden}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* SIDEBAR */
+.sidebar-logo{padding:18px 16px 14px;border-bottom:1px solid var(--sidebar-border)}
+.logo-badge{display:inline-block;background:var(--sidebar-accent);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:1.2px;margin-bottom:8px}
+[data-theme="contrast"] .logo-badge{color:#000}
+.logo-title{font-size:16px;font-weight:700;letter-spacing:-.3px;color:var(--sidebar-hi)}
+.logo-sub{font-size:10.5px;color:var(--sidebar-muted);margin-top:3px;line-height:1.4}
+.sidebar-setup{padding:12px 16px;border-bottom:1px solid var(--sidebar-border)}
+.sidebar-progress{padding:12px 16px;border-bottom:1px solid var(--sidebar-border)}
+.prog-label{font-size:10.5px;color:var(--sidebar-muted);margin-bottom:6px;display:flex;justify-content:space-between}
+.prog-bar{height:3px;background:var(--sidebar-border);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:var(--sidebar-accent);border-radius:2px;transition:width .4s}
+.prog-warn{font-size:10px;color:#F0A8B0;margin-top:7px;line-height:1.4}
+.sidebar-nav{flex:1;overflow-y:auto;padding:6px 0}
+.nav-section{font-size:9.5px;color:var(--sidebar-muted);letter-spacing:1.2px;padding:12px 16px 4px;text-transform:uppercase;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 16px;cursor:pointer;font-size:12px;color:var(--sidebar-muted);border-left:2px solid transparent;user-select:none;background:none;border-top:none;border-right:none;border-bottom:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--sidebar-hover);color:var(--sidebar-text)}
+.nav-item.active{background:var(--sidebar-active);color:var(--sidebar-hi);border-left-color:var(--sidebar-accent)}
+.nav-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.nav-lbl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav-lvl{font-family:'SF Mono',Consolas,monospace;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--sidebar-border);color:var(--sidebar-text);flex-shrink:0}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--sidebar-border);display:flex;flex-direction:column;gap:8px}
+.footer-group{display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--sidebar-border);border-radius:8px}
+.footer-label{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--sidebar-muted);padding:0 2px 2px}
+.btn{padding:7px 12px;border-radius:6px;border:1px solid var(--sidebar-border);background:transparent;color:var(--sidebar-muted);font-size:11px;cursor:pointer;transition:all .15s;width:100%;text-align:left}
+.btn:hover{background:var(--sidebar-hover);color:var(--sidebar-text)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent);text-align:center;font-weight:600;padding:9px 12px;font-size:12px}
+.btn-primary:hover{background:var(--accent-h);color:var(--on-accent)}
+.btn-save{border-color:#2A7A55;color:#8FE6BC}
+.btn-save:hover{background:rgba(42,122,85,.18);color:#B8F0D4}
+.btn-reset{color:#C98A94;border-color:transparent;font-size:10.5px;opacity:.8}
+.btn-reset:hover{background:rgba(192,40,58,.12);color:#E0A8B0;opacity:1}
+.btn-row{display:flex;gap:6px}
+.btn-half{flex:1;text-align:center}
+
+/* TOPBAR */
+.topbar{height:48px;min-height:48px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:12px}
+.topbar-title{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar-meta{font-size:11px;color:var(--muted);display:flex;gap:10px;align-items:center;flex-shrink:0}
+.tb-action{font-size:11px;font-weight:600;color:var(--text);background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;cursor:pointer}
+.tb-action:hover{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.tb-help{width:26px;height:26px;padding:0;border-radius:50%;font-weight:700;font-size:13px;display:inline-flex;align-items:center;justify-content:center}
+.tb-select{width:auto;max-width:150px;font-size:11px;font-weight:600;color:var(--text);background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:4px 8px;cursor:pointer}
+.fw-chip{display:inline-block;padding:3px 9px;border-radius:5px;font-size:10.5px;font-weight:600;background:var(--surface2);color:var(--muted);border:1px solid var(--border2);white-space:nowrap}
+.save-status{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);cursor:pointer;padding:3px 9px;border:1px solid var(--border2);border-radius:20px;user-select:none;white-space:nowrap;background:none}
+.save-status:hover{background:var(--surface2);border-color:var(--accent)}
+.ss-dot{width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.ss-dot.ok{background:#0A9A60}
+.ss-dot.warn{background:#C0283A}
+.content{flex:1;overflow-y:auto;padding:24px;background:var(--bg)}
+.wrap{max-width:1180px;margin:0 auto}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:#1C2333;color:#E8EEF8;font-size:12px;padding:11px 18px;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.28);z-index:2000;opacity:0;transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .28s;display:flex;align-items:center;gap:9px;max-width:min(560px,88vw);line-height:1.5}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.err{background:#5C1620}
+.toast-dot{width:7px;height:7px;border-radius:50%;background:#4ADE80;flex-shrink:0}
+.toast.err .toast-dot{background:#F0A8B0}
+
+/* GENERIC */
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.3px;white-space:nowrap}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
+.panel-head{padding:11px 16px;border-bottom:1px solid var(--border);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface2);color:var(--text)}
+.panel-head .sub{font-weight:400;color:var(--muted);font-size:11px}
+.panel-body{padding:14px 16px}
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:16px}
+.page-head h2{font-size:18px;font-weight:700;color:var(--text)}
+.page-head p{font-size:12px;color:var(--muted);max-width:700px;line-height:1.65;margin-top:4px}
+.big-num{font-family:'SF Mono',Consolas,monospace;font-size:28px;font-weight:700;line-height:1}
+.small-muted{font-size:10.5px;color:var(--muted)}
+.notice{background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:8px;padding:10px 14px;font-size:11.5px;color:var(--text2);margin-bottom:14px;line-height:1.7}
+.notice strong{color:var(--text)}
+.empty{padding:28px 16px;text-align:center;color:var(--muted);font-size:12px;line-height:1.7}
+
+/* LEVEL PILLS */
+.lv{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:6px;font-family:'SF Mono',Consolas,monospace;font-size:11px;font-weight:700;color:#fff}
+.lv.na{background:var(--surface3);color:var(--muted);border:1px solid var(--border2)}
+.lv.ns{background:transparent;color:var(--muted);border:1px dashed var(--border2)}
+.lv.un{background:transparent;color:var(--faint);border:1.5px solid var(--border2)}
+.chip{display:inline-block;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.2px;white-space:nowrap;border:1px solid transparent}
+.chip-ok{background:var(--ok-soft);color:var(--ok);border-color:var(--ok-line)}
+.chip-warn{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-line)}
+.chip-bad{background:var(--bad-soft);color:var(--bad);border-color:var(--bad-line)}
+.chip-muted{background:var(--surface3);color:var(--muted);border-color:var(--border2)}
+.chip-acc{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-line)}
+.chip-ir{background:#FFF1E6;color:#9A3A00;border-color:#F5C088}
+[data-theme="dark"] .chip-ir{background:#2E1C10;color:#F7A865;border-color:#6A3F18}
+.prio-Critical{background:var(--bad-soft);color:var(--bad);border-color:var(--bad-line)}
+.prio-High{background:#FFF0E0;color:#9A3A00;border-color:#F5C088}
+[data-theme="dark"] .prio-High{background:#2E1C10;color:#F7A865;border-color:#6A3F18}
+.prio-Medium{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-line)}
+.prio-Low{background:var(--ok-soft);color:var(--ok);border-color:var(--ok-line)}
+
+/* GUIDANCE */
+.guide{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow)}
+.guide-head{padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;width:100%;background:none;border:none;text-align:left;color:var(--text)}
+.guide-head:hover{background:var(--surface3)}
+.guide-tag{font-size:9px;font-weight:700;letter-spacing:1px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-line);padding:3px 7px;border-radius:4px}
+.guide-title{font-size:12.5px;font-weight:600;flex:1}
+.guide-body{padding:4px 16px 16px;font-size:12px;color:var(--text2);line-height:1.7}
+.guide-body p{margin-bottom:10px}
+.scale-table{width:100%;border-collapse:collapse;font-size:11.5px;margin:6px 0 12px}
+.scale-table td,.scale-table th{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:top;text-align:left}
+.scale-table th{font-size:10.5px;color:var(--muted);font-weight:600;background:var(--surface2)}
+.chevron{color:var(--muted);font-size:11px;transition:transform .2s;flex-shrink:0;display:inline-block}
+.chevron.open{transform:rotate(90deg)}
+
+/* AREA CARDS */
+.area{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;box-shadow:var(--shadow)}
+.area-head{padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;width:100%;background:none;border:none;text-align:left;color:var(--text)}
+.area-head:hover{background:var(--surface3)}
+.area-code{font-family:'SF Mono',Consolas,monospace;font-size:11px;font-weight:700;padding:3px 7px;border-radius:4px;flex-shrink:0;min-width:52px;text-align:center}
+.area-name{font-size:13px;font-weight:600;flex:1;min-width:0}
+.area-body{border-top:1px solid var(--border)}
+.area-desc{padding:12px 16px 4px;font-size:12px;color:var(--text2);line-height:1.65}
+.area-refs{padding:0 16px 10px;font-size:11px;color:var(--muted)}
+.area-refs .mono{color:var(--text2);font-weight:600}
+.anchor{margin:4px 16px 12px;background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;padding:9px 12px;font-size:11.5px;color:var(--text2);line-height:1.6}
+.anchor b{color:var(--accent);font-weight:700}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 16px;border-top:1px solid var(--border);background:var(--surface2)}
+.row.alt{background:var(--surface)}
+.row-lbl{font-size:11px;color:var(--muted);font-weight:600;min-width:120px}
+.btns{display:flex;gap:4px;flex-wrap:wrap}
+.lb{border:1px solid var(--border2);background:var(--surface);color:var(--text2);border-radius:6px;padding:5px 9px;font-size:10.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:border-color .12s,background .12s}
+.lb:hover{border-color:var(--accent)}
+.lb .n{font-family:'SF Mono',Consolas,monospace;font-weight:800;font-size:11px}
+.lb.on{color:#fff}
+.lb.on-na{background:var(--surface3);border-color:var(--muted);color:var(--text)}
+.sb{border:1px solid var(--border2);background:var(--surface);color:var(--muted);border-radius:5px;padding:4px 9px;font-size:10.5px;font-weight:600;cursor:pointer}
+.sb:hover{border-color:var(--accent);color:var(--accent)}
+.sb.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.aid{padding:10px 16px 12px;border-top:1px solid var(--border);background:var(--surface)}
+.aid-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px}
+.aid-q{font-size:11px;color:var(--text2);font-weight:600;margin-bottom:5px}
+.aid-q span{display:block;font-weight:400;color:var(--muted);font-size:10px;line-height:1.4;margin-top:2px}
+.aid-sugg{margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:11.5px;color:var(--text2)}
+.aid-sugg .mbn{padding:4px 10px;font-size:11px}
+.box{padding:12px 16px;border-top:1px solid var(--border)}
+.box.na{background:var(--warn-soft)}
+.box-lbl{display:block;font-size:11px;font-weight:600;color:var(--text);margin-bottom:3px}
+.box-hint{font-size:10.5px;color:var(--muted);line-height:1.55;margin-bottom:7px}
+.inp{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:6px;padding:8px 10px;color:var(--text);font-size:12px;line-height:1.6;outline:none;resize:vertical}
+.inp:focus{border-color:var(--accent)}
+.inp-line{padding:6px 10px}
+.warnline{display:flex;align-items:center;gap:7px;background:var(--bad-soft);border:1px solid var(--bad-line);color:var(--bad);font-size:11px;font-weight:600;padding:7px 10px;border-radius:6px;margin-bottom:8px;line-height:1.5}
+.risk-inputs{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.risk-inputs label{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.risk-inputs select{background:var(--surface);color:var(--text);border:1px solid var(--border2);border-radius:5px;padding:3px 6px;font-size:11px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* DASHBOARD */
+.summary{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-bottom:16px}
+.overall{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;display:flex;gap:20px;align-items:center;box-shadow:var(--shadow)}
+.overall h2{font-size:22px;font-weight:700}
+.overall .lead{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.55}
+.dist{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--surface3);margin-top:12px}
+.dist span{display:block;height:100%}
+.dist-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:7px;font-size:10px;color:var(--muted)}
+.dist-legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:middle}
+.stats{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px;box-shadow:var(--shadow)}
+.stat{text-align:center;padding:6px}
+.stat-val{font-size:22px;font-weight:700;font-family:'SF Mono',Consolas,monospace;line-height:1}
+.stat-lbl{font-size:10px;color:var(--muted);margin-top:4px}
+.groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.gcard{background:var(--surface);border:1px solid var(--border);border-top:3px solid;border-radius:10px;padding:12px 14px;cursor:pointer;text-align:left;box-shadow:var(--shadow);color:var(--text)}
+.gcard:hover{background:var(--surface3)}
+.gcard .g-id{font-size:11px;font-weight:700;font-family:'SF Mono',Consolas,monospace}
+.gcard .g-name{font-size:11px;color:var(--muted);margin:2px 0 8px;line-height:1.35;min-height:30px}
+.gcard .g-val{font-size:24px;font-weight:700;font-family:'SF Mono',Consolas,monospace;line-height:1}
+.mini{height:4px;background:var(--surface3);border-radius:2px;margin-top:8px;overflow:hidden}
+.mini span{display:block;height:100%;border-radius:2px}
+.hm{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.hm-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface);cursor:pointer;text-align:left;color:var(--text);width:100%}
+.hm-row:hover{background:var(--surface3)}
+.hm-code{font-family:'SF Mono',Consolas,monospace;font-size:10.5px;font-weight:700;min-width:50px}
+.hm-name{font-size:11px;flex:1;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.track{position:relative;width:110px;height:8px;background:var(--surface3);border-radius:4px;flex-shrink:0}
+.track .fill{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
+.track .tgt{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--text);border-radius:1px}
+.vlist{display:flex;flex-direction:column}
+.vrow{display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--border);font-size:12px}
+.vrow:last-child{border-bottom:none}
+.vrow .code{font-family:'SF Mono',Consolas,monospace;font-size:10.5px;font-weight:700;min-width:54px}
+.vrow .nm{flex:1;color:var(--text)}
+.val-ok{color:var(--ok)}
+.val-bad{color:var(--bad)}
+.validation{border-radius:10px;margin-bottom:14px;overflow:hidden;border:1px solid var(--bad-line);background:var(--bad-soft)}
+.validation.ok{border-color:var(--ok-line);background:var(--ok-soft)}
+.validation .v-head{padding:10px 14px;font-size:12px;font-weight:700;color:var(--bad);display:flex;gap:8px;align-items:center}
+.validation.ok .v-head{color:var(--ok)}
+.validation .v-body{padding:0 14px 10px;font-size:11.5px;color:var(--text2);line-height:1.8}
+.vcount{display:inline-block;background:var(--bad);color:#fff;font-family:'SF Mono',Consolas,monospace;font-size:10px;font-weight:700;padding:0 6px;border-radius:3px;margin-right:6px}
+.linkish{background:none;border:none;color:var(--accent);cursor:pointer;font-size:inherit;text-decoration:underline;padding:0}
+
+/* TABLES */
+.tbl{width:100%;border-collapse:collapse;font-size:11.5px}
+.tbl th{padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);color:var(--muted);font-weight:600;background:var(--surface2);font-size:10.5px;white-space:nowrap}
+.tbl td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top}
+.tbl tr:last-child td{border-bottom:none}
+.tbl .mono{font-weight:700;font-size:10.5px;white-space:nowrap}
+.tbl-wrap{overflow-x:auto}
+
+/* PLAN */
+.hz{margin-bottom:18px}
+.hz-title{font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.hz-title span{font-size:11px;font-weight:400;color:var(--muted)}
+.imp{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden;box-shadow:var(--shadow)}
+.imp-head{padding:11px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.imp-rank{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:'SF Mono',Consolas,monospace;background:var(--text);color:var(--surface);flex-shrink:0}
+.imp-body{padding:10px 16px 14px;font-size:12px;color:var(--text2);line-height:1.7}
+.imp-metrics{display:flex;gap:18px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-bottom:8px}
+.imp-metrics strong{color:var(--text)}
+
+/* READINESS */
+.theme-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid;border-radius:0 10px 10px 0;padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow)}
+.theme-card h4{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.theme-card p{font-size:12px;color:var(--text2);line-height:1.65;margin-bottom:8px}
+.theme-areas{display:flex;flex-wrap:wrap;gap:6px}
+.theme-areas span{display:inline-flex;align-items:center;gap:6px;font-size:11px;border:1px solid var(--border);border-radius:6px;padding:3px 8px;background:var(--surface2)}
+
+/* MODALS */
+.overlay{position:fixed;inset:0;background:var(--overlay);z-index:999;display:flex;align-items:center;justify-content:center}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:24px;width:640px;max-width:94vw;max-height:88vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2);color:var(--text)}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:10px}
+.modal-sec{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin:20px 0 10px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.field-grid .full{grid-column:1 / -1}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px}
+.field input,.field textarea,.field select{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;resize:vertical}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent)}
+.hint{font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.5}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+.mbn{padding:7px 16px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;cursor:pointer}
+.mbn:hover{background:var(--surface3);color:var(--text)}
+.mbp{padding:7px 16px;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);font-size:12px;cursor:pointer;font-weight:600}
+.mbp:hover{background:var(--accent-h)}
+.fw-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.fw-opt{border:1.5px solid var(--border2);border-radius:9px;padding:11px 13px;cursor:pointer;background:var(--surface);text-align:left;color:var(--text)}
+.fw-opt:hover{border-color:var(--accent)}
+.fw-opt.on{border-color:var(--accent);background:var(--accent-soft)}
+.fw-opt b{display:block;font-size:12.5px}
+.fw-opt span{display:block;font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.45}
+.custom-row{display:grid;grid-template-columns:70px 1fr 1.3fr 110px 130px 30px;gap:6px;margin-bottom:6px;align-items:center}
+.custom-row input{background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;width:100%}
+.custom-row label{font-size:10px;color:var(--muted);display:flex;align-items:center;gap:4px}
+.help-list{margin:0 0 4px;padding-left:20px;font-size:12.5px;line-height:1.7;color:var(--text)}
+.help-list li{margin-bottom:6px}
+.help-callout{display:flex;gap:12px;background:var(--ok-soft);border:1px solid var(--ok-line);border-radius:9px;padding:12px 14px;margin:12px 0;font-size:12.5px;line-height:1.6}
+.pal-row{display:flex;gap:8px;flex-wrap:wrap}
+.pal{border:1.5px solid var(--border2);border-radius:8px;padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:7px;font-size:11.5px;background:var(--surface);color:var(--text)}
+.pal.on{border-color:var(--accent);background:var(--accent-soft)}
+.pal i{display:inline-block;width:14px;height:14px;border-radius:3px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.fu{animation:fadeUp .18s ease}
+@media (prefers-reduced-motion:reduce){.fu{animation:none}.prog-fill,.chevron,.toast{transition:none}}
+@media (max-width:900px){.summary,.two-col{grid-template-columns:1fr}.hm{grid-template-columns:1fr}.aid-grid{grid-template-columns:1fr 1fr}.sidebar{width:200px;min-width:200px}}
+/* ═══════════ REPORT (screen preview + print) ═══════════ */
+.report-toolbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:18px;box-shadow:var(--shadow)}
+.rt-title{font-size:12px;font-weight:600;color:var(--text)}
+.rt-sub{font-size:11px;color:var(--muted);line-height:1.5}
+.rt-btn{background:var(--accent);color:var(--on-accent);border:none;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.rt-btn:hover{background:var(--accent-h)}
+.rt-btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--border2)}
+.rt-btn.ghost:hover{background:var(--surface2);color:var(--text)}
+.rt-first{margin-left:auto}
+
+.doc{--rp-d:#0A1A3A;--rp-m:#12336E;--rp-a:#1456CC;--rp-soft:#F4F7FC;--rp-line:#DCE6F5;background:#8A93A3;padding:24px;border-radius:10px}
+.doc.pal-teal{--rp-d:#062B2A;--rp-m:#0D4F4C;--rp-a:#0B7A75;--rp-soft:#F0F8F7;--rp-line:#CBE6E3}
+.doc.pal-graphite{--rp-d:#15191F;--rp-m:#2F3640;--rp-a:#4E5B6E;--rp-soft:#F4F5F7;--rp-line:#DDE1E7}
+.doc.pal-burgundy{--rp-d:#2A0B14;--rp-m:#561A2B;--rp-a:#94243F;--rp-soft:#FBF3F5;--rp-line:#EFD3DA}
+.page{background:#fff;width:210mm;min-height:297mm;margin:0 auto 24px;padding:18mm 17mm 16mm;box-shadow:0 3px 16px rgba(0,0,0,.22);position:relative;color:#1A2230;font-size:10pt;line-height:1.55;font-family:Arial,Helvetica,sans-serif}
+.page:last-child{margin-bottom:0}
+.page-foot{position:absolute;bottom:9mm;left:17mm;right:17mm;font-size:7.5pt;color:#8A9BB0;display:flex;justify-content:space-between;gap:10px}
+
+/* Cover */
+.cover{display:flex;flex-direction:column;color:#fff;background:linear-gradient(155deg,var(--rp-d) 0%,var(--rp-m) 58%,var(--rp-a) 100%);padding:0;overflow:hidden}
+.cover-inner{padding:22mm 18mm;display:flex;flex-direction:column;flex:1;min-height:297mm}
+.cover-badge{font-size:9pt;letter-spacing:2px;text-transform:uppercase;opacity:.85;font-weight:600}
+.cover-rule{width:54px;height:3px;background:rgba(255,255,255,.7);margin:14px 0 26px}
+.cover h1{font-size:30pt;font-weight:700;line-height:1.12;margin:0 0 10px;letter-spacing:-.5px}
+.cover-sub{font-size:13pt;opacity:.9}
+.cover-class{display:inline-block;align-self:flex-start;margin-top:16px;font-size:8pt;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:4px 10px}
+.cover-spacer{flex:1}
+.cover-meta{margin-top:30px;border-top:1px solid rgba(255,255,255,.22);padding-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px 30px}
+.cm-lbl{font-size:7.5pt;letter-spacing:1.4px;text-transform:uppercase;opacity:.65;margin-bottom:3px}
+.cm-val{font-size:11pt;font-weight:600;line-height:1.35}
+.cover-verdict{margin-top:24px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);border-radius:10px;padding:16px 20px;display:flex;align-items:center;gap:20px}
+.cv-big{font-size:26pt;font-weight:700;line-height:1;font-family:'SF Mono',Consolas,monospace}
+.cv-name{font-size:10pt;letter-spacing:1px;text-transform:uppercase;opacity:.9;margin-top:4px}
+.cv-dist{flex:1}
+.cv-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:rgba(255,255,255,.15)}
+.cv-bar span{display:block;height:100%}
+.cv-note{font-size:8.5pt;opacity:.85;margin-top:7px;line-height:1.5}
+.cover-foot{font-size:7.5pt;opacity:.65;margin-top:20px;line-height:1.55}
+
+/* Report typography */
+.rp-h2{font-size:16pt;font-weight:700;color:var(--rp-d);margin:0 0 3px;letter-spacing:-.3px}
+.rp-h2 .rp-num{color:var(--rp-a);margin-right:8px}
+.rp-lead{font-size:9.5pt;color:#5A6A80;margin:0 0 16px;padding-bottom:10px;border-bottom:2px solid #E4E9F0}
+.rp-h3{font-size:11.5pt;font-weight:700;color:var(--rp-m);margin:18px 0 7px}
+.rp-p{margin:0 0 9px;color:#28313F}
+.rp-callout{background:var(--rp-soft);border-left:3px solid var(--rp-a);border-radius:0 8px 8px 0;padding:11px 15px;margin:12px 0;font-size:9.5pt;line-height:1.6;color:#28313F}
+.rp-callout.warn{background:#FDF6F7;border-left-color:#C0283A}
+.rp-callout.ok{background:#F2FBF6;border-left-color:#0A7A50}
+.rp-table{width:100%;border-collapse:collapse;font-size:8.5pt;margin:8px 0}
+.rp-table th{background:var(--rp-d);color:#fff;text-align:left;padding:6px 8px;font-weight:600;font-size:8pt}
+.rp-table td{padding:5px 8px;border-bottom:1px solid #E8ECF2;vertical-align:top;color:#28313F}
+.rp-table tr:nth-child(even) td{background:#F8FAFC}
+.rp-table .ref{font-family:'SF Mono',Consolas,monospace;font-weight:700;white-space:nowrap}
+.rp-table tr.grp{break-after:avoid;page-break-after:avoid}
+.rp-table .grp td{background:var(--rp-m)!important;color:#fff;font-weight:700;font-size:8.5pt}
+.rp-details th.k{background:var(--rp-soft);color:#28313F;width:32%;font-weight:600;font-size:8.5pt}
+.rlv{display:inline-block;min-width:18px;text-align:center;padding:1px 5px;border-radius:4px;color:#fff;font-weight:700;font-size:8pt;font-family:'SF Mono',Consolas,monospace}
+.rlv.na{background:#EAEEF3;color:#4A5A6E}
+.rlv.ns{background:#fff;color:#8A9BB0;border:1px dashed #B8C4D0}
+.rpill{display:inline-block;padding:1px 7px;border-radius:20px;font-size:7.5pt;font-weight:700;white-space:nowrap}
+.rp-Critical{background:#FDE2E6;color:#A81828}.rp-High{background:#FFE9D6;color:#9A3A00}.rp-Medium{background:#FFF3D6;color:#8A4A00}.rp-Low{background:#DCFAEE;color:#076B40}
+.rp-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:12px 0 14px}
+.rp-stat{border:1px solid #E4E9F0;border-radius:8px;padding:9px 6px;text-align:center}
+.rs-val{font-size:18pt;font-weight:700;line-height:1;font-family:'SF Mono',Consolas,monospace}
+.rs-lbl{font-size:6.8pt;letter-spacing:.5px;text-transform:uppercase;color:#6B7A90;margin-top:4px;font-weight:600}
+.rp-grow{display:flex;align-items:center;gap:10px;margin:7px 0;break-inside:avoid}
+.rp-grow .gid{width:30px;height:20px;border-radius:5px;color:#fff;font-weight:700;font-size:8pt;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'SF Mono',Consolas,monospace}
+.rp-grow .gnm{font-size:9pt;font-weight:600;width:210px;flex-shrink:0;color:#28313F}
+.rp-grow .gtr{flex:1;height:14px;background:#EEF1F5;border-radius:7px;position:relative}
+.rp-grow .gfl{position:absolute;left:0;top:0;bottom:0;border-radius:7px}
+.rp-grow .gtg{position:absolute;top:-3px;bottom:-3px;width:2px;background:#1A2230}
+.rp-grow .gvl{font-family:monospace;font-size:9pt;font-weight:700;width:36px;text-align:right}
+.rp-method{background:var(--rp-soft);border:1px solid var(--rp-line);border-radius:9px;padding:12px 15px;margin:8px 0 12px;font-size:9pt;line-height:1.6;color:#28313F}
+.rp-formula{background:var(--rp-d);color:#fff;font-family:'SF Mono',Consolas,monospace;font-size:9pt;text-align:center;padding:8px;border-radius:6px;margin:8px 0}
+.radar-block{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:4px}
+.radar-svg{flex:0 0 330px;max-width:330px}
+.radar-legend{flex:1;min-width:230px;display:grid;grid-template-columns:1fr;gap:1px;font-size:8pt}
+.rl-row{display:flex;gap:6px;align-items:baseline;line-height:1.45;break-inside:avoid}
+.rl-code{font-family:'SF Mono',Consolas,monospace;font-weight:700;flex:0 0 42px}
+.rl-name{flex:1;color:#33404F}
+.rl-val{font-family:monospace;font-weight:700;color:#5A6A80}
+.rp-rec{border:1px solid #E4E9F0;border-left:3px solid var(--rp-a);border-radius:0 9px 9px 0;padding:10px 14px;margin:9px 0;break-inside:avoid}
+.rp-rec-head{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap}
+.rp-rec-rank{width:20px;height:20px;border-radius:50%;background:var(--rp-d);color:#fff;font-size:8pt;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rp-rec-name{font-size:10pt;font-weight:700;color:var(--rp-d);flex:1}
+.rp-rec-meta{font-size:8pt;color:#6B7A90;margin-bottom:5px}
+.rp-rec-body{font-size:9pt;line-height:1.6;color:#28313F}
+.rp-hz{font-size:10.5pt;font-weight:700;color:var(--rp-m);margin:16px 0 4px;padding-bottom:4px;border-bottom:1px solid #E4E9F0}
+.rp-reg{border:1px solid #E4E9F0;border-radius:9px;padding:10px 14px;margin:8px 0;break-inside:avoid}
+.rp-reg-just{font-size:9pt;color:#33404F;background:#F6F8FB;border-left:2px solid #8A9BB0;border-radius:0 6px 6px 0;padding:7px 11px;margin-top:6px;white-space:pre-wrap;line-height:1.6}
+.rp-detail{border:1px solid #E4E9F0;border-radius:9px;padding:10px 14px;margin:8px 0;break-inside:avoid}
+.rp-detail h5{font-size:9.5pt;margin:0 0 4px;color:var(--rp-d);display:flex;gap:8px;align-items:center}
+.rp-detail .dl{font-size:8pt;color:#6B7A90;margin-top:5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.rp-detail .dv{font-size:9pt;color:#28313F;white-space:pre-wrap;line-height:1.55}
+.rp-theme{border-left:3px solid;padding:8px 13px;margin:9px 0;background:#FAFBFC;border-radius:0 8px 8px 0;break-inside:avoid}
+.rp-theme h5{font-size:10pt;margin:0 0 3px;display:flex;align-items:center;gap:8px}
+.rp-theme p{font-size:9pt;margin:0;color:#28313F;line-height:1.58}
+.rp-theme .ta{font-size:8pt;color:#5A6A80;margin-top:4px}
+
+@media screen and (max-width:1100px){.page{width:100%;padding:14mm 12mm 18mm;min-height:auto}.doc{padding:12px}.cover-inner{min-height:250mm}}
+
+@media print{
+  html,body{height:auto!important;overflow:visible!important;background:#fff!important}
+  #app{display:block!important;height:auto!important;overflow:visible!important}
+  .main{display:block!important;height:auto!important;overflow:visible!important}
+  .content{display:block!important;height:auto!important;overflow:visible!important;padding:0!important;background:#fff!important}
+  .wrap{max-width:none!important}
+  .fu{animation:none!important}
+  .sidebar,.topbar,.no-print,.report-toolbar,.overlay,.toast{display:none!important}
+  .doc{background:none!important;padding:0!important;border-radius:0!important}
+  @page{size:A4;margin:12mm}
+  .page{box-shadow:none!important;margin:0!important;width:auto!important;min-height:0!important;padding:0!important;break-after:page;page-break-after:always}
+  .page:last-child{break-after:auto;page-break-after:auto}
+  .page.cover{height:273mm!important;max-height:273mm!important;overflow:hidden!important}
+  .cover-inner{min-height:0!important;height:273mm;padding:22mm 20mm!important}
+  .rp-table thead{display:table-header-group}
+  .rp-table tr{break-inside:avoid;page-break-inside:avoid}
+  .rp-rec,.rp-reg,.rp-detail,.rp-stat,.rp-callout,.rp-theme,.rp-grow{break-inside:avoid;page-break-inside:avoid}
+  .rp-h2,.rp-h3,.rp-hz{break-after:avoid}
+  .page-foot{position:static!important;margin-top:8mm}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+}
+
+/* ═══════════ PHISHING-SPECIFIC ═══════════ */
+.tier-opts{display:grid;gap:6px;padding:10px 16px 12px;border-top:1px solid var(--border);background:var(--surface2)}
+.tier-opt{display:flex;gap:11px;align-items:flex-start;text-align:left;border:1.5px solid var(--border2);border-radius:8px;padding:9px 12px;background:var(--surface);color:var(--text);cursor:pointer;width:100%}
+.tier-opt:hover{border-color:var(--accent)}
+.tier-opt .tn{font-family:'SF Mono',Consolas,monospace;font-weight:800;font-size:11px;min-width:26px;height:22px;border-radius:5px;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tier-opt .tt{font-size:12px;color:var(--text2);line-height:1.55}
+.tier-opt .tt b{color:var(--text);margin-right:4px}
+.tier-opt .tg{margin-left:auto;flex-shrink:0}
+.tier-extra{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding-top:2px}
+.layer-chip{display:inline-block;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--surface3);color:var(--text2);border:1px solid var(--border2);white-space:nowrap}
+.hmx{display:flex;flex-direction:column;gap:6px}
+.hmx-row{display:grid;grid-template-columns:170px 1fr;gap:10px;align-items:center}
+.hmx-dim{font-size:11px;font-weight:600;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hmx-cells{display:flex;gap:5px;flex-wrap:wrap}
+.hmc{min-width:46px;height:30px;border-radius:6px;font-family:'SF Mono',Consolas,monospace;font-size:10px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;padding:0 6px;position:relative}
+.hmc.un{background:var(--surface3);color:var(--muted);border:1px dashed var(--border2)}
+.hmc.na{background:var(--surface3);color:var(--muted);border:1px solid var(--border2)}
+.hmc .gapdot{position:absolute;top:-4px;right:-4px;width:9px;height:9px;border-radius:50%;background:var(--bad);border:2px solid var(--surface)}
+.ap{background:var(--surface);border:1px solid var(--border);border-left:4px solid;border-radius:0 10px 10px 0;padding:12px 16px;margin-bottom:10px;box-shadow:var(--shadow)}
+.ap h4{font-size:13px;font-weight:700;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:5px;color:var(--text)}
+.ap p{font-size:12px;color:var(--text2);line-height:1.65}
+.ap .links{margin-top:7px;display:flex;gap:6px;flex-wrap:wrap}
+.sev-high{background:var(--bad-soft);color:var(--bad);border-color:var(--bad-line)}
+.sev-med{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-line)}
+.sev-low{background:var(--surface3);color:var(--text2);border-color:var(--border2)}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.mfield label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px}
+.mfield input{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-size:12.5px}
+.mfield input:focus{border-color:var(--accent);outline:none}
+.mcheck{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.mc{border:1px solid var(--border);border-radius:9px;padding:11px 13px;background:var(--surface2)}
+.mc .mc-id{font-family:'SF Mono',Consolas,monospace;font-size:10px;font-weight:700;color:var(--muted)}
+.mc .mc-name{font-size:12px;font-weight:600;color:var(--text);margin:2px 0 6px}
+.mc .mc-help{font-size:10.5px;color:var(--muted);line-height:1.5;margin-top:6px}
+.act-fields{display:grid;grid-template-columns:1.2fr 150px 150px 1.2fr;gap:8px;margin-top:10px}
+.act-fields label{font-size:10px;color:var(--muted);display:block;margin-bottom:3px}
+.act-fields input,.act-fields select{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:6px;padding:6px 8px;color:var(--text);font-size:11.5px}
+.chipset{display:flex;flex-wrap:wrap;gap:6px}
+.chipset button{border:1.5px solid var(--border2);background:var(--surface);color:var(--text2);border-radius:20px;padding:5px 12px;font-size:11.5px;cursor:pointer}
+.chipset button:hover{border-color:var(--accent)}
+.chipset button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:600}
+.overlay-note{margin-top:8px;font-size:11.5px;color:var(--text2);line-height:1.6;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px}
+.layer-card{background:var(--surface);border:1px solid var(--border);border-top:3px solid;border-radius:10px;padding:14px 16px;box-shadow:var(--shadow)}
+.layer-card h4{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}
+.layer-card .ld{font-size:11px;color:var(--muted);line-height:1.5;min-height:32px}
+.seg{display:inline-flex;border:1px solid var(--border2);border-radius:7px;overflow:hidden}
+.seg button{background:var(--surface);color:var(--text2);border:none;padding:7px 12px;font-size:11.5px;cursor:pointer;border-right:1px solid var(--border2)}
+.seg button:last-child{border-right:none}
+.seg button.on{background:var(--accent);color:var(--on-accent);font-weight:600}
+@media (max-width:900px){.act-fields{grid-template-columns:1fr 1fr}.hmx-row{grid-template-columns:1fr}}
+/* report extras */
+.rp-ap{border:1px solid #E4E9F0;border-left:3px solid;border-radius:0 9px 9px 0;padding:9px 13px;margin:8px 0;break-inside:avoid}
+.rp-ap h5{font-size:10pt;margin:0 0 3px;color:var(--rp-d);display:flex;gap:8px;align-items:center}
+.rp-ap p{font-size:9pt;margin:0;color:#28313F;line-height:1.58}
+.rp-heat{display:flex;flex-direction:column;gap:4px;margin:8px 0}
+.rp-heat-row{display:flex;gap:8px;align-items:center}
+.rp-heat-row .d{width:150px;font-size:8.5pt;font-weight:600;color:#28313F;flex-shrink:0}
+.rp-heat-row .c{display:flex;gap:4px;flex-wrap:wrap}
+.rp-heat-row .c span{min-width:36px;height:20px;border-radius:4px;font-size:7.5pt;font-weight:700;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-family:'SF Mono',Consolas,monospace;padding:0 4px}
+.rp-heat-row .c span.u{background:#EEF1F5;color:#8A9BB0}
+@media print{.rp-ap{break-inside:avoid;page-break-inside:avoid}}
+</style>
+</head>
+<body>
+<div id="app">
+  <nav class="sidebar" aria-label="Assessment navigation">
+    <div class="sidebar-logo">
+      <div class="logo-badge">PHISHING</div>
+      <div class="logo-title">Programme Maturity</div>
+      <div class="logo-sub">6 dimensions · 35 controls · L1–L4 tiers<br>Aligned to NCSC layered defences</div>
+    </div>
+    <div class="sidebar-setup no-print"><button class="btn btn-primary" onclick="showSetup()">⚙ Assessment setup</button></div>
+    <div class="sidebar-progress">
+      <div class="prog-label"><span>Controls addressed</span><span id="prog-text">0 / 35</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      <div class="prog-warn" id="prog-warn" style="display:none"></div>
+    </div>
+    <div class="sidebar-nav" id="sidebar-nav"></div>
+    <div class="sidebar-footer no-print">
+      <button class="btn btn-primary" onclick="navigate('report')">📄 Generate report</button>
+      <div class="footer-group">
+        <div class="footer-label">Data</div>
+        <div class="btn-row">
+          <button class="btn btn-half" onclick="exportJSON()" title="Export as JSON (dh-phishing-maturity schema v2; re-importable)">⬇ JSON</button>
+          <button class="btn btn-half" onclick="exportCSV()" title="Export controls, tiers, evidence and actions as CSV">⬇ CSV</button>
+        </div>
+        <button class="btn" onclick="document.getElementById('import-file').click()">⬆ Import JSON</button>
+        <input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importJSON(this)"/>
+        <button class="btn btn-save" onclick="enableDiskAutosave()" title="Chrome/Edge: choose a file that updates automatically as you work">💾 Auto-save to file…</button>
+      </div>
+      <button class="btn btn-reset" onclick="resetScores()">↺ Reset all scores</button>
+    </div>
+  </nav>
+  <div class="main">
+    <div class="topbar no-print">
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-meta">
+        <span id="topbar-org"></span>
+        <button id="save-status" class="save-status" onclick="enableDiskAutosave()" title="Changes are saved in this browser automatically. Click to also auto-save to a file (Chrome/Edge)."><span class="ss-dot"></span>Not yet saved</button>
+        <span class="fw-chip" id="profile-chip">No profile set</span>
+        <select class="tb-select" id="theme-select" onchange="setTheme(this.value)" aria-label="Colour theme" title="Colour theme">
+          <option value="system">◐ System</option><option value="light">☀ Light</option><option value="dark">☾ Dark</option><option value="ocean">≈ Ocean</option><option value="contrast">◼ High contrast</option>
+        </select>
+        <button class="tb-action" onclick="loadSample()" title="Load an illustrative worked example">✦ Sample</button>
+        <button class="tb-action tb-help" onclick="showHelp()" aria-label="Help" title="Help">?</button>
+      </div>
+    </div>
+    <main class="content" id="content"></main>
+  </div>
+</div>
+
+<!-- SETUP -->
+<div class="overlay" id="setup-modal" style="display:none" onclick="if(event.target===this)hideSetup()">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="setup-h">
+    <h3 id="setup-h">Assessment setup</h3>
+    <div class="small-muted" style="line-height:1.55">Sector and size set the expected tier for each control. Everything here feeds the report and can be changed later.</div>
+    <div class="modal-sec">Organisation profile</div>
+    <div class="field"><label>Organisation name</label><input type="text" id="f-org" placeholder="Organisation being assessed"/></div>
+    <div class="field"><label>Sector</label><div class="chipset" id="sector-chips"></div></div>
+    <div class="field"><label>Size</label><div class="chipset" id="size-chips"></div></div>
+    <div class="overlay-note" id="overlay-note" style="display:none"></div>
+    <div class="field-grid" style="margin-top:12px">
+      <div class="field"><label>Programme owner</label><input type="text" id="f-owner" placeholder="Name, role"/></div>
+      <div class="field"><label>Simulation platform / vendor</label><input type="text" id="f-platform" placeholder="e.g. in-house, vendor name"/></div>
+      <div class="field full"><label>Scope</label><textarea id="f-scope" rows="2" placeholder="Entities, populations and channels covered, and anything excluded"></textarea></div>
+    </div>
+    <div class="modal-sec">Assessment team</div>
+    <div class="field-grid">
+      <div class="field"><label>Lead assessor</label><input type="text" id="f-assessor" placeholder="Name, role"/></div>
+      <div class="field"><label>Quality reviewer</label><input type="text" id="f-qc" placeholder="Name, role"/></div>
+      <div class="field"><label>Prepared by (organisation)</label><input type="text" id="f-preparedby" placeholder="Consultancy or internal team"/></div>
+      <div class="field"><label>Client sponsor</label><input type="text" id="f-sponsor" placeholder="Name, role"/></div>
+    </div>
+    <div class="modal-sec">Dates, evidence &amp; method</div>
+    <div class="field-grid">
+      <div class="field"><label>Assessment date</label><input type="date" id="f-date"/></div>
+      <div class="field"><label>Assessment period</label><input type="text" id="f-period" placeholder="e.g. 1–12 September 2026"/></div>
+      <div class="field full"><label>Method</label><textarea id="f-method" rows="2" placeholder="e.g. Interviews, platform configuration review, sample of lures, staff pulse survey"></textarea></div>
+      <div class="field full"><label>Evidence location</label><input type="text" id="f-evidence" placeholder="Where supporting evidence is held"/></div>
+      <div class="field"><label>Version / reference</label><input type="text" id="f-version" placeholder="e.g. v1.0 DRAFT"/></div>
+      <div class="field"><label>Classification</label><input type="text" id="f-classification" placeholder="e.g. CONFIDENTIAL"/></div>
+    </div>
+    <div class="modal-sec">Targets</div>
+    <div class="small-muted" style="margin-bottom:8px;line-height:1.55">Targets are calculated live from the basis below. A target set by hand on a control overrides it until reset.</div>
+    <div class="chipset" id="target-mode"></div>
+    <div class="small-muted" id="target-count" style="margin-top:8px;font-style:italic"></div>
+    <div class="modal-sec">Report</div>
+    <div class="small-muted" style="margin-bottom:8px">Colour palette for the report cover, headings and tables.</div>
+    <div class="pal-row" id="pal-row"></div>
+    <div class="modal-actions"><button class="mbn" onclick="hideSetup()">Cancel</button><button class="mbp" onclick="saveSetup()">Save setup</button></div>
+  </div>
+</div>
+
+<!-- HELP -->
+<div class="overlay" id="help-modal" style="display:none" onclick="if(event.target===this)hideHelp()">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="help-h">
+    <h3 id="help-h">Getting started</h3>
+    <p class="small-muted" style="font-size:12.5px;line-height:1.6">Assesses a phishing programme across six dimensions and 35 controls, each with four described tiers. Covers the people side (simulations, learning, culture) and the technical and response layers around it, aligned to the NCSC's four-layer approach. Everything runs locally in your browser; nothing is uploaded.</p>
+    <div class="help-callout"><span>💾</span><div><strong>Turn on auto-save to file.</strong> Work is saved in this browser automatically, but that copy is lost if browsing data is cleared. In Chrome or Edge, use <strong>Auto-save to file…</strong> in the sidebar. In other browsers, export JSON regularly.</div></div>
+    <div class="modal-sec">Workflow</div>
+    <ol class="help-list">
+      <li><strong>Setup</strong>: choose sector and size. These set the expected tier for each control.</li>
+      <li><strong>Score each control</strong> by choosing the tier description that best matches reality. An accurate L1 is more useful than an aspirational L3.</li>
+      <li><strong>Record confidence and evidence.</strong> High = tested or observed; Medium = documents reviewed; Low = interview only.</li>
+      <li><strong>Review anti-patterns</strong>: practices that may be doing harm. They are prioritised above tier gaps.</li>
+      <li><strong>Assign owners and dates</strong> in the improvement plan, then generate the report.</li>
+    </ol>
+    <div class="modal-sec">Rules</div>
+    <ul class="help-list">
+      <li><strong>Not applicable</strong> needs a justification; <strong>Not assessed</strong> is excluded from calculations and listed as a limitation.</li>
+      <li>Dimension scores are the mean of scored controls. The programme tier is set by the weakest dimension.</li>
+      <li>Action priority = gap to target × likelihood × impact, with anti-patterns ranked first.</li>
+    </ul>
+    <div class="modal-sec">Exporting the report</div>
+    <p style="font-size:12.5px;line-height:1.6">Open <strong>Generate report</strong>, choose the full report or the board summary, then <strong>Download PDF</strong>. In the print dialog choose <em>Save as PDF</em>, margins <em>Default</em>, <em>Background graphics</em> on and <em>Headers and footers</em> off.</p>
+    <p class="small-muted" style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px;line-height:1.6">References to NCSC, NIST, ISO and MITRE publications indicate alignment only. This tool supports professional judgement and is not a certification.</p>
+    <div class="modal-actions"><button class="mbp" onclick="hideHelp()">Got it</button></div>
+  </div>
+</div>
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// PHISHING PROGRAMME MATURITY ASSESSMENT v2.0
+// 6 dimensions · 35 controls · 4 described tiers per control
+// Aligned to NCSC "Phishing attacks: defending your organisation" (four layers),
+// NIST CSF 2.0, NIST SP 800-50r1, NIST SP 800-61r3, ISO/IEC 27002:2022, MITRE ATT&CK.
+// JSON schema: dh-phishing-maturity v2 (backward compatible with v1 fields).
+// ═══════════════════════════════════════════════════════════════════
+const TIERS = {
+  L1:{n:1,name:'Initial',   color:'#C0283A',desc:'Absent, ad hoc or counter-productive.'},
+  L2:{n:2,name:'Developing',color:'#B58100',desc:'In place but basic, inconsistent or narrowly measured.'},
+  L3:{n:3,name:'Defined',   color:'#5E9A1E',desc:'Documented, consistent and behaviour-focused.'},
+  L4:{n:4,name:'Optimised', color:'#0A8A5A',desc:'Data- and intelligence-driven, integrated and continuously improved.'}
+};
+const TIER_KEYS = ['L1','L2','L3','L4'];
+const CONF = {H:{label:'High',desc:'Tested or observed working'}, M:{label:'Medium',desc:'Documentary evidence reviewed'}, L:{label:'Low',desc:'Interview or self-declaration only'}};
+
+const SECTORS = [
+  {id:'fs',name:'Financial services',reg:true,bec:true,note:'FCA and PRA operational resilience expectations apply, and DORA for EU entities. High BEC and payment-fraud exposure raises targets for executive, payment verification and board reporting controls.'},
+  {id:'health',name:'Healthcare',reg:true,bec:false,note:'The Data Security and Protection Toolkit expects staff training and incident reporting. Take particular care with clinical and patient-themed lures.'},
+  {id:'public',name:'Public sector',reg:true,bec:true,note:'GovAssure and CAF-based assurance apply to central government. Lures and communications may be subject to FOI, so ethical review matters.'},
+  {id:'crit',name:'CNI / utilities',reg:true,bec:false,note:'The NIS Regulations 2018 apply; the Cyber Security and Resilience Bill, before Parliament in 2026, will extend scope and reporting. Operational technology and field staff are often outside the mainstream programme.'},
+  {id:'edu',name:'Education',reg:false,bec:false,note:'Staff and student populations differ. Safeguarding limits lure realism for students; Jisc guidance is relevant.'},
+  {id:'charity',name:'Charity / not-for-profit',reg:false,bec:false,note:'Budget and volunteer populations constrain the programme. Donor data and payment fraud are the main exposures.'},
+  {id:'legal',name:'Legal / professional services',reg:true,bec:true,note:'Prime targets for BEC and payment-diversion fraud. Client confidentiality affects how simulation data and lures are handled.'},
+  {id:'tech',name:'Technology / SaaS',reg:false,bec:false,note:'Higher technical literacy means simulations must be sophisticated to be meaningful. Developer and administrator accounts are high-value targets.'},
+  {id:'retail',name:'Retail / consumer',reg:false,bec:false,note:'Seasonal peaks affect cadence. PCI DSS v4.0 expects awareness of phishing and social engineering for relevant staff.'},
+  {id:'other',name:'Other / general',reg:false,bec:false,note:'General baseline expectations apply.'}
+];
+const SIZES = [
+  {id:'sm',name:'Under 250 staff',note:'A separate executive programme and multi-dimensional segmentation are not expected; the programme owner is often a shared role.'},
+  {id:'md',name:'250–2,000 staff',note:'A named programme owner is expected and role-based targeting starts to matter.'},
+  {id:'lg',name:'2,000–10,000 staff',note:'A full programme with multi-stakeholder governance and mature metrics is expected.'},
+  {id:'xl',name:'10,000+ staff',note:'A federated programme with a separate executive stream and regular board reporting is expected.'}
+];
+const LAYERS = {
+  0:{name:'Programme foundations',short:'Foundations',color:'#4F46E5',desc:'Governance, measurement and review that make the four layers work together.'},
+  1:{name:'Layer 1: Make it difficult for attackers to reach users',short:'Layer 1',color:'#0284C7',desc:'Anti-spoofing, filtering and reducing the information available to attackers.'},
+  2:{name:'Layer 2: Help users identify and report phishing',short:'Layer 2',color:'#7C3AED',desc:'Training, simulations, reporting and a supportive culture.'},
+  3:{name:'Layer 3: Protect against undetected phishing',short:'Layer 3',color:'#D97706',desc:'Controls that limit the damage when a message gets through and a user acts on it.'},
+  4:{name:'Layer 4: Respond quickly to incidents',short:'Layer 4',color:'#DC2626',desc:'Detection, triage, removal and incident response driven by reports.'}
+};
+
+// c(id,title,layer,desc,refs,[L1,L2,L3,L4],evidence,imp,lik,eff,tags)
+function c(id,title,layer,desc,refs,t,evq,imp,lik,eff,tags){ return {id,title,layer,desc,refs,tiers:{L1:t[0],L2:t[1],L3:t[2],L4:t[3]},evidence:evq,imp,lik,eff,tags:tags||[]}; }
+
+const DIMENSIONS = [
+{id:'D1',code:'GOV',name:'Programme design & governance',color:'#4F46E5',
+ desc:'How the programme is defined, owned, sponsored, governed and kept lawful. Without this, the rest is activity without direction.',
+ controls:[
+  c('D1.1','Stated objectives',0,'Documented objectives go beyond click-rate reduction and link to organisational risk.','NCSC phishing guidance · CSF GV.OC · ISO 27002 6.3',
+    ['No documented objectives; the programme exists to "do phishing".','Objectives exist but are framed solely around reducing click rate.','Documented objectives cover reporting, time-to-report and culture as well as clicks.','Behavioural outcomes are tied to organisational risk reduction and reviewed annually against the threat landscape.'],
+    'Is there a written programme charter or strategy? What does it say success looks like?',3,3,2),
+  c('D1.2','Executive sponsorship',0,'A visible senior sponsor supports the programme and its non-punitive approach.','NCSC Board Toolkit · CSF GV.RR-01',
+    ['No identifiable sponsor.','Sponsor named but not actively engaged.','Active sponsor at CISO or CIO level with regular engagement.','Board-level oversight with periodic review; executives take part in their own simulations.'],
+    'Who signs off the annual plan? When did the sponsor last review programme outcomes?',4,3,1,['reg']),
+  c('D1.3','Ownership & resourcing',0,'A single accountable owner has the time, budget and authority to run the programme.','CSF GV.RR-02, GV.RR-03 · NIST SP 800-50r1',
+    ['No identified owner; run ad hoc by whoever has time.','Owner identified, but it is a collateral duty without budget.','Named owner with defined responsibilities, time allocation and budget.','Owner has cross-functional authority spanning security, HR/L&D and communications.'],
+    'Who owns the programme in the RACI? What is their time allocation and budget?',4,3,2,['scale']),
+  c('D1.4','Policy alignment',0,'The programme is grounded in policy that states how it works and how its data may be used.','CSF GV.PO-01 · ISO 27002 5.1, 6.3',
+    ['No policy reference; the programme runs outside formal governance.','Acceptable use policy mentions phishing in passing.','Dedicated awareness policy referenced at induction and renewal.','Policy reviewed annually with executive approval; it states the non-punitive approach and how programme data may and may not be used.'],
+    'Where is the programme cited in policy? Does the policy say what happens to people who click?',3,2,1),
+  c('D1.5','Cadence rationale',0,'The frequency of simulations and training has a defensible logic.','NCSC phishing guidance · NIST SP 800-50r1',
+    ['No simulations, or sent at random.','Fixed monthly or quarterly cadence with no rationale.','Cadence varies by population, role risk and individual history.','Adaptive cadence driven by behaviour data and current threat intelligence.'],
+    'What drives the timing and frequency of simulations? Is it documented?',2,3,2),
+  c('D1.6','Board & executive reporting',0,'Programme outcomes reach the board or audit committee on a defined cadence.','NCSC Board Toolkit · CSF GV.OV',
+    ['No reporting beyond informal updates.','Operational reporting only (click rates, training completion).','Regular summary covering behaviour metrics, threat context and improvement actions.','Board-level risk indicator tied to programme outcomes and reviewed against agreed appetite.'],
+    'When did the programme last appear in board or committee minutes?',3,3,2,['reg','scale']),
+  c('D1.7','Data protection & employee relations',0,'Individual simulation and training data is processed lawfully, minimised, retained for a set period and handled transparently.','UK GDPR / DPA 2018 · ICO guidance on monitoring workers · ISO 27002 5.34',
+    ['No data protection consideration; individual click data kept indefinitely and shared freely.','Privacy notice mentions awareness activity, but there is no DPIA or retention rule.','DPIA completed; lawful basis and retention period documented; access to individual results restricted to the programme team.','DPIA reviewed annually; data aggregated by default; employee representatives consulted; transparency statement published to staff.'],
+    'Show the DPIA and retention schedule for simulation data. Who can see individual results?',3,3,2)
+ ]},
+{id:'D2',code:'SIM',name:'Simulation quality',color:'#7C3AED',
+ desc:'The realism, targeting, coverage and ethics of simulated phishing. A poor simulation teaches staff to spot tells that real attackers do not leave.',
+ controls:[
+  c('D2.1','Targeting realism',2,'Simulations are targeted with the craft a real attacker would use.','NCSC phishing guidance (Layer 2) · MITRE ATT&CK T1566, T1598',
+    ['Identical generic lure sent to everyone.','Some role-based variation (HR, finance, IT).','Spear-phishing variants for high-risk roles with realistic pretexts.','Threat-intelligence-driven; lures mirror campaigns currently observed against the sector.'],
+    'How was the last simulation\'s targeting decided? What data informed it?',3,4,3),
+  c('D2.2','Lure design quality',2,'Lures use the techniques real attackers use: lookalike domains, plausible context, urgency and current themes.','MITRE ATT&CK T1566',
+    ['Off-the-shelf templates with obvious tells such as spelling errors and generic greetings.','Vendor templates with some localisation.','In-house or tailored lures using current attacker techniques such as lookalike domains and plausible senders.','Lures informed by real reported phish and SOC-observed campaigns, including AI-generated and multilingual lures.'],
+    'Sample a recent lure: which real attacker techniques does it use?',3,4,2),
+  c('D2.3','Difficulty progression',2,'Difficulty increases as the workforce matures rather than staying fixed.','NCSC phishing guidance · NIST SP 800-50r1',
+    ['No concept of difficulty; lures chosen ad hoc.','Difficulty is rated but fixed across simulations.','Difficulty escalates over the year for the general population.','Individualised: harder lures for consistent reporters, baseline lures for new joiners.'],
+    'How does this quarter\'s lure differ from the equivalent a year ago?',2,3,2),
+  c('D2.4','Ethics & exemptions',2,'Lure themes are reviewed for harm, and exemptions are handled consistently.','NCSC "The trouble with phishing" · ISO 27002 6.3',
+    ['No exemption process and no review of lure themes.','Exemptions granted ad hoc on request.','Documented exemption process; lure themes reviewed before deployment.','Standing ethical review with HR and legal sign-off for sensitive themes; themes such as redundancy, pay, bonuses and bereavement explicitly excluded.'],
+    'Which themes are off-limits? Who reviewed the last simulation\'s wording?',4,3,1),
+  c('D2.5','Executive & high-value target programme',2,'Executives and high-value targets such as finance, payroll and administrators receive a distinct, more sophisticated programme.','NCSC BEC guidance · MITRE ATT&CK T1566, T1534',
+    ['Executives and high-value targets get the same simulations as everyone else, or are quietly exempted.','Some role-based variation but no dedicated stream.','Defined high-value target list with separate cadence and lure design.','Integrated with BEC controls, executive coaching and threat intelligence.'],
+    'How does the CFO\'s phishing experience differ from a new joiner\'s?',5,4,3,['reg','bec','scale']),
+  c('D2.6','Channel & population coverage',2,'Simulations and awareness cover the channels attackers use and the whole population, including contractors and new joiners.','MITRE ATT&CK T1566.002–.004, T1621 · NCSC phishing guidance (Layer 2)',
+    ['Email only, core employees only.','Email for all staff; other channels covered in awareness content only.','Simulations or exercises across at least two further channels relevant to the threat profile (e.g. SMS, voice, collaboration tools, QR codes); contractors and new joiners in scope.','Channel mix driven by threat intelligence, including callback phishing, MFA fatigue and synthetic voice; coverage gaps tracked and reported.'],
+    'Which channels were simulated in the last 12 months? Are contractors and new joiners included?',4,4,3)
+ ]},
+{id:'D3',code:'MET',name:'Metrics & measurement',color:'#0284C7',
+ desc:'What is measured shapes what the programme becomes. Click rate is easy to count; the measures that reflect real resilience take more work.',
+ controls:[
+  c('D3.1','Beyond click rate',0,'The programme measures behaviour, such as reporting and time-to-report, not just clicks.','NCSC phishing guidance · NIST SP 800-50r1',
+    ['Click rate only.','Click rate plus training completion.','Click rate, report rate and time-to-report tracked and trended.','Full behaviour set: report-to-click ratio, time-to-report, credential submission, repeat-click concentration and near-miss capture.'],
+    'List every metric in the last programme report.',3,3,2),
+  c('D3.2','Report-to-click ratio',0,'Reporting is tracked alongside clicking; the ratio matters more than either alone.','NCSC phishing guidance',
+    ['Reporting not measured.','Report count tracked but not as a ratio.','Report-to-click ratio tracked over time.','Report-to-click ratio is the headline measure; click rate is secondary.'],
+    'What was the report-to-click ratio for the most recent simulation?',3,3,1),
+  c('D3.3','Time-to-report',0,'The programme tracks how quickly people report, not just whether they do.','NCSC phishing guidance (Layers 2 & 4)',
+    ['Not measured.','Aggregate average reported periodically.','Distribution tracked; median and 90th percentile monitored against targets.','Report waves monitored in real time, with SOC alerting when a wave begins.'],
+    'What was the median time to first report on the last simulation?',3,3,2),
+  c('D3.4','Repeat-clicker identification',0,'People who repeatedly click are identified as a group needing different support.','NCSC phishing guidance · NIST SP 800-50r1',
+    ['Not tracked.','Tracked, but no action follows.','Repeat clickers identified and offered targeted support; individual data handled under the documented data protection basis.','Pattern analysis identifies causes such as role exposure, workload, language or accessibility, and interventions are adjusted accordingly.'],
+    'How many people clicked two or more of the last four simulations? What happened next?',3,3,2),
+  c('D3.5','Segmentation & trending',0,'Metrics are broken down by department, role, tenure and location, and trended over time.','NIST SP 800-50r1',
+    ['Single aggregate number.','Department-level breakdown.','Multi-dimensional segmentation, trended at least quarterly.','Segmentation drives targeted interventions; new-joiner and tenure effects are understood.'],
+    'Can you produce a 12-month trend of report rate by department?',2,3,2,['big','scale']),
+  c('D3.6','Real-world outcomes',0,'Programme effectiveness is judged against real phishing, not only simulations.','CSF ID.IM, DE.AE · NIST SP 800-61r3',
+    ['No link between programme metrics and real incidents.','Count of real phishing reports tracked.','Real reports, confirmed-malicious reports and phishing-initiated incidents tracked alongside simulation metrics.','Effectiveness judged primarily on real outcomes, such as the share of real campaigns first reported by staff and time from delivery to containment.'],
+    'How many incidents in the last 12 months began with phishing, and who spotted them first?',4,3,2)
+ ]},
+{id:'D4',code:'RSP',name:'Learning, reporting & culture',color:'#DB2777',
+ desc:'What happens after a click, a report or a near-miss. This is where culture is shaped, and where many programmes do harm.',
+ controls:[
+  c('D4.1','Just-in-time learning',2,'A click triggers immediate, short, contextual learning rather than a later generic module.','NCSC phishing guidance (Layer 2) · CSF PR.AT-01',
+    ['No immediate intervention; the click is logged silently.','Generic post-click landing page.','Contextual micro-learning showing the specific tells of the lure clicked.','Adaptive content based on history and role, available in several formats and languages.'],
+    'Click your own simulation: what happens in the next 60 seconds?',3,3,1),
+  c('D4.2','Reporting button & friction',2,'Reporting a suspicious message takes one action from any mail client.','NCSC phishing guidance (Layers 2 & 4) · ISO 27002 6.8',
+    ['No button; staff are told to forward to an inbox.','Button present but not on all clients, or reporting takes several steps.','Single-click reporting from desktop mail with immediate acknowledgement.','Works on all clients including mobile and web; reports feed SOC triage automatically.'],
+    'Can you report a phish from the mobile mail app in one tap?',4,4,1),
+  c('D4.3','Reporter acknowledgement & feedback',2,'Reporters receive rapid acknowledgement and, where appropriate, feedback on the outcome.','NCSC phishing guidance (Layer 2)',
+    ['No acknowledgement.','Automated "thank you" only.','Automatic acknowledgement plus outcome feedback when a report was a real campaign.','Visible recognition of reporting without naming those who did not report.'],
+    'What does a reporter see in the 24 hours after reporting?',2,3,1),
+  c('D4.4','Psychological safety',2,'Saying "I clicked" is safe. Reporting is praised; clicking is not punished.','NCSC Board Toolkit (positive security culture) · ISO 27002 6.4',
+    ['People who click are named publicly or referred to HR.','No public naming, but clicking affects performance ratings.','Documented no-blame approach; reporting, including self-reporting a click, is visibly rewarded.','Psychological safety is measured directly and staff surveys confirm reporting feels safe.'],
+    'Ask three staff what happens if you click. What do they say?',5,3,2),
+  c('D4.5','Repeat-clicker support',2,'Repeat clickers receive coaching and technical support, not sanctions.','NCSC phishing guidance · NIST SP 800-50r1',
+    ['Repeat clickers ignored or escalated for discipline.','Mandatory retraining only.','One-to-one conversation explores causes; supportive interventions offered.','Pattern analysis, accessibility adjustments and extra technical protection for high-risk users.'],
+    'How were the last three repeat clickers supported?',4,3,2),
+  c('D4.6','Awareness content & accessibility',2,'Wider awareness content is role-based, current, accessible and in the languages staff work in.','NIST SP 800-50r1 · CSF PR.AT-01, PR.AT-02 · ISO 27002 6.3',
+    ['Annual generic e-learning only.','Generic content refreshed periodically; limited accessibility.','Role-based modules for high-risk roles; content meets accessibility standards and is available in the main working languages.','Content refreshed from threat intelligence and real reported phish; effectiveness evaluated and adapted for neurodivergent and non-native speakers.'],
+    'When was awareness content last updated, and was it tested for accessibility?',3,3,2)
+ ]},
+{id:'D5',code:'INT',name:'Integration & response',color:'#DC2626',
+ desc:'How the programme connects to the SOC, threat intelligence, incident response and control investment. Without this, it is an island.',
+ controls:[
+  c('D5.1','SOC integration',4,'Real phishing reports feed SOC triage, and simulations are deconflicted from incident handling.','NCSC phishing guidance (Layer 4) · CSF DE.AE, RS.MA-02 · ISO 27002 5.25, 6.8',
+    ['Reports go to an unmanaged inbox.','Reports triaged by the awareness team and occasionally forwarded to the SOC.','Reports enter the SOC queue with an SLA; simulations are deconflicted; outcomes fed back to the programme team.','Two-way: the SOC tunes controls from report data and the programme adjusts content from SOC trends.'],
+    'When did a staff report last lead to a detection or blocking improvement?',5,4,2),
+  c('D5.2','Threat intelligence loop',0,'Threat intelligence informs lures and content; programme data informs threat intelligence.','CSF ID.RA-02, DE.AE-07 · ISO 27002 5.7',
+    ['No connection between threat intelligence and the programme.','Occasional ad hoc input.','Threat intelligence briefings inform regular content updates; programme data reviewed with the intelligence function.','Emerging campaigns trigger simulation and content changes quickly; staff reports feed intelligence processing.'],
+    'Was the last sector-specific phishing campaign reflected in awareness content?',3,3,2),
+  c('D5.3','Incident response integration',4,'Phishing reports trigger incident response when warranted and phishing scenarios are in the IR plan.','NIST SP 800-61r3 · CSF RS.MA · ISO 27002 5.24–5.26',
+    ['No documented integration.','Major reports escalated, but ad hoc.','Defined triggers and hand-offs from reporting to IR, tested in a tabletop exercise.','Phishing and BEC playbooks exercised; a report wave is a recognised IR trigger.'],
+    'Where does "user reports phishing" appear in the incident response plan?',5,3,2,['reg']),
+  c('D5.4','Technical control alignment',0,'Programme insights drive technical investment, not just more user training.','NCSC phishing guidance (Layers 1 & 3)',
+    ['No connection between programme data and technical investment.','Occasional anecdotal influence.','Programme data cited in business cases for technical controls.','Programme data is a primary input to the email security strategy and roadmap.'],
+    'When did programme data last influence a technical control change?',4,3,2),
+  c('D5.5','Programme review',0,'The programme is reviewed against an external reference or peer benchmark on a defined cadence.','ISO 27002 5.35 · CSF ID.IM-01',
+    ['Never reviewed.','Internal review only, ad hoc.','Annual self-assessment against a recognised reference such as NCSC guidance.','Annual independent review plus peer benchmarking, with outputs feeding strategy.'],
+    'When was the programme last independently reviewed?',2,2,2)
+ ]},
+{id:'D6',code:'TEC',name:'Layered technical defences',color:'#059669',
+ desc:'The technical controls around the people. The NCSC is clear that users should not be the only line of defence: these controls decide how much depends on a single click.',
+ controls:[
+  c('D6.1','Email authentication & anti-spoofing',1,'SPF, DKIM and DMARC protect the organisation\'s domains, and inbound authentication failures are acted on.','NCSC phishing guidance (Layer 1) · GOV.UK email security standard · ISO 27002 5.14',
+    ['No DMARC record, or SPF only.','DMARC at p=none, with reports not reviewed.','DMARC at quarantine or reject on sending domains; reports reviewed; inbound failures handled.','Reject on all domains including parked domains; lookalike domains monitored and taken down.'],
+    'Show DMARC policies for all owned domains, including those that do not send email.',4,4,2),
+  c('D6.2','Filtering, link & attachment protection',1,'Inbound mail is filtered with time-of-click link checks and attachment analysis, and simulation allowlisting does not weaken production controls.','NCSC phishing guidance (Layers 1 & 3) · ISO 27002 8.7, 8.23',
+    ['Basic spam filtering only.','Commercial filtering on default policy; simulation allowlisting set up broadly.','Tuned filtering with time-of-click URL checks, attachment sandboxing and external-sender tagging; simulation allowlisting narrowly scoped.','Filtering tuned continuously from staff reports and threat intelligence, and tested against current campaigns.'],
+    'How is the simulation platform allowlisted, and could an attacker abuse that route?',4,5,2),
+  c('D6.3','Phishing-resistant authentication',3,'Stolen credentials and approved MFA prompts cannot easily be turned into account access.','NCSC phishing guidance (Layer 3) · CSF PR.AA · ISO 27002 8.5 · MITRE ATT&CK T1621',
+    ['Passwords alone protect some cloud or remote services.','MFA widespread but push- or SMS-based without number matching.','MFA everywhere with number matching; phishing-resistant methods (FIDO2 or passkeys) for administrators and high-value targets; legacy authentication blocked.','Phishing-resistant authentication for all users, with token-theft detection and device-based conditional access.'],
+    'Which accounts can still sign in without phishing-resistant MFA?',5,5,3),
+  c('D6.4','Report-driven removal & containment',4,'Confirmed malicious messages are removed from every mailbox quickly and affected accounts are contained.','NCSC phishing guidance (Layer 4) · CSF RS.MI · ISO 27002 5.26',
+    ['No capability to remove delivered messages; each report handled individually.','Manual search and purge by administrators, often hours later.','Defined process to purge across all mailboxes, block indicators and identify who clicked, within an agreed SLA.','Automated clustering and purge of matching messages; click and credential-entry telemetry triggers immediate account containment.'],
+    'For the last confirmed campaign, how long from first report to removal from all mailboxes?',5,4,2),
+  c('D6.5','Payment & change verification',3,'Payment instructions and supplier bank-detail changes are verified out of band, so a convincing email alone cannot move money.','NCSC BEC guidance · MITRE ATT&CK T1534',
+    ['Payment or bank-detail changes accepted by email.','Call-back verification expected but not enforced or evidenced.','Mandatory out-of-band verification using independently sourced contact details, with dual authorisation above thresholds.','Tested through BEC scenario exercises; exceptions monitored; finance teams part of the high-value target programme.'],
+    'Walk through the last supplier bank-detail change. How was it verified?',5,4,1,['bec'])
+ ]}
+];
+
+// Anti-patterns. check(dimScores, tierOf) → boolean. tierOf returns 1–4 or null.
+const ANTI_PATTERNS = [
+  {id:'AP1',sev:'high',title:'Simulation-heavy, response-light',links:['D4.4','D4.5','D4.1'],
+   detail:'Simulation quality is Defined or better, but learning, reporting and culture score Developing or lower. Staff are tested hard without proportionate support, which erodes trust and suppresses reporting. Fix the response side before investing further in simulations.',
+   check:(d)=>d.D2!=null&&d.D4!=null&&d.D2>=3&&d.D4<=2},
+  {id:'AP2',sev:'high',title:'Punitive consequences for clicking',links:['D4.4','D4.5'],
+   detail:'People who click are named, referred to HR or disciplined. This reliably reduces reporting, including reporting of real compromises, and increases dwell time when a real attack lands.',
+   check:(d,t)=>t('D4.4')===1||t('D4.5')===1},
+  {id:'AP3',sev:'high',title:'Users as the primary control',links:['D6.1','D6.2','D6.3','D6.4'],
+   detail:'Technical defences score clearly below the people-focused dimensions. The programme is asking staff to catch what technology should stop. NCSC guidance is explicit that user training should be one layer among several, not the main defence.',
+   check:(d)=>d.D6!=null&&d.D2!=null&&d.D6<=2&&d.D2-d.D6>=1},
+  {id:'AP4',sev:'med',title:'Click-rate vanity metrics',links:['D3.1','D3.2'],
+   detail:'Click rate is the main measure and reporting is not tracked as a ratio. The programme cannot tell whether it is building resilience or just surface compliance, and a falling click rate may simply reflect easier lures.',
+   check:(d,t)=>t('D3.1')!=null&&t('D3.2')!=null&&t('D3.1')<=2&&t('D3.2')<=2},
+  {id:'AP5',sev:'med',sevBec:'high',title:'No executive or high-value target programme',links:['D2.5'],
+   detail:'Executives, finance and administrators receive the same generic programme as everyone else, or none. These are the people BEC and targeted phishing are designed for.',
+   check:(d,t)=>t('D2.5')===1&&meta.size!=='sm'},
+  {id:'AP6',sev:'med',title:'Reporting is harder than clicking',links:['D4.2'],
+   detail:'There is no one-click reporting button. Reporting friction is the biggest blocker to a reporting culture, and a button is one of the cheapest, highest-return fixes available.',
+   check:(d,t)=>t('D4.2')===1},
+  {id:'AP7',sev:'med',title:'Reports go nowhere',links:['D5.1','D6.4'],
+   detail:'Staff reports are not reaching the SOC in a managed way. The programme generates early warning of real campaigns that nobody acts on, and staff learn that reporting makes no difference.',
+   check:(d,t)=>t('D5.1')===1},
+  {id:'AP8',sev:'med',title:'No ethical guardrails on lures',links:['D2.4'],
+   detail:'Lure themes are not reviewed. Lures that exploit redundancy fears, pay or bereavement may be effective but damage trust permanently when discovered.',
+   check:(d,t)=>t('D2.4')===1},
+  {id:'AP9',sev:'med',title:'Individual data without a lawful basis',links:['D1.7'],
+   detail:'Individual simulation results are processed without a documented lawful basis, DPIA or retention limit. This is a data protection exposure and undermines trust in the programme.',
+   check:(d,t)=>t('D1.7')===1},
+  {id:'AP10',sev:'med',sevBec:'high',title:'A convincing email can move money',links:['D6.5'],
+   detail:'Payment instructions or supplier bank-detail changes can be actioned on the strength of an email. Payment diversion is one of the most common and costly outcomes of phishing, and the fix is procedural and cheap.',
+   check:(d,t)=>t('D6.5')===1},
+  {id:'AP11',sev:'low',title:'Email-only programme',links:['D2.6'],
+   detail:'Only email is simulated or covered. Attackers increasingly use SMS, voice, collaboration platforms, QR codes and MFA prompt fatigue, which the programme does not prepare staff for.',
+   check:(d,t)=>t('D2.6')===1},
+  {id:'AP12',sev:'low',title:'Programme without direction',links:['D1.1','D1.3'],
+   detail:'Governance scores Developing or lower. Activity without objectives or ownership produces metrics without meaning; owner and objectives should be the first investment.',
+   check:(d)=>d.D1!=null&&d.D1<=2}
+];
+const SEV = {high:{label:'High',cls:'sev-high',color:'#C0283A'},med:{label:'Medium',cls:'sev-med',color:'#B58100'},low:{label:'Low',cls:'sev-low',color:'#6B7A90'}};
+const PALETTES = {navy:{label:'Navy',c:'#12336E'},teal:{label:'Teal',c:'#0D4F4C'},graphite:{label:'Graphite',c:'#2F3640'},burgundy:{label:'Burgundy',c:'#561A2B'}};
+const TARGET_MODES = {profile:'Sector & size profile (recommended)', l3:'All controls → L3 Defined', l4:'All controls → L4 Optimised', none:'No targets'};
+const ALL_CONTROLS = DIMENSIONS.flatMap(d=>d.controls.map(x=>Object.assign(x,{dim:d.id})));
+
+// ═══════════ STATE ═══════════
+const DEFAULT_META = () => ({org:'',sector:null,size:null,owner:'',platform:'',scope:'',assessor:'',qc:'',preparedBy:'',sponsor:'',
+  date:new Date().toISOString().split('T')[0],period:'',method:'',evidence:'',version:'',classification:'',targetMode:'profile',palette:'navy'});
+const METRIC_FIELDS = [
+  {k:'population',label:'Population in scope (people)',unit:''},
+  {k:'sims12',label:'Simulations in last 12 months',unit:''},
+  {k:'clickRate',label:'Click rate, last simulation (%)',unit:'%'},
+  {k:'credRate',label:'Credential submission rate (%)',unit:'%'},
+  {k:'reportRate',label:'Report rate, last simulation (%)',unit:'%'},
+  {k:'ttr',label:'Median time to first report (minutes)',unit:' min'},
+  {k:'repeatPct',label:'Repeat clickers (% of population)',unit:'%'},
+  {k:'realReports',label:'Real phishing reports per month',unit:''},
+  {k:'realMalicious',label:'Reports confirmed malicious (%)',unit:'%'},
+  {k:'purge',label:'Median report-to-removal time (minutes)',unit:' min'}
+];
+let meta = DEFAULT_META();
+let ctl = {};      // control id → state
+let actions = {};  // action id → {owner,due,dep,status}
+let metrics = {};
+let currentPage = 'dashboard';
+const openCards = new Set();
+
+// ═══════════ HELPERS ═══════════
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function jsq(s){ return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+function uid(id){ return String(id).replace(/[^a-zA-Z0-9]/g,'_'); }
+function fmtDate(d){ if(!d) return '—'; const dt=new Date(d); if(isNaN(dt)) return esc(d); return dt.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}); }
+function plural(n,w,p){ return n+' '+(n===1?w:(p||w+'s')); }
+function fmt1(x){ return (x==null||isNaN(x))?'—':(Math.round(x*10)/10).toFixed(1); }
+function tk(n){ return n==null?null:'L'+n; }
+function tName(n){ return n==null?'':TIERS['L'+n].name; }
+function tColor(n){ return n==null?'#8A9BB0':TIERS['L'+n].color; }
+function scoreToTier(s){ if(s==null) return null; return s<1.75?1:s<2.75?2:s<3.75?3:4; }
+function sectorObj(){ return SECTORS.find(s=>s.id===meta.sector)||null; }
+function sizeObj(){ return SIZES.find(s=>s.id===meta.size)||null; }
+function cdef(id){ return ALL_CONTROLS.find(x=>x.id===id); }
+function dimOf(id){ return DIMENSIONS.find(d=>d.id===id); }
+function C(id){ if(!ctl[id]) ctl[id]={t:null,tgt:null,tgtManual:false,conf:'',notes:'',just:'',rec:'',L:null,I:null,E:null}; return ctl[id]; }
+function tierOf(id){ const v=ctl[id]&&ctl[id].t; return (v&&v[0]==='L')?Number(v[1]):null; }
+function isNA(id){ return !!ctl[id]&&ctl[id].t==='NA'; }
+function isNS(id){ return !!ctl[id]&&ctl[id].t==='NS'; }
+function isUnset(id){ return !ctl[id]||ctl[id].t==null; }
+function profileTarget(x){
+  const sec=sectorObj(), sz=meta.size; let t=3;
+  if(x.tags.includes('bec')&&sec&&sec.bec) t=4;
+  if(x.tags.includes('reg')&&sec&&sec.reg) t=4;
+  if(x.tags.includes('big')&&(sz==='lg'||sz==='xl')) t=4;
+  if(x.tags.includes('scale')&&sz==='sm') t = t===4?3:2;
+  return t;
+}
+function modeTarget(x){ return meta.targetMode==='profile'?profileTarget(x):meta.targetMode==='l3'?3:meta.targetMode==='l4'?4:null; }
+function tgt(id){ const s=ctl[id]; if(s&&s.tgtManual) return s.tgt; return modeTarget(cdef(id)); }
+function Lk(id){ return (ctl[id]&&ctl[id].L)||cdef(id).lik; }
+function Im(id){ return (ctl[id]&&ctl[id].I)||cdef(id).imp; }
+function Ef(id){ return (ctl[id]&&ctl[id].E)||cdef(id).eff; }
+function gapOf(id){ const v=tierOf(id), t=tgt(id); if(v==null||t==null) return null; return Math.max(0,t-v); }
+function prioOf(id){ const g=gapOf(id); return g?g*Lk(id)*Im(id):0; }
+function band(p){ if(p<=0) return null; if(p>=30) return 'Critical'; if(p>=16) return 'High'; if(p>=8) return 'Medium'; return 'Low'; }
+function naMissing(id){ return isNA(id)&&!(C(id).just||'').trim(); }
+
+function statsFor(list){
+  const sc=list.filter(x=>tierOf(x.id)!=null), vals=sc.map(x=>tierOf(x.id));
+  const dist=[0,0,0,0]; vals.forEach(v=>dist[v-1]++);
+  const withT=sc.filter(x=>tgt(x.id)!=null), meet=withT.filter(x=>gapOf(x.id)===0);
+  return {total:list.length,scored:sc.length,mean:vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null,min:vals.length?Math.min(...vals):null,max:vals.length?Math.max(...vals):null,dist,
+    na:list.filter(x=>isNA(x.id)).length,ns:list.filter(x=>isNS(x.id)).length,unset:list.filter(x=>isUnset(x.id)).length,
+    withT:withT.length,meet:meet.length,lowConf:sc.filter(x=>C(x.id).conf==='L').length};
+}
+function dimScore(did){ return statsFor(dimOf(did).controls).mean; }
+function dimScores(){ const o={}; DIMENSIONS.forEach(d=>o[d.id]=dimScore(d.id)); return o; }
+function dimTarget(did){ const ts=dimOf(did).controls.filter(x=>!isNA(x.id)&&!isNS(x.id)).map(x=>tgt(x.id)).filter(v=>v!=null); return ts.length?ts.reduce((a,b)=>a+b,0)/ts.length:null; }
+function overall(){
+  const ds=dimScores(); const vals=Object.values(ds).filter(v=>v!=null);
+  if(!vals.length) return {score:null,tier:null,weakest:null};
+  const score=vals.reduce((a,b)=>a+b,0)/vals.length; const min=Math.min(...vals);
+  const weakest=DIMENSIONS.find(d=>ds[d.id]===min);
+  return {score,tier:scoreToTier(min),avgTier:scoreToTier(score),weakest,min};
+}
+function flags(){
+  const ds=dimScores(); const sec=sectorObj();
+  return ANTI_PATTERNS.filter(p=>{ try{ return p.check(ds,tierOf); }catch(e){ return false; } })
+    .map(p=>Object.assign({},p,{sev:(p.sevBec&&sec&&sec.bec)?p.sevBec:p.sev}))
+    .sort((a,b)=>['high','med','low'].indexOf(a.sev)-['high','med','low'].indexOf(b.sev));
+}
+const HORIZONS=[{id:0,label:'0–3 months',sub:'Anti-patterns, critical gaps and quick wins'},{id:1,label:'3–6 months',sub:'Foundations for consistent practice'},{id:2,label:'6–12 months',sub:'Strategic, resource-intensive uplift'}];
+const SEV_BAND={high:'Critical',med:'High',low:'Medium'};
+function actionList(){
+  const fl=flags(); const list=[];
+  const flagByCtl={}; fl.forEach(f=>f.links.forEach(l=>{(flagByCtl[l]=flagByCtl[l]||[]).push(f.id);}));
+  fl.forEach(f=>{
+    const maxEff=Math.max(...f.links.map(l=>Ef(l)));
+    list.push({id:'flag-'+f.id,kind:'ap',f,band:SEV_BAND[f.sev],prio:null,horizon:f.sev==='high'?0:(f.sev==='med'&&maxEff<=1?0:1),cat:'Anti-pattern',title:f.title,ref:f.id});
+  });
+  ALL_CONTROLS.filter(x=>gapOf(x.id)>0).map(x=>{
+    const g=gapOf(x.id),p=prioOf(x.id),b=band(p),e=Ef(x.id);
+    const horizon=(b==='Critical'||(e<=1&&b!=='Low')||(e<=2&&b==='High'))?0:(b==='Low'||e>=4)?2:1;
+    const cat=e<=2?'Quick win':b==='Critical'?'Urgent':e>=4?'Strategic':'Foundation';
+    return {id:'lift-'+x.id,kind:'ctl',x,gap:g,prio:p,band:b,L:Lk(x.id),I:Im(x.id),E:e,horizon,cat,title:x.title,ref:x.id,flags:flagByCtl[x.id]||[]};
+  }).sort((a,b)=>b.prio-a.prio||b.gap-a.gap||a.x.id.localeCompare(b.x.id)).forEach(a=>list.push(a));
+  return list;
+}
+function A(id){ if(!actions[id]) actions[id]={owner:'',due:'',dep:'',status:'open'}; return actions[id]; }
+const STATUS={open:'Open',progress:'In progress',done:'Done',deferred:'Deferred'};
+
+function buildRecommendation(a){
+  if(a.kind==='ap') return `${esc(a.f.detail)} <strong>Linked controls:</strong> ${a.f.links.map(l=>`${l} ${esc(cdef(l).title)} (${tierOf(l)?'L'+tierOf(l):isNA(l)?'N/A':'not scored'})`).join('; ')}.`;
+  const x=a.x, cur=tierOf(x.id), t=tgt(x.id), s=C(x.id);
+  const impWord=a.I>=5?'severe':a.I>=4?'major':a.I>=3?'material':'limited';
+  let txt=`<strong>${esc(x.title)} (${x.id})</strong> is at L${cur} ${tName(cur)} against a target of L${t} ${tName(t)}. Current practice: <em>${esc(x.tiers['L'+cur])}</em> `;
+  if((s.rec||'').trim()) txt+=`<strong>Recommended action:</strong> ${esc(s.rec.trim())} `;
+  else txt+=`<strong>Next step (L${cur+1}):</strong> ${esc(x.tiers['L'+(cur+1)])}${t>cur+1?` Then work toward L${t}: ${esc(x.tiers['L'+t])}`:''} `;
+  txt+=`Weakness here carries ${impWord} potential impact (${a.I}/5) at likelihood ${a.L}/5, giving a priority score of ${a.prio}. `;
+  if(s.conf==='L') txt+='The rating rests on interview evidence only; validate it before committing significant investment. ';
+  if(a.flags&&a.flags.length) txt+=`Closing this gap also addresses anti-pattern ${a.flags.join(', ')}. `;
+  const eff=['','very low','low','moderate','high','very high'][a.E];
+  txt += a.cat==='Quick win'?`Effort is ${eff}: a quick win to schedule early.`:a.cat==='Urgent'?`Treat as a near-term priority despite ${eff} effort.`:a.cat==='Strategic'?`Effort is ${eff}; plan it as a funded work package.`:`Effort is ${eff}; fold it into the improvement programme with a named owner.`;
+  return txt;
+}
+function validation(){
+  return {unset:ALL_CONTROLS.filter(x=>isUnset(x.id)), naMissing:ALL_CONTROLS.filter(x=>naMissing(x.id)),
+    noProfile:!meta.sector||!meta.size, noTargets:meta.targetMode==='none'&&!ALL_CONTROLS.some(x=>C(x.id).tgtManual),
+    noConf:ALL_CONTROLS.filter(x=>tierOf(x.id)!=null&&!C(x.id).conf)};
+}
+
+// ═══════════ RENDER HELPERS ═══════════
+function tPill(id){
+  const n=tierOf(id);
+  if(n!=null) return `<span class="lv" style="background:${tColor(n)}" title="L${n} ${tName(n)}">L${n}</span>`;
+  if(isNA(id)) return `<span class="lv na" title="Not applicable">N/A</span>`;
+  if(isNS(id)) return `<span class="lv ns" title="Not assessed">—</span>`;
+  return `<span class="lv un" title="Not yet scored">·</span>`;
+}
+function tPillN(n){ return n==null?'<span class="lv un">·</span>':`<span class="lv" style="background:${tColor(n)}">L${n}</span>`; }
+function idChip(x){ const d=dimOf(x.dim); return `<span class="area-code" style="background:${d.color}1c;color:${d.color};border:1px solid ${d.color}40;min-width:44px">${x.id}</span>`; }
+function prioChip(b){ return b?`<span class="chip prio-${b}">${b}</span>`:''; }
+function sevChip(s){ return `<span class="chip ${SEV[s].cls}">${SEV[s].label} severity</span>`; }
+function distBar(dist,cls){ const tot=dist.reduce((a,b)=>a+b,0)||1; return `<div class="${cls||'dist'}">${dist.map((n,i)=>n?`<span style="width:${n/tot*100}%;background:${tColor(i+1)}" title="L${i+1}: ${n}"></span>`:'').join('')}</div>`; }
+function distLegend(dist){ return `<div class="dist-legend">${dist.map((n,i)=>`<span><i style="background:${tColor(i+1)}"></i>L${i+1} ${tName(i+1)} (${n})</span>`).join('')}</div>`; }
+function track(v,t){ return `<div class="track"><div class="fill" style="width:${v==null?0:v/4*100}%;background:${v==null?'transparent':tColor(scoreToTier(v))}"></div>${t!=null?`<div class="tgt" style="left:calc(${t/4*100}% - 1px)" title="Target ${fmt1(t)}"></div>`:''}</div>`; }
+
+// ═══════════ NAVIGATION ═══════════
+function buildNav(){
+  let h=`<div class="nav-section">Views</div><button class="nav-item" id="nav-dashboard" onclick="navigate('dashboard')"><span class="nav-dot" style="background:#4A90E2"></span><span class="nav-lbl">Dashboard</span></button>
+    <div class="nav-section">Assessment</div>`;
+  DIMENSIONS.forEach(d=>{ h+=`<button class="nav-item" id="nav-${d.id}" onclick="navigate('${d.id}')"><span class="nav-dot" style="background:${d.color}"></span><span class="nav-lbl">${esc(d.name)}</span><span class="nav-lvl" id="navlv-${d.id}">—</span></button>`; });
+  h+=`<div class="nav-section">Analysis</div>
+    <button class="nav-item" id="nav-ap" onclick="navigate('ap')"><span class="nav-dot" style="background:#C0283A"></span><span class="nav-lbl">Anti-patterns &amp; metrics</span><span class="nav-lvl" id="navlv-ap">0</span></button>
+    <button class="nav-item" id="nav-plan" onclick="navigate('plan')"><span class="nav-dot" style="background:#D97706"></span><span class="nav-lbl">Improvement plan</span></button>
+    <button class="nav-item" id="nav-layers" onclick="navigate('layers')"><span class="nav-dot" style="background:#0284C7"></span><span class="nav-lbl">NCSC layer alignment</span></button>
+    <div class="nav-section">Output</div>
+    <button class="nav-item" id="nav-report" onclick="navigate('report')"><span class="nav-dot" style="background:#5A7A9A"></span><span class="nav-lbl">Full report</span></button>`;
+  document.getElementById('sidebar-nav').innerHTML=h;
+}
+function pageTitle(p){ const d=dimOf(p); if(d) return `${d.id} · ${d.name}`; return {dashboard:'Dashboard',ap:'Anti-patterns & metrics',plan:'Improvement plan',layers:'NCSC layer alignment',report:'Full assessment report'}[p]||p; }
+function navigate(p){
+  currentPage=p;
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  const el=document.getElementById('nav-'+p); if(el) el.classList.add('active');
+  document.getElementById('topbar-title').textContent=pageTitle(p);
+  renderPage(); document.getElementById('content').scrollTop=0;
+}
+function renderPage(){
+  const c=document.getElementById('content'); let h='';
+  if(currentPage==='dashboard') h=renderDashboard();
+  else if(dimOf(currentPage)) h=renderDim(currentPage);
+  else if(currentPage==='ap') h=renderAP();
+  else if(currentPage==='plan') h=renderPlan();
+  else if(currentPage==='layers') h=renderLayers();
+  else if(currentPage==='report') h=renderReport();
+  c.innerHTML=h;
+}
+function rerender(){ const c=document.getElementById('content'); const s=c.scrollTop; renderPage(); c.scrollTop=s; }
+function updateMeta(){
+  const addressed=ALL_CONTROLS.filter(x=>!isUnset(x.id)).length;
+  document.getElementById('prog-fill').style.width=(addressed/ALL_CONTROLS.length*100)+'%';
+  document.getElementById('prog-text').textContent=addressed+' / '+ALL_CONTROLS.length;
+  const v=validation(); const msgs=[];
+  if(v.unset.length) msgs.push(plural(v.unset.length,'control')+' not yet addressed');
+  if(v.naMissing.length) msgs.push(v.naMissing.length+' N/A without justification');
+  if(v.noProfile) msgs.push('sector and size not set');
+  const w=document.getElementById('prog-warn'); w.style.display=msgs.length?'block':'none'; w.textContent=msgs.join(' · ');
+  DIMENSIONS.forEach(d=>{ const el=document.getElementById('navlv-'+d.id); if(!el) return; const m=dimScore(d.id); el.textContent=m==null?'—':fmt1(m); el.style.background=m==null?'':tColor(scoreToTier(m)); el.style.color=m==null?'':'#fff'; });
+  const fl=flags(), apEl=document.getElementById('navlv-ap');
+  if(apEl){ apEl.textContent=fl.length; apEl.style.background=fl.some(f=>f.sev==='high')?'#C0283A':fl.length?'#B58100':''; apEl.style.color=fl.length?'#fff':''; }
+  document.getElementById('topbar-org').textContent=meta.org||'';
+  const sec=sectorObj(), sz=sizeObj();
+  document.getElementById('profile-chip').textContent = sec&&sz ? `${sec.name} · ${sz.name}` : 'Sector and size not set';
+  persist();
+}
+function update(){ updateMeta(); navigate(currentPage); }
+
+// ═══════════ MUTATORS ═══════════
+function setTier(id,v){ const s=C(id); s.t=(s.t===v)?null:v; updateMeta(); rerender(); }
+function setConf(id,v){ const s=C(id); s.conf=(s.conf===v)?'':v; updateMeta(); rerender(); }
+function setTgt(id,n){ const s=C(id); s.tgtManual=true; s.tgt=n; updateMeta(); rerender(); }
+function resetTgt(id){ const s=C(id); s.tgtManual=false; s.tgt=null; updateMeta(); rerender(); }
+function setRisk(id,k,v){ C(id)[k]=Number(v)===cdef(id)[{L:'lik',I:'imp',E:'eff'}[k]]?null:Number(v); updateMeta(); rerender(); }
+function setText(id,k,v){ C(id)[k]=v; if(k==='just'){ const w=document.getElementById('w-just-'+uid(id)); if(w) w.style.display=naMissing(id)?'flex':'none'; } updateMeta(); }
+function setAction(id,k,v){ A(id)[k]=v; updateMeta(); if(k==='status') rerender(); }
+function setMetric(k,v){ const n=v===''?null:Number(v); if(n==null||isNaN(n)) delete metrics[k]; else metrics[k]=n; const el=document.getElementById('metric-derived'); if(el) el.innerHTML=metricDerived(); updateMeta(); }
+function toggleCard(id){ openCards.has(id)?openCards.delete(id):openCards.add(id); rerender(); }
+function expandAll(did,open){ dimOf(did).controls.forEach(x=>open?openCards.add(x.id):openCards.delete(x.id)); rerender(); }
+function openControl(id){ const x=cdef(id); if(!x) return; openCards.add(id); navigate(x.dim); setTimeout(()=>{ const el=document.getElementById('card-'+uid(id)); if(el) el.scrollIntoView({block:'start',behavior:'smooth'}); },30); }
+
+// ═══════════ CONTROL CARD ═══════════
+function renderCard(x){
+  const id=x.id,u=uid(id),s=C(id),open=openCards.has(id),v=s.t,t=tgt(id),g=gapOf(id),b=band(prioOf(id));
+  const fl=flags().filter(f=>f.links.includes(id));
+  const tChip = t==null?'':g==null?`<span class="chip chip-muted">Target L${t}</span>`:g===0?`<span class="chip chip-ok">✓ Target L${t}</span>`:`<span class="chip chip-warn">Target L${t} · gap ${g}</span>`;
+  let h=`<div class="area" id="card-${u}"><button class="area-head" onclick="toggleCard('${jsq(id)}')" aria-expanded="${open}">
+    ${tPill(id)}${idChip(x)}<span class="area-name">${esc(x.title)}</span>
+    ${fl.map(f=>`<span class="chip ${SEV[f.sev].cls}" title="${esc(f.title)}">⚑ ${f.id}</span>`).join('')}
+    ${s.conf?`<span class="chip ${s.conf==='L'?'chip-warn':'chip-muted'}">${CONF[s.conf].label} conf.</span>`:''}${tierOf(id)!=null?tChip:''}${prioChip(b)}
+    <span class="chevron ${open?'open':''}">▸</span></button>`;
+  if(!open) return h+'</div>';
+  const pt = meta.sector&&meta.size ? profileTarget(x) : null;
+  h+=`<div class="area-body">
+    <div class="area-desc">${esc(x.desc)}</div>
+    <div class="area-refs"><span class="layer-chip" style="border-color:${LAYERS[x.layer].color}66;color:${LAYERS[x.layer].color}">${LAYERS[x.layer].short}</span> &nbsp;${esc(x.refs)}</div>
+    <div class="tier-opts" role="radiogroup" aria-label="Tier">
+      ${TIER_KEYS.map(k=>{const T=TIERS[k],on=v===k;return `<button class="tier-opt" role="radio" aria-checked="${on}" onclick="setTier('${jsq(id)}','${k}')" style="${on?`border-color:${T.color};background:${T.color}14`:''}"><span class="tn" style="background:${T.color}">${k}</span><span class="tt"><b>${T.name}.</b>${esc(x.tiers[k])}</span>${t===T.n?'<span class="tg chip chip-acc">Target</span>':''}</button>`}).join('')}
+      <div class="tier-extra"><button class="lb ${v==='NA'?'on-na':''}" onclick="setTier('${jsq(id)}','NA')" aria-pressed="${v==='NA'}">N/A</button><button class="lb ${v==='NS'?'on-na':''}" onclick="setTier('${jsq(id)}','NS')" aria-pressed="${v==='NS'}">Not assessed</button></div>
+    </div>
+    <div class="row alt"><span class="row-lbl">Evidence confidence</span><div class="btns">${Object.keys(CONF).map(k=>`<button class="sb ${s.conf===k?'on':''}" onclick="setConf('${jsq(id)}','${k}')" title="${CONF[k].desc}">${CONF[k].label}</button>`).join('')}<span class="small-muted" style="align-self:center;margin-left:6px">${s.conf?CONF[s.conf].desc:''}</span></div></div>
+    <div class="row"><span class="row-lbl">Target tier</span><div class="btns">${TIER_KEYS.map(k=>`<button class="sb ${t===TIERS[k].n?'on':''}" onclick="setTgt('${jsq(id)}',${TIERS[k].n})">${k}</button>`).join('')}
+      <span class="small-muted" style="align-self:center;margin-left:8px">${s.tgtManual?`Set by hand${pt!=null?` (profile expects L${pt})`:''} · <button class="linkish" onclick="resetTgt('${jsq(id)}')">reset</button>`:meta.targetMode==='profile'?(pt!=null?`From ${esc(sectorObj().name)} · ${esc(sizeObj().name)} profile`:'Set sector and size for a profile target'):TARGET_MODES[meta.targetMode]}</span></div></div>
+    <div class="row alt"><span class="row-lbl">Prioritisation</span><div class="risk-inputs">
+      ${[['L','Likelihood','lik'],['I','Impact','imp'],['E','Effort','eff']].map(([k,lb,dk])=>{const cur=k==='L'?Lk(id):k==='I'?Im(id):Ef(id);return `<label>${lb}<select onchange="setRisk('${jsq(id)}','${k}',this.value)">${[1,2,3,4,5].map(n=>`<option value="${n}" ${cur===n?'selected':''}>${n}${n===x[dk]?' (default)':''}</option>`).join('')}</select></label>`}).join('')}
+      <span class="small-muted">${g>0?`Priority ${prioOf(id)} = gap ${g} × L${Lk(id)} × I${Im(id)}`:'Priority applies once scored below target'}</span></div></div>`;
+  if(v==='NA') h+=`<div class="box na"><div class="warnline" id="w-just-${u}" style="display:${naMissing(id)?'flex':'none'}">⚠ Not applicable needs a written justification.</div><label class="box-lbl">Justification for not applicable</label><textarea class="inp" rows="3" oninput="setText('${jsq(id)}','just',this.value)">${esc(s.just)}</textarea></div>`;
+  if(v==='NS') h+=`<div class="box"><label class="box-lbl">Reason not assessed</label><div class="box-hint">Listed in the report as a limitation.</div><textarea class="inp" rows="2" oninput="setText('${jsq(id)}','just',this.value)">${esc(s.just)}</textarea></div>`;
+  h+=`<div class="box"><label class="box-lbl">Evidence &amp; observations</label><div class="box-hint"><strong>Ask:</strong> ${esc(x.evidence)}</div>
+      <textarea class="inp" rows="3" placeholder="What was seen, who said what, which artefacts were reviewed…" oninput="setText('${jsq(id)}','notes',this.value)">${esc(s.notes)}</textarea></div>
+    <div class="box"><label class="box-lbl">Recommendation <span class="small-muted" style="font-weight:400">(optional; replaces the generated next step)</span></label>
+      <textarea class="inp" rows="2" oninput="setText('${jsq(id)}','rec',this.value)">${esc(s.rec)}</textarea></div>
+  </div></div>`;
+  return h;
+}
+function tierGuide(){
+  return `<div class="notice">${TIER_KEYS.map(k=>`<span style="margin-right:14px;white-space:nowrap"><span class="lv" style="background:${TIERS[k].color};min-width:26px">${k}</span> <strong>${TIERS[k].name}</strong>: ${TIERS[k].desc}</span>`).join(' ')}<div style="margin-top:6px">Pick the description that matches what actually happens today, not what policy says should happen.</div></div>`;
+}
+function renderDim(did){
+  const d=dimOf(did), st=statsFor(d.controls), dt=dimTarget(did);
+  return `<div class="wrap fu"><div class="page-head"><div>
+      <div style="display:flex;gap:10px;align-items:center"><span class="mono" style="font-weight:700;color:${d.color}">${d.id} · ${d.code}</span><h2>${esc(d.name)}</h2></div><p>${esc(d.desc)}</p></div>
+    <div style="text-align:right;flex-shrink:0"><div class="big-num" style="color:${st.mean==null?'var(--muted)':tColor(scoreToTier(st.mean))}">${fmt1(st.mean)}<span style="font-size:14px;color:var(--muted)"> / 4</span></div>
+      <div class="small-muted">${st.scored} scored · ${st.na} N/A · ${st.ns} not assessed${dt!=null?` · target ${fmt1(dt)}`:''}</div>${st.unset?`<div class="small-muted" style="color:var(--bad);font-weight:600">${st.unset} outstanding</div>`:''}</div></div>
+    ${tierGuide()}
+    <div style="display:flex;justify-content:flex-end;gap:6px;margin-bottom:8px" class="no-print"><button class="mbn" onclick="expandAll('${did}',true)">Expand all</button><button class="mbn" onclick="expandAll('${did}',false)">Collapse all</button></div>
+    ${d.controls.map(renderCard).join('')}
+    ${nextDimNav(did)}</div>`;
+}
+function nextDimNav(did){ const i=DIMENSIONS.findIndex(d=>d.id===did); const p=DIMENSIONS[i-1], n=DIMENSIONS[i+1];
+  return `<div style="display:flex;justify-content:space-between;margin-top:14px" class="no-print">${p?`<button class="mbn" onclick="navigate('${p.id}')">← ${p.id} ${esc(p.name)}</button>`:'<span></span>'}${n?`<button class="mbp" onclick="navigate('${n.id}')">${n.id} ${esc(n.name)} →</button>`:`<button class="mbp" onclick="navigate('ap')">Review anti-patterns →</button>`}</div>`; }
+
+// ═══════════ DASHBOARD ═══════════
+function renderValidation(){
+  const v=validation(); const items=[];
+  if(v.noProfile) items.push(`<span class="vcount">!</span>Sector and size are not set, so profile targets default to L3. <button class="linkish" onclick="showSetup()">Open setup</button>`);
+  if(v.unset.length) items.push(`<span class="vcount">${v.unset.length}</span>Not yet addressed: ${v.unset.slice(0,14).map(x=>`<button class="linkish" onclick="openControl('${x.id}')">${x.id}</button>`).join(', ')}${v.unset.length>14?'…':''}`);
+  if(v.naMissing.length) items.push(`<span class="vcount">${v.naMissing.length}</span>Not applicable without justification: ${v.naMissing.map(x=>`<button class="linkish" onclick="openControl('${x.id}')">${x.id}</button>`).join(', ')}`);
+  if(v.noTargets) items.push(`<span class="vcount">!</span>No targets are set, so there is no gap analysis. <button class="linkish" onclick="showSetup()">Choose a target basis</button>`);
+  if(v.noConf.length) items.push(`<span class="vcount">${v.noConf.length}</span>Scored controls without an evidence confidence rating`);
+  if(!items.length) return `<div class="validation ok"><div class="v-head">✓ Assessment complete: every control addressed and justified.</div></div>`;
+  return `<div class="validation"><div class="v-head">⚠ ${plural(items.length,'item')} to resolve before issuing the report</div><div class="v-body">${items.map(i=>`<div>${i}</div>`).join('')}</div></div>`;
+}
+function heatmap(){
+  return `<div class="hmx">${DIMENSIONS.map(d=>`<div class="hmx-row"><div class="hmx-dim" style="color:${d.color}" title="${esc(d.name)}">${d.id} ${esc(d.name)}</div><div class="hmx-cells">${d.controls.map(x=>{const n=tierOf(x.id);const g=gapOf(x.id);
+    return `<button class="hmc ${n==null?(isNA(x.id)||isNS(x.id)?'na':'un'):''}" style="${n!=null?`background:${tColor(n)}`:''}" onclick="openControl('${x.id}')" title="${x.id} ${esc(x.title)}: ${n!=null?'L'+n+' '+tName(n):isNA(x.id)?'N/A':isNS(x.id)?'Not assessed':'not scored'}${tgt(x.id)!=null?' · target L'+tgt(x.id):''}">${x.id.slice(1)}${g>0?'<span class="gapdot"></span>':''}</button>`}).join('')}</div></div>`).join('')}</div>`;
+}
+function renderDashboard(){
+  const st=statsFor(ALL_CONTROLS), ov=overall(), fl=flags(), acts=actionList();
+  const crit=acts.filter(a=>a.band==='Critical'||a.band==='High').length;
+  if(!meta.sector&&!meta.size&&st.scored===0&&!meta.org){
+    return `<div class="wrap fu">${welcome()}</div>`;
+  }
+  return `<div class="wrap fu">${renderValidation()}
+    <div class="summary"><div class="overall"><div style="flex:1">
+      <div class="small-muted">${esc(meta.org)||'Organisation not set'}${sectorObj()?' · '+esc(sectorObj().name):''}${sizeObj()?' · '+esc(sizeObj().name):''}</div>
+      <h2 style="margin-top:4px">${ov.tier==null?'Not yet scored':`Programme tier <span class="mono" style="color:${tColor(ov.tier)}">L${ov.tier}</span> ${tName(ov.tier)}`}</h2>
+      <div class="lead">${ov.tier==null?'Score controls to see the programme profile.':`Average <strong>${fmt1(ov.score)} / 4</strong> across six dimensions. The tier is set by the weakest dimension, <strong>${esc(ov.weakest.name)}</strong> (${fmt1(ov.min)}), because a programme is only as effective as its weakest part.`}</div>
+      ${distBar(st.dist)}${distLegend(st.dist)}</div></div>
+      <div class="stats">
+        <div class="stat"><div class="stat-val" style="color:${fl.some(f=>f.sev==='high')?'var(--bad)':fl.length?'var(--warn)':'var(--ok)'}">${fl.length}</div><div class="stat-lbl">Anti-patterns flagged</div></div>
+        <div class="stat"><div class="stat-val" style="color:var(--accent)">${st.withT?st.meet+'/'+st.withT:'—'}</div><div class="stat-lbl">Controls meeting target</div></div>
+        <div class="stat"><div class="stat-val" style="color:var(--bad)">${crit}</div><div class="stat-lbl">Critical &amp; high actions</div></div>
+        <div class="stat"><div class="stat-val" style="color:${st.lowConf?'var(--warn)':'var(--ok)'}">${st.lowConf}</div><div class="stat-lbl">Low-confidence ratings</div></div>
+      </div></div>
+    <div class="groups">${DIMENSIONS.map(d=>{const s=statsFor(d.controls);const dt=dimTarget(d.id);return `<button class="gcard" style="border-top-color:${d.color}" onclick="navigate('${d.id}')">
+      <div class="g-id" style="color:${d.color}">${d.id} · ${d.code}</div><div class="g-name">${esc(d.name)}</div>
+      <div class="g-val" style="color:${s.mean==null?'var(--faint)':tColor(scoreToTier(s.mean))}">${fmt1(s.mean)}</div>
+      <div class="mini"><span style="width:${s.mean==null?0:s.mean/4*100}%;background:${d.color}"></span></div>
+      <div class="small-muted" style="margin-top:5px">${s.scored}/${s.total} scored${dt!=null?` · target ${fmt1(dt)}`:''}</div></button>`}).join('')}</div>
+    <div class="two-col">
+      <div class="panel"><div class="panel-head">Control heatmap <span class="sub">Colour = tier · red dot = below target</span></div><div class="panel-body">${heatmap()}</div></div>
+      <div class="panel" style="background:#fff"><div class="panel-head">Dimension balance <span class="sub">Solid = current · dashed = target</span></div><div class="panel-body" style="display:flex;justify-content:center">${svgRadar(false)}</div></div>
+    </div>
+    <div class="two-col">
+      <div class="panel"><div class="panel-head">Anti-patterns <span class="sub">Practices that may be doing harm</span></div><div class="vlist">
+        ${fl.length?fl.map(f=>`<div class="vrow"><span class="chip ${SEV[f.sev].cls}">${f.id}</span><span class="nm">${esc(f.title)}</span><span class="small-muted">${SEV[f.sev].label}</span></div>`).join(''):'<div class="empty">No anti-patterns flagged from the controls scored so far.</div>'}
+      </div></div>
+      <div class="panel"><div class="panel-head">Top priorities <span class="sub">Anti-patterns first, then gap × likelihood × impact</span></div><div class="vlist">
+        ${acts.length?acts.slice(0,8).map((a,i)=>`<div class="vrow"><span class="small-muted mono">${i+1}</span><span class="code">${a.ref}</span><span class="nm">${esc(a.title)}</span>${a.kind==='ctl'?`${tPill(a.x.id)}<span class="small-muted">→ L${tgt(a.x.id)}</span>`:''}${prioChip(a.band)}</div>`).join(''):'<div class="empty">No actions yet.</div>'}
+      </div></div>
+    </div></div>`;
+}
+function welcome(){
+  return `<div class="panel"><div class="panel-body" style="padding:28px">
+    <h2 style="font-size:20px;margin-bottom:6px">Assess a phishing programme</h2>
+    <p style="font-size:13px;color:var(--muted);line-height:1.65;max-width:740px;margin-bottom:16px">Six dimensions and 35 controls covering governance, simulation quality, metrics, learning and culture, integration with the SOC and incident response, and the technical layers around the people. Each control has four described tiers; sector and size set the expected tier, and anti-pattern checks flag practices that may be doing harm.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="mbp" onclick="showSetup()">Start with setup</button><button class="mbn" onclick="loadSample()">Load the worked example</button></div>
+  </div></div>`;
+}
+
+// ═══════════ RADAR (shared) ═══════════
+function svgRadar(forReport){
+  const n=DIMENSIONS.length, cx=170, cy=160, R=112, ds=dimScores();
+  const ang=i=>(Math.PI*2*i/n)-Math.PI/2, xy=(i,r)=>[cx+Math.cos(ang(i))*r,cy+Math.sin(ang(i))*r];
+  const acc=forReport?'var(--rp-a)':'#1456CC';
+  let s=`<svg width="${forReport?300:340}" height="${forReport?290:320}" viewBox="0 0 340 320" style="max-width:100%;display:block;font-family:Arial" role="img" aria-label="Dimension radar">`;
+  [1,2,3,4].forEach(k=>{ s+=`<polygon points="${DIMENSIONS.map((_,i)=>xy(i,R*k/4).map(v=>v.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="${k===3?'#C9D2DE':'#E4E9F0'}"/>`; const[,y]=xy(0,R*k/4); s+=`<text x="${cx+3}" y="${y.toFixed(1)}" dy=".3em" font-size="7.5" fill="#9AA8BA">L${k}</text>`; });
+  DIMENSIONS.forEach((d,i)=>{ const[x,y]=xy(i,R); s+=`<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#EEF1F5"/>`;
+    const[lx,ly]=xy(i,R+20); const an=Math.abs(lx-cx)<8?'middle':(lx>cx?'start':'end');
+    s+=`<text x="${lx.toFixed(1)}" y="${(ly-4).toFixed(1)}" text-anchor="${an}" font-size="10" font-weight="700" fill="${d.color}" font-family="Consolas,monospace">${d.code}</text><text x="${lx.toFixed(1)}" y="${(ly+8).toFixed(1)}" text-anchor="${an}" font-size="9" fill="#6B7A90">${ds[d.id]==null?'—':fmt1(ds[d.id])}</text>`; });
+  const tp=DIMENSIONS.map((d,i)=>xy(i,R*((dimTarget(d.id)||0)/4)).map(v=>v.toFixed(1)).join(',')).join(' ');
+  if(DIMENSIONS.some(d=>dimTarget(d.id)!=null)) s+=`<polygon points="${tp}" fill="none" stroke="#6B7A90" stroke-width="1.2" stroke-dasharray="4 3"/>`;
+  s+=`<polygon points="${DIMENSIONS.map((d,i)=>xy(i,R*((ds[d.id]||0)/4)).map(v=>v.toFixed(1)).join(',')).join(' ')}" fill="${acc}" fill-opacity=".16" stroke="${acc}" stroke-width="1.8"/>`;
+  DIMENSIONS.forEach((d,i)=>{ if(ds[d.id]==null) return; const[x,y]=xy(i,R*ds[d.id]/4); s+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${tColor(scoreToTier(ds[d.id]))}"/>`; });
+  return s+'</svg>';
+}
+
+// ═══════════ ANTI-PATTERNS & METRICS ═══════════
+function metricDerived(){
+  const m=metrics; const out=[];
+  if(m.reportRate!=null&&m.clickRate!=null&&m.clickRate>0){ const r=m.reportRate/m.clickRate; out.push(`<strong>Report-to-click ratio ${r.toFixed(2)}.</strong> ${r>=1?'More people reported the last simulation than clicked it, which is the direction a maturing programme should be heading.':'More people clicked than reported. Raising reporting is usually a better goal than chasing a lower click rate.'}`); }
+  if(m.credRate!=null&&m.clickRate!=null&&m.clickRate>0) out.push(`<strong>${Math.round(m.credRate/m.clickRate*100)}% of clickers went on to submit credentials</strong>, which is the outcome that phishing-resistant authentication (D6.3) is there to neutralise.`);
+  if(m.ttr!=null&&m.purge!=null) out.push(`<strong>First report after ${m.ttr} minutes, removal after ${m.purge} minutes.</strong> ${m.purge>m.ttr*4?'Removal lags reporting considerably; D6.4 and D5.1 are where the time is lost.':'Removal follows reporting reasonably quickly.'}`);
+  if(m.realMalicious!=null&&m.realReports!=null) out.push(`<strong>About ${Math.round(m.realReports*m.realMalicious/100)} confirmed-malicious reports a month</strong> reach the organisation through staff, each an early warning worth acting on.`);
+  return out.length?out.map(x=>`<p style="margin-bottom:6px">${x}</p>`).join(''):'<span class="small-muted">Enter click and report rates to see derived measures.</span>';
+}
+function metricChecks(){
+  return [['D3.2','Report-to-click ratio'],['D3.3','Time-to-report'],['D3.4','Repeat-clicker identification'],['D3.5','Segmentation & trending'],['D3.6','Real-world outcomes']].map(([id,nm])=>{
+    const n=tierOf(id); return {id,nm,n,text:n!=null?cdef(id).tiers['L'+n]:isNA(id)?'Not applicable':'Not yet scored'}; });
+}
+function renderAP(){
+  const fl=flags();
+  return `<div class="wrap fu"><div class="page-head"><div><h2>Anti-patterns &amp; metrics</h2><p>Anti-patterns are combinations of practice that may be making the programme less effective or actively harmful. They are ranked above tier gaps in the improvement plan, because fixing them often delivers more than raising a tier elsewhere.</p></div></div>
+    ${fl.length?fl.map(f=>`<div class="ap" style="border-left-color:${SEV[f.sev].color}"><h4><span class="mono">${f.id}</span> ${esc(f.title)} ${sevChip(f.sev)}${f.sevBec&&f.sev===f.sevBec&&sectorObj()&&sectorObj().bec?'<span class="chip chip-muted">raised for sector</span>':''}</h4><p>${esc(f.detail)}</p>
+      <div class="links">${f.links.map(l=>`<button class="hm-row" style="width:auto;padding:4px 9px" onclick="openControl('${l}')">${tPill(l)}<span class="mono" style="font-size:10.5px;font-weight:700">${l}</span><span style="font-size:11px">${esc(cdef(l).title)}</span></button>`).join('')}</div></div>`).join('')
+      :`<div class="validation ok"><div class="v-head">✓ No anti-patterns flagged from the controls scored so far (${ANTI_PATTERNS.length} checks run).</div></div>`}
+    <div class="panel"><div class="panel-head">Metric maturity check <span class="sub">Are the measures that reflect resilience in place?</span></div><div class="panel-body"><div class="mcheck">
+      ${metricChecks().map(m=>`<div class="mc"><div class="mc-id">${m.id}</div><div class="mc-name">${m.nm}</div>${tPillN(m.n)}<div class="mc-help">${esc(m.text)}</div></div>`).join('')}
+    </div></div></div>
+    <div class="panel"><div class="panel-head">Programme metrics snapshot <span class="sub">Optional client-supplied figures; included in the report</span></div><div class="panel-body">
+      <div class="mgrid">${METRIC_FIELDS.map(f=>`<div class="mfield"><label for="m-${f.k}">${f.label}</label><input id="m-${f.k}" type="number" min="0" step="any" value="${metrics[f.k]??''}" oninput="setMetric('${f.k}',this.value)"/></div>`).join('')}</div>
+      <div id="metric-derived" style="margin-top:14px;font-size:12px;color:var(--text2);line-height:1.6">${metricDerived()}</div>
+    </div></div></div>`;
+}
+
+// ═══════════ PLAN ═══════════
+function renderPlan(){
+  const acts=actionList(); const byH=HORIZONS.map(hz=>({hz,items:acts.filter(a=>a.horizon===hz.id)}));
+  let h=`<div class="wrap fu"><div class="page-head"><div><h2>Improvement plan</h2><p>Anti-patterns come first, then control gaps ranked by gap × likelihood × impact and sequenced by effort. Assign owners, due dates and status here; they are saved with the assessment and appear in the report and exports.</p></div></div>
+    <div class="groups" style="grid-template-columns:repeat(3,1fr)">${byH.map(b=>`<div class="gcard" style="border-top-color:var(--accent);cursor:default"><div class="g-id">${b.hz.label}</div><div class="g-name">${b.hz.sub}</div><div class="g-val">${b.items.length}</div><div class="small-muted" style="margin-top:5px">${b.items.filter(a=>A(a.id).status==='done').length} done</div></div>`).join('')}</div>`;
+  if(!acts.length) return h+`<div class="panel"><div class="empty">No actions yet. Actions appear when anti-patterns are flagged or controls score below target.</div></div></div>`;
+  let rank=0;
+  byH.forEach(b=>{ if(!b.items.length) return;
+    h+=`<div class="hz"><div class="hz-title">${b.hz.label} <span>${b.hz.sub} · ${plural(b.items.length,'action')}</span></div>`;
+    b.items.forEach(a=>{ rank++; const st=A(a.id);
+      h+=`<div class="imp" style="${st.status==='done'?'opacity:.7':''}"><div class="imp-head"><span class="imp-rank">${rank}</span>${a.kind==='ap'?`<span class="chip ${SEV[a.f.sev].cls}">⚑ ${a.f.id}</span>`:idChip(a.x)}<span class="area-name">${a.kind==='ap'?'Address: ':''}${esc(a.title)}</span>${prioChip(a.band)}<span class="chip chip-acc">${a.cat}</span></div>
+        <div class="imp-body">${a.kind==='ctl'?`<div class="imp-metrics"><span>Current <strong>L${tierOf(a.x.id)} ${tName(tierOf(a.x.id))}</strong></span><span>Target <strong>L${tgt(a.x.id)} ${tName(tgt(a.x.id))}</strong></span><span>Priority <strong>${a.prio}</strong></span><span>Effort <strong>${a.E}/5</strong></span></div>`:''}${buildRecommendation(a)}
+        <div class="act-fields no-print">
+          <div><label>Owner</label><input value="${esc(st.owner)}" placeholder="Name or role" oninput="setAction('${a.id}','owner',this.value)"/></div>
+          <div><label>Due</label><input type="date" value="${esc(st.due)}" onchange="setAction('${a.id}','due',this.value)"/></div>
+          <div><label>Status</label><select onchange="setAction('${a.id}','status',this.value)">${Object.entries(STATUS).map(([k,l])=>`<option value="${k}" ${st.status===k?'selected':''}>${l}</option>`).join('')}</select></div>
+          <div><label>Dependency</label><input value="${esc(st.dep)}" placeholder="e.g. budget approval, D1.3" oninput="setAction('${a.id}','dep',this.value)"/></div>
+        </div></div></div>`; });
+    h+='</div>'; });
+  return h+'</div>';
+}
+
+// ═══════════ LAYERS ═══════════
+function layerStats(){
+  return [0,1,2,3,4].map(k=>{ const list=ALL_CONTROLS.filter(x=>x.layer===k); const st=statsFor(list);
+    const weakest=list.filter(x=>tierOf(x.id)!=null).sort((a,b)=>tierOf(a.id)-tierOf(b.id))[0]; return {k,L:LAYERS[k],list,st,weakest}; });
+}
+function layerNarrative(ls){
+  const sc=ls.filter(l=>l.k>0&&l.st.mean!=null); if(!sc.length) return 'Score controls to see how the programme covers the four layers.';
+  const weak=sc.slice().sort((a,b)=>a.st.mean-b.st.mean)[0], l2=ls.find(l=>l.k===2);
+  let t=`The weakest layer is <strong>${esc(weak.L.name)}</strong> (${fmt1(weak.st.mean)}). `;
+  const others=sc.filter(l=>l.k!==2); const othersMean=others.length?others.reduce((a,l)=>a+l.st.mean,0)/others.length:null;
+  if(l2.st.mean!=null&&othersMean!=null&&l2.st.mean-othersMean>=0.75) t+='Layer 2 (the people layer) is markedly stronger than the technical and response layers, so the organisation depends heavily on staff catching what other layers should stop. ';
+  t+='NCSC guidance recommends addressing at least some mitigations in every layer, so no single failure leads to compromise.';
+  return t;
+}
+function renderLayers(){
+  const ls=layerStats();
+  return `<div class="wrap fu"><div class="page-head"><div><h2>NCSC layer alignment</h2><p>How the controls map to the four layers in the NCSC's <em>Phishing attacks: defending your organisation</em>, plus the programme foundations that tie them together. A resilient programme has no empty layer.</p></div></div>
+    <div class="notice">${layerNarrative(ls)}</div>
+    <div class="groups" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">${ls.map(l=>`<div class="layer-card" style="border-top-color:${l.L.color}"><h4 style="color:${l.L.color}">${l.L.short}</h4><div class="ld">${esc(l.L.desc)}</div>
+      <div class="g-val" style="margin-top:8px;color:${l.st.mean==null?'var(--faint)':tColor(scoreToTier(l.st.mean))}">${fmt1(l.st.mean)}</div><div class="small-muted">${l.st.scored}/${l.list.length} scored${l.weakest?` · weakest ${l.weakest.id}`:''}</div></div>`).join('')}</div>
+    ${ls.map(l=>`<div class="panel"><div class="panel-head" style="color:${l.L.color}">${esc(l.L.name)}<span class="sub">${plural(l.list.length,'control')}</span></div><div class="vlist">
+      ${l.list.map(x=>`<div class="vrow" style="cursor:pointer" onclick="openControl('${x.id}')">${tPill(x.id)}<span class="code" style="color:${dimOf(x.dim).color}">${x.id}</span><span class="nm">${esc(x.title)}</span><span class="small-muted">${esc(dimOf(x.dim).name)}</span></div>`).join('')}</div></div>`).join('')}
+  </div>`;
+}
+
+// ═══════════ REPORT ═══════════
+let reportMode='full';
+function rT(id){ const n=tierOf(id); if(n!=null) return `<span class="rlv" style="background:${tColor(n)}">L${n}</span>`; if(isNA(id)) return '<span class="rlv na">N/A</span>'; return '<span class="rlv ns">—</span>'; }
+function rTN(n){ return n==null?'<span style="color:#8A9BB0">—</span>':`<span class="rlv" style="background:${tColor(n)}">L${n}</span>`; }
+function rPrio(b){ return b?`<span class="rpill rp-${b}">${b}</span>`:''; }
+function rSev(s){ return `<span class="rpill" style="background:${s==='high'?'#FDE2E6':s==='med'?'#FFF3D6':'#EEF1F5'};color:${SEV[s].color}">${SEV[s].label}</span>`; }
+function detailsTable(){
+  const rows=[['Organisation',meta.org],['Sector',sectorObj()&&sectorObj().name],['Size',sizeObj()&&sizeObj().name],['Programme owner',meta.owner],['Simulation platform',meta.platform],
+    ['Lead assessor',meta.assessor],['Quality reviewer',meta.qc],['Prepared by',meta.preparedBy],['Client sponsor',meta.sponsor],
+    ['Assessment date',meta.date?fmtDate(meta.date):''],['Assessment period',meta.period],['Target basis',TARGET_MODES[meta.targetMode]],['Version / reference',meta.version],['Classification',meta.classification]].filter(r=>(r[1]||'').toString().trim());
+  return `<h3 class="rp-h3">Assessment details</h3><table class="rp-table rp-details"><tbody>${rows.map(([k,v])=>`<tr><th class="k">${esc(k)}</th><td>${esc(v)}</td></tr>`).join('')}</tbody></table>`;
+}
+function execNarrative(){
+  const st=statsFor(ALL_CONTROLS), ov=overall(), fl=flags(), ds=dimScores(), org=esc(meta.org)||'The organisation';
+  if(ov.tier==null) return '<p class="rp-p">No controls have been scored yet.</p>';
+  const strong=DIMENSIONS.filter(d=>ds[d.id]!=null).sort((a,b)=>ds[b.id]-ds[a.id])[0];
+  let p=`<p class="rp-p">${org}'s phishing programme was assessed across 35 controls in six dimensions: ${st.scored} scored${st.na?`, ${st.na} not applicable`:''}${st.ns?`, ${st.ns} not assessed`:''}${st.unset?`, ${st.unset} outstanding`:''}. The programme sits at <strong>L${ov.tier} ${tName(ov.tier)}</strong>, set by its weakest dimension, ${esc(ov.weakest.name)} (${fmt1(ov.min)} / 4). The average across dimensions is ${fmt1(ov.score)}, and the strongest dimension is ${esc(strong.name)} (${fmt1(ds[strong.id])}).</p>`;
+  if(fl.length){ const hi=fl.filter(f=>f.sev==='high');
+    p+=`<p class="rp-p">${plural(fl.length,'anti-pattern')} ${fl.length===1?'was':'were'} flagged${hi.length?`, ${hi.length} of high severity: ${hi.map(f=>esc(f.title.toLowerCase())).join('; ')}`:''}. These are practices that may be making the programme less effective or actively harmful, and they are prioritised above tier gaps.</p>`; }
+  else p+=`<p class="rp-p">None of the ${ANTI_PATTERNS.length} anti-pattern checks were triggered.</p>`;
+  if(st.withT) p+=`<p class="rp-p">${st.meet} of ${st.withT} scored controls meet their target${meta.targetMode==='profile'&&sectorObj()&&sizeObj()?` for a ${esc(sectorObj().name.toLowerCase())} organisation of ${esc(sizeObj().name.toLowerCase())}`:''}. ${layerNarrative(layerStats()).replace(/<\/?strong>/g,'')}</p>`;
+  if(st.scored&&st.lowConf/st.scored>0.3) p+=`<p class="rp-p">${plural(st.lowConf,'rating')} (${Math.round(st.lowConf/st.scored*100)}%) rest on interview evidence only and should be validated before significant investment decisions.</p>`;
+  return p;
+}
+function dimBars(){
+  const ds=dimScores();
+  return DIMENSIONS.map(d=>{const t=dimTarget(d.id);return `<div class="rp-grow"><span class="gid" style="background:${d.color};width:36px">${d.code}</span><span class="gnm">${esc(d.name)}</span><div class="gtr"><div class="gfl" style="width:${ds[d.id]==null?0:ds[d.id]/4*100}%;background:${d.color}"></div>${t!=null?`<div class="gtg" style="left:${t/4*100}%"></div>`:''}</div><span class="gvl">${fmt1(ds[d.id])}</span></div>`}).join('')+`<div style="font-size:7.5pt;color:#6B7A90">Bar: average tier (1–4). Marker: average target.</div>`;
+}
+function rpHeat(){
+  return `<div class="rp-heat">${DIMENSIONS.map(d=>`<div class="rp-heat-row"><span class="d" style="color:${d.color}">${d.id} ${esc(d.name)}</span><span class="c">${d.controls.map(x=>{const n=tierOf(x.id);return n!=null?`<span style="background:${tColor(n)}">${x.id.slice(1)}</span>`:`<span class="u">${isNA(x.id)?'N/A':x.id.slice(1)}</span>`}).join('')}</span></div>`).join('')}</div>`;
+}
+function renderReport(){
+  const st=statsFor(ALL_CONTROLS), ov=overall(), fl=flags(), acts=actionList(), v=validation();
+  const incomplete=v.unset.length||v.naMissing.length;
+  let pageNo=0; const foot=()=>`<div class="page-foot"><span>${esc(meta.org)||'Phishing programme assessment'} · Phishing programme maturity${meta.classification?' · '+esc(meta.classification):''}</span><span>Page ${++pageNo}</span></div>`;
+  let sec=0; const H2=(t,lead,num)=>{ const n=num!==undefined?num:++sec; return `<h2 class="rp-h2">${n!==''?`<span class="rp-num">${n}</span>`:''}${t}</h2><div class="rp-lead">${lead}</div>`; };
+  let h=`<div class="wrap fu"><div class="report-toolbar no-print"><div><div class="rt-title">Report preview</div>
+    <div class="rt-sub">Download PDF opens the print dialog: choose <strong>Save as PDF</strong>, margins <strong>Default</strong>, <strong>Background graphics</strong> on, <strong>Headers and footers</strong> off.${incomplete?' <span style="color:var(--bad);font-weight:600">Unresolved items are flagged in the report.</span>':''}</div></div>
+    <div class="seg rt-first" role="group" aria-label="Report type"><button class="${reportMode==='full'?'on':''}" onclick="reportMode='full';rerender()">Full report</button><button class="${reportMode==='summary'?'on':''}" onclick="reportMode='summary';rerender()">Board summary</button></div>
+    <button class="rt-btn ghost" onclick="showSetup()">Edit details</button><button class="rt-btn" onclick="printReport()">⬇ Download PDF</button></div>
+    <div class="doc pal-${esc(meta.palette||'navy')}">`;
+  // COVER
+  h+=`<div class="page cover"><div class="cover-inner">
+    <div class="cover-badge">${esc(meta.preparedBy)||'Security awareness'} · ${reportMode==='summary'?'Board summary':'Programme assessment'}</div><div class="cover-rule"></div>
+    <h1>Phishing Programme<br>Maturity Assessment</h1>
+    <div class="cover-sub">${esc(meta.org)||'Organisation'}${sectorObj()?' · '+esc(sectorObj().name):''}</div>
+    ${meta.classification?`<div class="cover-class">${esc(meta.classification)}</div>`:''}<div class="cover-spacer"></div>
+    <div class="cover-meta">
+      <div><div class="cm-lbl">Organisation</div><div class="cm-val">${esc(meta.org)||'—'}</div></div>
+      <div><div class="cm-lbl">Assessment date</div><div class="cm-val">${fmtDate(meta.date)}</div></div>
+      <div><div class="cm-lbl">Programme owner</div><div class="cm-val">${esc(meta.owner)||'—'}</div></div>
+      <div><div class="cm-lbl">Lead assessor</div><div class="cm-val">${esc(meta.assessor)||'—'}</div></div>
+      ${meta.scope?`<div style="grid-column:span 2"><div class="cm-lbl">Scope</div><div class="cm-val" style="font-weight:400;font-size:10pt">${esc(meta.scope)}</div></div>`:''}
+    </div>
+    <div class="cover-verdict"><div><div class="cv-big">${ov.tier==null?'—':'L'+ov.tier}</div><div class="cv-name">${ov.tier==null?'Not yet scored':tName(ov.tier)}</div></div>
+      <div class="cv-dist">${distBar(st.dist,'cv-bar')}<div class="cv-note">${ov.tier==null?'':`Programme tier set by the weakest dimension (${esc(ov.weakest.name)}). Average ${fmt1(ov.score)} / 4 across six dimensions. `}${plural(fl.length,'anti-pattern')} flagged.</div></div></div>
+    <div class="cover-foot">35 controls in six dimensions, each rated on four described tiers and aligned to the NCSC's four-layer approach to phishing defence. ${meta.version?esc(meta.version)+' · ':''}Generated ${fmtDate(new Date().toISOString())}.</div>
+  </div></div>`;
+
+  if(reportMode==='summary'){
+    h+=`<div class="page">${H2('Board summary','Where the programme stands, what may be doing harm, and what happens next.','')}
+      ${incomplete?`<div class="rp-callout warn"><strong>Draft:</strong> ${plural(v.unset.length,'control')} not yet addressed.</div>`:''}
+      ${statStrip(st,ov,fl,acts)}${execNarrative()}
+      <h3 class="rp-h3">Maturity by dimension</h3>${dimBars()}
+      <h3 class="rp-h3">Priority actions</h3>${actionTable(acts.slice(0,7))}
+      ${foot()}</div></div></div>`;
+    return h;
+  }
+
+  // ABOUT
+  h+=`<div class="page">${H2('About this assessment','What this report is, how it was produced and how to read it.')}
+    <h3 class="rp-h3">Purpose</h3><p class="rp-p">This report assesses the maturity of ${esc(meta.org)||'the organisation'}'s phishing programme: not only its simulations and training, but the governance, measurement, culture, technical controls and response processes that decide whether phishing leads to harm. It identifies practices that may be counter-productive, compares each control with an expected level for the organisation's sector and size, and sets out a prioritised plan.</p>
+    <h3 class="rp-h3">Scope and audience</h3><p class="rp-p">${meta.scope?`The assessment covered: ${esc(meta.scope)}. `:''}It is written for the programme owner, the security leadership and the executive sponsor, and for the teams in security operations, IT, HR and communications who will deliver the improvements.</p>
+    <h3 class="rp-h3">Who assessed it</h3><p class="rp-p">The assessment was led by <strong>${esc(meta.assessor)||'the assessment team'}</strong>${meta.preparedBy?` of ${esc(meta.preparedBy)}`:''}${meta.date?`, dated ${fmtDate(meta.date)}`:''}${meta.qc?`, with quality review by ${esc(meta.qc)}`:''}. ${meta.method?`The method comprised: ${esc(meta.method)}.`:''} Evidence for each rating is summarised in Appendix A${meta.evidence?` and held at ${esc(meta.evidence)}`:''}.</p>
+    ${detailsTable()}${foot()}</div>`;
+  // METHOD
+  h+=`<div class="page">${H2('Method','How controls were rated, how targets were set and how actions were prioritised.')}
+    <p class="rp-p">Each of the 35 controls has four described tiers. The assessor selects the description that best matches current practice, and records evidence and a confidence rating.</p>
+    <table class="rp-table"><thead><tr><th style="width:20%">Tier</th><th>General meaning</th></tr></thead><tbody>${TIER_KEYS.map(k=>`<tr><td>${rTN(TIERS[k].n)} <strong>${TIERS[k].name}</strong></td><td>${TIERS[k].desc}</td></tr>`).join('')}</tbody></table>
+    <div class="rp-method"><p style="margin:0 0 6px"><strong>Scores.</strong> A dimension score is the mean tier of its scored controls. The programme tier is set by the weakest dimension, because a strong simulation capability cannot compensate for, say, a punitive response culture. Not applicable controls need a justification; not assessed controls are excluded and listed as limitations.</p>
+    <p style="margin:0 0 6px"><strong>Targets.</strong> ${meta.targetMode==='profile'?`Targets come from a sector and size profile: L3 by default, raised to L4 for executive, BEC and board-reporting controls in regulated or fraud-exposed sectors and for segmentation in large organisations, and lowered for controls that are disproportionate in organisations under 250 staff.`:esc(TARGET_MODES[meta.targetMode])+'.'} Individual targets were adjusted by the assessor where noted.</p>
+    <p style="margin:0 0 6px"><strong>Confidence.</strong> High: tested or observed. Medium: documentary evidence reviewed. Low: interview or self-declaration only.</p>
+    <p style="margin:0"><strong>Anti-patterns.</strong> ${ANTI_PATTERNS.length} checks look for combinations of practice known to reduce effectiveness or cause harm. Flagged anti-patterns are placed first in the improvement plan.</p></div>
+    <h3 class="rp-h3">Prioritisation</h3><div class="rp-formula">Priority = (target tier − current tier) × likelihood × impact</div>
+    <table class="rp-table"><thead><tr><th>Band</th><th>Score</th><th>Treatment</th></tr></thead><tbody>
+      <tr><td>${rPrio('Critical')}</td><td>30 or more, or a high-severity anti-pattern</td><td>0–3 months</td></tr>
+      <tr><td>${rPrio('High')}</td><td>16–29, or a medium-severity anti-pattern</td><td>0–3 months if low effort, otherwise 3–6 months</td></tr>
+      <tr><td>${rPrio('Medium')}</td><td>8–15, or a low-severity anti-pattern</td><td>Scheduled by effort</td></tr>
+      <tr><td>${rPrio('Low')}</td><td>1–7</td><td>Normal improvement cycle</td></tr></tbody></table>
+    <h3 class="rp-h3">References</h3><p class="rp-p" style="font-size:9pt">NCSC, <em>Phishing attacks: defending your organisation</em>; NCSC Board Toolkit; NCSC business email compromise guidance; NIST Cybersecurity Framework 2.0; NIST SP 800-50 Rev. 1 (2024); NIST SP 800-61 Rev. 3 (2025); ISO/IEC 27002:2022; MITRE ATT&amp;CK; UK GDPR and ICO guidance on monitoring workers. References indicate alignment only.</p>
+    ${foot()}</div>`;
+  // EXEC
+  h+=`<div class="page">${H2('Executive summary','The overall position, what may be doing harm and where to act first.')}
+    ${incomplete?`<div class="rp-callout warn"><strong>Draft: assessment incomplete.</strong> ${[v.unset.length?plural(v.unset.length,'control')+' not yet addressed':'',v.naMissing.length?v.naMissing.length+' not-applicable claims without justification':''].filter(Boolean).join('; ')}.</div>`:''}
+    ${statStrip(st,ov,fl,acts)}${execNarrative()}
+    <h3 class="rp-h3">Maturity by dimension</h3>${dimBars()}
+    <h3 class="rp-h3">Priority actions</h3>${actionTable(acts.slice(0,6),true)}
+    ${foot()}</div>`;
+  // PROFILE
+  h+=`<div class="page">${H2('Programme profile','Balance across dimensions and the tier of every control.')}
+    <div style="display:flex;gap:18px;align-items:center"><div style="flex:0 0 300px">${svgRadar(true)}<div style="font-size:7.5pt;color:#6B7A90;text-align:center">Solid: current · dashed: target</div></div><div style="flex:1;font-size:9pt;color:#28313F;line-height:1.6">${DIMENSIONS.map(d=>{const s=statsFor(d.controls);return `<div style="margin:3px 0"><strong style="color:${d.color}">${d.code}</strong> ${esc(d.name)}: <strong>${fmt1(s.mean)}</strong>${dimTarget(d.id)!=null?` <span style="color:#6B7A90">(target ${fmt1(dimTarget(d.id))})</span>`:''}</div>`}).join('')}</div></div>
+    <div style="font-size:8.5pt;color:#5A6A80;margin:8px 0 2px">Control heatmap (number = control within its dimension)</div>${rpHeat()}
+    <table class="rp-table" style="margin-top:12px"><thead><tr><th>Ref</th><th>Control</th><th>Current</th><th>Target</th><th>Gap</th><th>Confidence</th><th>Priority</th></tr></thead><tbody>
+    ${DIMENSIONS.map(d=>`<tr class="grp"><td colspan="7">${d.id} · ${esc(d.name)} (${fmt1(dimScore(d.id))})</td></tr>`+d.controls.map(x=>{const g=gapOf(x.id);return `<tr><td class="ref">${x.id}</td><td>${esc(x.title)}</td><td>${rT(x.id)}</td><td>${rTN(tgt(x.id))}</td><td>${g==null?'—':g===0?'<span style="color:#076B40;font-weight:700">Met</span>':'+'+g}</td><td>${C(x.id).conf?CONF[C(x.id).conf].label:'—'}</td><td>${rPrio(band(prioOf(x.id)))}</td></tr>`}).join('')).join('')}
+    </tbody></table>${foot()}</div>`;
+  // ANTI-PATTERNS
+  h+=`<div class="page">${H2('Anti-pattern findings','Practices that may be making the programme less effective or actively harmful.')}
+    <p class="rp-p">${ANTI_PATTERNS.length} checks were run against the ratings. ${fl.length===1?'One was triggered.':fl.length?fl.length+' were triggered.':'None were triggered.'}</p>
+    ${fl.map(f=>`<div class="rp-ap" style="border-left-color:${SEV[f.sev].color}"><h5><span style="font-family:monospace">${f.id}</span> ${esc(f.title)} ${rSev(f.sev)}</h5><p>${esc(f.detail)}</p><p style="margin-top:4px;color:#5A6A80;font-size:8.5pt">Linked controls: ${f.links.map(l=>`${l} ${esc(cdef(l).title)} (${tierOf(l)?'L'+tierOf(l):isNA(l)?'N/A':'—'})`).join(' · ')}</p></div>`).join('')}
+    ${fl.length?'':'<div class="rp-callout ok">No anti-patterns were identified from the controls scored.</div>'}
+    <h3 class="rp-h3">Checks not triggered</h3><p class="rp-p" style="font-size:9pt">${ANTI_PATTERNS.filter(p=>!fl.some(f=>f.id===p.id)).map(p=>`${p.id} ${esc(p.title)}`).join(' · ')||'—'}</p>
+    ${foot()}</div>`;
+  // METRICS
+  const mc=metricChecks(), hasM=METRIC_FIELDS.some(f=>metrics[f.k]!=null);
+  h+=`<div class="page">${H2('Measurement','Whether the programme measures what reflects resilience, and what the numbers show.')}
+    <table class="rp-table"><thead><tr><th>Ref</th><th>Measure</th><th>Tier</th><th>Current practice</th></tr></thead><tbody>${mc.map(m=>`<tr><td class="ref">${m.id}</td><td>${m.nm}</td><td>${rTN(m.n)}</td><td>${esc(m.text)}</td></tr>`).join('')}</tbody></table>
+    <h3 class="rp-h3">Programme metrics (client-supplied)</h3>
+    ${hasM?`<table class="rp-table"><tbody>${METRIC_FIELDS.filter(f=>metrics[f.k]!=null).map(f=>`<tr><th class="k" style="background:var(--rp-soft);color:#28313F;width:55%">${f.label.replace(/ \(.*\)$/,'')}</th><td>${metrics[f.k]}${f.unit}</td></tr>`).join('')}</tbody></table><div class="rp-callout">${metricDerived().replace(/<p style="margin-bottom:6px">/g,'<p style="margin:0 0 5px">')}</div>
+      <p class="rp-p" style="font-size:8.5pt;color:#5A6A80">Figures were supplied by the organisation and have not been independently verified. Simulation results depend heavily on lure difficulty, so trends matter more than any single value.</p>`
+      :'<p class="rp-p">No programme metrics were supplied.</p>'}
+    ${foot()}</div>`;
+  // LAYERS
+  const ls=layerStats();
+  h+=`<div class="page">${H2('Alignment to NCSC layered defences','How the programme covers the four layers of the NCSC\'s phishing guidance.')}
+    <p class="rp-p">${layerNarrative(ls)}</p>
+    <table class="rp-table"><thead><tr><th>Layer</th><th>Avg</th><th>Controls (tier)</th></tr></thead><tbody>
+    ${ls.map(l=>`<tr><td><strong style="color:${l.L.color}">${esc(l.L.name)}</strong><div style="font-size:7.8pt;color:#6B7A90">${esc(l.L.desc)}</div></td><td style="font-family:monospace;font-weight:700">${fmt1(l.st.mean)}</td><td>${l.list.map(x=>`${x.id} ${esc(x.title)} (${tierOf(x.id)?'L'+tierOf(x.id):isNA(x.id)?'N/A':'—'})`).join('<br>')}</td></tr>`).join('')}
+    </tbody></table>${foot()}</div>`;
+  // PLAN
+  h+=`<div class="page">${H2('Improvement plan','Actions sequenced by severity, priority and effort, with owners and dates.')}`;
+  if(!acts.length) h+='<div class="rp-callout ok">No actions are required to meet the agreed targets.</div>';
+  let rank=0;
+  HORIZONS.forEach(hz=>{ const items=acts.filter(a=>a.horizon===hz.id); if(!items.length) return;
+    h+=`<div class="rp-hz">${hz.label} <span style="font-weight:400;color:#6B7A90;font-size:9pt">· ${hz.sub}</span></div>`;
+    items.forEach(a=>{ rank++; const st=A(a.id);
+      h+=`<div class="rp-rec"><div class="rp-rec-head"><span class="rp-rec-rank">${rank}</span><span class="rp-rec-name">${a.ref} · ${a.kind==='ap'?'Address: ':''}${esc(a.title)}</span>${rPrio(a.band)}<span class="rpill" style="background:var(--rp-soft);color:var(--rp-m)">${a.cat}</span></div>
+      <div class="rp-rec-meta">${a.kind==='ctl'?`L${tierOf(a.x.id)} → L${tgt(a.x.id)} · priority ${a.prio} · effort ${a.E}/5 · `:''}Owner: ${esc(st.owner)||'unassigned'} · Due: ${st.due?fmtDate(st.due):'not set'} · Status: ${STATUS[st.status]||'Open'}${st.dep?' · Depends on: '+esc(st.dep):''}</div>
+      <div class="rp-rec-body">${buildRecommendation(a)}</div></div>`; }); });
+  h+=`${foot()}</div>`;
+  // REGISTER
+  const naL=ALL_CONTROLS.filter(x=>isNA(x.id)), nsL=ALL_CONTROLS.filter(x=>isNS(x.id)), unL=ALL_CONTROLS.filter(x=>isUnset(x.id));
+  h+=`<div class="page">${H2('Not applicable register and limitations','Controls excluded from scoring, and why.')}
+    <h3 class="rp-h3">Not applicable</h3>${naL.length?naL.map(x=>`<div class="rp-reg"><strong style="font-family:monospace">${x.id}</strong> <strong>${esc(x.title)}</strong><div class="rp-reg-just">${esc(C(x.id).just)||'<span style="color:#A81828;font-weight:700">No justification recorded.</span>'}</div></div>`).join(''):'<p class="rp-p">No controls were declared not applicable.</p>'}
+    <h3 class="rp-h3">Not assessed</h3>${nsL.length?nsL.map(x=>`<div class="rp-reg"><strong style="font-family:monospace">${x.id}</strong> <strong>${esc(x.title)}</strong><div class="rp-reg-just">${esc(C(x.id).just)||'No reason recorded.'}</div></div>`).join(''):'<p class="rp-p">All controls were assessed.</p>'}
+    ${unL.length?`<div class="rp-callout warn">${plural(unL.length,'control')} had not been addressed when this report was generated: ${unL.map(x=>x.id).join(', ')}.</div>`:''}
+    <h3 class="rp-h3">General limitations</h3><p class="rp-p">Ratings reflect evidence available during the assessment period and the professional judgement of the assessment team. Where confidence is low, ratings rest on interview and have not been verified. Simulation metrics are sensitive to lure difficulty and timing. The assessment is a point-in-time view and is not a certification.</p>
+    ${foot()}</div>`;
+  // APPENDIX
+  h+=`<div class="page">${H2('Appendix A: control detail','Evidence, confidence and notes for each control.','A')}
+    ${DIMENSIONS.map(d=>`<div class="rp-hz" style="color:${d.color}">${d.id} · ${esc(d.name)}</div>`+d.controls.map(x=>{const s=C(x.id);return `<div class="rp-detail"><h5>${rT(x.id)} <span style="font-family:monospace">${x.id}</span> ${esc(x.title)} <span style="font-weight:400;color:#6B7A90;font-size:8.5pt">${tgt(x.id)!=null?'target L'+tgt(x.id):''}${s.conf?' · '+CONF[s.conf].label.toLowerCase()+' confidence':''}</span></h5>
+      <div style="font-size:8pt;color:#6B7A90">${LAYERS[x.layer].short} · ${esc(x.refs)}</div>
+      ${tierOf(x.id)!=null?`<div class="dl">Current practice</div><div class="dv">${esc(x.tiers['L'+tierOf(x.id)])}</div>`:''}
+      ${s.notes?`<div class="dl">Evidence and observations</div><div class="dv">${esc(s.notes)}</div>`:'<div class="dv" style="color:#8A9BB0;margin-top:4px">No evidence notes recorded.</div>'}</div>`}).join('')).join('')}
+    ${foot()}</div>`;
+  return h+'</div></div>';
+}
+function statStrip(st,ov,fl,acts){
+  return `<div class="rp-stats">
+    <div class="rp-stat"><div class="rs-val" style="color:${tColor(ov.tier)}">${ov.tier==null?'—':'L'+ov.tier}</div><div class="rs-lbl">Programme tier</div></div>
+    <div class="rp-stat"><div class="rs-val">${fmt1(ov.score)}</div><div class="rs-lbl">Average / 4</div></div>
+    <div class="rp-stat"><div class="rs-val" style="color:${fl.some(f=>f.sev==='high')?'#C0283A':'#B58100'}">${fl.length}</div><div class="rs-lbl">Anti-patterns</div></div>
+    <div class="rp-stat"><div class="rs-val" style="color:var(--rp-a)">${st.withT?st.meet+'/'+st.withT:'—'}</div><div class="rs-lbl">Meeting target</div></div>
+    <div class="rp-stat"><div class="rs-val" style="color:#C0283A">${acts.filter(a=>a.band==='Critical'||a.band==='High').length}</div><div class="rs-lbl">Critical/high actions</div></div></div>`;
+}
+function actionTable(list,compact){
+  if(!list.length) return '<p class="rp-p">No actions required.</p>';
+  return `<table class="rp-table"><thead><tr><th>#</th><th>Ref</th><th>Action</th><th>Priority</th><th>Horizon</th><th>Owner</th>${compact?'':'<th>Due</th>'}</tr></thead><tbody>
+    ${list.map((a,i)=>{const st=A(a.id);return `<tr><td>${i+1}</td><td class="ref">${a.ref}</td><td>${a.kind==='ap'?'Address: ':''}${esc(a.title)}${a.kind==='ctl'?` (L${tierOf(a.x.id)} → L${tgt(a.x.id)})`:''}</td><td>${rPrio(a.band)}</td><td style="white-space:nowrap">${HORIZONS[a.horizon].label}</td><td>${esc(st.owner)||'—'}</td>${compact?'':`<td style="white-space:nowrap">${st.due?new Date(st.due).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—'}</td>`}</tr>`}).join('')}</tbody></table>`;
+}
+function printReport(){ if(currentPage!=='report'){ navigate('report'); setTimeout(()=>window.print(),150); } else window.print(); }
+
+// ═══════════ SETUP ═══════════
+let pSector=null,pSize=null,pMode='profile',pPalette='navy';
+const F_IDS={org:'f-org',owner:'f-owner',platform:'f-platform',scope:'f-scope',assessor:'f-assessor',qc:'f-qc',preparedBy:'f-preparedby',sponsor:'f-sponsor',
+  date:'f-date',period:'f-period',method:'f-method',evidence:'f-evidence',version:'f-version',classification:'f-classification'};
+function showSetup(){
+  pSector=meta.sector; pSize=meta.size; pMode=meta.targetMode||'profile'; pPalette=meta.palette||'navy';
+  Object.entries(F_IDS).forEach(([k,id])=>{ document.getElementById(id).value=meta[k]||''; });
+  renderSetupChips(); document.getElementById('setup-modal').style.display='flex';
+}
+function hideSetup(){ document.getElementById('setup-modal').style.display='none'; }
+function renderSetupChips(){
+  document.getElementById('sector-chips').innerHTML=SECTORS.map(s=>`<button class="${pSector===s.id?'on':''}" onclick="pSector='${s.id}';renderSetupChips()" aria-pressed="${pSector===s.id}">${esc(s.name)}</button>`).join('');
+  document.getElementById('size-chips').innerHTML=SIZES.map(s=>`<button class="${pSize===s.id?'on':''}" onclick="pSize='${s.id}';renderSetupChips()" aria-pressed="${pSize===s.id}">${esc(s.name)}</button>`).join('');
+  const sec=SECTORS.find(s=>s.id===pSector), sz=SIZES.find(s=>s.id===pSize), note=document.getElementById('overlay-note');
+  note.style.display=(sec||sz)?'block':'none';
+  note.innerHTML=[sec?`<strong>${esc(sec.name)}:</strong> ${esc(sec.note)}`:'',sz?`<strong>${esc(sz.name)}:</strong> ${esc(sz.note)}`:''].filter(Boolean).join('<br>');
+  document.getElementById('target-mode').innerHTML=Object.entries(TARGET_MODES).map(([k,l])=>`<button class="${pMode===k?'on':''}" onclick="pMode='${k}';renderSetupChips()">${l}</button>`).join('');
+  const manual=ALL_CONTROLS.filter(x=>C(x.id).tgtManual).length;
+  document.getElementById('target-count').innerHTML = `${manual?`${plural(manual,'control has','controls have')} a target set by hand. <button class="linkish" onclick="clearManualTargets()">Reset them to the basis</button>`:'No targets have been set by hand.'}`;
+  document.getElementById('pal-row').innerHTML=Object.entries(PALETTES).map(([k,p])=>`<button class="pal ${pPalette===k?'on':''}" onclick="pPalette='${k}';renderSetupChips()"><i style="background:${p.c}"></i>${p.label}</button>`).join('');
+}
+function clearManualTargets(){ ALL_CONTROLS.forEach(x=>{ const s=C(x.id); s.tgtManual=false; s.tgt=null; }); renderSetupChips(); updateMeta(); toast('Manual targets reset.'); }
+function saveSetup(){
+  Object.entries(F_IDS).forEach(([k,id])=>{ meta[k]=document.getElementById(id).value; });
+  meta.sector=pSector; meta.size=pSize; meta.targetMode=pMode; meta.palette=pPalette;
+  hideSetup(); update(); toast('Setup saved.');
+}
+
+// ═══════════ HELP / THEME / TOAST ═══════════
+function showHelp(){ document.getElementById('help-modal').style.display='flex'; }
+function hideHelp(){ document.getElementById('help-modal').style.display='none'; }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ hideSetup(); hideHelp(); } });
+const THEME_KEY='dh-phishing-maturity-theme';
+const mq=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null;
+function applyTheme(p){ document.documentElement.setAttribute('data-theme', p==='system'?(mq&&mq.matches?'dark':'light'):p); }
+function setTheme(v){ const sel=document.getElementById('theme-select'); if(sel&&sel.value!==v) sel.value=v; try{ localStorage.setItem(THEME_KEY,v); }catch(e){} applyTheme(v); }
+function initTheme(){ let v='light'; try{ v=localStorage.getItem(THEME_KEY)||'light'; }catch(e){} document.getElementById('theme-select').value=v; applyTheme(v);
+  if(mq&&mq.addEventListener) mq.addEventListener('change',()=>{ if(document.getElementById('theme-select').value==='system') applyTheme('system'); }); }
+function toast(msg,isErr){
+  const ex=document.getElementById('toast'); if(ex) ex.remove();
+  const t=document.createElement('div'); t.id='toast'; t.className='toast'+(isErr?' err':''); t.setAttribute('role','status');
+  t.innerHTML='<span class="toast-dot"></span><span></span>'; t.lastChild.textContent=msg; document.body.appendChild(t);
+  requestAnimationFrame(()=>t.classList.add('show')); setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),300); },isErr?5200:3200);
+}
+function slug(s){ return (s||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'phishing-maturity'; }
+let _dl=null;
+async function getDownloads(){ if(_dl) return _dl; try{ if(window.claude&&window.claude.use) _dl=await window.claude.use('downloads'); }catch(e){ _dl=null; } return _dl; }
+function isFramed(){ try{ return window.self!==window.top; }catch(e){ return true; } }
+async function download(filename,mime,text){
+  const dl=await getDownloads();
+  if(dl){ try{ await dl.save({filename,data:new Blob([text],{type:mime+';charset=utf-8;'})}); return; }catch(e){ if(e&&e.code==='declined') return; } }
+  if(!isFramed()){ const url=URL.createObjectURL(new Blob([text],{type:mime+';charset=utf-8;'})); const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000); return; }
+  toast('Downloads are not available in this embedded view. Open the tool in its own browser tab to save files.',true);
+}
+
+// ═══════════ JSON (dh-phishing-maturity v2, v1-compatible) ═══════════
+const LEGACY_EVIDENCE={H:'documented',M:'documented',L:'partial'};
+function legacyPriority(b){ return b==='Critical'||b==='High'?'high':b==='Medium'?'med':'low'; }
+function buildJSON(){
+  const ov=overall(), ds=dimScores(), fl=flags(), acts=actionList();
+  return {
+    schema:'dh-phishing-maturity', version:'2.0', generatedAt:new Date().toISOString(),
+    tool:{name:'Phishing Programme Maturity Assessment',version:'2.0'},
+    organisation:{name:meta.org,owner:meta.owner,date:meta.date,notes:meta.scope},
+    assessment:{platform:meta.platform,scope:meta.scope,assessor:meta.assessor,qc:meta.qc,preparedBy:meta.preparedBy,sponsor:meta.sponsor,period:meta.period,method:meta.method,evidence:meta.evidence,version:meta.version,classification:meta.classification,targetMode:meta.targetMode,palette:meta.palette},
+    sector:sectorObj()?{id:sectorObj().id,name:sectorObj().name,note:sectorObj().note}:null,
+    size:sizeObj()?{id:sizeObj().id,name:sizeObj().name,note:sizeObj().note}:null,
+    overall:{score:ov.score==null?0:Number(ov.score.toFixed(2)),tier:tk(ov.tier)||'—',weakestDimension:ov.weakest?ov.weakest.id:null},
+    dimensions:DIMENSIONS.map(d=>({id:d.id,code:d.code,name:d.name,score:ds[d.id]==null?0:Number(ds[d.id].toFixed(2)),tier:tk(scoreToTier(ds[d.id]))||'—',
+      controls:d.controls.map(x=>{const s=C(x.id);const n=tierOf(x.id);return {id:x.id,title:x.title,tier:n?'L'+n:null,
+        status:n?'scored':isNA(x.id)?'na':isNS(x.id)?'not-assessed':'unscored',
+        evidence:isNA(x.id)?'na':(s.conf?LEGACY_EVIDENCE[s.conf]:null),notes:s.notes||null,
+        confidence:s.conf||null,target:tgt(x.id)?'L'+tgt(x.id):null,targetManual:!!s.tgtManual,gap:gapOf(x.id),justification:s.just||null,recommendation:s.rec||null,
+        likelihood:Lk(x.id),impact:Im(x.id),effort:Ef(x.id),priorityScore:prioOf(x.id),priorityBand:band(prioOf(x.id)),ncscLayer:x.layer,refs:x.refs};})})),
+    antiPatterns:fl.map(f=>({id:f.id,severity:f.sev,title:f.title,detail:f.detail,controls:f.links})),
+    actions:acts.map(a=>{const s=A(a.id);return {id:a.id,priority:legacyPriority(a.band),band:a.band,score:a.prio,title:(a.kind==='ap'?'Address: ':'')+a.title,
+      detail:a.kind==='ap'?a.f.detail:buildRecommendation(a).replace(/<[^>]+>/g,''),ref:a.ref,source:a.kind==='ap'?'anti-pattern':'tier-lift',
+      horizon:HORIZONS[a.horizon].label,category:a.cat,owner:s.owner||null,due:s.due||null,dependency:s.dep||null,status:s.status||'open'};}),
+    metrics:Object.assign({},metrics)
+  };
+}
+async function exportJSON(){ await download(`ppma-${slug(meta.org)}-${new Date().toISOString().slice(0,10)}.json`,'application/json',JSON.stringify(buildJSON(),null,2)); toast('JSON exported.'); }
+function csvCell(v){ const s=String(v==null?'':v); return /[",\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }
+async function exportCSV(){
+  const acts=actionList(); const byRef={}; acts.forEach(a=>{ if(a.kind==='ctl') byRef[a.x.id]=a; });
+  const rows=[['Ref','Dimension','Control','Tier','Tier name','Target','Gap','Confidence','Likelihood','Impact','Effort','Priority score','Priority band','Horizon','NCSC layer','Anti-patterns','Evidence & observations','Justification / reason','Recommendation','Action owner','Action due','Action status','References']];
+  const fl=flags();
+  ALL_CONTROLS.forEach(x=>{ const s=C(x.id), n=tierOf(x.id), a=byRef[x.id], st=a?A(a.id):{};
+    rows.push([x.id,dimOf(x.dim).name,x.title,n?'L'+n:isNA(x.id)?'N/A':isNS(x.id)?'Not assessed':'',n?tName(n):'',tgt(x.id)?'L'+tgt(x.id):'',gapOf(x.id)??'',s.conf?CONF[s.conf].label:'',Lk(x.id),Im(x.id),Ef(x.id),prioOf(x.id)||'',band(prioOf(x.id))||'',a?HORIZONS[a.horizon].label:'',LAYERS[x.layer].short,
+      fl.filter(f=>f.links.includes(x.id)).map(f=>f.id).join('; '),s.notes,s.just,s.rec,st.owner||'',st.due||'',st.status?STATUS[st.status]:'',x.refs]); });
+  await download(`ppma-${slug(meta.org)}-${new Date().toISOString().slice(0,10)}.csv`,'text/csv','\ufeff'+rows.map(r=>r.map(csvCell).join(',')).join('\r\n'));
+}
+function applyAssessment(data){
+  if(!data||data.schema!=='dh-phishing-maturity'||!Array.isArray(data.dimensions)) return {ok:false,err:'Unrecognised file. Expected a dh-phishing-maturity JSON export.'};
+  const v2=String(data.version||'1').startsWith('2');
+  const m=DEFAULT_META(); const o=data.organisation||{}, as=data.assessment||{};
+  m.org=String(o.name||''); m.owner=String(o.owner||''); m.scope=String(as.scope||o.notes||'');
+  if(o.date&&/^\d{4}-\d{2}-\d{2}/.test(o.date)) m.date=o.date.slice(0,10);
+  ['platform','assessor','qc','preparedBy','sponsor','period','method','evidence','version','classification'].forEach(k=>{ if(as[k]!=null) m[k]=String(as[k]); });
+  if(TARGET_MODES[as.targetMode]) m.targetMode=as.targetMode; if(PALETTES[as.palette]) m.palette=as.palette;
+  if(data.sector&&SECTORS.some(s=>s.id===data.sector.id)) m.sector=data.sector.id;
+  if(data.size&&SIZES.some(s=>s.id===data.size.id)) m.size=data.size.id;
+  meta=m; ctl={}; actions={}; metrics={}; openCards.clear();
+  let applied=0; const unknown=[];
+  data.dimensions.forEach(d=>(d.controls||[]).forEach(r=>{
+    const x=cdef(r.id); if(!x){ unknown.push(r.id); return; } const s=C(x.id);
+    if(TIER_KEYS.includes(r.tier)) s.t=r.tier; else if(r.status==='na'||r.evidence==='na') s.t='NA'; else if(r.status==='not-assessed') s.t='NS';
+    if(['H','M','L'].includes(r.confidence)) s.conf=r.confidence;
+    else if(!v2&&r.evidence) s.conf={documented:'M',partial:'L',missing:'L'}[r.evidence]||'';
+    s.notes=r.notes?String(r.notes):''; s.just=r.justification?String(r.justification):''; s.rec=r.recommendation?String(r.recommendation):'';
+    if(r.targetManual&&TIER_KEYS.includes(r.target)){ s.tgtManual=true; s.tgt=Number(r.target[1]); }
+    [['likelihood','L','lik'],['impact','I','imp'],['effort','E','eff']].forEach(([src,dst,dk])=>{ const n=Number(r[src]); s[dst]=(n>=1&&n<=5&&n!==x[dk])?n:null; });
+    applied++;
+  }));
+  const V1_AP={'flag-AP3':'flag-AP4','flag-AP9':'flag-AP12','flag-AP4':'lift-D4.1'};
+  (data.actions||[]).forEach(a=>{ if(!a||!a.id) return; const st=A(!v2&&V1_AP[a.id]?V1_AP[a.id]:a.id); st.owner=a.owner||''; st.due=(a.due&&/^\d{4}-\d{2}-\d{2}/.test(a.due))?a.due.slice(0,10):''; st.dep=a.dependency||''; st.status=STATUS[a.status]?a.status:'open'; });
+  if(data.metrics&&typeof data.metrics==='object') METRIC_FIELDS.forEach(f=>{ const n=Number(data.metrics[f.k]); if(data.metrics[f.k]!=null&&!isNaN(n)) metrics[f.k]=n; });
+  currentPage='dashboard'; update();
+  return {ok:true,applied,unknown,v1:!v2};
+}
+function hasData(){ return Object.values(ctl).some(s=>s.t||s.notes); }
+function importJSON(input){
+  const file=input.files&&input.files[0]; input.value=''; if(!file) return;
+  if(hasData()&&!confirm('Importing replaces the current assessment. Continue?')) return;
+  const rd=new FileReader();
+  rd.onload=()=>{ let d; try{ d=JSON.parse(rd.result); }catch(e){ toast('That file is not valid JSON.',true); return; }
+    const r=applyAssessment(d); if(!r.ok){ toast(r.err,true); return; }
+    toast(`Imported ${r.applied} controls${r.v1?' from a v1 file (new controls in D1.7, D2.6, D3.6, D4.6 and D6 are unscored)':''}${r.unknown.length?`; ${r.unknown.length} unknown references skipped`:''}.`); };
+  rd.readAsText(file);
+}
+function resetScores(){
+  if(!confirm('Clear every tier, note, target override, action and metric? Setup details are kept.')) return;
+  ctl={}; actions={}; metrics={}; openCards.clear(); update(); toast('All scores cleared.');
+}
+
+// ═══════════ PERSISTENCE ═══════════
+const LS_KEY='dh-phishing-maturity-v2', LS_META_KEY='dh-phishing-maturity-v2-meta', LS_V1='dh-phishing-maturity-v1';
+let fileHandle=null, saveTimer=null, lastSavedAt=null;
+const HAS_FS=(typeof window!=='undefined')&&('showSaveFilePicker' in window);
+function persist(){
+  if(saveTimer) clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    if(!hasData()&&!meta.org&&!meta.sector) return;
+    const json=JSON.stringify(buildJSON());
+    try{ localStorage.setItem(LS_KEY,json); localStorage.setItem(LS_META_KEY,JSON.stringify({savedAt:new Date().toISOString(),org:meta.org||'',addressed:ALL_CONTROLS.filter(x=>!isUnset(x.id)).length})); }catch(e){}
+    if(fileHandle) writeToDisk(json);
+    lastSavedAt=new Date(); updateSaveStatus('saved');
+  },600);
+}
+async function writeToDisk(json){ try{ const w=await fileHandle.createWritable(); await w.write(json); await w.close(); }catch(e){ updateSaveStatus('diskerror'); fileHandle=null; } }
+async function enableDiskAutosave(){
+  if(!HAS_FS){ toast('Auto-save to a file needs Chrome or Edge. Work is still saved in this browser; export JSON for a file copy.',true); return; }
+  try{ fileHandle=await window.showSaveFilePicker({suggestedName:`ppma-${slug(meta.org)}.json`,types:[{description:'Phishing maturity assessment',accept:{'application/json':['.json']}}]});
+    await writeToDisk(JSON.stringify(buildJSON())); lastSavedAt=new Date(); updateSaveStatus('saved'); toast('Auto-save on. The file updates as you work.');
+  }catch(e){ if(e&&e.name==='AbortError') return; toast('Could not enable auto-save: '+(e.message||e),true); }
+}
+function updateSaveStatus(state){
+  const el=document.getElementById('save-status'); if(!el) return;
+  const t=lastSavedAt?lastSavedAt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'';
+  el.innerHTML = state==='saved'?`<span class="ss-dot ok"></span>${fileHandle?'Auto-saving to file':'Saved in browser'} · ${t}`:state==='diskerror'?'<span class="ss-dot warn"></span>File link lost; click to re-link':'<span class="ss-dot"></span>Not yet saved';
+}
+function checkForSavedSession(){
+  let raw=null,m=null,legacy=false;
+  try{ raw=localStorage.getItem(LS_KEY); m=JSON.parse(localStorage.getItem(LS_META_KEY)||'null'); if(!raw){ const v1=localStorage.getItem(LS_V1); if(v1){ raw=v1; legacy=true; } } }catch(e){ return false; }
+  if(!raw) return false;
+  let data; try{ data=JSON.parse(raw); }catch(e){ return false; }
+  if(legacy) data=convertV1State(data);
+  if(!data) return false;
+  const when=m&&m.savedAt?new Date(m.savedAt).toLocaleString('en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'a previous session';
+  if(confirm(`Recover your saved phishing assessment${m&&m.org?' for '+m.org:''}${legacy?' from the previous version of this tool':''}?\n\n${legacy?'':`Last saved ${when}. `}Cancel starts blank; the saved copy is kept until you make changes.`)){
+    const r=applyAssessment(data);
+    if(r.ok){ lastSavedAt=m&&m.savedAt?new Date(m.savedAt):new Date(); updateSaveStatus('saved'); toast(`Recovered ${r.applied} controls from your last session.`); }
+    else toast('Could not read the saved session: '+r.err,true);
+  }
+  return true;
+}
+// v1 kept raw state in localStorage (scores/evidence/notes/actions); convert it to the export shape.
+function convertV1State(s){
+  if(!s||!s.scores) return null;
+  return {schema:'dh-phishing-maturity',version:'1.0',organisation:{name:s.org&&s.org.name,owner:s.org&&s.org.owner,notes:s.org&&s.org.notes},
+    sector:s.sector?{id:s.sector}:null,size:s.size?{id:s.size}:null,
+    dimensions:DIMENSIONS.map(d=>({id:d.id,controls:d.controls.map(x=>({id:x.id,tier:s.scores[x.id]||null,evidence:(s.evidence||{})[x.id]||null,notes:(s.notes||{})[x.id]||null}))})),
+    actions:Object.entries(s.actions||{}).map(([id,a])=>({id,owner:a.owner,due:a.due,dependency:a.dep,status:a.status}))};
+}
+
+// ═══════════ SAMPLE (fictional) ═══════════
+function sc(id,t,conf,notes,extra){ return Object.assign({id,tier:t==='NA'||t==='NS'?null:t,status:t==='NA'?'na':t==='NS'?'not-assessed':undefined,confidence:conf,notes},extra||{}); }
+const SAMPLE={schema:'dh-phishing-maturity',version:'2.0',
+  organisation:{name:'Calder & Moss LLP',owner:'D. Achterberg, IT Security Manager',date:'2026-09-10'},
+  assessment:{platform:'Commercial simulation platform (SaaS)',scope:'All UK offices and staff including partners, fee earners, business services and trainees. Contractors in scope from onboarding. Client-facing portals excluded.',
+    assessor:'M. Reyes, Senior Consultant (DFIR)',qc:'R. Lindqvist, Head of Assurance',preparedBy:'Northgate Cyber Advisory',sponsor:'H. Okonjo, Chief Operating Officer',period:'1–10 September 2026',
+    method:'Interviews with the programme owner, service desk, MSSP and finance; review of 12 months of simulation data and three sample lures; configuration review of Microsoft 365 mail and identity settings; staff pulse survey (n=84)',
+    evidence:'Client SharePoint › Security › Phishing Review 2026',version:'v1.0 DRAFT',classification:'CONFIDENTIAL',targetMode:'profile',palette:'navy'},
+  sector:{id:'legal'},size:{id:'md'},
+  dimensions:[{controls:[
+    sc('D1.1','L2','M','2025 awareness plan sets a single objective: reduce click rate below 5%.'),
+    sc('D1.2','L3','H','COO sponsors the programme and reviews results quarterly with the IT Director.'),
+    sc('D1.3','L2','M','IT Security Manager runs the programme alongside other duties; no dedicated budget line.'),
+    sc('D1.4','L2','H','Acceptable use policy section 7 mentions phishing tests; no dedicated awareness policy.'),
+    sc('D1.5','L2','M','Monthly simulation to all staff, on the same working day each month.'),
+    sc('D1.6','L2','M','Management board receives click rate and training completion quarterly.'),
+    sc('D1.7','L1','L','No DPIA. Individual results held in the vendor platform indefinitely; team leaders receive named click lists each month.'),
+    sc('D2.1','L3','H','Spear-phishing variants for partners, conveyancing and finance teams, using realistic client and matter pretexts.'),
+    sc('D2.2','L3','H','Three sampled lures used lookalike domains and current property-completion themes.'),
+    sc('D2.3','L3','M','Vendor difficulty rating increases through the year.'),
+    sc('D2.4','L3','M','Exemption process for staff on leave; HR reviews lure themes quarterly.'),
+    sc('D2.5','L3','M','Partners and finance receive a separate stream with BEC-style lures twice a year.'),
+    sc('D2.6','L3','M','SMS and Teams external-chat simulations twice a year; trainees enrolled from week one.'),
+    sc('D3.1','L1','H','Monthly report shows click rate and training completion only.'),
+    sc('D3.2','L2','H','Vendor dashboard counts reports but the ratio is not tracked or reported.'),
+    sc('D3.3','L1','M','Time-to-report not measured.'),
+    sc('D3.4','L2','M','Repeat clickers listed by the platform; no follow-up beyond the automatic module.'),
+    sc('D3.5','L2','H','Department breakdown available; not trended.'),
+    sc('D3.6','L1','L','Real reports are not linked to programme reporting.'),
+    sc('D4.1','L2','H','Generic "you clicked a simulated phish" landing page.'),
+    sc('D4.2','L2','H','Report button in Outlook desktop only; not available on mobile, where 40% of mail is read.'),
+    sc('D4.3','L2','M','Automatic thank-you; no feedback when a report is a real campaign.'),
+    sc('D4.4','L2','M','Pulse survey: 38% believe clicking is noted in appraisals. Named click lists go to team leaders.'),
+    sc('D4.5','L2','M','Mandatory 30-minute module after three clicks; no conversation or adjustments.'),
+    sc('D4.6','L2','M','Annual e-learning refreshed in 2025; not accessibility tested.'),
+    sc('D5.1','L2','H','Reports go to a shared mailbox checked by the service desk; the MSSP SOC sees only escalated items.'),
+    sc('D5.2','L1','L','No threat intelligence input to lure or content selection.'),
+    sc('D5.3','L2','M','IR plan mentions phishing but has no trigger criteria or hand-off from the reporting mailbox.'),
+    sc('D5.4','L2','L','Programme data informally cited when Defender for Office 365 was purchased.'),
+    sc('D5.5','L1','H','No previous review; this is the first.'),
+    sc('D6.1','L2','H','DMARC at p=none since 2024; aggregate reports not reviewed. Two parked domains have no DMARC record.'),
+    sc('D6.2','L2','H','Default Defender for Office 365 policies. The simulation vendor is allowlisted by IP across all policies, including Safe Links.'),
+    sc('D6.3','L2','H','Authenticator push with number matching for all staff; administrators do not use phishing-resistant methods.'),
+    sc('D6.4','L1','M','No tenant-wide purge process; the service desk deletes messages mailbox by mailbox. Last real campaign took about five hours to clear.'),
+    sc('D6.5','L3','H','Client account-detail changes verified by phone to the number on file; dual sign-off above £25,000.')
+  ]}],
+  actions:[{id:'flag-AP1',owner:'D. Achterberg',due:'2026-11-30',status:'progress'},{id:'lift-D6.4',owner:'IT Infrastructure Lead',due:'2026-10-31',status:'open'},{id:'lift-D4.2',owner:'IT Infrastructure Lead',due:'2026-10-15',status:'open'},{id:'flag-AP9',owner:'Data Protection Officer',due:'2026-12-15',status:'open'}],
+  metrics:{population:620,sims12:12,clickRate:7.8,credRate:3.1,reportRate:6.2,ttr:38,repeatPct:4.5,realReports:45,realMalicious:22,purge:300}
+};
+function loadSample(){
+  if(hasData()&&!confirm('Loading the sample replaces the current assessment. Export JSON first if you need it.\n\nLoad the sample?')) return;
+  const r=applyAssessment(JSON.parse(JSON.stringify(SAMPLE)));
+  if(r.ok) toast('Sample loaded: Calder & Moss LLP (fictional).');
+}
+
+// ═══════════ INIT ═══════════
+initTheme(); buildNav(); updateMeta(); navigate('dashboard');
+setTimeout(()=>{
+  const had=checkForSavedSession(); updateSaveStatus(lastSavedAt?'saved':'idle');
+  let seen=false; try{ seen=localStorage.getItem('dh-phishing-maturity-help-seen')==='1'; }catch(e){}
+  if(!had&&!seen){ showHelp(); try{ localStorage.setItem('dh-phishing-maturity-help-seen','1'); }catch(e){} }
+},0);
+</script>
+</body>
+</html>
