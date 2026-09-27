@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Email Header Analyser</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root,[data-theme="light"]{
+  --bg:#F3F5F8;--surface:#FFFFFF;--surface2:#F8F9FB;--surface3:#F1F4F8;--border:#E2E6EC;--border2:#D0D6DF;
+  --text:#1A2130;--text2:#3A4658;--muted:#6B7A90;--faint:#B8C4D0;
+  --accent:#1456CC;--accent-h:#0F48B0;--accent-soft:#EEF3FC;--accent-line:#C5D4F5;--on-accent:#FFFFFF;
+  --ok:#0A7A50;--ok-soft:#DCFAEE;--ok-line:#A8D8BC;--warn:#9A5000;--warn-soft:#FFF5D6;--warn-line:#F5D580;--bad:#C0283A;--bad-soft:#FDEDF0;--bad-line:#F0A8B0;
+  --sidebar-bg:#1C2333;--sidebar-text:#C8D4E8;--sidebar-muted:#7A8FA8;--sidebar-border:#2A3548;--sidebar-hover:#253047;--sidebar-active:#2D3A55;--sidebar-hi:#E8EEF8;--sidebar-accent:#4A90E2;
+  --shadow:0 1px 3px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.45);
+}
+[data-theme="dark"]{
+  --bg:#0E131B;--surface:#151B25;--surface2:#1A212D;--surface3:#202938;--border:#263042;--border2:#344058;
+  --text:#E4E9F2;--text2:#BAC5D6;--muted:#8796AE;--faint:#4B5871;
+  --accent:#4C8DF6;--accent-h:#6AA0F8;--accent-soft:#17243A;--accent-line:#2B4674;--on-accent:#FFFFFF;
+  --ok:#3DD68C;--ok-soft:#0F2A1F;--ok-line:#1F5A40;--warn:#F2B64C;--warn-soft:#2E2410;--warn-line:#6A4F18;--bad:#F2707F;--bad-soft:#321419;--bad-line:#6E2A34;
+  --sidebar-bg:#0A0E15;--sidebar-text:#C8D4E8;--sidebar-muted:#6F819B;--sidebar-border:#1C2433;--sidebar-hover:#151C29;--sidebar-active:#1B2436;--sidebar-hi:#EEF3FA;--sidebar-accent:#4C8DF6;
+  --shadow:0 1px 3px rgba(0,0,0,.35);--overlay:rgba(0,0,0,.6);
+}
+[data-theme="ocean"]{
+  --bg:#EFF5F5;--surface:#FFFFFF;--surface2:#F5F9F9;--surface3:#EAF2F2;--border:#D9E5E5;--border2:#C3D5D5;
+  --text:#152426;--text2:#334A4D;--muted:#5F7A7D;--faint:#AFC4C6;
+  --accent:#0B7A75;--accent-h:#086460;--accent-soft:#E6F4F3;--accent-line:#A9D9D5;--on-accent:#FFFFFF;
+  --ok:#0A7A50;--ok-soft:#DCFAEE;--ok-line:#A8D8BC;--warn:#9A5000;--warn-soft:#FFF5D6;--warn-line:#F5D580;--bad:#C0283A;--bad-soft:#FDEDF0;--bad-line:#F0A8B0;
+  --sidebar-bg:#0F2A2C;--sidebar-text:#C6DEDD;--sidebar-muted:#7EA3A3;--sidebar-border:#1E3F41;--sidebar-hover:#16383A;--sidebar-active:#1C4447;--sidebar-hi:#EAF6F5;--sidebar-accent:#3CC2BA;
+  --shadow:0 1px 3px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.45);
+}
+[data-theme="contrast"]{
+  --bg:#FFFFFF;--surface:#FFFFFF;--surface2:#F4F4F4;--surface3:#EAEAEA;--border:#6E6E6E;--border2:#3C3C3C;
+  --text:#000000;--text2:#111111;--muted:#2E2E2E;--faint:#6E6E6E;
+  --accent:#0033A0;--accent-h:#00226E;--accent-soft:#E3EAFB;--accent-line:#0033A0;--on-accent:#FFFFFF;
+  --ok:#005A32;--ok-soft:#D8F5E6;--ok-line:#005A32;--warn:#6B3500;--warn-soft:#FFF0C8;--warn-line:#6B3500;--bad:#9E0018;--bad-soft:#FDE2E6;--bad-line:#9E0018;
+  --sidebar-bg:#000000;--sidebar-text:#FFFFFF;--sidebar-muted:#D0D0D0;--sidebar-border:#555555;--sidebar-hover:#222222;--sidebar-active:#333333;--sidebar-hi:#FFFFFF;--sidebar-accent:#FFD400;
+  --shadow:none;--overlay:rgba(0,0,0,.7);
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+button,input,textarea,select{font-family:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.mono{font-family:'SF Mono',Consolas,'Liberation Mono',monospace}
+
+/* LAYOUT */
+#app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:236px;min-width:236px;background:var(--sidebar-bg);border-right:1px solid var(--sidebar-border);display:flex;flex-direction:column;overflow:hidden}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* SIDEBAR */
+.sidebar-logo{padding:18px 16px 14px;border-bottom:1px solid var(--sidebar-border)}
+.logo-badge{display:inline-block;background:var(--sidebar-accent);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:1.2px;margin-bottom:8px}
+[data-theme="contrast"] .logo-badge{color:#000}
+.logo-title{font-size:16px;font-weight:700;letter-spacing:-.3px;color:var(--sidebar-hi)}
+.logo-sub{font-size:10.5px;color:var(--sidebar-muted);margin-top:3px;line-height:1.4}
+.sidebar-setup{padding:12px 16px;border-bottom:1px solid var(--sidebar-border)}
+.sidebar-progress{padding:12px 16px;border-bottom:1px solid var(--sidebar-border)}
+.prog-label{font-size:10.5px;color:var(--sidebar-muted);margin-bottom:6px;display:flex;justify-content:space-between}
+.prog-bar{height:3px;background:var(--sidebar-border);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:var(--sidebar-accent);border-radius:2px;transition:width .4s}
+.prog-warn{font-size:10px;color:#F0A8B0;margin-top:7px;line-height:1.4}
+.sidebar-nav{flex:1;overflow-y:auto;padding:6px 0}
+.nav-section{font-size:9.5px;color:var(--sidebar-muted);letter-spacing:1.2px;padding:12px 16px 4px;text-transform:uppercase;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 16px;cursor:pointer;font-size:12px;color:var(--sidebar-muted);border-left:2px solid transparent;user-select:none;background:none;border-top:none;border-right:none;border-bottom:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--sidebar-hover);color:var(--sidebar-text)}
+.nav-item.active{background:var(--sidebar-active);color:var(--sidebar-hi);border-left-color:var(--sidebar-accent)}
+.nav-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.nav-lbl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav-lvl{font-family:'SF Mono',Consolas,monospace;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--sidebar-border);color:var(--sidebar-text);flex-shrink:0}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--sidebar-border);display:flex;flex-direction:column;gap:8px}
+.footer-group{display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--sidebar-border);border-radius:8px}
+.footer-label{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--sidebar-muted);padding:0 2px 2px}
+.btn{padding:7px 12px;border-radius:6px;border:1px solid var(--sidebar-border);background:transparent;color:var(--sidebar-muted);font-size:11px;cursor:pointer;transition:all .15s;width:100%;text-align:left}
+.btn:hover{background:var(--sidebar-hover);color:var(--sidebar-text)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent);text-align:center;font-weight:600;padding:9px 12px;font-size:12px}
+.btn-primary:hover{background:var(--accent-h);color:var(--on-accent)}
+.btn-save{border-color:#2A7A55;color:#8FE6BC}
+.btn-save:hover{background:rgba(42,122,85,.18);color:#B8F0D4}
+.btn-reset{color:#C98A94;border-color:transparent;font-size:10.5px;opacity:.8}
+.btn-reset:hover{background:rgba(192,40,58,.12);color:#E0A8B0;opacity:1}
+.btn-row{display:flex;gap:6px}
+.btn-half{flex:1;text-align:center}
+
+/* TOPBAR */
+.topbar{height:48px;min-height:48px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:12px}
+.topbar-title{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar-meta{font-size:11px;color:var(--muted);display:flex;gap:10px;align-items:center;flex-shrink:0}
+.tb-action{font-size:11px;font-weight:600;color:var(--text);background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;cursor:pointer}
+.tb-action:hover{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.tb-help{width:26px;height:26px;padding:0;border-radius:50%;font-weight:700;font-size:13px;display:inline-flex;align-items:center;justify-content:center}
+.tb-select{width:auto;max-width:150px;font-size:11px;font-weight:600;color:var(--text);background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:4px 8px;cursor:pointer}
+.fw-chip{display:inline-block;padding:3px 9px;border-radius:5px;font-size:10.5px;font-weight:600;background:var(--surface2);color:var(--muted);border:1px solid var(--border2);white-space:nowrap}
+.save-status{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);cursor:pointer;padding:3px 9px;border:1px solid var(--border2);border-radius:20px;user-select:none;white-space:nowrap;background:none}
+.save-status:hover{background:var(--surface2);border-color:var(--accent)}
+.ss-dot{width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.ss-dot.ok{background:#0A9A60}
+.ss-dot.warn{background:#C0283A}
+.content{flex:1;overflow-y:auto;padding:24px;background:var(--bg)}
+.wrap{max-width:1180px;margin:0 auto}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:#1C2333;color:#E8EEF8;font-size:12px;padding:11px 18px;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.28);z-index:2000;opacity:0;transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .28s;display:flex;align-items:center;gap:9px;max-width:min(560px,88vw);line-height:1.5}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.err{background:#5C1620}
+.toast-dot{width:7px;height:7px;border-radius:50%;background:#4ADE80;flex-shrink:0}
+.toast.err .toast-dot{background:#F0A8B0}
+
+/* GENERIC */
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.3px;white-space:nowrap}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
+.panel-head{padding:11px 16px;border-bottom:1px solid var(--border);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface2);color:var(--text)}
+.panel-head .sub{font-weight:400;color:var(--muted);font-size:11px}
+.panel-body{padding:14px 16px}
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:16px}
+.page-head h2{font-size:18px;font-weight:700;color:var(--text)}
+.page-head p{font-size:12px;color:var(--muted);max-width:700px;line-height:1.65;margin-top:4px}
+.big-num{font-family:'SF Mono',Consolas,monospace;font-size:28px;font-weight:700;line-height:1}
+.small-muted{font-size:10.5px;color:var(--muted)}
+.notice{background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:8px;padding:10px 14px;font-size:11.5px;color:var(--text2);margin-bottom:14px;line-height:1.7}
+.notice strong{color:var(--text)}
+.empty{padding:28px 16px;text-align:center;color:var(--muted);font-size:12px;line-height:1.7}
+
+/* LEVEL PILLS */
+.lv{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:6px;font-family:'SF Mono',Consolas,monospace;font-size:11px;font-weight:700;color:#fff}
+.lv.na{background:var(--surface3);color:var(--muted);border:1px solid var(--border2)}
+.lv.ns{background:transparent;color:var(--muted);border:1px dashed var(--border2)}
+.lv.un{background:transparent;color:var(--faint);border:1.5px solid var(--border2)}
+.chip{display:inline-block;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.2px;white-space:nowrap;border:1px solid transparent}
+.chip-ok{background:var(--ok-soft);color:var(--ok);border-color:var(--ok-line)}
+.chip-warn{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-line)}
+.chip-bad{background:var(--bad-soft);color:var(--bad);border-color:var(--bad-line)}
+.chip-muted{background:var(--surface3);color:var(--muted);border-color:var(--border2)}
+.chip-acc{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-line)}
+.chip-ir{background:#FFF1E6;color:#9A3A00;border-color:#F5C088}
+[data-theme="dark"] .chip-ir{background:#2E1C10;color:#F7A865;border-color:#6A3F18}
+.prio-Critical{background:var(--bad-soft);color:var(--bad);border-color:var(--bad-line)}
+.prio-High{background:#FFF0E0;color:#9A3A00;border-color:#F5C088}
+[data-theme="dark"] .prio-High{background:#2E1C10;color:#F7A865;border-color:#6A3F18}
+.prio-Medium{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-line)}
+.prio-Low{background:var(--ok-soft);color:var(--ok);border-color:var(--ok-line)}
+
+/* GUIDANCE */
+.guide{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow)}
+.guide-head{padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;width:100%;background:none;border:none;text-align:left;color:var(--text)}
+.guide-head:hover{background:var(--surface3)}
+.guide-tag{font-size:9px;font-weight:700;letter-spacing:1px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-line);padding:3px 7px;border-radius:4px}
+.guide-title{font-size:12.5px;font-weight:600;flex:1}
+.guide-body{padding:4px 16px 16px;font-size:12px;color:var(--text2);line-height:1.7}
+.guide-body p{margin-bottom:10px}
+.scale-table{width:100%;border-collapse:collapse;font-size:11.5px;margin:6px 0 12px}
+.scale-table td,.scale-table th{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:top;text-align:left}
+.scale-table th{font-size:10.5px;color:var(--muted);font-weight:600;background:var(--surface2)}
+.chevron{color:var(--muted);font-size:11px;transition:transform .2s;flex-shrink:0;display:inline-block}
+.chevron.open{transform:rotate(90deg)}
+
+/* AREA CARDS */
+.area{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;box-shadow:var(--shadow)}
+.area-head{padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;width:100%;background:none;border:none;text-align:left;color:var(--text)}
+.area-head:hover{background:var(--surface3)}
+.area-code{font-family:'SF Mono',Consolas,monospace;font-size:11px;font-weight:700;padding:3px 7px;border-radius:4px;flex-shrink:0;min-width:52px;text-align:center}
+.area-name{font-size:13px;font-weight:600;flex:1;min-width:0}
+.area-body{border-top:1px solid var(--border)}
+.area-desc{padding:12px 16px 4px;font-size:12px;color:var(--text2);line-height:1.65}
+.area-refs{padding:0 16px 10px;font-size:11px;color:var(--muted)}
+.area-refs .mono{color:var(--text2);font-weight:600}
+.anchor{margin:4px 16px 12px;background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;padding:9px 12px;font-size:11.5px;color:var(--text2);line-height:1.6}
+.anchor b{color:var(--accent);font-weight:700}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 16px;border-top:1px solid var(--border);background:var(--surface2)}
+.row.alt{background:var(--surface)}
+.row-lbl{font-size:11px;color:var(--muted);font-weight:600;min-width:120px}
+.btns{display:flex;gap:4px;flex-wrap:wrap}
+.lb{border:1px solid var(--border2);background:var(--surface);color:var(--text2);border-radius:6px;padding:5px 9px;font-size:10.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:border-color .12s,background .12s}
+.lb:hover{border-color:var(--accent)}
+.lb .n{font-family:'SF Mono',Consolas,monospace;font-weight:800;font-size:11px}
+.lb.on{color:#fff}
+.lb.on-na{background:var(--surface3);border-color:var(--muted);color:var(--text)}
+.sb{border:1px solid var(--border2);background:var(--surface);color:var(--muted);border-radius:5px;padding:4px 9px;font-size:10.5px;font-weight:600;cursor:pointer}
+.sb:hover{border-color:var(--accent);color:var(--accent)}
+.sb.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.aid{padding:10px 16px 12px;border-top:1px solid var(--border);background:var(--surface)}
+.aid-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px}
+.aid-q{font-size:11px;color:var(--text2);font-weight:600;margin-bottom:5px}
+.aid-q span{display:block;font-weight:400;color:var(--muted);font-size:10px;line-height:1.4;margin-top:2px}
+.aid-sugg{margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:11.5px;color:var(--text2)}
+.aid-sugg .mbn{padding:4px 10px;font-size:11px}
+.box{padding:12px 16px;border-top:1px solid var(--border)}
+.box.na{background:var(--warn-soft)}
+.box-lbl{display:block;font-size:11px;font-weight:600;color:var(--text);margin-bottom:3px}
+.box-hint{font-size:10.5px;color:var(--muted);line-height:1.55;margin-bottom:7px}
+.inp{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:6px;padding:8px 10px;color:var(--text);font-size:12px;line-height:1.6;outline:none;resize:vertical}
+.inp:focus{border-color:var(--accent)}
+.inp-line{padding:6px 10px}
+.warnline{display:flex;align-items:center;gap:7px;background:var(--bad-soft);border:1px solid var(--bad-line);color:var(--bad);font-size:11px;font-weight:600;padding:7px 10px;border-radius:6px;margin-bottom:8px;line-height:1.5}
+.risk-inputs{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.risk-inputs label{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.risk-inputs select{background:var(--surface);color:var(--text);border:1px solid var(--border2);border-radius:5px;padding:3px 6px;font-size:11px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* DASHBOARD */
+.summary{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-bottom:16px}
+.overall{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;display:flex;gap:20px;align-items:center;box-shadow:var(--shadow)}
+.overall h2{font-size:22px;font-weight:700}
+.overall .lead{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.55}
+.dist{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--surface3);margin-top:12px}
+.dist span{display:block;height:100%}
+.dist-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:7px;font-size:10px;color:var(--muted)}
+.dist-legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:middle}
+.stats{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px;box-shadow:var(--shadow)}
+.stat{text-align:center;padding:6px}
+.stat-val{font-size:22px;font-weight:700;font-family:'SF Mono',Consolas,monospace;line-height:1}
+.stat-lbl{font-size:10px;color:var(--muted);margin-top:4px}
+.groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.gcard{background:var(--surface);border:1px solid var(--border);border-top:3px solid;border-radius:10px;padding:12px 14px;cursor:pointer;text-align:left;box-shadow:var(--shadow);color:var(--text)}
+.gcard:hover{background:var(--surface3)}
+.gcard .g-id{font-size:11px;font-weight:700;font-family:'SF Mono',Consolas,monospace}
+.gcard .g-name{font-size:11px;color:var(--muted);margin:2px 0 8px;line-height:1.35;min-height:30px}
+.gcard .g-val{font-size:24px;font-weight:700;font-family:'SF Mono',Consolas,monospace;line-height:1}
+.mini{height:4px;background:var(--surface3);border-radius:2px;margin-top:8px;overflow:hidden}
+.mini span{display:block;height:100%;border-radius:2px}
+.hm{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.hm-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface);cursor:pointer;text-align:left;color:var(--text);width:100%}
+.hm-row:hover{background:var(--surface3)}
+.hm-code{font-family:'SF Mono',Consolas,monospace;font-size:10.5px;font-weight:700;min-width:50px}
+.hm-name{font-size:11px;flex:1;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.track{position:relative;width:110px;height:8px;background:var(--surface3);border-radius:4px;flex-shrink:0}
+.track .fill{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
+.track .tgt{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--text);border-radius:1px}
+.vlist{display:flex;flex-direction:column}
+.vrow{display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--border);font-size:12px}
+.vrow:last-child{border-bottom:none}
+.vrow .code{font-family:'SF Mono',Consolas,monospace;font-size:10.5px;font-weight:700;min-width:54px}
+.vrow .nm{flex:1;color:var(--text)}
+.val-ok{color:var(--ok)}
+.val-bad{color:var(--bad)}
+.validation{border-radius:10px;margin-bottom:14px;overflow:hidden;border:1px solid var(--bad-line);background:var(--bad-soft)}
+.validation.ok{border-color:var(--ok-line);background:var(--ok-soft)}
+.validation .v-head{padding:10px 14px;font-size:12px;font-weight:700;color:var(--bad);display:flex;gap:8px;align-items:center}
+.validation.ok .v-head{color:var(--ok)}
+.validation .v-body{padding:0 14px 10px;font-size:11.5px;color:var(--text2);line-height:1.8}
+.vcount{display:inline-block;background:var(--bad);color:#fff;font-family:'SF Mono',Consolas,monospace;font-size:10px;font-weight:700;padding:0 6px;border-radius:3px;margin-right:6px}
+.linkish{background:none;border:none;color:var(--accent);cursor:pointer;font-size:inherit;text-decoration:underline;padding:0}
+
+/* TABLES */
+.tbl{width:100%;border-collapse:collapse;font-size:11.5px}
+.tbl th{padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);color:var(--muted);font-weight:600;background:var(--surface2);font-size:10.5px;white-space:nowrap}
+.tbl td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top}
+.tbl tr:last-child td{border-bottom:none}
+.tbl .mono{font-weight:700;font-size:10.5px;white-space:nowrap}
+.tbl-wrap{overflow-x:auto}
+
+/* PLAN */
+.hz{margin-bottom:18px}
+.hz-title{font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.hz-title span{font-size:11px;font-weight:400;color:var(--muted)}
+.imp{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden;box-shadow:var(--shadow)}
+.imp-head{padding:11px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.imp-rank{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:'SF Mono',Consolas,monospace;background:var(--text);color:var(--surface);flex-shrink:0}
+.imp-body{padding:10px 16px 14px;font-size:12px;color:var(--text2);line-height:1.7}
+.imp-metrics{display:flex;gap:18px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-bottom:8px}
+.imp-metrics strong{color:var(--text)}
+
+/* READINESS */
+.theme-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid;border-radius:0 10px 10px 0;padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow)}
+.theme-card h4{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.theme-card p{font-size:12px;color:var(--text2);line-height:1.65;margin-bottom:8px}
+.theme-areas{display:flex;flex-wrap:wrap;gap:6px}
+.theme-areas span{display:inline-flex;align-items:center;gap:6px;font-size:11px;border:1px solid var(--border);border-radius:6px;padding:3px 8px;background:var(--surface2)}
+
+/* MODALS */
+.overlay{position:fixed;inset:0;background:var(--overlay);z-index:999;display:flex;align-items:center;justify-content:center}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:24px;width:640px;max-width:94vw;max-height:88vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2);color:var(--text)}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:10px}
+.modal-sec{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin:20px 0 10px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.field-grid .full{grid-column:1 / -1}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px}
+.field input,.field textarea,.field select{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;resize:vertical}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent)}
+.hint{font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.5}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+.mbn{padding:7px 16px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;cursor:pointer}
+.mbn:hover{background:var(--surface3);color:var(--text)}
+.mbp{padding:7px 16px;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);font-size:12px;cursor:pointer;font-weight:600}
+.mbp:hover{background:var(--accent-h)}
+.fw-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.fw-opt{border:1.5px solid var(--border2);border-radius:9px;padding:11px 13px;cursor:pointer;background:var(--surface);text-align:left;color:var(--text)}
+.fw-opt:hover{border-color:var(--accent)}
+.fw-opt.on{border-color:var(--accent);background:var(--accent-soft)}
+.fw-opt b{display:block;font-size:12.5px}
+.fw-opt span{display:block;font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.45}
+.custom-row{display:grid;grid-template-columns:70px 1fr 1.3fr 110px 130px 30px;gap:6px;margin-bottom:6px;align-items:center}
+.custom-row input{background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;width:100%}
+.custom-row label{font-size:10px;color:var(--muted);display:flex;align-items:center;gap:4px}
+.help-list{margin:0 0 4px;padding-left:20px;font-size:12.5px;line-height:1.7;color:var(--text)}
+.help-list li{margin-bottom:6px}
+.help-callout{display:flex;gap:12px;background:var(--ok-soft);border:1px solid var(--ok-line);border-radius:9px;padding:12px 14px;margin:12px 0;font-size:12.5px;line-height:1.6}
+.pal-row{display:flex;gap:8px;flex-wrap:wrap}
+.pal{border:1.5px solid var(--border2);border-radius:8px;padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:7px;font-size:11.5px;background:var(--surface);color:var(--text)}
+.pal.on{border-color:var(--accent);background:var(--accent-soft)}
+.pal i{display:inline-block;width:14px;height:14px;border-radius:3px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.fu{animation:fadeUp .18s ease}
+@media (prefers-reduced-motion:reduce){.fu{animation:none}.prog-fill,.chevron,.toast{transition:none}}
+@media (max-width:900px){.summary,.two-col{grid-template-columns:1fr}.hm{grid-template-columns:1fr}.aid-grid{grid-template-columns:1fr 1fr}.sidebar{width:200px;min-width:200px}}
+/* ═══════════ REPORT (screen preview + print) ═══════════ */
+.report-toolbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:18px;box-shadow:var(--shadow)}
+.rt-title{font-size:12px;font-weight:600;color:var(--text)}
+.rt-sub{font-size:11px;color:var(--muted);line-height:1.5}
+.rt-btn{background:var(--accent);color:var(--on-accent);border:none;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.rt-btn:hover{background:var(--accent-h)}
+.rt-btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--border2)}
+.rt-btn.ghost:hover{background:var(--surface2);color:var(--text)}
+.rt-first{margin-left:auto}
+
+.doc{--rp-d:#0A1A3A;--rp-m:#12336E;--rp-a:#1456CC;--rp-soft:#F4F7FC;--rp-line:#DCE6F5;background:#8A93A3;padding:24px;border-radius:10px}
+.doc.pal-teal{--rp-d:#062B2A;--rp-m:#0D4F4C;--rp-a:#0B7A75;--rp-soft:#F0F8F7;--rp-line:#CBE6E3}
+.doc.pal-graphite{--rp-d:#15191F;--rp-m:#2F3640;--rp-a:#4E5B6E;--rp-soft:#F4F5F7;--rp-line:#DDE1E7}
+.doc.pal-burgundy{--rp-d:#2A0B14;--rp-m:#561A2B;--rp-a:#94243F;--rp-soft:#FBF3F5;--rp-line:#EFD3DA}
+.page{background:#fff;width:210mm;min-height:297mm;margin:0 auto 24px;padding:18mm 17mm 16mm;box-shadow:0 3px 16px rgba(0,0,0,.22);position:relative;color:#1A2230;font-size:10pt;line-height:1.55;font-family:Arial,Helvetica,sans-serif}
+.page:last-child{margin-bottom:0}
+.page-foot{position:absolute;bottom:9mm;left:17mm;right:17mm;font-size:7.5pt;color:#8A9BB0;display:flex;justify-content:space-between;gap:10px}
+
+/* Cover */
+.cover{display:flex;flex-direction:column;color:#fff;background:linear-gradient(155deg,var(--rp-d) 0%,var(--rp-m) 58%,var(--rp-a) 100%);padding:0;overflow:hidden}
+.cover-inner{padding:22mm 18mm;display:flex;flex-direction:column;flex:1;min-height:297mm}
+.cover-badge{font-size:9pt;letter-spacing:2px;text-transform:uppercase;opacity:.85;font-weight:600}
+.cover-rule{width:54px;height:3px;background:rgba(255,255,255,.7);margin:14px 0 26px}
+.cover h1{font-size:30pt;font-weight:700;line-height:1.12;margin:0 0 10px;letter-spacing:-.5px}
+.cover-sub{font-size:13pt;opacity:.9}
+.cover-class{display:inline-block;align-self:flex-start;margin-top:16px;font-size:8pt;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:4px 10px}
+.cover-spacer{flex:1}
+.cover-meta{margin-top:30px;border-top:1px solid rgba(255,255,255,.22);padding-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px 30px}
+.cm-lbl{font-size:7.5pt;letter-spacing:1.4px;text-transform:uppercase;opacity:.65;margin-bottom:3px}
+.cm-val{font-size:11pt;font-weight:600;line-height:1.35}
+.cover-verdict{margin-top:24px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);border-radius:10px;padding:16px 20px;display:flex;align-items:center;gap:20px}
+.cv-big{font-size:26pt;font-weight:700;line-height:1;font-family:'SF Mono',Consolas,monospace}
+.cv-name{font-size:10pt;letter-spacing:1px;text-transform:uppercase;opacity:.9;margin-top:4px}
+.cv-dist{flex:1}
+.cv-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:rgba(255,255,255,.15)}
+.cv-bar span{display:block;height:100%}
+.cv-note{font-size:8.5pt;opacity:.85;margin-top:7px;line-height:1.5}
+.cover-foot{font-size:7.5pt;opacity:.65;margin-top:20px;line-height:1.55}
+
+/* Report typography */
+.rp-h2{font-size:16pt;font-weight:700;color:var(--rp-d);margin:0 0 3px;letter-spacing:-.3px}
+.rp-h2 .rp-num{color:var(--rp-a);margin-right:8px}
+.rp-lead{font-size:9.5pt;color:#5A6A80;margin:0 0 16px;padding-bottom:10px;border-bottom:2px solid #E4E9F0}
+.rp-h3{font-size:11.5pt;font-weight:700;color:var(--rp-m);margin:18px 0 7px}
+.rp-p{margin:0 0 9px;color:#28313F}
+.rp-callout{background:var(--rp-soft);border-left:3px solid var(--rp-a);border-radius:0 8px 8px 0;padding:11px 15px;margin:12px 0;font-size:9.5pt;line-height:1.6;color:#28313F}
+.rp-callout.warn{background:#FDF6F7;border-left-color:#C0283A}
+.rp-callout.ok{background:#F2FBF6;border-left-color:#0A7A50}
+.rp-table{width:100%;border-collapse:collapse;font-size:8.5pt;margin:8px 0}
+.rp-table th{background:var(--rp-d);color:#fff;text-align:left;padding:6px 8px;font-weight:600;font-size:8pt}
+.rp-table td{padding:5px 8px;border-bottom:1px solid #E8ECF2;vertical-align:top;color:#28313F}
+.rp-table tr:nth-child(even) td{background:#F8FAFC}
+.rp-table .ref{font-family:'SF Mono',Consolas,monospace;font-weight:700;white-space:nowrap}
+.rp-table tr.grp{break-after:avoid;page-break-after:avoid}
+.rp-table .grp td{background:var(--rp-m)!important;color:#fff;font-weight:700;font-size:8.5pt}
+.rp-details th.k{background:var(--rp-soft);color:#28313F;width:32%;font-weight:600;font-size:8.5pt}
+.rlv{display:inline-block;min-width:18px;text-align:center;padding:1px 5px;border-radius:4px;color:#fff;font-weight:700;font-size:8pt;font-family:'SF Mono',Consolas,monospace}
+.rlv.na{background:#EAEEF3;color:#4A5A6E}
+.rlv.ns{background:#fff;color:#8A9BB0;border:1px dashed #B8C4D0}
+.rpill{display:inline-block;padding:1px 7px;border-radius:20px;font-size:7.5pt;font-weight:700;white-space:nowrap}
+.rp-Critical{background:#FDE2E6;color:#A81828}.rp-High{background:#FFE9D6;color:#9A3A00}.rp-Medium{background:#FFF3D6;color:#8A4A00}.rp-Low{background:#DCFAEE;color:#076B40}
+.rp-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:12px 0 14px}
+.rp-stat{border:1px solid #E4E9F0;border-radius:8px;padding:9px 6px;text-align:center}
+.rs-val{font-size:18pt;font-weight:700;line-height:1;font-family:'SF Mono',Consolas,monospace}
+.rs-lbl{font-size:6.8pt;letter-spacing:.5px;text-transform:uppercase;color:#6B7A90;margin-top:4px;font-weight:600}
+.rp-grow{display:flex;align-items:center;gap:10px;margin:7px 0;break-inside:avoid}
+.rp-grow .gid{width:30px;height:20px;border-radius:5px;color:#fff;font-weight:700;font-size:8pt;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'SF Mono',Consolas,monospace}
+.rp-grow .gnm{font-size:9pt;font-weight:600;width:210px;flex-shrink:0;color:#28313F}
+.rp-grow .gtr{flex:1;height:14px;background:#EEF1F5;border-radius:7px;position:relative}
+.rp-grow .gfl{position:absolute;left:0;top:0;bottom:0;border-radius:7px}
+.rp-grow .gtg{position:absolute;top:-3px;bottom:-3px;width:2px;background:#1A2230}
+.rp-grow .gvl{font-family:monospace;font-size:9pt;font-weight:700;width:36px;text-align:right}
+.rp-method{background:var(--rp-soft);border:1px solid var(--rp-line);border-radius:9px;padding:12px 15px;margin:8px 0 12px;font-size:9pt;line-height:1.6;color:#28313F}
+.rp-formula{background:var(--rp-d);color:#fff;font-family:'SF Mono',Consolas,monospace;font-size:9pt;text-align:center;padding:8px;border-radius:6px;margin:8px 0}
+.radar-block{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:4px}
+.radar-svg{flex:0 0 330px;max-width:330px}
+.radar-legend{flex:1;min-width:230px;display:grid;grid-template-columns:1fr;gap:1px;font-size:8pt}
+.rl-row{display:flex;gap:6px;align-items:baseline;line-height:1.45;break-inside:avoid}
+.rl-code{font-family:'SF Mono',Consolas,monospace;font-weight:700;flex:0 0 42px}
+.rl-name{flex:1;color:#33404F}
+.rl-val{font-family:monospace;font-weight:700;color:#5A6A80}
+.rp-rec{border:1px solid #E4E9F0;border-left:3px solid var(--rp-a);border-radius:0 9px 9px 0;padding:10px 14px;margin:9px 0;break-inside:avoid}
+.rp-rec-head{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap}
+.rp-rec-rank{width:20px;height:20px;border-radius:50%;background:var(--rp-d);color:#fff;font-size:8pt;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rp-rec-name{font-size:10pt;font-weight:700;color:var(--rp-d);flex:1}
+.rp-rec-meta{font-size:8pt;color:#6B7A90;margin-bottom:5px}
+.rp-rec-body{font-size:9pt;line-height:1.6;color:#28313F}
+.rp-hz{font-size:10.5pt;font-weight:700;color:var(--rp-m);margin:16px 0 4px;padding-bottom:4px;border-bottom:1px solid #E4E9F0}
+.rp-reg{border:1px solid #E4E9F0;border-radius:9px;padding:10px 14px;margin:8px 0;break-inside:avoid}
+.rp-reg-just{font-size:9pt;color:#33404F;background:#F6F8FB;border-left:2px solid #8A9BB0;border-radius:0 6px 6px 0;padding:7px 11px;margin-top:6px;white-space:pre-wrap;line-height:1.6}
+.rp-detail{border:1px solid #E4E9F0;border-radius:9px;padding:10px 14px;margin:8px 0;break-inside:avoid}
+.rp-detail h5{font-size:9.5pt;margin:0 0 4px;color:var(--rp-d);display:flex;gap:8px;align-items:center}
+.rp-detail .dl{font-size:8pt;color:#6B7A90;margin-top:5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.rp-detail .dv{font-size:9pt;color:#28313F;white-space:pre-wrap;line-height:1.55}
+.rp-theme{border-left:3px solid;padding:8px 13px;margin:9px 0;background:#FAFBFC;border-radius:0 8px 8px 0;break-inside:avoid}
+.rp-theme h5{font-size:10pt;margin:0 0 3px;display:flex;align-items:center;gap:8px}
+.rp-theme p{font-size:9pt;margin:0;color:#28313F;line-height:1.58}
+.rp-theme .ta{font-size:8pt;color:#5A6A80;margin-top:4px}
+
+@media screen and (max-width:1100px){.page{width:100%;padding:14mm 12mm 18mm;min-height:auto}.doc{padding:12px}.cover-inner{min-height:250mm}}
+
+@media print{
+  html,body{height:auto!important;overflow:visible!important;background:#fff!important}
+  #app{display:block!important;height:auto!important;overflow:visible!important}
+  .main{display:block!important;height:auto!important;overflow:visible!important}
+  .content{display:block!important;height:auto!important;overflow:visible!important;padding:0!important;background:#fff!important}
+  .wrap{max-width:none!important}
+  .fu{animation:none!important}
+  .sidebar,.topbar,.no-print,.report-toolbar,.overlay,.toast{display:none!important}
+  .doc{background:none!important;padding:0!important;border-radius:0!important}
+  @page{size:A4;margin:12mm}
+  .page{box-shadow:none!important;margin:0!important;width:auto!important;min-height:0!important;padding:0!important;break-after:page;page-break-after:always}
+  .page:last-child{break-after:auto;page-break-after:auto}
+  .page.cover{height:273mm!important;max-height:273mm!important;overflow:hidden!important}
+  .cover-inner{min-height:0!important;height:273mm;padding:22mm 20mm!important}
+  .rp-table thead{display:table-header-group}
+  .rp-table tr{break-inside:avoid;page-break-inside:avoid}
+  .rp-rec,.rp-reg,.rp-detail,.rp-stat,.rp-callout,.rp-theme,.rp-grow{break-inside:avoid;page-break-inside:avoid}
+  .rp-h2,.rp-h3,.rp-hz{break-after:avoid}
+  .page-foot{position:static!important;margin-top:8mm}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+}
+
+/* ═══════════ ANALYSER-SPECIFIC ═══════════ */
+.drop{border:2px dashed var(--border2);border-radius:10px;background:var(--surface);transition:border-color .15s,background .15s}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.raw-in{width:100%;min-height:220px;border:none;background:transparent;color:var(--text);font-family:'SF Mono',Consolas,monospace;font-size:12px;line-height:1.55;padding:14px 16px;resize:vertical;outline:none}
+.in-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 14px;border-top:1px solid var(--border);background:var(--surface2);border-radius:0 0 10px 10px}
+.verdict{display:flex;gap:16px;align-items:flex-start;padding:18px 20px;border-radius:10px;border:1px solid;margin-bottom:14px}
+.verdict.pass{background:var(--ok-soft);border-color:var(--ok-line)}
+.verdict.warn{background:var(--warn-soft);border-color:var(--warn-line)}
+.verdict.fail{background:var(--bad-soft);border-color:var(--bad-line)}
+.v-badge{font-size:11px;font-weight:800;letter-spacing:1px;padding:6px 11px;border-radius:6px;color:#fff;white-space:nowrap}
+.verdict.pass .v-badge{background:var(--ok)}.verdict.warn .v-badge{background:#B58100}.verdict.fail .v-badge{background:var(--bad)}
+.v-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px}
+.v-text{font-size:12.5px;color:var(--text2);line-height:1.65}
+.find{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);font-size:12.5px;line-height:1.55;color:var(--text)}
+.find:last-child{border-bottom:none}
+.sev{font-size:9.5px;font-weight:800;letter-spacing:.5px;padding:2px 7px;border-radius:4px;white-space:nowrap;flex-shrink:0;margin-top:1px}
+.sev-high{background:var(--bad);color:#fff}.sev-med{background:#B58100;color:#fff}.sev-low{background:var(--surface3);color:var(--text2);border:1px solid var(--border2)}.sev-good{background:var(--ok);color:#fff}
+.kv2{display:grid;grid-template-columns:140px 1fr;gap:0;font-size:12.5px}
+.kv2>div{padding:8px 0;border-bottom:1px solid var(--border)}
+.kv2>div:nth-last-child(-n+2){border-bottom:none}
+.kv2 .k{color:var(--muted);font-weight:600;font-size:11.5px}
+.kv2 .v{color:var(--text);word-break:break-word}
+.kv2 .v .sub{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.stamps{display:flex;gap:8px;flex-wrap:wrap}
+.stamp{display:inline-flex;flex-direction:column;align-items:center;min-width:92px;padding:8px 12px;border-radius:8px;border:1px solid;font-weight:700}
+.stamp b{font-size:10px;letter-spacing:1px;opacity:.85}
+.stamp span{font-size:14px;font-family:'SF Mono',Consolas,monospace}
+.st-pass{background:var(--ok-soft);border-color:var(--ok-line);color:var(--ok)}
+.st-fail{background:var(--bad-soft);border-color:var(--bad-line);color:var(--bad)}
+.st-warn{background:var(--warn-soft);border-color:var(--warn-line);color:var(--warn)}
+.st-na{background:var(--surface3);border-color:var(--border2);color:var(--muted)}
+.mono-box{font-family:'SF Mono',Consolas,monospace;font-size:11.5px;line-height:1.6;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;white-space:pre-wrap;word-break:break-all;color:var(--text2);max-height:420px;overflow:auto}
+.hops{list-style:none;position:relative;padding-left:26px}
+.hops::before{content:'';position:absolute;left:9px;top:6px;bottom:6px;width:2px;background:var(--border2)}
+.hop{position:relative;margin-bottom:10px;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:10px 14px;box-shadow:var(--shadow)}
+.hop::before{content:'';position:absolute;left:-22px;top:14px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:2px solid var(--border2)}
+.hop.origin{border-color:var(--accent)}
+.hop.origin::before{background:var(--accent);border-color:var(--accent)}
+.hop.internal::before{background:var(--surface3)}
+.hop-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:5px}
+.hop-h b{font-size:12.5px;color:var(--text)}
+.hop-l{font-family:'SF Mono',Consolas,monospace;font-size:11.5px;color:var(--text2);line-height:1.6;word-break:break-all}
+.hop-l .k{color:var(--muted);display:inline-block;width:46px}
+.delay{font-size:10.5px;font-family:'SF Mono',Consolas,monospace;padding:1px 7px;border-radius:10px;background:var(--surface3);color:var(--text2);border:1px solid var(--border2)}
+.delay.bad{background:var(--bad-soft);color:var(--bad);border-color:var(--bad-line)}
+.delay.slow{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-line)}
+.raw-hl{font-family:'SF Mono',Consolas,monospace;font-size:11.5px;line-height:1.6;white-space:pre-wrap;word-break:break-all;color:var(--text2)}
+.hl-id{background:#E0ECFF;color:#123A75}.hl-pass{background:#DCFAEE;color:#076B40}.hl-fail{background:#FDE2E6;color:#A81828}.hl-dkim{background:#F3E8FF;color:#6B21A8}.hl-trace{background:#FFF3D6;color:#7A4A00}
+[data-theme="dark"] .hl-id{background:#17243A;color:#9CC2FF}[data-theme="dark"] .hl-pass{background:#0F2A1F;color:#6EE7B7}[data-theme="dark"] .hl-fail{background:#321419;color:#FCA5A5}[data-theme="dark"] .hl-dkim{background:#2A1640;color:#D8B4FE}[data-theme="dark"] .hl-trace{background:#2E2410;color:#FCD34D}
+.gloss h4{font-size:13px;margin:0 0 4px;color:var(--text)}
+.gloss p{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:6px}
+.gloss dl{display:grid;grid-template-columns:110px 1fr;gap:3px 12px;font-size:11.5px;margin-top:4px}
+.gloss dt{font-family:'SF Mono',Consolas,monospace;font-weight:700;color:var(--accent)}
+.gloss dd{color:var(--text2)}
+.seg{display:inline-flex;border:1px solid var(--border2);border-radius:7px;overflow:hidden}
+.seg button{background:var(--surface);color:var(--text2);border:none;padding:6px 11px;font-size:11.5px;cursor:pointer;border-right:1px solid var(--border2)}
+.seg button:last-child{border-right:none}
+.seg button.on{background:var(--accent);color:var(--on-accent);font-weight:600}
+.privacy{display:flex;gap:10px;align-items:flex-start;font-size:11.5px;color:var(--text2);line-height:1.55;background:var(--ok-soft);border:1px solid var(--ok-line);border-radius:8px;padding:9px 12px;margin-bottom:12px}
+.tlp{display:inline-block;font-family:'SF Mono',Consolas,monospace;font-weight:800;font-size:8pt;padding:3px 9px;border-radius:3px;background:#000;letter-spacing:.5px}
+.tlp-CLEAR{color:#fff}.tlp-GREEN{color:#33FF00}.tlp-AMBER,.tlp-AMBER-STRICT{color:#FFC000}.tlp-RED{color:#FF2B2B}
+@media (max-width:900px){.kv2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app">
+  <nav class="sidebar" aria-label="Analyser navigation">
+    <div class="sidebar-logo">
+      <div class="logo-badge">EMAIL</div>
+      <div class="logo-title">Header Analyser</div>
+      <div class="logo-sub">SPF · DKIM · DMARC · ARC · delivery path<br>Runs offline; nothing is uploaded</div>
+    </div>
+    <div class="sidebar-progress" id="side-verdict"><div class="prog-label"><span>No message analysed</span></div></div>
+    <div class="sidebar-nav" id="sidebar-nav"></div>
+    <div class="sidebar-footer no-print">
+      <button class="btn btn-primary" onclick="navigate('report')">📄 Generate report</button>
+      <div class="footer-group">
+        <div class="footer-label">Export</div>
+        <div class="btn-row"><button class="btn btn-half" onclick="copySummary()">⧉ Copy summary</button><button class="btn btn-half" onclick="downloadText()">⬇ Text report</button></div>
+        <div class="btn-row"><button class="btn btn-half" onclick="exportIocCsv()">⬇ IOC CSV</button><button class="btn btn-half" onclick="exportJSON()">⬇ JSON</button></div>
+      </div>
+      <button class="btn btn-reset" onclick="clearAll()">✕ Clear message</button>
+    </div>
+  </nav>
+  <div class="main">
+    <div class="topbar no-print">
+      <div class="topbar-title" id="topbar-title">Analyse</div>
+      <div class="topbar-meta">
+        <span id="topbar-subj" style="max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+        <span class="fw-chip">Offline · nothing stored</span>
+        <select class="tb-select" id="theme-select" onchange="setTheme(this.value)" aria-label="Colour theme" title="Colour theme">
+          <option value="system">◐ System</option><option value="light">☀ Light</option><option value="dark">☾ Dark</option><option value="ocean">≈ Ocean</option><option value="contrast">◼ High contrast</option>
+        </select>
+        <button class="tb-action" onclick="showModal('details-modal');fillDetails()" title="Analyst and report details">⚙ Details</button>
+        <button class="tb-action tb-help" onclick="showModal('help-modal')" aria-label="Help" title="Help">?</button>
+      </div>
+    </div>
+    <main class="content" id="content"></main>
+  </div>
+</div>
+<input type="file" id="file-in" accept=".eml,.txt,message/rfc822,text/plain" style="display:none" onchange="readFile(this.files[0]);this.value=''"/>
+
+<div class="overlay" id="details-modal" style="display:none" onclick="if(event.target===this)hideModal('details-modal')">
+  <div class="modal" role="dialog" aria-modal="true">
+    <h3>Report details</h3>
+    <div class="small-muted" style="line-height:1.55">Shown on the report. These preferences are remembered in this browser; message content never is.</div>
+    <div class="field-grid" style="margin-top:14px">
+      <div class="field"><label>Analyst</label><input id="d-analyst" placeholder="Name, role"/></div>
+      <div class="field"><label>Case reference</label><input id="d-ref" placeholder="e.g. IR-2026-021"/></div>
+      <div class="field"><label>Prepared by (organisation)</label><input id="d-prep" placeholder="Team or consultancy"/></div>
+      <div class="field"><label>Traffic Light Protocol</label><select id="d-tlp"><option value="">Not marked</option><option>TLP:CLEAR</option><option>TLP:GREEN</option><option>TLP:AMBER</option><option>TLP:AMBER+STRICT</option><option>TLP:RED</option></select></div>
+    </div>
+    <div class="modal-sec">Report colours</div><div class="pal-row" id="pal-row"></div>
+    <div class="modal-actions"><button class="mbn" onclick="hideModal('details-modal')">Cancel</button><button class="mbp" onclick="saveDetails()">Save</button></div>
+  </div>
+</div>
+<div class="overlay" id="help-modal" style="display:none" onclick="if(event.target===this)hideModal('help-modal')">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="help-h">
+    <h3 id="help-h">Analysing an email</h3>
+    <p class="small-muted" style="font-size:12.5px;line-height:1.6">Paste the full message source or drop an .eml file. The analyser compares who the message claims to be from with who actually sent it, reads the receiving server's SPF, DKIM, DMARC and ARC results, traces the delivery path with timing, and pulls out indicators, links and attachment hashes.</p>
+    <div class="help-callout"><span>🔒</span><div><strong>Nothing leaves this page.</strong> There are no network requests: no fonts, lookups or analytics. Message content is kept in memory only and is cleared when you close the tab or press Clear.</div></div>
+    <div class="modal-sec">Getting the source</div>
+    <ul class="help-list">
+      <li><strong>Outlook (new and web)</strong>: open the message › … › View › View message source.</li>
+      <li><strong>Outlook (classic)</strong>: File › Properties › Internet headers (headers only), or save as .eml via drag and drop.</li>
+      <li><strong>Gmail</strong>: ⋮ › Show original › Download original.</li>
+      <li><strong>Microsoft 365 investigations</strong>: export from Explorer or eDiscovery as .eml.</li>
+    </ul>
+    <div class="modal-sec">Reading the results</div>
+    <ul class="help-list">
+      <li>Only the <strong>topmost</strong> Authentication-Results header from the receiving organisation is trusted; headers lower down can be forged by the sender.</li>
+      <li>Passing DMARC proves the From domain, not the sender's intent. Compromised accounts and business email compromise often pass.</li>
+      <li>Delivery hops are read bottom (oldest) to top (newest). Negative gaps between hops point to clock skew or forged headers.</li>
+    </ul>
+    <div class="modal-actions"><button class="mbp" onclick="hideModal('help-modal')">Got it</button></div>
+  </div>
+</div>
+<script>
+
+// ═══════════════════════════════════════════════════════════════════
+// EMAIL HEADER ANALYSER v2.0 · runs entirely offline, no network requests.
+// Message content is held in memory only and never written to storage.
+// ═══════════════════════════════════════════════════════════════════
+
+// ── reference data ───────────────────────────────────────────────────
+const MULTI_SUFFIX = new Set(['co.uk','org.uk','gov.uk','ac.uk','ltd.uk','plc.uk','me.uk','net.uk','nhs.uk','police.uk','sch.uk','mod.uk',
+  'com.au','net.au','org.au','gov.au','edu.au','co.nz','org.nz','govt.nz','co.jp','ne.jp','or.jp','com.br','com.cn','com.hk','com.sg','com.my','co.in','net.in','org.in',
+  'co.za','com.mx','com.tr','com.ar','co.kr','co.il','com.tw','com.ua','com.pl','com.es','co.id','com.ph','com.vn','com.sa','com.eg','com.ng','co.ke']);
+const FREEMAIL = ['gmail.com','googlemail.com','outlook.com','hotmail.com','hotmail.co.uk','live.com','live.co.uk','msn.com','yahoo.com','yahoo.co.uk','ymail.com','aol.com','icloud.com','me.com','mac.com',
+  'proton.me','protonmail.com','pm.me','gmx.com','gmx.co.uk','gmx.net','mail.com','yandex.com','yandex.ru','zoho.com','tutanota.com','tuta.io','fastmail.com','btinternet.com','sky.com','virginmedia.com','talktalk.net'];
+const BRANDS = [
+  ['PayPal',['paypal.com','paypal.co.uk','paypal.me']],['Microsoft',['microsoft.com','microsoftonline.com','office.com','office365.com','outlook.com','live.com','sharepoint.com','onmicrosoft.com']],
+  ['Apple',['apple.com','icloud.com']],['Amazon',['amazon.com','amazon.co.uk','amazonaws.com']],['Google',['google.com','gmail.com','googlemail.com']],['Netflix',['netflix.com']],
+  ['DocuSign',['docusign.com','docusign.net']],['Adobe',['adobe.com']],['Dropbox',['dropbox.com']],['LinkedIn',['linkedin.com']],['Facebook',['facebook.com','facebookmail.com','meta.com']],
+  ['Instagram',['instagram.com']],['DHL',['dhl.com','dhl.co.uk']],['FedEx',['fedex.com']],['Royal Mail',['royalmail.com','royalmail.co.uk']],['Evri',['evri.com']],
+  ['HMRC',['hmrc.gov.uk','gov.uk']],['DVLA',['dvla.gov.uk','gov.uk']],['NHS',['nhs.uk','nhs.net']],['Barclays',['barclays.co.uk','barclays.com']],['HSBC',['hsbc.co.uk','hsbc.com']],
+  ['Lloyds',['lloydsbank.com','lloydsbank.co.uk','lloydsbankinggroup.com']],['NatWest',['natwest.com']],['Santander',['santander.co.uk','santander.com']],['Nationwide',['nationwide.co.uk']],
+  ['Halifax',['halifax.co.uk']],['Monzo',['monzo.com']],['Revolut',['revolut.com']],['Coinbase',['coinbase.com']],['Xero',['xero.com']],['Zoom',['zoom.us','zoom.com']],
+  ['Chase',['chase.com']],['Wells Fargo',['wellsfargo.com']],['Bank of America',['bankofamerica.com']],['IRS',['irs.gov']],['USPS',['usps.com']],['WeTransfer',['wetransfer.com']],['Salesforce',['salesforce.com']]
+];
+const GENERIC_LABELS=new Set(['office','outlook','live','gov','meta','zoom','chase','ups','nhs','bt','me','dhl','irs','office365','onmicrosoft','facebookmail','amazonaws','googlemail']);
+const BRAND_LABELS=[]; BRANDS.forEach(([n,ds])=>ds.forEach(d=>{ const l=d.split('.')[0]; if(l.length>=4&&!GENERIC_LABELS.has(l)&&!BRAND_LABELS.some(b=>b.label===l)) BRAND_LABELS.push({label:l,brand:n,domains:ds}); }));
+const MS_CAT = {PHSH:'Phishing',HPHSH:'High-confidence phishing',HPHISH:'High-confidence phishing',SPOOF:'Spoofing',UIMP:'User impersonation',DIMP:'Domain impersonation',GIMP:'Mailbox intelligence impersonation',
+  SPM:'Spam',HSPM:'High-confidence spam',BULK:'Bulk',MALW:'Malware',AMP:'Anti-malware',SAP:'Safe Attachments',FTBP:'Filetype block policy',OSPM:'Outbound spam',INTOS:'Intra-organisation phishing',NONE:'No threat category'};
+const MS_SFV = {NSPM:'Not spam',SPM:'Spam',SKN:'Marked non-spam by mail flow rule',SKS:'Marked spam by mail flow rule',SKA:'Allowed by sender or domain allow list',SKB:'Blocked by sender or domain block list',
+  SKI:'Intra-organisation message; filtering skipped',SKQ:'Released from quarantine',BLK:'Blocked by user\'s blocked senders',SFE:'Allowed by user\'s safe senders',NSPM_:'Not spam'};
+const GLOSSARY = [
+  ['SPF (Sender Policy Framework)','A DNS record listing the servers allowed to send for a domain. The receiving server checks the connecting IP against the envelope sender (Return-Path) domain, not the visible From.',
+    [['pass','Connecting IP is authorised'],['fail','Domain explicitly disowns the IP (-all)'],['softfail','Not authorised, but the domain asks only for suspicion (~all)'],['neutral','Domain makes no assertion (?all)'],['none','No SPF record'],['temperror','Temporary DNS failure'],['permerror','Record is broken, e.g. too many DNS lookups']]],
+  ['DKIM (DomainKeys Identified Mail)','A cryptographic signature over chosen headers and the body. The receiver fetches the public key at s=._domainkey.d= and verifies it.',
+    [['pass','Signature valid for the signed headers and body'],['fail','Signature invalid: modified in transit, or wrong key'],['d=','Signing domain; must align with From for DMARC'],['s=','Selector used to find the key'],['h=','Headers covered by the signature'],['l=','Body length limit; content can be appended after it']]],
+  ['DMARC','Requires SPF or DKIM to pass and align with the From domain. The domain owner publishes a policy telling receivers what to do on failure.',
+    [['pass','At least one aligned mechanism passed'],['fail','Neither SPF nor DKIM passed with alignment'],['p=','Policy: none (monitor), quarantine, or reject'],['dis= / action=','What the receiver actually did'],['alignment','Relaxed alignment compares organisational domains, e.g. mail.example.co.uk aligns with example.co.uk']]],
+  ['ARC (Authenticated Received Chain)','Lets forwarders and mailing lists record the authentication results they saw, so the final receiver can trust mail that breaks SPF or DKIM when relayed.',
+    [['i=','Position in the chain (1 = first intermediary)'],['cv=none','First ARC set'],['cv=pass','Earlier sets validated'],['cv=fail','Chain broken; do not rely on earlier results']]],
+  ['Return-Path and SRS','The envelope sender used for bounces and SPF. Forwarders rewrite it with the Sender Rewriting Scheme (SRS0=...) so SPF passes at the next hop; that is normal, not spoofing.',[]],
+  ['Reply-To','Where replies go. A Reply-To in a different, especially free webmail, domain is a common way to steer replies to an attacker in invoice fraud and business email compromise.',[]],
+  ['Received headers','Each server that handles the message adds one at the top. Read them bottom to top. Only headers added by your own organisation\'s servers can be trusted; anything below the first external hop can be forged.',[]],
+  ['Microsoft 365 anti-spam headers','X-Forefront-Antispam-Report and X-Microsoft-Antispam record Exchange Online Protection\'s verdict.',
+    [['SCL','Spam confidence level: -1 bypassed, 0–1 not spam, 5–6 spam, 8–9 high-confidence spam'],['BCL','Bulk complaint level, 0–9; higher is more likely unwanted bulk mail'],['CAT','Protection policy applied, e.g. PHSH phishing, SPOOF, UIMP/DIMP impersonation'],['SFV','Spam filter verdict, e.g. NSPM not spam, SKA allowed by allow list'],['CIP','Connecting IP as seen by Microsoft'],['compauth','Composite authentication: Microsoft\'s combined verdict including implicit checks']]],
+  ['Google headers','Gmail adds its own Authentication-Results with a dara= field, and X-Received headers for internal hops.',[['dara','Google\'s DKIM-alignment assertion']]]
+];
+
+// ── low-level helpers ────────────────────────────────────────────────
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function orgDomain(d){ d=(d||'').toLowerCase().replace(/\.$/,''); const p=d.split('.'); if(p.length<=2) return d; const last2=p.slice(-2).join('.'); return MULTI_SUFFIX.has(last2)?p.slice(-3).join('.'):last2; }
+function aligned(a,b){ return !!a&&!!b&&orgDomain(a)===orgDomain(b); }
+function domainOf(addr){ const i=(addr||'').lastIndexOf('@'); return i<0?'':addr.slice(i+1).toLowerCase().replace(/[>\s]/g,''); }
+function isSRS(a){ return /^SRS[01][=+-]/i.test(a||''); }
+function ipVersion(ip){ return /^[0-9]{1,3}(\.[0-9]{1,3}){3}$/.test(ip)?4:/:/.test(ip)?6:0; }
+function ipClass(ip){
+  if(!ip) return 'none'; const v=ipVersion(ip);
+  if(v===4){ const o=ip.split('.').map(Number); if(o.some(x=>x>255)) return 'invalid';
+    if(o[0]===10||o[0]===127||(o[0]===172&&o[1]>=16&&o[1]<=31)||(o[0]===192&&o[1]===168)) return 'private';
+    if(o[0]===100&&o[1]>=64&&o[1]<=127) return 'private'; if(o[0]===169&&o[1]===254) return 'private'; if(o[0]===0) return 'private';
+    if((o[0]===192&&o[1]===0&&o[2]===2)||(o[0]===198&&o[1]===51&&o[2]===100)||(o[0]===203&&o[1]===0&&o[2]===113)) return 'documentation';
+    return 'public'; }
+  if(v===6){ const l=ip.toLowerCase(); if(l==='::1'||/^fe[89ab]/.test(l)||/^f[cd]/.test(l)) return 'private'; if(/^2001:db8:/.test(l)) return 'documentation';
+    if(/^2603:10[0-9a-f]{2}:/.test(l)) return 'ms-internal'; return 'public'; }
+  return 'invalid';
+}
+function isPublic(ip){ const c=ipClass(ip); return c==='public'||c==='documentation'; }
+function decodeWords(s){
+  if(!s||s.indexOf('=?')<0) return s||'';
+  s=s.replace(/(=\?[^?]+\?[BbQq]\?[^?]*\?=)\s+(?==\?)/g,'$1');
+  return s.replace(/=\?([^?]+)\?([BbQq])\?([^?]*)\?=/g,(m,cs,enc,txt)=>{
+    try{ let bytes;
+      if(enc.toUpperCase()==='B'){ const bin=atob(txt); bytes=Uint8Array.from(bin,c=>c.charCodeAt(0)); }
+      else { const t=txt.replace(/_/g,' '); const arr=[]; for(let i=0;i<t.length;i++){ if(t[i]==='='&&/^[0-9A-Fa-f]{2}$/.test(t.substr(i+1,2))){ arr.push(parseInt(t.substr(i+1,2),16)); i+=2; } else arr.push(t.charCodeAt(i)); } bytes=new Uint8Array(arr); }
+      return new TextDecoder(cs.split('*')[0].toLowerCase()).decode(bytes);
+    }catch(e){ return m; } });
+}
+function extractAddr(str){
+  str=decodeWords(str||'');
+  if(!str) return {display:'',address:''};
+  const m=str.match(/^(.*)<\s*([^<>\s]+@[^<>\s]+)\s*>/);
+  if(m) return {display:m[1].trim().replace(/^"|"$/g,'').replace(/\\"/g,'"').trim(),address:m[2].trim()};
+  const b=str.match(/[^\s<>"@,;:]+@[^\s<>",;:]+/); if(b) return {display:str.replace(b[0],'').replace(/[()"]/g,'').trim(),address:b[0]};
+  return {display:str.trim(),address:''};
+}
+function levenshtein(a,b){ const m=a.length,n=b.length; if(!m) return n; if(!n) return m; let prev=Array.from({length:n+1},(_,j)=>j);
+  for(let i=1;i<=m;i++){ const cur=[i]; for(let j=1;j<=n;j++) cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1)); prev=cur; } return prev[n]; }
+function deconfuse(s){ return s.toLowerCase().replace(/rn/g,'m').replace(/vv/g,'w').replace(/[0]/g,'o').replace(/[1|!]/g,'l').replace(/3/g,'e').replace(/5/g,'s').replace(/\$/g,'s').replace(/@/g,'a'); }
+function punyDecode(label){
+  // RFC 3492 decode of one "xn--" label, for display only
+  try{ const input=label.slice(4); const base=36,tMin=1,tMax=26,skew=38,damp=700; let n=128,i=0,bias=72; let basic=input.lastIndexOf('-'); const out=basic>0?input.slice(0,basic).split(''):[]; let idx=basic>0?basic+1:0;
+    const adapt=(d,np,first)=>{ d=first?Math.floor(d/damp):d>>1; d+=Math.floor(d/np); let k=0; while(d>((base-tMin)*tMax)>>1){ d=Math.floor(d/(base-tMin)); k+=base; } return k+Math.floor((base-tMin+1)*d/(d+skew)); };
+    while(idx<input.length){ const oldi=i; let w=1; for(let k=base;;k+=base){ const c=input.charCodeAt(idx++); const dg=c-48<10?c-22:c-65<26?c-65:c-97<26?c-97:base; i+=dg*w; const t=k<=bias?tMin:k>=bias+tMax?tMax:k-bias; if(dg<t) break; w*=base-t; }
+      bias=adapt(i-oldi,out.length+1,oldi===0); n+=Math.floor(i/(out.length+1)); i%=out.length+1; out.splice(i++,0,String.fromCodePoint(n)); }
+    return out.join(''); }catch(e){ return label; }
+}
+function unicodeDomain(d){ return (d||'').split('.').map(l=>/^xn--/i.test(l)?punyDecode(l):l).join('.'); }
+function defang(v,type){ if(!v) return v; let s=String(v); if(type==='url') s=s.replace(/^http/i,'hxxp'); s=s.replace(/\./g,'[.]'); if(type==='email') s=s.replace('@','[@]'); return s; }
+function fmtDelay(sec){ const a=Math.abs(sec); const t=a<60?Math.round(a)+'s':a<3600?Math.round(a/60)+'m':a<86400?(a/3600).toFixed(1)+'h':(a/86400).toFixed(1)+'d'; return (sec<0?'−':'+')+t; }
+function parseDate(s){ if(!s) return null; const c=s.replace(/\([^)]*\)/g,' ').replace(/\s+/g,' ').trim(); const t=Date.parse(c); return isNaN(t)?null:t; }
+
+// ── message parsing ─────────────────────────────────────────────────
+function splitMessage(raw){
+  let t=String(raw||'').replace(/\r\n?/g,'\n');
+  t=t.replace(/^\uFEFF/,'').replace(/^From [^\n]*\n/,'');           // mbox separator
+  t=t.replace(/^\s*\n/,'');
+  const m=t.match(/\n[ \t]*\n/);
+  return m?{head:t.slice(0,m.index),body:t.slice(m.index+m[0].length)}:{head:t,body:''};
+}
+function parseHeaderBlock(head){
+  const lines=head.split('\n'); const out=[]; let cur=null;
+  lines.forEach(line=>{
+    if(/^[ \t]/.test(line)&&cur){ cur.value+=' '+line.trim(); cur.raw+='\n'+line; return; }
+    const m=line.match(/^([!-9;-~]+):[ \t]?(.*)$/);
+    if(m){ cur={name:m[1].toLowerCase(),original:m[1],value:m[2].trim(),raw:line}; out.push(cur); } else cur=null;
+  });
+  return out;
+}
+function all(h,n){ return h.filter(e=>e.name===n).map(e=>e.value); }
+function first(h,n){ const a=all(h,n); return a.length?a[0]:null; }
+function param(v,name){ const m=(v||'').match(new RegExp('(?:^|;)\\s*'+name+'\\s*=\\s*(?:"([^"]*)"|([^;\\s]+))','i')); return m?(m[1]!=null?m[1]:m[2]):null; }
+
+// Authentication-Results (RFC 8601)
+function parseAR(v){
+  const parts=v.split(';').map(x=>x.trim()).filter(Boolean);
+  const r={authserv:'',spf:null,dkim:[],dmarc:null,compauth:null,dara:null,raw:v};
+  let i=0; if(parts.length&&!/^[a-z-]+\s*=/i.test(parts[0])){ r.authserv=parts[0].split(/\s+/)[0]; i=1; }
+  for(;i<parts.length;i++){
+    const p=parts[i]; const m=p.match(/^([a-z-]+)\s*=\s*([a-z]+)/i); if(!m) continue;
+    const meth=m[1].toLowerCase(), res=m[2].toLowerCase(); const comment=(p.match(/\(([^)]*)\)/)||[])[1]||'';
+    const prop=k=>{ const x=p.match(new RegExp('\\b'+k.replace('.','\\.')+'\\s*=\\s*"?([^\\s;")]+)','i')); return x?x[1]:null; };
+    if(meth==='spf') r.spf={result:res,mailfrom:prop('smtp.mailfrom'),helo:prop('smtp.helo'),comment,ip:(comment.match(/designates?\s+([0-9a-f:.]+)\s/i)||comment.match(/sender IP is\s+([0-9a-f:.]+)/i)||[])[1]||prop('client-ip')};
+    else if(meth==='dkim') r.dkim.push({result:res,d:(prop('header.d')||(prop('header.i')||'').replace(/^.*@/,'')||'').toLowerCase(),s:prop('header.s'),comment});
+    else if(meth==='dmarc'){ const pol=(comment.match(/\bp=([a-z]+)/i)||[])[1]||prop('p')||null; r.dmarc={result:res,from:(prop('header.from')||'').toLowerCase(),policy:pol?pol.toLowerCase():null,sp:((comment.match(/\bsp=([a-z]+)/i)||[])[1]||'').toLowerCase()||null,dis:((comment.match(/\bdis=([a-z]+)/i)||[])[1]||'').toLowerCase()||null,action:(prop('action')||'').toLowerCase()||null}; }
+    else if(meth==='compauth') r.compauth={result:res,reason:prop('reason')};
+    else if(meth==='dara') r.dara=res;
+  }
+  return r;
+}
+function parseReceived(v){
+  const o={raw:v,from:null,helo:null,rdns:null,ip:null,by:null,with:null,id:null,for:null,date:null,t:null};
+  const fm=v.match(/^\s*from\s+(\S+)(?:\s+\(([^()]*(?:\([^()]*\)[^()]*)*)\))?/i);
+  if(fm){ o.from=fm[1]; o.helo=fm[1]; const inner=fm[2]||'';
+    const ipm=inner.match(/\[(?:IPv6:)?([0-9a-f:.]+)\]/i)||inner.match(/\b([0-9]{1,3}(?:\.[0-9]{1,3}){3})\b/)||inner.match(/\b([0-9a-f]{1,4}(?::[0-9a-f]{0,4}){2,7})\b/i);
+    if(ipm) o.ip=ipm[1];
+    const rd=inner.match(/^([a-z0-9.-]+\.[a-z]{2,})\b/i); if(rd&&rd[1].toLowerCase()!=='unknown') o.rdns=rd[1];
+    if(!o.ip){ const b=fm[1].match(/^\[?(?:IPv6:)?([0-9a-f:.]+)\]?$/i); if(b&&ipVersion(b[1])) o.ip=b[1]; } }
+  const bm=v.match(/\sby\s+(\S+)/i); if(bm) o.by=bm[1];
+  const wm=v.match(/\swith\s+([A-Za-z0-9_-]+)/i); if(wm) o.with=wm[1];
+  const im=v.match(/\sid\s+([^\s;]+)/i); if(im) o.id=im[1];
+  const fo=v.match(/\sfor\s+<?([^\s;>]+)>?/i); if(fo) o.for=fo[1];
+  const dm=v.match(/;\s*([^;]+)$/); if(dm){ o.date=dm[1].trim(); o.t=parseDate(o.date); }
+  return o;
+}
+function parseDKIM(v){ const t=k=>{ const m=v.match(new RegExp('(?:^|;)\\s*'+k+'=([^;]+)','i')); return m?m[1].replace(/\s+/g,'').trim():null; };
+  return {d:(t('d')||'').toLowerCase(),s:t('s'),a:t('a'),h:(t('h')||'').toLowerCase().split(':').filter(Boolean),l:t('l'),t:t('t')?Number(t('t')):null,x:t('x')?Number(t('x')):null,raw:v}; }
+
+// ── MIME body walker (URLs, link mismatches, attachments) ────────────
+function b64bytes(s){ try{ const bin=atob(s.replace(/[^A-Za-z0-9+/=]/g,'')); return Uint8Array.from(bin,c=>c.charCodeAt(0)); }catch(e){ return new Uint8Array(); } }
+function qpbytes(s){ s=s.replace(/=\n/g,''); const a=[]; for(let i=0;i<s.length;i++){ if(s[i]==='='&&/^[0-9A-Fa-f]{2}$/.test(s.substr(i+1,2))){ a.push(parseInt(s.substr(i+1,2),16)); i+=2; } else { const c=s.charCodeAt(i); if(c<128) a.push(c); else new TextEncoder().encode(s[i]).forEach(b=>a.push(b)); } } return new Uint8Array(a); }
+function toText(bytes,cs){ try{ return new TextDecoder((cs||'utf-8').toLowerCase()).decode(bytes); }catch(e){ return new TextDecoder('utf-8').decode(bytes); } }
+function walkMime(headers,body,acc,depth){
+  if(depth>8) return;
+  const ct=(first(headers,'content-type')||'text/plain').toLowerCase(); const cte=(first(headers,'content-transfer-encoding')||'7bit').toLowerCase().trim();
+  const disp=(first(headers,'content-disposition')||''); const rawCt=first(headers,'content-type')||'';
+  const fname=decodeWords(param(disp,'filename')||param(rawCt,'name')||param(disp,'filename\\*')||'');
+  if(/^multipart\//.test(ct)){ const bd=param(rawCt,'boundary'); if(!bd) return;
+    const parts=body.split(new RegExp('\\n?--'+bd.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?:--)?[ \\t]*\\n?'));
+    parts.slice(1).forEach(pt=>{ if(!pt.trim()) return; const sp=splitMessage(pt); walkMime(parseHeaderBlock(sp.head),sp.body,acc,depth+1); }); return; }
+  const bytes=cte==='base64'?b64bytes(body):cte==='quoted-printable'?qpbytes(body):new TextEncoder().encode(body);
+  const isAttach=/attachment/i.test(disp)||(!!fname&&!/^text\/(plain|html)/.test(ct))||/^message\/rfc822/.test(ct)||(!/^text\//.test(ct)&&!/^multipart/.test(ct));
+  if(isAttach){ acc.attachments.push({name:fname||'(unnamed)',type:ct.split(';')[0],size:bytes.length,bytes,sha256:null}); if(!/^text\/html/.test(ct)) return; }
+  if(/^text\/(plain|html)/.test(ct)){ const txt=toText(bytes,param(rawCt,'charset')); acc.texts.push({type:ct.split(';')[0],text:txt});
+    if(/html/.test(ct)){ const re=/<a\b[^>]*href\s*=\s*["']?([^"'\s>]+)["']?[^>]*>([\s\S]*?)<\/a>/gi; let m;
+      while((m=re.exec(txt))&&acc.links.length<300){ const href=m[1].replace(/&amp;/g,'&'); const label=m[2].replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim(); acc.links.push({href,label}); } }
+    (txt.match(/https?:\/\/[^\s"'<>)\]]+/gi)||[]).slice(0,300).forEach(u=>acc.urls.add(u.replace(/[.,;]+$/,'').replace(/&amp;/g,'&'))); }
+}
+function hostOf(u){ const m=String(u||'').match(/^[a-z][a-z0-9+.-]*:\/\/([^/?#:@]+@)?([^/?#:]+)/i); return m?m[2].toLowerCase():''; }
+
+// ── main analysis ───────────────────────────────────────────────────
+function analyse(raw){
+  const {head,body}=splitMessage(raw); const H=parseHeaderBlock(head);
+  if(!H.length) return null;
+  const A={H,head,hasBody:!!body.trim(),findings:[]};
+  const F=(sev,text,area)=>A.findings.push({sev,text,area:area||''});
+  // identity
+  A.from=extractAddr(first(H,'from')); A.replyTo=extractAddr(first(H,'reply-to')); A.returnPath=extractAddr(first(H,'return-path')||'');
+  A.sender=extractAddr(first(H,'sender')); A.to=decodeWords(first(H,'to')||''); A.cc=decodeWords(first(H,'cc')||'');
+  A.subject=decodeWords(first(H,'subject')||''); A.date=first(H,'date')||''; A.dateT=parseDate(A.date); A.messageId=first(H,'message-id')||'';
+  A.fromDomain=domainOf(A.from.address); A.returnDomain=domainOf(A.returnPath.address); A.replyDomain=domainOf(A.replyTo.address); A.senderDomain=domainOf(A.sender.address);
+  A.msgIdDomain=((A.messageId.match(/@([^>\s]+)/)||[])[1]||'').toLowerCase();
+  A.mailer=first(H,'x-mailer')||first(H,'user-agent')||'';
+  A.listUnsub=first(H,'list-unsubscribe'); A.listUnsubPost=first(H,'list-unsubscribe-post');
+  // duplicate singular headers
+  const dups=['from','subject','date','message-id','reply-to','to','sender'].filter(n=>all(H,n).length>1);
+  if(dups.length) F('high','Duplicate '+dups.join(', ')+' header'+(dups.length>1?'s':'')+'. Legitimate mail rarely repeats these; different clients may show different values.','identity');
+  if(!A.from.address) F('high','No From address could be read.','identity');
+
+  // authentication — trust the topmost Authentication-Results only
+  A.ars=all(H,'authentication-results').map(parseAR);
+  A.trusted=A.ars[0]||null;
+  const ids=[...new Set(A.ars.map(a=>a.authserv).filter(Boolean))];
+  if(ids.length>1) F('low',`Authentication-Results from ${ids.length} different servers (${ids.join(', ')}). Only the topmost, from ${A.trusted.authserv||'the receiving server'}, is trusted; lower ones may have been added before delivery.`,'auth');
+  const rspf=first(H,'received-spf');
+  A.receivedSpf=rspf?{result:((rspf.match(/^\s*([a-z]+)/i)||[])[1]||'').toLowerCase()||null,ip:(rspf.match(/client-ip=([0-9a-f:.]+)/i)||[])[1]||null,envelope:(rspf.match(/envelope-from="?([^\s;"]+)/i)||[])[1]||null}:null;
+  const T=A.trusted||{spf:null,dkim:[],dmarc:null,compauth:null,dara:null};
+  A.spf=T.spf?T.spf.result:(A.receivedSpf&&A.receivedSpf.result)||null;
+  A.spfMailfrom=(T.spf&&T.spf.mailfrom)||A.returnPath.address||'';
+  A.dkimRes=T.dkim; A.dkim=T.dkim.length?(T.dkim.some(d=>d.result==='pass')?'pass':T.dkim[0].result):null;
+  A.dmarc=T.dmarc?T.dmarc.result:null; A.dmarcPolicy=T.dmarc?T.dmarc.policy:null; A.dmarcAction=T.dmarc?(T.dmarc.dis||T.dmarc.action):null;
+  A.compauth=T.compauth; A.dara=T.dara;
+  A.sigs=all(H,'dkim-signature').map(parseDKIM);
+  const mfDomain=domainOf(A.spfMailfrom)||(A.spfMailfrom||'').toLowerCase();
+  A.spfAligned=A.spf==='pass'&&aligned(mfDomain,A.fromDomain);
+  A.dkimAligned=T.dkim.some(d=>d.result==='pass'&&aligned(d.d,A.fromDomain))||(!T.dkim.length&&false);
+  A.sigs.forEach(sg=>{ sg.aligned=aligned(sg.d,A.fromDomain); sg.result=(T.dkim.find(d=>d.d===sg.d)||{}).result||null;
+    if(sg.l) F('med',`DKIM signature from ${sg.d} uses a body length limit (l=${sg.l}). Content could have been appended after the signed portion without breaking the signature.`,'auth');
+    if(sg.h.length&&!sg.h.includes('from')) F('high',`DKIM signature from ${sg.d} does not cover the From header, so From could have been changed without breaking it.`,'auth'); });
+  // ARC
+  A.arc=all(H,'arc-authentication-results').map(v=>{ const i=Number((v.match(/\bi=(\d+)/)||[])[1]||0); const r=parseAR(v.replace(/^\s*i=\d+\s*;\s*/,'')); return {i,spf:r.spf&&r.spf.result,dkim:r.dkim.length?(r.dkim.some(d=>d.result==='pass')?'pass':r.dkim[0].result):null,dmarc:r.dmarc&&r.dmarc.result,authserv:r.authserv}; }).sort((a,b)=>a.i-b.i);
+  A.arcSeals=all(H,'arc-seal').map(v=>({i:Number((v.match(/\bi=(\d+)/)||[])[1]||0),cv:((v.match(/\bcv=([a-z]+)/i)||[])[1]||'').toLowerCase(),d:((v.match(/\bd=([^;\s]+)/i)||[])[1]||'').toLowerCase()})).sort((a,b)=>a.i-b.i);
+  A.arcBroken=A.arcSeals.some(s=>s.cv==='fail');
+  A.forwarded=isSRS(A.returnPath.address)||A.arc.length>0;
+  if(A.arcBroken) F('med','The ARC chain is broken (cv=fail): results recorded by earlier intermediaries cannot be relied on.','auth');
+
+  // delivery path
+  A.hops=all(H,'received').map(parseReceived);
+  A.hops.forEach(h=>{ h.cls=h.ip?ipClass(h.ip):'none'; });
+  const ms=first(H,'x-forefront-antispam-report')||'';
+  const msKV={}; ms.split(';').forEach(kv=>{ const i=kv.indexOf(':'); if(i>0) msKV[kv.slice(0,i).trim().toUpperCase()]=kv.slice(i+1).trim(); });
+  const trustedIP=(T.spf&&T.spf.ip)||(A.receivedSpf&&A.receivedSpf.ip)||null;
+  let origin=null, src='';
+  if(trustedIP){ origin=trustedIP; src='client IP recorded by the receiving server (SPF)'; }
+  else { const h=A.hops.find(h=>h.ip&&isPublic(h.ip)); if(h){ origin=h.ip; src='first external hop in the Received headers'; }
+    else if(msKV.CIP){ origin=msKV.CIP; src='CIP in X-Forefront-Antispam-Report'; }
+    else if(first(H,'x-originating-ip')){ origin=first(H,'x-originating-ip').replace(/[\[\]]/g,''); src='X-Originating-IP (client that submitted the message)'; } }
+  A.origin=origin; A.originSrc=src; A.originHop=origin?A.hops.findIndex(h=>h.ip===origin):-1;
+  A.xOrigIP=(first(H,'x-originating-ip')||'').replace(/[\[\]]/g,'')||null;
+  // hop timing (oldest → newest)
+  const timed=A.hops.map((h,i)=>({h,i})).filter(x=>x.h.t!=null);
+  for(let k=timed.length-1;k>0;k--){ const older=timed[k].h, newer=timed[k-1].h; newer.delay=(newer.t-older.t)/1000; }
+  A.negHops=A.hops.filter(h=>h.delay!=null&&h.delay<-120);
+  if(A.negHops.length) F('med',`${A.negHops.length} hop${A.negHops.length>1?'s':''} ${A.negHops.length>1?'have':'has'} a timestamp earlier than the hop before it. Usually clock skew, but forged Received headers look the same.`,'path');
+  if(timed.length>=2){ A.transit=(timed[0].h.t-timed[timed.length-1].h.t)/1000; if(A.transit>6*3600) F('low',`Delivery took ${fmtDelay(A.transit).slice(1)} from first to last hop. Long delays can indicate queued bulk mail or a message held and released.`,'path'); }
+  if(A.dateT&&timed.length){ const oldest=timed[timed.length-1].h.t; A.dateSkew=(oldest-A.dateT)/1000;
+    if(A.dateSkew<-600) F('med',`The Date header is ${fmtDelay(-A.dateSkew).slice(1)} later than the first server received the message. The sender's clock is wrong or the Date header was set deliberately.`,'path');
+    else if(A.dateSkew>86400) F('low',`The first server received the message ${fmtDelay(A.dateSkew).slice(1)} after its Date header. It may have been drafted earlier or resent.`,'path'); }
+  if(!A.hops.length) F('low','No Received headers: the delivery path cannot be traced. Common when only part of the header was copied.','path');
+
+  // provider signals
+  A.ms={scl:first(H,'x-ms-exchange-organization-scl')||msKV.SCL||null,bcl:((first(H,'x-microsoft-antispam')||'').match(/BCL:(\d+)/i)||[])[1]||null,cat:msKV.CAT||null,sfv:msKV.SFV||null,
+    ctry:msKV.CTRY||null,ptr:msKV.PTR||null,cip:msKV.CIP||null,authAs:first(H,'x-ms-exchange-organization-authas'),dir:first(H,'x-ms-exchange-organization-messagedirectionality'),sfty:msKV.SFTY||null,present:!!(ms||first(H,'x-microsoft-antispam'))};
+  if(A.ms.cat&&A.ms.cat!=='NONE'&&MS_CAT[A.ms.cat]) F(/PH|SPOOF|IMP|MALW/.test(A.ms.cat)?'high':'med',`Microsoft 365 classified this message as ${MS_CAT[A.ms.cat]} (CAT:${A.ms.cat}).`,'provider');
+  if(A.ms.sfv==='SKA'||A.ms.sfv==='SFE'||A.ms.scl==='-1') F('med',`Microsoft 365 skipped or overrode spam filtering (${A.ms.scl==='-1'?'SCL -1':'SFV:'+A.ms.sfv}). Check which allow list or mail flow rule let it through.`,'provider');
+
+  // identity checks
+  if(A.returnDomain&&A.fromDomain&&!aligned(A.returnDomain,A.fromDomain)&&!A.forwarded) F('low',`Return-Path domain (${A.returnDomain}) differs from the From domain (${A.fromDomain}). Common for mailing services, but it means SPF cannot align.`,'identity');
+  if(A.replyDomain&&A.fromDomain&&!aligned(A.replyDomain,A.fromDomain)){
+    const free=FREEMAIL.includes(A.replyDomain);
+    F(free&&!FREEMAIL.includes(A.fromDomain)?'high':'med',`Replies go to ${A.replyTo.address}${free?', a free webmail address,':''} not the From domain (${A.fromDomain}). This is how invoice-fraud and BEC messages steer replies to the attacker.`,'identity'); }
+  if(A.sender.address&&A.senderDomain&&A.fromDomain&&!aligned(A.senderDomain,A.fromDomain)) F('low',`Sent on behalf of: Sender is ${A.sender.address}, From is ${A.from.address}.`,'identity');
+  const disp=A.from.display||'';
+  const dispAddr=(disp.match(/[^\s<>"@,;:]+@[^\s<>",;:]+/)||[])[0];
+  if(dispAddr&&domainOf(dispAddr)!==A.fromDomain) F('high',`The display name shows the address ${dispAddr}, but the real sender is ${A.from.address}. Many mail clients show only the display name.`,'identity');
+  const dispL=disp.toLowerCase().replace(/[^a-z0-9 ]/g,' ');
+  BRANDS.forEach(([name,ds])=>{ const nm=name.toLowerCase(); if(nm.length<4&&!['hmrc','dvla','nhs','dhl','irs'].includes(nm)) return;
+    if(new RegExp('\\b'+nm.replace(/\s+/g,'\\s*')+'\\b').test(dispL)&&A.fromDomain&&!ds.some(d=>aligned(d,A.fromDomain))) F(FREEMAIL.includes(A.fromDomain)?'high':'med',`The display name mentions ${name}, but the message is from ${A.fromDomain}, which is not a ${name} domain.`,'identity'); });
+  if(A.fromDomain&&FREEMAIL.includes(A.fromDomain)&&disp&&/\b(team|support|security|billing|accounts?|payroll|finance|ceo|director|service|helpdesk|admin)\b/i.test(disp)) F('med',`A role or organisation-style display name ("${disp}") is sent from a free webmail address.`,'identity');
+  if(A.msgIdDomain&&A.fromDomain&&!aligned(A.msgIdDomain,A.fromDomain)&&!/outlook\.com|prod\.outlook|google\.com|gmail\.com|mail\.gmail|amazonses|sendgrid|mailgun|mcsv|mandrill|sparkpost|exacttarget|sfmc|hubspot|salesforce|zendesk/i.test(A.msgIdDomain)) F('low',`Message-ID domain (${A.msgIdDomain}) differs from the From domain. Often a mailing service, occasionally a sign of the real sending system.`,'identity');
+
+  // lookalikes and punycode
+  A.lookalikes=[]; const seen=new Set();
+  [['From',A.fromDomain],['Reply-To',A.replyDomain],['Return-Path',A.returnDomain],['Sender',A.senderDomain]].concat(A.sigs.map(s=>['DKIM d=',s.d])).forEach(([lab,d])=>{
+    if(!d||seen.has(lab+d)) return; seen.add(lab+d); const org=orgDomain(d);
+    if(/(^|\.)xn--/i.test(d)) A.lookalikes.push({where:lab,domain:d,why:`internationalised (punycode) domain; it displays as "${unicodeDomain(d)}"`,sev:'high'});
+    if(BRANDS.some(([n,ds])=>ds.some(x=>aligned(x,d)))) return;
+    const lbl=org.split('.')[0]; const dl=deconfuse(lbl);
+    for(const b of BRAND_LABELS){
+      const dist=levenshtein(dl,b.label);
+      if(b.label.length>=5&&dist>0&&dist<=(b.label.length>=8?2:1)&&Math.abs(lbl.length-b.label.length)<=2){ A.lookalikes.push({where:lab,domain:d,why:`one or two characters away from ${b.domains[0]} (${b.brand})`,sev:'high'}); break; }
+      if(dl===b.label&&lbl!==b.label){ A.lookalikes.push({where:lab,domain:d,why:`uses look-alike characters to spell ${b.label} (${b.brand})`,sev:'high'}); break; }
+      if(b.label.length>=5&&dl!==b.label&&new RegExp('(^|[^a-z])'+b.label+'([^a-z]|$)').test(d.replace(/\./g,' '))){ A.lookalikes.push({where:lab,domain:d,why:`contains the brand name ${b.label} but is not a ${b.brand} domain`,sev:'med'}); break; }
+    }
+  });
+  A.lookalikes.forEach(l=>F(l.sev,`${l.where} domain ${l.domain}: ${l.why}.`,'lookalike'));
+
+  // body
+  A.body={urls:[],links:[],attachments:[],texts:[]};
+  if(A.hasBody){ const acc={urls:new Set(),links:[],attachments:[],texts:[]}; try{ walkMime(H,body,acc,0); }catch(e){}
+    A.body={urls:[...acc.urls],links:acc.links,attachments:acc.attachments,texts:acc.texts};
+    A.mismatchLinks=acc.links.filter(l=>{ const shown=(l.label.match(/(?:https?:\/\/)?((?:[a-z0-9-]+\.)+[a-z]{2,})/i)||[])[1]; const real=hostOf(l.href); return shown&&real&&!aligned(shown.toLowerCase(),real); });
+    A.mismatchLinks.slice(0,5).forEach(l=>F('high',`A link shows "${l.label.slice(0,80)}" but goes to ${hostOf(l.href)}.`,'body'));
+    const risky=A.body.attachments.filter(a=>/\.(html?|shtml|svg|js|vbs|wsf|hta|lnk|iso|img|vhdx?|one|zip|rar|7z|exe|scr|bat|cmd|ps1|msi|docm|xlsm|pptm|jar)$/i.test(a.name));
+    risky.forEach(a=>F(/\.(html?|shtml|svg|hta|lnk|iso|img|vhdx?|exe|scr|js|vbs|wsf|bat|cmd|ps1|msi|jar|one)$/i.test(a.name)?'high':'med',`Attachment "${a.name}" is a file type commonly used to deliver phishing pages or malware.`,'body'));
+  }
+
+  // language often used in fraud (low weight on its own)
+  const bodyText=A.body.texts.map(t=>t.text.replace(/<[^>]+>/g,' ')).join(' ').slice(0,20000);
+  const lure=(A.subject+' '+bodyText).match(/\b(bank (?:details|account)|account details (?:have )?changed|change of bank|new (?:bank|account) details|payment (?:details|instructions?)|wire transfer|remittance|overdue invoice|gift cards?|verify your (?:account|identity|password)|account (?:has been )?(?:limited|suspended|locked)|password (?:expires|expiry|reset)|within 24 hours|urgent(?:ly)?)\b/i);
+  if(lure) F('low',`The ${A.subject.toLowerCase().includes(lure[0].toLowerCase())?'subject':'message'} uses wording common in phishing and payment fraud ("${lure[0]}").`,'content');
+  // verdict
+  let cls, title, text;
+  const anyAuth=A.spf||A.dkim||A.dmarc||A.compauth;
+  if(!anyAuth){ cls='warn'; title='No authentication results'; text='The receiving server\'s SPF, DKIM and DMARC results are not in this header. That is normal for internal mail or a partial copy, but the sender cannot be verified from what is here.'; }
+  else if(A.dmarc==='pass'||(!A.dmarc&&A.compauth&&A.compauth.result==='pass')){ cls='pass'; title='Sender domain authenticated'; text=`The receiving server confirmed that the message really came from ${A.fromDomain||'the From domain'} (DMARC ${A.dmarc||'not checked; Microsoft composite authentication passed'}). This proves the domain, not the intent: messages from compromised accounts and many business email compromise attempts pass.`; }
+  else if(A.dmarc==='fail'){ const arcOk=A.arc.length&&A.arc[0].dmarc==='pass'&&!A.arcBroken;
+    if(arcOk){ cls='warn'; title='Failed after forwarding'; text=`DMARC failed at the final server, but the ARC chain shows it passed before being forwarded by ${A.arcSeals[0]?A.arcSeals[0].d:'an intermediary'}. Typical of mailing lists; confirm the forwarder is expected.`; }
+    else { cls='fail'; title='Failed authentication'; text=`DMARC failed: neither SPF nor DKIM passed for a domain aligned with ${A.fromDomain||'the From domain'}. The message probably did not come from the sender it shows${A.dmarcPolicy?`; the domain's policy is p=${A.dmarcPolicy}${A.dmarcAction?' and the receiver applied '+A.dmarcAction:''}`:''}.`; } }
+  else if(A.spfAligned||A.dkimAligned){ cls='warn'; title='Aligned, but no DMARC verdict'; text=`${A.dkimAligned?'DKIM':'SPF'} passed for a domain aligned with From, but there was no DMARC result (${A.dmarc||'not recorded'}), so the domain has not asked receivers to enforce authentication.`; }
+  else if(A.spf==='fail'||A.dkim==='fail'||A.compauth&&A.compauth.result==='fail'){ cls='fail'; title='Failed authentication'; text='SPF or DKIM failed and nothing aligned with the From domain. Treat the sender as unverified and likely spoofed.'; }
+  else { cls='warn'; title='Not verified'; text='Authentication results are present but inconclusive (for example softfail, neutral or none). The From domain cannot be confirmed.'; }
+  const highs=A.findings.filter(f=>f.sev==='high').length;
+  if(cls==='pass'&&highs){ cls='warn'; title='Authenticated, but deceptive signals'; text+=` ${highs} high-risk sign${highs>1?'s were':' was'} found below, so treat requests for payment, credentials or changes with suspicion.`; }
+  if(cls==='pass') F('good',`DMARC passed for ${A.fromDomain}; ${A.dkimAligned?'DKIM':''}${A.dkimAligned&&A.spfAligned?' and ':''}${A.spfAligned?'SPF':''}${!A.dkimAligned&&!A.spfAligned?'receiver-reported':''} aligned.`,'auth');
+  A.verdict={cls,title,text};
+  const order={high:0,med:1,low:2,good:3}; A.findings.sort((a,b)=>order[a.sev]-order[b.sev]);
+
+  // indicators
+  const ioc=[]; const add=(type,value,context)=>{ if(!value) return; value=String(value).trim(); if(!ioc.some(i=>i.type===type&&i.value.toLowerCase()===value.toLowerCase())) ioc.push({type,value,context}); };
+  if(A.origin&&isPublic(A.origin)) add('ip',A.origin,'Connecting IP ('+A.originSrc+')');
+  A.hops.forEach((h,i)=>{ if(h.ip&&isPublic(h.ip)) add('ip',h.ip,'Received hop '+(A.hops.length-i)+(h.rdns?' · '+h.rdns:'')); });
+  if(A.xOrigIP&&isPublic(A.xOrigIP)) add('ip',A.xOrigIP,'X-Originating-IP');
+  [['From',A.from.address],['Reply-To',A.replyTo.address],['Return-Path',A.returnPath.address],['Sender',A.sender.address]].forEach(([k,v])=>{ if(v) add('email',v,k); });
+  const skipDom=d=>FREEMAIL.includes(d)||/(^|\.)(outlook\.com|google\.com|gmail\.com|amazonses\.com)$/.test(d);
+  [['From',A.fromDomain],['Reply-To',A.replyDomain],['Return-Path',A.returnDomain],['Message-ID',A.msgIdDomain]].forEach(([k,v])=>{ if(v&&!skipDom(v)) add('domain',v,k+' domain'); });
+  A.sigs.forEach(s=>add('domain',s.d,'DKIM signing domain'));
+  A.body.urls.slice(0,100).forEach(u=>add('url',u,'Message body'));
+  A.body.attachments.forEach(a=>add('file',a.name,a.type+' · '+a.size.toLocaleString()+' bytes'));
+  A.iocs=ioc;
+  return A;
+}
+async function hashAttachments(A){
+  if(!A||!A.body.attachments.length||!(window.crypto&&crypto.subtle)) return;
+  for(const a of A.body.attachments){ try{ const d=await crypto.subtle.digest('SHA-256',a.bytes); a.sha256=[...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,'0')).join('');
+    if(!A.iocs.some(i=>i.type==='sha256'&&i.value===a.sha256)) A.iocs.push({type:'sha256',value:a.sha256,context:'Attachment: '+a.name}); }catch(e){} }
+}
+
+// ── samples (fictional; documentation IP ranges and .example domains) ──
+const SAMPLES=[
+{name:"Brand spoof with phishing page",desc:"Display-name spoofing, punycode DKIM domain, failed DMARC, link mismatch and an HTML attachment",raw:"Delivered-To: j.doe@harbourline.example\nReceived: by 2002:a05:7300:4d8b:b0:12a:77f1:9d2 with SMTP id hk11csp812345dyb;\n        Mon, 14 Sep 2026 08:12:44 -0700 (PDT)\nAuthentication-Results: mx.harbourline.example;\n       dkim=fail header.i=@xn--pypal-4ve.com header.s=selector1 header.b=Kx9aQ2;\n       spf=fail (mx.harbourline.example: domain of billing@paypal-secure-mail.example does not designate 203.0.113.47 as permitted sender) smtp.mailfrom=billing@paypal-secure-mail.example;\n       dmarc=fail (p=REJECT sp=REJECT dis=QUARANTINE) header.from=paypal-secure-mail.example\nReceived-SPF: fail (mx.harbourline.example: domain of billing@paypal-secure-mail.example does not designate 203.0.113.47 as permitted sender) client-ip=203.0.113.47;\nReceived: from mail-relay-99.bulk-sender.example (mail-relay-99.bulk-sender.example. [203.0.113.47])\n        by mx.harbourline.example with ESMTPS id xyz987abc\n        for <j.doe@harbourline.example>;\n        Mon, 14 Sep 2026 08:12:41 -0700 (PDT)\nReceived: from internal-relay.paypal-secure-mail.example (unknown [10.2.4.18])\n        by mail-relay-99.bulk-sender.example with SMTP id qq11;\n        Mon, 14 Sep 2026 15:12:30 +0000\nAuthentication-Results: mail-relay-99.bulk-sender.example; spf=pass smtp.mailfrom=paypal.com; dkim=pass header.d=paypal.com; dmarc=pass header.from=paypal.com\nDKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=xn--pypal-4ve.com; s=selector1;\n        h=to:subject:date:message-id; bh=abc=; b=Kx9aQ2def=\nReturn-Path: <billing@paypal-secure-mail.example>\nReply-To: \"PayPal Support\" <support-case-4471@secure-alerts.example>\nFrom: \"PayPal Security <service@paypal.com>\" <service@paypal-secure-mail.example>\nTo: j.doe@harbourline.example\nSubject: =?UTF-8?Q?Urgent:_Your_account_has_been_limited?=\nDate: Mon, 14 Sep 2026 15:12:29 +0000\nMessage-ID: <20260914151229.99887.QQXX@bulk-sender.example>\nMIME-Version: 1.0\nContent-Type: multipart/mixed; boundary=\"b1_77aa\"\n\n--b1_77aa\nContent-Type: text/html; charset=\"UTF-8\"\nContent-Transfer-Encoding: quoted-printable\n\n<p>We noticed unusual activity. Please review your account within 24 hours.</p>\n<p><a href=3D\"https://paypa1-account-review.example/login?id=3D4471\">https://www.paypal.com=\n/signin</a></p>\n--b1_77aa\nContent-Type: text/html; name=\"Account_Review.html\"\nContent-Disposition: attachment; filename=\"Account_Review.html\"\nContent-Transfer-Encoding: base64\n\nPCFkb2N0eXBlIGh0bWw+PGh0bWw+PGJvZHk+PGZvcm0gYWN0aW9uPSJodHRwczovL3BheXBhMS1h\nY2NvdW50LXJldmlldy5leGFtcGxlL2NvbGxlY3QiPjxpbnB1dCBuYW1lPSJ1Ij48aW5wdXQgbmFt\nZT0icCIgdHlwZT0icGFzc3dvcmQiPjwvZm9ybT48L2JvZHk+PC9odG1sPg==\n--b1_77aa--\n"},
+{name:"Mailing list (ARC)",desc:"Legitimate message that fails DMARC after a mailing list modifies it; ARC shows it passed earlier",raw:"Return-Path: <bounces+srs=4f2a1@lists.dfir-forum.example>\nDelivered-To: m.reyes@harbourline.example\nAuthentication-Results: mx.harbourline.example;\n       dkim=fail (body hash did not verify) header.d=northgate.example header.s=k1;\n       dkim=pass header.d=lists.dfir-forum.example header.s=list1;\n       spf=pass (mx.harbourline.example: domain of bounces+srs=4f2a1@lists.dfir-forum.example designates 192.0.2.25 as permitted sender) smtp.mailfrom=bounces+srs=4f2a1@lists.dfir-forum.example;\n       dmarc=fail (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=northgate.example;\n       arc=pass (i=1 spf=pass spfdomain=northgate.example dkim=pass dkdomain=northgate.example dmarc=pass fromdomain=northgate.example)\nReceived: from mail.lists.dfir-forum.example (mail.lists.dfir-forum.example. [192.0.2.25])\n        by mx.harbourline.example with ESMTPS id 5a1b2c3d\n        for <m.reyes@harbourline.example>;\n        Tue, 15 Sep 2026 10:04:19 +0100 (BST)\nARC-Seal: i=1; a=rsa-sha256; t=1789462650; cv=none; d=lists.dfir-forum.example; s=arc1; b=aa11\nARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=lists.dfir-forum.example; s=arc1; h=from:to:subject:date; bh=bb22; b=cc33\nARC-Authentication-Results: i=1; lists.dfir-forum.example;\n       dkim=pass header.d=northgate.example;\n       spf=pass smtp.mailfrom=priya.shah@northgate.example;\n       dmarc=pass (p=QUARANTINE) header.from=northgate.example\nReceived: from mail.northgate.example (mail.northgate.example [198.51.100.40])\n        by mail.lists.dfir-forum.example with ESMTPS id 99ff;\n        Tue, 15 Sep 2026 10:03:58 +0100 (BST)\nDKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=lists.dfir-forum.example; s=list1; h=from:to:subject:date:list-id; bh=dd44; b=ee55\nDKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=northgate.example; s=k1; h=from:to:subject:date:message-id; bh=ff66; b=gg77\nFrom: Priya Shah <priya.shah@northgate.example>\nTo: DFIR Practitioners <dfir@lists.dfir-forum.example>\nSubject: [dfir] Notes from this week's ATT&CK v19 session\nDate: Tue, 15 Sep 2026 10:03:51 +0100\nMessage-ID: <CAF8e1a2b3c4@mail.northgate.example>\nList-Id: DFIR Practitioners <dfir.lists.dfir-forum.example>\nList-Unsubscribe: <mailto:dfir-leave@lists.dfir-forum.example>, <https://lists.dfir-forum.example/unsubscribe>\nList-Unsubscribe-Post: List-Unsubscribe=One-Click\nPrecedence: list\nContent-Type: text/plain; charset=\"UTF-8\"\n\nSlides and notes are on the forum. The main change is the split of Defense Evasion into Stealth and Defense Impairment.\n"},
+{name:"Supplier bank-detail change (BEC)",desc:"Authenticated message from a compromised supplier with replies steered to free webmail",raw:"Received: from AM9PR08MB6754.eurprd08.prod.outlook.com (2603:10a6:20b:2d3::11)\n by DB9PR08MB7182.eurprd08.prod.outlook.com with HTTPS; Tue, 8 Sep 2026 11:02:15 +0000\nReceived: from DU2PR04CA0123.eurprd04.prod.outlook.com (2603:10a6:10:230::8)\n by AM9PR08MB6754.eurprd08.prod.outlook.com (2603:10a6:20b:2d3::11) with\n Microsoft SMTP Server (version=TLS1_2) id 15.20.8200.12; Tue, 8 Sep 2026 11:02:14 +0000\nAuthentication-Results: spf=pass (sender IP is 198.51.100.24)\n smtp.mailfrom=nordwind-freight.example; dkim=pass (signature was verified)\n header.d=nordwind-freight.example;dmarc=pass action=none\n header.from=nordwind-freight.example;compauth=pass reason=100\nReceived-SPF: Pass (protection.outlook.com: domain of nordwind-freight.example\n designates 198.51.100.24 as permitted sender) receiver=protection.outlook.com;\n client-ip=198.51.100.24; helo=mail.nordwind-freight.example; pr=C\nReceived: from mail.nordwind-freight.example (198.51.100.24) by\n DU2PR04CA0123.mail.protection.outlook.com (10.167.8.99) with Microsoft SMTP\n Server (version=TLS1_3) id 15.20.8200.10 via Frontend Transport; Tue, 8 Sep 2026 11:02:13 +0000\nX-MS-Exchange-Organization-AuthAs: Anonymous\nX-MS-Exchange-Organization-SCL: 1\nX-MS-Exchange-Organization-MessageDirectionality: Incoming\nX-Forefront-Antispam-Report: CIP:198.51.100.24;CTRY:NL;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.nordwind-freight.example;PTR:mail.nordwind-freight.example;CAT:NONE;SFS:(13230040);DIR:INB;\nX-Microsoft-Antispam: BCL:0;ARA:13230040;\nDKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nordwind-freight.example; s=sel1; h=From:Reply-To:To:Subject:Date:Message-ID; bh=hh88; b=ii99\nFrom: \"Nordwind Freight Accounts\" <accounts@nordwind-freight.example>\nReply-To: \"Nordwind Accounts\" <nordwind.accounts@outlook.com>\nTo: \"Harbourline Accounts Payable\" <ap@harbourline.example>\nSubject: Updated bank details for invoice 2026-0917\nDate: Tue, 8 Sep 2026 12:01:58 +0100\nMessage-ID: <DB7PR04MB5012A1B2C3D4@DB7PR04MB5012.eurprd04.prod.outlook.com>\nX-Mailer: Microsoft Outlook 16.0\nContent-Type: text/plain; charset=\"utf-8\"\n\nPlease note our bank details have changed. Use the attached letter for this week's payment run and reply to confirm.\n"}
+];
+
+// ═══════════ UI STATE (message content is memory-only) ═══════════
+const PALETTES={navy:{label:'Navy',c:'#12336E'},teal:{label:'Teal',c:'#0D4F4C'},graphite:{label:'Graphite',c:'#2F3640'},burgundy:{label:'Burgundy',c:'#561A2B'}};
+const PREF_KEY='dh-email-analyser-prefs';
+let prefs={analyst:'',ref:'',prep:'',tlp:'',palette:'navy'};
+try{ Object.assign(prefs,JSON.parse(localStorage.getItem(PREF_KEY)||'{}')); }catch(e){}
+let RAW='', A=null, currentPage='analyse', defangOn=true, analysedAt=null;
+const PAGES=[['analyse','Analyse'],['auth','Authentication'],['path','Delivery path'],['iocs','Indicators & content'],['headers','Headers'],['reference','Reference'],['report','Report']];
+const SEV_LABEL={high:'HIGH',med:'MEDIUM',low:'LOW',good:'OK'};
+
+function toast(msg,isErr){ const ex=document.getElementById('toast'); if(ex) ex.remove(); const t=document.createElement('div'); t.id='toast'; t.className='toast'+(isErr?' err':''); t.setAttribute('role','status');
+  t.innerHTML='<span class="toast-dot"></span><span></span>'; t.lastChild.textContent=msg; document.body.appendChild(t); requestAnimationFrame(()=>t.classList.add('show')); setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),300); },isErr?5000:2600); }
+function showModal(id){ document.getElementById(id).style.display='flex'; }
+function hideModal(id){ document.getElementById(id).style.display='none'; }
+function buildNav(){ document.getElementById('sidebar-nav').innerHTML='<div class="nav-section">Analysis</div>'+PAGES.map(([id,l])=>`<button class="nav-item" id="nav-${id}" onclick="navigate('${id}')"><span class="nav-dot" style="background:${{analyse:'#4A90E2',auth:'#0A8A5A',path:'#D97706',iocs:'#C0283A',headers:'#7C3AED',reference:'#6B7A90',report:'#5A7A9A'}[id]}"></span><span class="nav-lbl">${l}</span><span class="nav-lvl" id="navlv-${id}" style="display:none"></span></button>`).join(''); }
+function navigate(p){ if(!A&&!['analyse','reference'].includes(p)) p='analyse'; currentPage=p; document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active')); const el=document.getElementById('nav-'+p); if(el) el.classList.add('active');
+  document.getElementById('topbar-title').textContent=PAGES.find(x=>x[0]===p)[1]; render(); document.getElementById('content').scrollTop=0; }
+function render(){ const c=document.getElementById('content'); c.innerHTML=({analyse:pAnalyse,auth:pAuth,path:pPath,iocs:pIocs,headers:pHeaders,reference:pReference,report:pReport}[currentPage])(); if(currentPage==='analyse') wireDrop(); }
+function updateSide(){
+  const sv=document.getElementById('side-verdict');
+  if(!A){ sv.innerHTML='<div class="prog-label"><span>No message analysed</span></div>'; }
+  else { const col={pass:'#0A9A60',warn:'#D39A00',fail:'#E0485A'}[A.verdict.cls]; const n=A.findings.filter(f=>f.sev==='high').length;
+    sv.innerHTML=`<div style="display:flex;gap:8px;align-items:center"><span style="width:10px;height:10px;border-radius:50%;background:${col};flex-shrink:0"></span><span style="font-size:12px;font-weight:700;color:var(--sidebar-hi);line-height:1.3">${esc(A.verdict.title)}</span></div><div style="font-size:10.5px;color:var(--sidebar-muted);margin-top:5px">${n} high-risk · ${A.findings.filter(f=>f.sev==='med').length} medium · ${A.iocs.length} indicators</div>`; }
+  const set=(id,v)=>{ const e=document.getElementById('navlv-'+id); if(e){ e.style.display=v?'':'none'; e.textContent=v; } };
+  set('iocs',A?String(A.iocs.length):''); set('path',A?String(A.hops.length):''); set('auth',A?(A.dmarc||'—').toUpperCase():'');
+  document.getElementById('topbar-subj').textContent=A?(A.subject||'(no subject)'):'';
+}
+
+// ═══════════ INPUT ═══════════
+function runAnalysis(){
+  const ta=document.getElementById('raw-in'); if(ta) RAW=ta.value;
+  if(!RAW.trim()){ toast('Paste the message source or drop an .eml file first.',true); return; }
+  const res=analyse(RAW); if(!res){ toast('No header lines found. The text should start with lines such as "Received:" or "From:".',true); return; }
+  A=res; analysedAt=new Date(); updateSide(); render();
+  hashAttachments(A).then(()=>{ updateSide(); if(['iocs','report'].includes(currentPage)) render(); });
+  setTimeout(()=>{ const v=document.getElementById('verdict'); if(v) v.scrollIntoView({behavior:'smooth',block:'start'}); },40);
+}
+function readFile(f){ if(!f) return; if(/\.msg$/i.test(f.name)){ toast('Outlook .msg files are binary. Save the message as .eml, or copy its source, and try again.',true); return; }
+  const r=new FileReader(); r.onload=()=>{ RAW=String(r.result||''); currentPage='analyse'; navigate('analyse'); runAnalysis(); toast('Loaded '+f.name); }; r.onerror=()=>toast('Could not read that file.',true); r.readAsText(f); }
+function loadSample(i){ if(i===''||i==null) return; RAW=SAMPLES[+i].raw; navigate('analyse'); runAnalysis(); toast('Sample loaded: '+SAMPLES[+i].name+' (fictional).'); }
+function clearAll(){ RAW=''; A=null; analysedAt=null; updateSide(); navigate('analyse'); toast('Message cleared from memory.'); }
+function wireDrop(){ const d=document.getElementById('drop'); if(!d) return;
+  ['dragenter','dragover'].forEach(ev=>d.addEventListener(ev,e=>{ e.preventDefault(); d.classList.add('over'); }));
+  ['dragleave','drop'].forEach(ev=>d.addEventListener(ev,e=>{ e.preventDefault(); d.classList.remove('over'); }));
+  d.addEventListener('drop',e=>{ const f=e.dataTransfer.files&&e.dataTransfer.files[0]; if(f) readFile(f); else { const t=e.dataTransfer.getData('text'); if(t){ RAW=t; runAnalysis(); } } }); }
+
+// ═══════════ PAGES ═══════════
+function stamp(label,res){ const c=!res?'na':res==='pass'?'pass':/fail|reject/.test(res)?'fail':'warn'; return `<span class="stamp st-${c}"><b>${label}</b><span>${esc((res||'n/a').toUpperCase())}</span></span>`; }
+function kv(rows){ return `<div class="kv2">${rows.filter(r=>r).map(([k,v,sub])=>`<div class="k">${esc(k)}</div><div class="v">${v}${sub?`<span class="sub">${sub}</span>`:''}</div>`).join('')}</div>`; }
+function addrHtml(a){ return a.address?`${a.display?`<strong>${esc(a.display)}</strong> `:''}<span class="mono">${esc(a.address)}</span>`:'<span class="small-muted">Not present</span>'; }
+function findingsHtml(list){ return list.length?list.map(f=>`<div class="find"><span class="sev sev-${f.sev}">${SEV_LABEL[f.sev]}</span><span>${esc(f.text)}</span></div>`).join(''):'<div class="small-muted">Nothing notable found.</div>'; }
+function pAnalyse(){
+  let h=`<div class="wrap fu">
+    <div class="privacy"><span>🔒</span><span>Runs entirely in this browser with no network requests. The message is held in memory only and is cleared when you press Clear or close the tab.</span></div>
+    <div class="panel" style="overflow:visible"><div class="panel-head">Message source <span class="sub">Paste the full source, or drop an .eml file here</span></div>
+      <div class="drop" id="drop"><textarea id="raw-in" class="raw-in" spellcheck="false" placeholder="Received: from mail.example.com (mail.example.com [192.0.2.10]) by mx.yourdomain.example ...&#10;Authentication-Results: ...&#10;From: ...&#10;Subject: ...&#10;&#10;Headers only is fine; include the body to extract links and attachments.">${esc(RAW)}</textarea></div>
+      <div class="in-bar"><button class="mbp" onclick="runAnalysis()">Analyse</button><button class="mbn" onclick="document.getElementById('file-in').click()">Open .eml file…</button>
+        <select class="tb-select" onchange="loadSample(this.value);this.value=''" aria-label="Load a sample"><option value="">Load a sample…</option>${SAMPLES.map((s,i)=>`<option value="${i}">${esc(s.name)}</option>`).join('')}</select>
+        <button class="mbn" onclick="clearAll()" style="margin-left:auto">Clear</button></div></div>`;
+  if(!A) return h+`<div class="panel"><div class="empty">Paste a message and press Analyse, or load a sample to see how results are presented.</div></div></div>`;
+  const v=A.verdict;
+  h+=`<div class="verdict ${v.cls}" id="verdict"><span class="v-badge">${v.cls==='pass'?'AUTHENTICATED':v.cls==='fail'?'SUSPICIOUS':'CAUTION'}</span><div><div class="v-title">${esc(v.title)}</div><div class="v-text">${esc(v.text)}</div></div></div>
+    <div class="panel"><div class="panel-head">Findings <span class="sub">${A.findings.filter(f=>f.sev==='high').length} high · ${A.findings.filter(f=>f.sev==='med').length} medium · ${A.findings.filter(f=>f.sev==='low').length} low</span></div><div class="panel-body">${findingsHtml(A.findings)}</div></div>
+    <div class="two-col">
+      <div class="panel"><div class="panel-head">Who it claims to be from</div><div class="panel-body">${kv([
+        ['From',addrHtml(A.from)],['Reply-To',A.replyTo.address?addrHtml(A.replyTo):'<span class="small-muted">Not set (replies go to From)</span>'],
+        ['Return-Path',A.returnPath.address?`<span class="mono">${esc(A.returnPath.address)}</span>`:'<span class="small-muted">Not present</span>',isSRS(A.returnPath.address)?'Rewritten by a forwarder (SRS); normal for forwarded mail.':''],
+        A.sender.address?['Sender',addrHtml(A.sender)]:null,['To',esc(A.to)||'—'],A.cc?['Cc',esc(A.cc)]:null,['Subject',esc(A.subject)||'—'],['Date',esc(A.date)||'—']])}</div></div>
+      <div class="panel"><div class="panel-head">Who actually sent it</div><div class="panel-body">
+        <div class="stamps" style="margin-bottom:12px">${stamp('SPF',A.spf)}${stamp('DKIM',A.dkim)}${stamp('DMARC',A.dmarc)}${A.compauth?stamp('COMPAUTH',A.compauth.result):''}</div>
+        ${kv([['Checked by',esc(A.trusted&&A.trusted.authserv||(A.trusted?'Receiving server (no ID)':'—'))],
+          ['Connecting IP',A.origin?`<span class="mono">${esc(A.origin)}</span>`:'<span class="small-muted">Not found</span>',A.origin?esc(A.originSrc):''],
+          ['Aligned with From',`SPF ${A.spfAligned?'✓':'✗'} · DKIM ${A.dkimAligned?'✓':'✗'}`,A.fromDomain?'Organisational domain '+esc(orgDomain(A.fromDomain)):''],
+          A.dmarcPolicy?['DMARC policy','p='+esc(A.dmarcPolicy)+(A.dmarcAction?' · receiver applied '+esc(A.dmarcAction):'')]:null,
+          ['Delivery',`${A.hops.length} hop${A.hops.length===1?'':'s'}${A.transit!=null?' · '+fmtDelay(A.transit).slice(1)+' end to end':''}`],
+          A.forwarded?['Forwarding',A.arc.length?`ARC chain of ${A.arc.length}${A.arcBroken?' (broken)':''}`:'SRS Return-Path']:null])}
+      </div></div>
+    </div></div>`;
+  return h;
+}
+function pAuth(){
+  const T=A.trusted;
+  return `<div class="wrap fu"><div class="page-head"><div><h2>Authentication</h2><p>Results recorded by the receiving server. Only the topmost Authentication-Results header is trusted; anything added before the message reached the receiving organisation can be forged.</p></div></div>
+    <div class="panel"><div class="panel-head">Receiving server's verdict</div><div class="panel-body">
+      <div class="stamps" style="margin-bottom:12px">${stamp('SPF',A.spf)}${stamp('DKIM',A.dkim)}${stamp('DMARC',A.dmarc)}${A.compauth?stamp('COMPAUTH',A.compauth.result):''}${A.dara?stamp('DARA',A.dara):''}</div>
+      ${kv([['Recorded by',esc(T&&T.authserv||'—')],['SPF checked',A.spfMailfrom?`<span class="mono">${esc(A.spfMailfrom)}</span>`:'—',`SPF checks the envelope sender, not From. ${A.spfAligned?'Aligned with From.':'Not aligned with From.'}`],
+        ['DMARC',A.dmarc?esc(A.dmarc)+(T&&T.dmarc&&T.dmarc.from?' for '+esc(T.dmarc.from):''):'—',A.dmarcPolicy?`Published policy p=${esc(A.dmarcPolicy)}${T.dmarc.sp?', sp='+esc(T.dmarc.sp):''}${A.dmarcAction?'; receiver applied '+esc(A.dmarcAction):''}`:''],
+        A.compauth?['Composite auth',esc(A.compauth.result)+(A.compauth.reason?' (reason '+esc(A.compauth.reason)+')':''),'Microsoft 365 combined verdict']:null])}
+    </div></div>
+    <div class="panel"><div class="panel-head">DKIM signatures <span class="sub">${A.sigs.length}</span></div>${A.sigs.length?`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Signing domain (d=)</th><th>Selector</th><th>Result</th><th>Aligned with From</th><th>Covers From</th><th>Notes</th></tr></thead><tbody>
+      ${A.sigs.map(s=>`<tr><td class="mono">${esc(s.d)}${/xn--/.test(s.d)?`<br><span class="small-muted">displays as ${esc(unicodeDomain(s.d))}</span>`:''}</td><td class="mono">${esc(s.s||'—')}</td><td>${s.result?`<span class="chip ${s.result==='pass'?'chip-ok':'chip-bad'}">${esc(s.result)}</span>`:'<span class="small-muted">not reported</span>'}</td><td>${s.aligned?'✓':'✗'}</td><td>${s.h.length?(s.h.includes('from')?'✓':'<span class="val-bad">✗</span>'):'—'}</td><td class="small-muted">${[s.a,s.l?'l='+s.l:'',s.t?'signed '+new Date(s.t*1000).toISOString().replace('T',' ').slice(0,16)+' UTC':''].filter(Boolean).map(esc).join(' · ')}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No DKIM signatures.</div>'}</div>
+    ${A.arc.length||A.arcSeals.length?`<div class="panel"><div class="panel-head">ARC chain <span class="sub">${A.arcBroken?'Broken':'Intact'}</span></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>i=</th><th>Sealed by</th><th>Seal cv=</th><th>SPF</th><th>DKIM</th><th>DMARC</th></tr></thead><tbody>
+      ${A.arcSeals.map(sl=>{const r=A.arc.find(x=>x.i===sl.i)||{};return `<tr><td class="mono">${sl.i}</td><td class="mono">${esc(sl.d)}</td><td>${esc(sl.cv||'—')}</td><td>${esc(r.spf||'—')}</td><td>${esc(r.dkim||'—')}</td><td>${esc(r.dmarc||'—')}</td></tr>`}).join('')}</tbody></table></div></div>`:''}
+    <div class="panel"><div class="panel-head">All Authentication-Results headers <span class="sub">Top to bottom</span></div><div class="panel-body">
+      ${A.ars.length?A.ars.map((r,i)=>`<div style="margin-bottom:10px"><div style="display:flex;gap:6px;align-items:center;margin-bottom:4px"><span class="chip ${i===0?'chip-ok':'chip-muted'}">${i===0?'Trusted':'Not trusted'}</span><span class="small-muted">${esc(r.authserv||'no authserv-id')}</span></div><div class="mono-box">${esc(r.raw)}</div></div>`).join(''):'<div class="small-muted">None present.</div>'}
+      ${A.receivedSpf?`<div class="small-muted" style="margin-top:8px">Received-SPF: ${esc(A.receivedSpf.result||'')} ${A.receivedSpf.ip?'· client-ip '+esc(A.receivedSpf.ip):''}</div>`:''}
+    </div></div></div>`;
+}
+function ipTag(c){ return {private:'<span class="chip chip-muted">private</span>','ms-internal':'<span class="chip chip-muted">Microsoft 365 internal</span>',documentation:'<span class="chip chip-muted">documentation range</span>',public:'',none:'',invalid:'<span class="chip chip-warn">invalid</span>'}[c]||''; }
+function pPath(){
+  const list=A.hops.map((h,i)=>({h,i})).reverse();
+  return `<div class="wrap fu"><div class="page-head"><div><h2>Delivery path</h2><p>Oldest hop first. Each server adds a Received header at the top, so only hops added by the receiving organisation's servers can be trusted; the connecting IP is where the message entered them.</p></div></div>
+    <div class="stats" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px"><div class="stat"><div class="stat-val">${A.hops.length}</div><div class="stat-lbl">Received hops</div></div><div class="stat"><div class="stat-val" style="font-size:14px">${esc(A.origin||'—')}</div><div class="stat-lbl">Connecting IP</div></div><div class="stat"><div class="stat-val">${A.transit!=null?fmtDelay(A.transit).slice(1):'—'}</div><div class="stat-lbl">End to end</div></div><div class="stat"><div class="stat-val" style="color:${A.negHops.length?'var(--bad)':'inherit'}">${A.negHops.length}</div><div class="stat-lbl">Out-of-order hops</div></div></div>
+    ${A.date?`<div class="notice">Date header: <strong>${esc(A.date)}</strong>${A.dateSkew!=null?` · first server received it ${fmtDelay(A.dateSkew)} after that.`:''}</div>`:''}
+    ${A.hops.length?`<ol class="hops">${list.map(({h,i},n)=>`<li class="hop ${i===A.originHop?'origin':''} ${['private','ms-internal'].includes(h.cls)?'internal':''}"><div class="hop-h"><b>Hop ${n+1}${n===0?' · oldest':''}${i===0?' · newest':''}</b>${i===A.originHop?'<span class="chip chip-acc">Connecting IP</span>':''}${ipTag(h.cls)}${h.delay!=null?`<span class="delay ${h.delay<-120?'bad':h.delay>3600?'slow':''}" title="Time since previous hop">${fmtDelay(h.delay)}</span>`:''}</div>
+      <div class="hop-l">${h.from?`<span class="k">from</span>${esc(h.from)}${h.rdns&&h.rdns!==h.from?' ('+esc(h.rdns)+')':''}<br>`:''}${h.ip?`<span class="k">ip</span>${esc(h.ip)}<br>`:''}${h.by?`<span class="k">by</span>${esc(h.by)}<br>`:''}${h.with?`<span class="k">with</span>${esc(h.with)}<br>`:''}${h.date?`<span class="k">time</span>${esc(h.date)}`:''}${!h.from&&!h.by?esc(h.raw):''}</div></li>`).join('')}</ol>`:'<div class="panel"><div class="empty">No Received headers in this message.</div></div>'}
+    ${A.ms.present?`<div class="panel"><div class="panel-head">Microsoft 365 signals</div><div class="panel-body">${kv([
+      A.ms.scl!=null?['SCL',esc(A.ms.scl),{'-1':'Filtering bypassed','0':'Not spam','1':'Not spam','5':'Spam','6':'Spam','8':'High-confidence spam','9':'High-confidence spam'}[A.ms.scl]||'']:null,
+      A.ms.bcl!=null?['BCL',esc(A.ms.bcl),'Bulk complaint level (0–9)']:null, A.ms.cat?['CAT',esc(A.ms.cat),esc(MS_CAT[A.ms.cat]||'')]:null, A.ms.sfv?['SFV',esc(A.ms.sfv),esc(MS_SFV[A.ms.sfv]||'')]:null,
+      A.ms.cip?['CIP',esc(A.ms.cip),'Connecting IP seen by Microsoft']:null, A.ms.ctry?['Country',esc(A.ms.ctry),'Geolocation of CIP']:null, A.ms.ptr?['PTR',esc(A.ms.ptr),'Reverse DNS of CIP']:null,
+      A.ms.authAs?['AuthAs',esc(A.ms.authAs),A.ms.authAs==='Anonymous'?'Arrived from outside the organisation':'Authenticated submission']:null, A.ms.dir?['Direction',esc(A.ms.dir)]:null])}</div></div>`:''}
+  </div>`;
+}
+function dv(v,t){ return esc(defangOn?defang(v,t):v); }
+function pIocs(){
+  const B=A.body;
+  return `<div class="wrap fu"><div class="page-head"><div><h2>Indicators &amp; content</h2><p>Addresses, domains, IPs, links and attachment hashes from the message, ready to search or block. Free webmail and mail-provider domains are left out of the domain list so they are not blocked by mistake.</p></div>
+      <div style="display:flex;gap:6px"><span class="seg"><button class="${defangOn?'on':''}" onclick="defangOn=true;render()">Defanged</button><button class="${!defangOn?'on':''}" onclick="defangOn=false;render()">Raw</button></span><button class="mbn" onclick="copyIocs()">Copy all</button><button class="mbn" onclick="exportIocCsv()">CSV</button></div></div>
+    <div class="panel"><div class="panel-head">Indicators <span class="sub">${A.iocs.length}</span></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th style="width:90px">Type</th><th>Value</th><th>Context</th></tr></thead><tbody>
+      ${A.iocs.map(i=>`<tr><td><span class="chip chip-muted">${esc(i.type)}</span></td><td class="mono" style="word-break:break-all">${dv(i.value,i.type)}</td><td class="small-muted">${esc(i.context)}</td></tr>`).join('')||'<tr><td colspan="3" class="small-muted">None.</td></tr>'}</tbody></table></div></div>
+    ${A.lookalikes.length?`<div class="panel"><div class="panel-head">Look-alike domains</div><div class="panel-body">${A.lookalikes.map(l=>`<div class="find"><span class="sev sev-${l.sev}">${SEV_LABEL[l.sev]}</span><span><strong>${esc(l.where)}</strong> <span class="mono">${esc(l.domain)}</span>: ${esc(l.why)}</span></div>`).join('')}</div></div>`:''}
+    ${A.hasBody?`<div class="panel"><div class="panel-head">Links <span class="sub">${B.links.length} anchors · ${B.urls.length} URLs</span></div>${B.links.length?`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Link text</th><th>Actually goes to</th><th></th></tr></thead><tbody>${B.links.slice(0,80).map(l=>{const bad=(A.mismatchLinks||[]).includes(l);return `<tr><td>${esc(l.label.slice(0,120))||'<span class="small-muted">(image or empty)</span>'}</td><td class="mono" style="word-break:break-all">${dv(l.href,'url')}</td><td>${bad?'<span class="chip chip-bad">Mismatch</span>':''}</td></tr>`}).join('')}</tbody></table></div>`:`<div class="panel-body">${B.urls.length?B.urls.map(u=>`<div class="mono" style="font-size:11.5px;word-break:break-all">${dv(u,'url')}</div>`).join(''):'<span class="small-muted">No links found in the body.</span>'}</div>`}</div>
+    <div class="panel"><div class="panel-head">Attachments <span class="sub">${B.attachments.length}</span></div>${B.attachments.length?`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Name</th><th>Type</th><th>Size</th><th>SHA-256</th></tr></thead><tbody>${B.attachments.map(a=>`<tr><td>${esc(a.name)}</td><td class="mono">${esc(a.type)}</td><td>${a.size.toLocaleString()} B</td><td class="mono" style="font-size:10.5px;word-break:break-all">${a.sha256||'<span class="small-muted">calculating…</span>'}</td></tr>`).join('')}</tbody></table></div><div class="panel-body small-muted">Attachments are never opened or rendered; only their bytes are hashed.</div>`:'<div class="empty">No attachments.</div>'}</div>`
+    :`<div class="notice">Only headers were provided, so links and attachments could not be checked. Paste the full source or open the .eml to include them.</div>`}
+  </div>`;
+}
+function hlHeader(){ return A.H.map(e=>{ const n=e.name, t=esc(e.raw);
+  if(['from','to','reply-to','return-path','sender','cc'].includes(n)) return `<span class="hl-id">${t}</span>`;
+  if(['dkim-signature','arc-seal','arc-message-signature'].includes(n)) return `<span class="hl-dkim">${t}</span>`;
+  if(['authentication-results','received-spf','arc-authentication-results'].includes(n)) return `<span class="${/\bfail|softfail|none\b/i.test(e.value)&&!/\bdmarc=pass/i.test(e.value)?'hl-fail':'hl-pass'}">${t}</span>`;
+  if(['received','x-received','x-originating-ip'].includes(n)) return `<span class="hl-trace">${t}</span>`; return t; }).join('\n'); }
+function pHeaders(){
+  return `<div class="wrap fu"><div class="page-head"><div><h2>Headers</h2><p>${A.H.length} header fields. Colour shows what each field was used for.</p></div></div>
+    <div class="panel"><div class="panel-head">Key fields</div><div class="panel-body">${kv([['Message-ID',esc(A.messageId)||'—',A.msgIdDomain?'Domain: '+esc(A.msgIdDomain):''],['Mailer',esc(A.mailer)||'—'],['List-Unsubscribe',A.listUnsub?esc(A.listUnsub):'—',A.listUnsubPost?'One-click unsubscribe supported (RFC 8058), expected from bulk senders.':''],
+      ['Content',A.hasBody?`${A.body.texts.length} text part${A.body.texts.length===1?'':'s'}, ${A.body.attachments.length} attachment${A.body.attachments.length===1?'':'s'}`:'Headers only']])}</div></div>
+    <div class="panel"><div class="panel-head">Header block <span class="legend" style="display:flex;gap:10px;font-size:10.5px"><span class="hl-id">identity</span><span class="hl-pass">auth pass</span><span class="hl-fail">auth fail</span><span class="hl-dkim">signatures</span><span class="hl-trace">delivery</span></span></div><div class="panel-body"><div class="raw-hl">${hlHeader()}</div></div></div></div>`;
+}
+function pReference(){
+  return `<div class="wrap fu"><div class="page-head"><div><h2>Reference</h2><p>What the authentication and delivery fields mean.</p></div></div>
+    ${GLOSSARY.map(([t,d,rows])=>`<div class="panel gloss"><div class="panel-body"><h4>${esc(t)}</h4><p>${esc(d)}</p>${rows.length?`<dl>${rows.map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`:''}</div></div>`).join('')}</div>`;
+}
+
+// ═══════════ REPORT ═══════════
+function tlpBadge(){ return prefs.tlp?`<span class="tlp tlp-${prefs.tlp.replace('TLP:','').replace('+','-')}">${esc(prefs.tlp)}</span>`:''; }
+function pReport(){
+  const v=A.verdict; let pn=0; const foot=()=>`<div class="page-foot"><span>${esc(prefs.ref||'')}${prefs.ref?' · ':''}Email header analysis${prefs.tlp?' · '+esc(prefs.tlp):''}</span><span>Page ${++pn}</span></div>`;
+  let sec=0; const H2=(t,l,n)=>`<h2 class="rp-h2"><span class="rp-num">${n||++sec}</span>${t}</h2><div class="rp-lead">${l}</div>`;
+  const sevPill=s=>`<span class="rpill ${s==='high'?'rp-Critical':s==='med'?'rp-Medium':s==='good'?'rp-Low':''}" style="${s==='low'?'background:#EEF1F5;color:#5A6A80':''}">${SEV_LABEL[s]}</span>`;
+  const vcol={pass:'#0A7A50',warn:'#B58100',fail:'#C0283A'}[v.cls];
+  let h=`<div class="wrap fu"><div class="report-toolbar no-print"><div><div class="rt-title">Report preview</div><div class="rt-sub">Choose <strong>Save as PDF</strong> in the print dialog, with <strong>Background graphics</strong> on and <strong>Headers and footers</strong> off.</div></div>
+    <button class="rt-btn ghost rt-first" onclick="showModal('details-modal');fillDetails()">Edit details</button><button class="rt-btn" onclick="window.print()">⬇ Download PDF</button></div><div class="doc pal-${esc(prefs.palette)}">`;
+  h+=`<div class="page cover"><div class="cover-inner"><div class="cover-badge">${esc(prefs.prep||'Security operations')} · Email header analysis</div><div class="cover-rule"></div>
+    <h1 style="font-size:24pt">${esc(A.subject||'(no subject)')}</h1><div class="cover-sub">${esc(A.from.display||'')} ${esc(A.from.address?'<'+A.from.address+'>':'')}</div>${prefs.tlp?`<div style="margin-top:14px">${tlpBadge()}</div>`:''}
+    <div class="cover-spacer"></div>
+    <div class="cover-meta"><div><div class="cm-lbl">Message date</div><div class="cm-val">${esc(A.date||'—')}</div></div><div><div class="cm-lbl">Analysed</div><div class="cm-val">${analysedAt.toLocaleString('en-GB',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div></div>
+      <div><div class="cm-lbl">Analyst</div><div class="cm-val">${esc(prefs.analyst||'—')}</div></div><div><div class="cm-lbl">Reference</div><div class="cm-val">${esc(prefs.ref||'—')}</div></div></div>
+    <div class="cover-verdict"><div><div class="cv-big" style="font-size:15pt">${v.cls==='pass'?'AUTHENTICATED':v.cls==='fail'?'SUSPICIOUS':'CAUTION'}</div><div class="cv-name">${esc(v.title)}</div></div><div class="cv-dist"><div class="cv-note" style="margin-top:0">SPF ${esc((A.spf||'n/a').toUpperCase())} · DKIM ${esc((A.dkim||'n/a').toUpperCase())} · DMARC ${esc((A.dmarc||'n/a').toUpperCase())} · ${A.findings.filter(f=>f.sev==='high').length} high-risk finding(s)</div></div></div>
+    <div class="cover-foot">Analysed offline; no message content was transmitted.</div></div></div>`;
+  h+=`<div class="page">${H2('Summary','The verdict and everything that stood out.')}
+    <div class="rp-callout" style="border-left-color:${vcol}"><strong>${esc(v.title)}.</strong> ${esc(v.text)}</div>
+    <table class="rp-table"><thead><tr><th style="width:14%">Severity</th><th>Finding</th></tr></thead><tbody>${A.findings.map(f=>`<tr><td>${sevPill(f.sev)}</td><td>${esc(f.text)}</td></tr>`).join('')||'<tr><td colspan="2">Nothing notable found.</td></tr>'}</tbody></table>
+    <h3 class="rp-h3">Sender identity</h3><table class="rp-table rp-details"><tbody>
+      ${[['From',(A.from.display?A.from.display+' ':'')+(A.from.address?'<'+A.from.address+'>':'')],['Reply-To',A.replyTo.address||'Not set'],['Return-Path',A.returnPath.address||'Not present'],['Sender',A.sender.address],['To',A.to],['Cc',A.cc],['Subject',A.subject],['Date',A.date],['Message-ID',A.messageId],['Connecting IP',A.origin?A.origin+' ('+A.originSrc+')':'Not found']].filter(r=>r[1]).map(([k,x])=>`<tr><th class="k">${k}</th><td style="word-break:break-all">${esc(x)}</td></tr>`).join('')}</tbody></table>
+    ${foot()}</div>`;
+  h+=`<div class="page">${H2('Authentication','What the receiving server verified.')}
+    <table class="rp-table"><thead><tr><th>Check</th><th>Result</th><th>Detail</th></tr></thead><tbody>
+      <tr><td>SPF</td><td><strong>${esc(A.spf||'not recorded')}</strong></td><td>Envelope sender ${esc(A.spfMailfrom||'—')}; ${A.spfAligned?'aligned':'not aligned'} with From</td></tr>
+      <tr><td>DKIM</td><td><strong>${esc(A.dkim||'not recorded')}</strong></td><td>${A.dkimRes.map(d=>esc(d.d+' '+d.result)).join(', ')||'—'}; ${A.dkimAligned?'aligned':'not aligned'} with From</td></tr>
+      <tr><td>DMARC</td><td><strong>${esc(A.dmarc||'not recorded')}</strong></td><td>${A.dmarcPolicy?'Policy p='+esc(A.dmarcPolicy):'No policy recorded'}${A.dmarcAction?'; receiver applied '+esc(A.dmarcAction):''}</td></tr>
+      ${A.compauth?`<tr><td>Composite (Microsoft)</td><td><strong>${esc(A.compauth.result)}</strong></td><td>${A.compauth.reason?'Reason '+esc(A.compauth.reason):''}</td></tr>`:''}
+    </tbody></table>
+    <p class="rp-p" style="font-size:8.5pt;color:#5A6A80">Recorded by ${esc(A.trusted&&A.trusted.authserv||'the receiving server')}. ${A.ars.length>1?`${A.ars.length-1} further Authentication-Results header(s) lower in the message were not trusted.`:''}</p>
+    ${A.sigs.length?`<h3 class="rp-h3">DKIM signatures</h3><table class="rp-table"><thead><tr><th>Domain</th><th>Selector</th><th>Result</th><th>Aligned</th><th>Covers From</th></tr></thead><tbody>${A.sigs.map(s=>`<tr><td class="ref">${esc(s.d)}${/xn--/.test(s.d)?' ('+esc(unicodeDomain(s.d))+')':''}</td><td>${esc(s.s||'—')}</td><td>${esc(s.result||'—')}</td><td>${s.aligned?'Yes':'No'}</td><td>${s.h.length?(s.h.includes('from')?'Yes':'No'):'—'}</td></tr>`).join('')}</tbody></table>`:''}
+    ${A.arcSeals.length?`<h3 class="rp-h3">ARC chain</h3><table class="rp-table"><thead><tr><th>i=</th><th>Sealed by</th><th>cv=</th><th>DMARC recorded</th></tr></thead><tbody>${A.arcSeals.map(sl=>`<tr><td>${sl.i}</td><td class="ref">${esc(sl.d)}</td><td>${esc(sl.cv)}</td><td>${esc((A.arc.find(x=>x.i===sl.i)||{}).dmarc||'—')}</td></tr>`).join('')}</tbody></table>`:''}
+    <h3 class="rp-h3">Delivery path</h3>${A.hops.length?`<table class="rp-table"><thead><tr><th>#</th><th>From</th><th>IP</th><th>By</th><th>Time</th><th>Gap</th></tr></thead><tbody>${A.hops.map((x,i)=>({x,i})).reverse().map(({x,i},n)=>`<tr><td>${n+1}${i===A.originHop?' ★':''}</td><td style="word-break:break-all">${esc(x.from||'—')}</td><td class="ref">${esc(x.ip||'—')}</td><td style="word-break:break-all">${esc(x.by||'—')}</td><td style="white-space:nowrap">${esc(x.date||'—')}</td><td>${x.delay!=null?fmtDelay(x.delay):''}</td></tr>`).join('')}</tbody></table><p class="rp-p" style="font-size:8pt;color:#6B7A90">Oldest first. ★ connecting IP.</p>`:'<p class="rp-p">No Received headers.</p>'}
+    ${foot()}</div>`;
+  const B=A.body;
+  h+=`<div class="page">${H2('Indicators','Values to search for or block. Defanged to prevent accidental clicks.')}
+    <table class="rp-table"><thead><tr><th style="width:11%">Type</th><th style="width:52%">Value</th><th>Context</th></tr></thead><tbody>${A.iocs.map(i=>`<tr><td>${esc(i.type)}</td><td class="ref" style="word-break:break-all;font-size:7.5pt">${esc(defang(i.value,i.type))}</td><td>${esc(i.context)}</td></tr>`).join('')||'<tr><td colspan="3">None.</td></tr>'}</tbody></table>
+    ${(A.mismatchLinks||[]).length?`<h3 class="rp-h3">Deceptive links</h3><table class="rp-table"><thead><tr><th>Link text</th><th>Real destination</th></tr></thead><tbody>${A.mismatchLinks.map(l=>`<tr><td>${esc(l.label.slice(0,100))}</td><td class="ref" style="word-break:break-all">${esc(defang(l.href,'url'))}</td></tr>`).join('')}</tbody></table>`:''}
+    ${B.attachments.length?`<h3 class="rp-h3">Attachments</h3><table class="rp-table"><thead><tr><th>Name</th><th>Type</th><th>Size</th><th>SHA-256</th></tr></thead><tbody>${B.attachments.map(a=>`<tr><td>${esc(a.name)}</td><td>${esc(a.type)}</td><td>${a.size.toLocaleString()} B</td><td class="ref" style="font-size:7pt;word-break:break-all">${a.sha256||'—'}</td></tr>`).join('')}</tbody></table>`:''}
+    ${A.ms.present?`<h3 class="rp-h3">Microsoft 365 signals</h3><p class="rp-p">${[A.ms.scl!=null?'SCL '+A.ms.scl:'',A.ms.bcl!=null?'BCL '+A.ms.bcl:'',A.ms.cat?'CAT '+A.ms.cat+(MS_CAT[A.ms.cat]?' ('+MS_CAT[A.ms.cat]+')':''):'',A.ms.sfv?'SFV '+A.ms.sfv+(MS_SFV[A.ms.sfv]?' ('+MS_SFV[A.ms.sfv]+')':''):'',A.ms.ctry?'Country '+A.ms.ctry:'',A.ms.authAs?'AuthAs '+A.ms.authAs:''].filter(Boolean).map(esc).join(' · ')}</p>`:''}
+    ${foot()}</div>`;
+  h+=`<div class="page">${H2('Appendix: header block','The header fields as analysed.','A')}<div style="font-family:'SF Mono',Consolas,monospace;font-size:6.8pt;line-height:1.45;white-space:pre-wrap;word-break:break-all;color:#28313F">${esc(A.head)}</div>${foot()}</div>`;
+  return h+'</div></div>';
+}
+
+// ═══════════ EXPORTS ═══════════
+let _dl=null;
+async function getDownloads(){ if(_dl) return _dl; try{ if(window.claude&&window.claude.use) _dl=await window.claude.use('downloads'); }catch(e){ _dl=null; } return _dl; }
+function isFramed(){ try{ return window.self!==window.top; }catch(e){ return true; } }
+async function download(filename,mime,text){
+  const dl=await getDownloads();
+  if(dl){ try{ await dl.save({filename,data:new Blob([text],{type:mime+';charset=utf-8;'})}); return; }catch(e){ if(e&&e.code==='declined') return; } }
+  if(!isFramed()){ const url=URL.createObjectURL(new Blob([text],{type:mime+';charset=utf-8;'})); const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000); return; }
+  toast('Downloads are not available in this embedded view. Open the tool in its own browser tab to save files.',true);
+}
+function need(){ if(!A){ toast('Analyse a message first.',true); return false; } return true; }
+function fname(ext){ return 'email-analysis-'+(prefs.ref?prefs.ref.replace(/[^a-z0-9-]+/gi,'-')+'-':'')+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')+'.'+ext; }
+function textReport(full){
+  const L=[], D='━'.repeat(60), sub=t=>{ L.push(''); L.push(t.toUpperCase()); L.push('─'.repeat(t.length)); };
+  L.push('EMAIL HEADER ANALYSIS'+(prefs.tlp?'   '+prefs.tlp:'')); L.push(D);
+  L.push('Analysed:   '+analysedAt.toISOString().replace('T',' ').slice(0,19)+' UTC'+(prefs.analyst?'   Analyst: '+prefs.analyst:'')+(prefs.ref?'   Ref: '+prefs.ref:''));
+  L.push('Subject:    '+(A.subject||'(none)')); L.push('From:       '+(A.from.display?A.from.display+' ':'')+'<'+(A.from.address||'?')+'>'); L.push('Date:       '+(A.date||'(none)')); L.push('Message-ID: '+(A.messageId||'(none)'));
+  sub('Verdict'); L.push(A.verdict.title.toUpperCase()); L.push(A.verdict.text);
+  sub('Findings'); A.findings.forEach(f=>L.push(`[${SEV_LABEL[f.sev]}] ${f.text}`)); if(!A.findings.length) L.push('None.');
+  sub('Authentication'); L.push(`SPF ${A.spf||'n/a'} (envelope ${A.spfMailfrom||'?'}, ${A.spfAligned?'aligned':'not aligned'}) · DKIM ${A.dkim||'n/a'} (${A.dkimAligned?'aligned':'not aligned'}) · DMARC ${A.dmarc||'n/a'}${A.dmarcPolicy?' p='+A.dmarcPolicy:''}${A.compauth?' · compauth '+A.compauth.result:''}`);
+  L.push('Recorded by: '+(A.trusted&&A.trusted.authserv||'receiving server')); A.sigs.forEach(s=>L.push(`DKIM d=${s.d} s=${s.s||'?'} result=${s.result||'?'} aligned=${s.aligned?'yes':'no'} coversFrom=${s.h.includes('from')?'yes':'no'}`));
+  sub('Identity'); L.push('Reply-To:    '+(A.replyTo.address||'(not set)')); L.push('Return-Path: '+(A.returnPath.address||'(not present)')); L.push('Connecting IP: '+(A.origin||'(not found)')+(A.origin?'  ['+A.originSrc+']':''));
+  if(full){ sub('Delivery path (oldest first)'); A.hops.map((x,i)=>({x,i})).reverse().forEach(({x,i},n)=>L.push(`${String(n+1).padStart(2)}. ${x.from||'?'}${x.ip?' ['+x.ip+']':''} -> ${x.by||'?'}  ${x.date||''}${x.delay!=null?'  ('+fmtDelay(x.delay)+')':''}${i===A.originHop?'  <- connecting IP':''}`));
+    sub('Indicators (defanged)'); A.iocs.forEach(i=>L.push(`${i.type.padEnd(7)} ${defang(i.value,i.type)}   (${i.context})`));
+    if(A.ms.present){ sub('Microsoft 365'); L.push([A.ms.scl!=null?'SCL '+A.ms.scl:'',A.ms.bcl!=null?'BCL '+A.ms.bcl:'',A.ms.cat?'CAT '+A.ms.cat:'',A.ms.sfv?'SFV '+A.ms.sfv:'',A.ms.ctry?'CTRY '+A.ms.ctry:''].filter(Boolean).join(' · ')); }
+    sub('Header block'); L.push(A.head); }
+  L.push(''); L.push('Generated offline by Email Header Analyser. No message content was transmitted.');
+  return L.join('\n');
+}
+function copySummary(){ if(!need()) return; navigator.clipboard.writeText(textReport(false)).then(()=>toast('Summary copied.')).catch(()=>toast('Copy failed; use Text report instead.',true)); }
+async function downloadText(){ if(!need()) return; await download(fname('txt'),'text/plain',textReport(true)); }
+function iocCsv(){ const c=v=>{ const s=String(v==null?'':v); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; };
+  return '\ufeff'+[['type','value','value_defanged','context']].concat(A.iocs.map(i=>[i.type,i.value,defang(i.value,i.type),i.context])).map(r=>r.map(c).join(',')).join('\r\n'); }
+async function exportIocCsv(){ if(!need()) return; await download(fname('csv').replace('email-analysis','email-iocs'),'text/csv',iocCsv()); }
+function copyIocs(){ navigator.clipboard.writeText(A.iocs.map(i=>defangOn?defang(i.value,i.type):i.value).join('\n')).then(()=>toast(A.iocs.length+' indicators copied.')); }
+async function exportJSON(){ if(!need()) return;
+  const out={schema:'dh-email-header-analysis',version:2,analysedAt:analysedAt.toISOString(),analyst:prefs.analyst||null,reference:prefs.ref||null,tlp:prefs.tlp||null,verdict:A.verdict,findings:A.findings,
+    message:{subject:A.subject,from:A.from,replyTo:A.replyTo,returnPath:A.returnPath,sender:A.sender,to:A.to,cc:A.cc,date:A.date,messageId:A.messageId},
+    authentication:{trustedBy:A.trusted&&A.trusted.authserv||null,spf:A.spf,spfMailfrom:A.spfMailfrom,spfAligned:A.spfAligned,dkim:A.dkim,dkimAligned:A.dkimAligned,dmarc:A.dmarc,dmarcPolicy:A.dmarcPolicy,dmarcAction:A.dmarcAction,compauth:A.compauth,dara:A.dara,
+      signatures:A.sigs.map(s=>({d:s.d,s:s.s,result:s.result,aligned:s.aligned,coversFrom:s.h.includes('from'),l:s.l})),arc:{seals:A.arcSeals,results:A.arc,broken:A.arcBroken}},
+    delivery:{connectingIP:A.origin,source:A.originSrc,hops:A.hops.map(x=>({from:x.from,ip:x.ip,ipClass:x.cls,by:x.by,with:x.with,date:x.date,secondsSincePrevious:x.delay??null})).reverse(),transitSeconds:A.transit??null},
+    microsoft365:A.ms.present?A.ms:null,indicators:A.iocs,attachments:A.body.attachments.map(a=>({name:a.name,type:a.type,size:a.size,sha256:a.sha256})),deceptiveLinks:(A.mismatchLinks||[]).map(l=>({text:l.label,href:l.href})),headers:A.head};
+  await download(fname('json'),'application/json',JSON.stringify(out,null,2)); }
+
+// ═══════════ DETAILS / THEME / INIT ═══════════
+let pPal='navy';
+function fillDetails(){ ['analyst','ref','prep','tlp'].forEach(k=>document.getElementById('d-'+k).value=prefs[k]||''); pPal=prefs.palette||'navy'; drawPal(); }
+function drawPal(){ document.getElementById('pal-row').innerHTML=Object.entries(PALETTES).map(([k,p])=>`<button class="pal ${pPal===k?'on':''}" onclick="pPal='${k}';drawPal()"><i style="background:${p.c}"></i>${p.label}</button>`).join(''); }
+function saveDetails(){ ['analyst','ref','prep','tlp'].forEach(k=>prefs[k]=document.getElementById('d-'+k).value); prefs.palette=pPal; try{ localStorage.setItem(PREF_KEY,JSON.stringify(prefs)); }catch(e){} hideModal('details-modal'); if(currentPage==='report') render(); toast('Details saved.'); }
+const THEME_KEY='dh-email-analyser-theme'; const mq=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null;
+function applyTheme(p){ document.documentElement.setAttribute('data-theme',p==='system'?(mq&&mq.matches?'dark':'light'):p); }
+function setTheme(v){ const sel=document.getElementById('theme-select'); if(sel&&sel.value!==v) sel.value=v; try{ localStorage.setItem(THEME_KEY,v); }catch(e){} applyTheme(v); }
+(function init(){ let v='light'; try{ v=localStorage.getItem(THEME_KEY)||'light'; }catch(e){} document.getElementById('theme-select').value=v; applyTheme(v);
+  if(mq&&mq.addEventListener) mq.addEventListener('change',()=>{ if(document.getElementById('theme-select').value==='system') applyTheme('system'); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ hideModal('help-modal'); hideModal('details-modal'); } if((e.ctrlKey||e.metaKey)&&e.key==='Enter'&&currentPage==='analyse'){ e.preventDefault(); runAnalysis(); } });
+  document.addEventListener('paste',e=>{ if(currentPage==='analyse'&&document.activeElement&&document.activeElement.id!=='raw-in'){ const t=e.clipboardData&&e.clipboardData.getData('text'); if(t&&/^[A-Za-z-]+:/m.test(t)){ e.preventDefault(); RAW=t; runAnalysis(); } } });
+  buildNav(); updateSide(); navigate('analyse');
+})();
+</script>
+</body>
+</html>
