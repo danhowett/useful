@@ -1,0 +1,1996 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Cyber Maturity Assessment</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root,[data-theme="light"]{
+  --bg:#F3F5F8;--surface:#FFFFFF;--surface2:#F8F9FB;--surface3:#F1F4F8;--border:#E2E6EC;--border2:#D0D6DF;
+  --text:#1A2130;--text2:#3A4658;--muted:#6B7A90;--faint:#B8C4D0;
+  --accent:#1456CC;--accent-h:#0F48B0;--accent-soft:#EEF3FC;--accent-line:#C5D4F5;--on-accent:#FFFFFF;
+  --ok:#0A7A50;--ok-soft:#DCFAEE;--ok-line:#A8D8BC;--warn:#9A5000;--warn-soft:#FFF5D6;--warn-line:#F5D580;--bad:#C0283A;--bad-soft:#FDEDF0;--bad-line:#F0A8B0;
+  --sidebar-bg:#1C2333;--sidebar-text:#C8D4E8;--sidebar-muted:#7A8FA8;--sidebar-border:#2A3548;--sidebar-hover:#253047;--sidebar-active:#2D3A55;--sidebar-hi:#E8EEF8;--sidebar-accent:#4A90E2;
+  --shadow:0 1px 3px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.45);
+}
+[data-theme="dark"]{
+  --bg:#0E131B;--surface:#151B25;--surface2:#1A212D;--surface3:#202938;--border:#263042;--border2:#344058;
+  --text:#E4E9F2;--text2:#BAC5D6;--muted:#8796AE;--faint:#4B5871;
+  --accent:#4C8DF6;--accent-h:#6AA0F8;--accent-soft:#17243A;--accent-line:#2B4674;--on-accent:#FFFFFF;
+  --ok:#3DD68C;--ok-soft:#0F2A1F;--ok-line:#1F5A40;--warn:#F2B64C;--warn-soft:#2E2410;--warn-line:#6A4F18;--bad:#F2707F;--bad-soft:#321419;--bad-line:#6E2A34;
+  --sidebar-bg:#0A0E15;--sidebar-text:#C8D4E8;--sidebar-muted:#6F819B;--sidebar-border:#1C2433;--sidebar-hover:#151C29;--sidebar-active:#1B2436;--sidebar-hi:#EEF3FA;--sidebar-accent:#4C8DF6;
+  --shadow:0 1px 3px rgba(0,0,0,.35);--overlay:rgba(0,0,0,.6);
+}
+[data-theme="ocean"]{
+  --bg:#EFF5F5;--surface:#FFFFFF;--surface2:#F5F9F9;--surface3:#EAF2F2;--border:#D9E5E5;--border2:#C3D5D5;
+  --text:#152426;--text2:#334A4D;--muted:#5F7A7D;--faint:#AFC4C6;
+  --accent:#0B7A75;--accent-h:#086460;--accent-soft:#E6F4F3;--accent-line:#A9D9D5;--on-accent:#FFFFFF;
+  --ok:#0A7A50;--ok-soft:#DCFAEE;--ok-line:#A8D8BC;--warn:#9A5000;--warn-soft:#FFF5D6;--warn-line:#F5D580;--bad:#C0283A;--bad-soft:#FDEDF0;--bad-line:#F0A8B0;
+  --sidebar-bg:#0F2A2C;--sidebar-text:#C6DEDD;--sidebar-muted:#7EA3A3;--sidebar-border:#1E3F41;--sidebar-hover:#16383A;--sidebar-active:#1C4447;--sidebar-hi:#EAF6F5;--sidebar-accent:#3CC2BA;
+  --shadow:0 1px 3px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.45);
+}
+[data-theme="contrast"]{
+  --bg:#FFFFFF;--surface:#FFFFFF;--surface2:#F4F4F4;--surface3:#EAEAEA;--border:#6E6E6E;--border2:#3C3C3C;
+  --text:#000000;--text2:#111111;--muted:#2E2E2E;--faint:#6E6E6E;
+  --accent:#0033A0;--accent-h:#00226E;--accent-soft:#E3EAFB;--accent-line:#0033A0;--on-accent:#FFFFFF;
+  --ok:#005A32;--ok-soft:#D8F5E6;--ok-line:#005A32;--warn:#6B3500;--warn-soft:#FFF0C8;--warn-line:#6B3500;--bad:#9E0018;--bad-soft:#FDE2E6;--bad-line:#9E0018;
+  --sidebar-bg:#000000;--sidebar-text:#FFFFFF;--sidebar-muted:#D0D0D0;--sidebar-border:#555555;--sidebar-hover:#222222;--sidebar-active:#333333;--sidebar-hi:#FFFFFF;--sidebar-accent:#FFD400;
+  --shadow:none;--overlay:rgba(0,0,0,.7);
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+button,input,textarea,select{font-family:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.mono{font-family:'SF Mono',Consolas,'Liberation Mono',monospace}
+
+/* LAYOUT */
+#app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:236px;min-width:236px;background:var(--sidebar-bg);border-right:1px solid var(--sidebar-border);display:flex;flex-direction:column;overflow:hidden}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* SIDEBAR */
+.sidebar-logo{padding:18px 16px 14px;border-bottom:1px solid var(--sidebar-border)}
+.logo-badge{display:inline-block;background:var(--sidebar-accent);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:1.2px;margin-bottom:8px}
+[data-theme="contrast"] .logo-badge{color:#000}
+.logo-title{font-size:16px;font-weight:700;letter-spacing:-.3px;color:var(--sidebar-hi)}
+.logo-sub{font-size:10.5px;color:var(--sidebar-muted);margin-top:3px;line-height:1.4}
+.sidebar-setup{padding:12px 16px;border-bottom:1px solid var(--sidebar-border)}
+.sidebar-progress{padding:12px 16px;border-bottom:1px solid var(--sidebar-border)}
+.prog-label{font-size:10.5px;color:var(--sidebar-muted);margin-bottom:6px;display:flex;justify-content:space-between}
+.prog-bar{height:3px;background:var(--sidebar-border);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:var(--sidebar-accent);border-radius:2px;transition:width .4s}
+.prog-warn{font-size:10px;color:#F0A8B0;margin-top:7px;line-height:1.4}
+.sidebar-nav{flex:1;overflow-y:auto;padding:6px 0}
+.nav-section{font-size:9.5px;color:var(--sidebar-muted);letter-spacing:1.2px;padding:12px 16px 4px;text-transform:uppercase;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 16px;cursor:pointer;font-size:12px;color:var(--sidebar-muted);border-left:2px solid transparent;user-select:none;background:none;border-top:none;border-right:none;border-bottom:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--sidebar-hover);color:var(--sidebar-text)}
+.nav-item.active{background:var(--sidebar-active);color:var(--sidebar-hi);border-left-color:var(--sidebar-accent)}
+.nav-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.nav-lbl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav-lvl{font-family:'SF Mono',Consolas,monospace;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--sidebar-border);color:var(--sidebar-text);flex-shrink:0}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--sidebar-border);display:flex;flex-direction:column;gap:8px}
+.footer-group{display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--sidebar-border);border-radius:8px}
+.footer-label{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--sidebar-muted);padding:0 2px 2px}
+.btn{padding:7px 12px;border-radius:6px;border:1px solid var(--sidebar-border);background:transparent;color:var(--sidebar-muted);font-size:11px;cursor:pointer;transition:all .15s;width:100%;text-align:left}
+.btn:hover{background:var(--sidebar-hover);color:var(--sidebar-text)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent);text-align:center;font-weight:600;padding:9px 12px;font-size:12px}
+.btn-primary:hover{background:var(--accent-h);color:var(--on-accent)}
+.btn-save{border-color:#2A7A55;color:#8FE6BC}
+.btn-save:hover{background:rgba(42,122,85,.18);color:#B8F0D4}
+.btn-reset{color:#C98A94;border-color:transparent;font-size:10.5px;opacity:.8}
+.btn-reset:hover{background:rgba(192,40,58,.12);color:#E0A8B0;opacity:1}
+.btn-row{display:flex;gap:6px}
+.btn-half{flex:1;text-align:center}
+
+/* TOPBAR */
+.topbar{height:48px;min-height:48px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:12px}
+.topbar-title{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar-meta{font-size:11px;color:var(--muted);display:flex;gap:10px;align-items:center;flex-shrink:0}
+.tb-action{font-size:11px;font-weight:600;color:var(--text);background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;cursor:pointer}
+.tb-action:hover{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.tb-help{width:26px;height:26px;padding:0;border-radius:50%;font-weight:700;font-size:13px;display:inline-flex;align-items:center;justify-content:center}
+.tb-select{width:auto;max-width:150px;font-size:11px;font-weight:600;color:var(--text);background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:4px 8px;cursor:pointer}
+.fw-chip{display:inline-block;padding:3px 9px;border-radius:5px;font-size:10.5px;font-weight:600;background:var(--surface2);color:var(--muted);border:1px solid var(--border2);white-space:nowrap}
+.save-status{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);cursor:pointer;padding:3px 9px;border:1px solid var(--border2);border-radius:20px;user-select:none;white-space:nowrap;background:none}
+.save-status:hover{background:var(--surface2);border-color:var(--accent)}
+.ss-dot{width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.ss-dot.ok{background:#0A9A60}
+.ss-dot.warn{background:#C0283A}
+.content{flex:1;overflow-y:auto;padding:24px;background:var(--bg)}
+.wrap{max-width:1180px;margin:0 auto}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:#1C2333;color:#E8EEF8;font-size:12px;padding:11px 18px;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.28);z-index:2000;opacity:0;transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .28s;display:flex;align-items:center;gap:9px;max-width:min(560px,88vw);line-height:1.5}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.err{background:#5C1620}
+.toast-dot{width:7px;height:7px;border-radius:50%;background:#4ADE80;flex-shrink:0}
+.toast.err .toast-dot{background:#F0A8B0}
+
+/* GENERIC */
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.3px;white-space:nowrap}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
+.panel-head{padding:11px 16px;border-bottom:1px solid var(--border);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface2);color:var(--text)}
+.panel-head .sub{font-weight:400;color:var(--muted);font-size:11px}
+.panel-body{padding:14px 16px}
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:16px}
+.page-head h2{font-size:18px;font-weight:700;color:var(--text)}
+.page-head p{font-size:12px;color:var(--muted);max-width:700px;line-height:1.65;margin-top:4px}
+.big-num{font-family:'SF Mono',Consolas,monospace;font-size:28px;font-weight:700;line-height:1}
+.small-muted{font-size:10.5px;color:var(--muted)}
+.notice{background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:8px;padding:10px 14px;font-size:11.5px;color:var(--text2);margin-bottom:14px;line-height:1.7}
+.notice strong{color:var(--text)}
+.empty{padding:28px 16px;text-align:center;color:var(--muted);font-size:12px;line-height:1.7}
+
+/* LEVEL PILLS */
+.lv{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:6px;font-family:'SF Mono',Consolas,monospace;font-size:11px;font-weight:700;color:#fff}
+.lv.na{background:var(--surface3);color:var(--muted);border:1px solid var(--border2)}
+.lv.ns{background:transparent;color:var(--muted);border:1px dashed var(--border2)}
+.lv.un{background:transparent;color:var(--faint);border:1.5px solid var(--border2)}
+.chip{display:inline-block;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.2px;white-space:nowrap;border:1px solid transparent}
+.chip-ok{background:var(--ok-soft);color:var(--ok);border-color:var(--ok-line)}
+.chip-warn{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-line)}
+.chip-bad{background:var(--bad-soft);color:var(--bad);border-color:var(--bad-line)}
+.chip-muted{background:var(--surface3);color:var(--muted);border-color:var(--border2)}
+.chip-acc{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-line)}
+.chip-ir{background:#FFF1E6;color:#9A3A00;border-color:#F5C088}
+[data-theme="dark"] .chip-ir{background:#2E1C10;color:#F7A865;border-color:#6A3F18}
+.prio-Critical{background:var(--bad-soft);color:var(--bad);border-color:var(--bad-line)}
+.prio-High{background:#FFF0E0;color:#9A3A00;border-color:#F5C088}
+[data-theme="dark"] .prio-High{background:#2E1C10;color:#F7A865;border-color:#6A3F18}
+.prio-Medium{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-line)}
+.prio-Low{background:var(--ok-soft);color:var(--ok);border-color:var(--ok-line)}
+
+/* GUIDANCE */
+.guide{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow)}
+.guide-head{padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;width:100%;background:none;border:none;text-align:left;color:var(--text)}
+.guide-head:hover{background:var(--surface3)}
+.guide-tag{font-size:9px;font-weight:700;letter-spacing:1px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-line);padding:3px 7px;border-radius:4px}
+.guide-title{font-size:12.5px;font-weight:600;flex:1}
+.guide-body{padding:4px 16px 16px;font-size:12px;color:var(--text2);line-height:1.7}
+.guide-body p{margin-bottom:10px}
+.scale-table{width:100%;border-collapse:collapse;font-size:11.5px;margin:6px 0 12px}
+.scale-table td,.scale-table th{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:top;text-align:left}
+.scale-table th{font-size:10.5px;color:var(--muted);font-weight:600;background:var(--surface2)}
+.chevron{color:var(--muted);font-size:11px;transition:transform .2s;flex-shrink:0;display:inline-block}
+.chevron.open{transform:rotate(90deg)}
+
+/* AREA CARDS */
+.area{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;box-shadow:var(--shadow)}
+.area-head{padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;width:100%;background:none;border:none;text-align:left;color:var(--text)}
+.area-head:hover{background:var(--surface3)}
+.area-code{font-family:'SF Mono',Consolas,monospace;font-size:11px;font-weight:700;padding:3px 7px;border-radius:4px;flex-shrink:0;min-width:52px;text-align:center}
+.area-name{font-size:13px;font-weight:600;flex:1;min-width:0}
+.area-body{border-top:1px solid var(--border)}
+.area-desc{padding:12px 16px 4px;font-size:12px;color:var(--text2);line-height:1.65}
+.area-refs{padding:0 16px 10px;font-size:11px;color:var(--muted)}
+.area-refs .mono{color:var(--text2);font-weight:600}
+.anchor{margin:4px 16px 12px;background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;padding:9px 12px;font-size:11.5px;color:var(--text2);line-height:1.6}
+.anchor b{color:var(--accent);font-weight:700}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 16px;border-top:1px solid var(--border);background:var(--surface2)}
+.row.alt{background:var(--surface)}
+.row-lbl{font-size:11px;color:var(--muted);font-weight:600;min-width:120px}
+.btns{display:flex;gap:4px;flex-wrap:wrap}
+.lb{border:1px solid var(--border2);background:var(--surface);color:var(--text2);border-radius:6px;padding:5px 9px;font-size:10.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:border-color .12s,background .12s}
+.lb:hover{border-color:var(--accent)}
+.lb .n{font-family:'SF Mono',Consolas,monospace;font-weight:800;font-size:11px}
+.lb.on{color:#fff}
+.lb.on-na{background:var(--surface3);border-color:var(--muted);color:var(--text)}
+.sb{border:1px solid var(--border2);background:var(--surface);color:var(--muted);border-radius:5px;padding:4px 9px;font-size:10.5px;font-weight:600;cursor:pointer}
+.sb:hover{border-color:var(--accent);color:var(--accent)}
+.sb.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.aid{padding:10px 16px 12px;border-top:1px solid var(--border);background:var(--surface)}
+.aid-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:8px}
+.aid-q{font-size:11px;color:var(--text2);font-weight:600;margin-bottom:5px}
+.aid-q span{display:block;font-weight:400;color:var(--muted);font-size:10px;line-height:1.4;margin-top:2px}
+.aid-sugg{margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:11.5px;color:var(--text2)}
+.aid-sugg .mbn{padding:4px 10px;font-size:11px}
+.box{padding:12px 16px;border-top:1px solid var(--border)}
+.box.na{background:var(--warn-soft)}
+.box-lbl{display:block;font-size:11px;font-weight:600;color:var(--text);margin-bottom:3px}
+.box-hint{font-size:10.5px;color:var(--muted);line-height:1.55;margin-bottom:7px}
+.inp{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:6px;padding:8px 10px;color:var(--text);font-size:12px;line-height:1.6;outline:none;resize:vertical}
+.inp:focus{border-color:var(--accent)}
+.inp-line{padding:6px 10px}
+.warnline{display:flex;align-items:center;gap:7px;background:var(--bad-soft);border:1px solid var(--bad-line);color:var(--bad);font-size:11px;font-weight:600;padding:7px 10px;border-radius:6px;margin-bottom:8px;line-height:1.5}
+.risk-inputs{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.risk-inputs label{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.risk-inputs select{background:var(--surface);color:var(--text);border:1px solid var(--border2);border-radius:5px;padding:3px 6px;font-size:11px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* DASHBOARD */
+.summary{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-bottom:16px}
+.overall{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;display:flex;gap:20px;align-items:center;box-shadow:var(--shadow)}
+.overall h2{font-size:22px;font-weight:700}
+.overall .lead{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.55}
+.dist{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--surface3);margin-top:12px}
+.dist span{display:block;height:100%}
+.dist-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:7px;font-size:10px;color:var(--muted)}
+.dist-legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:middle}
+.stats{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px;box-shadow:var(--shadow)}
+.stat{text-align:center;padding:6px}
+.stat-val{font-size:22px;font-weight:700;font-family:'SF Mono',Consolas,monospace;line-height:1}
+.stat-lbl{font-size:10px;color:var(--muted);margin-top:4px}
+.groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.gcard{background:var(--surface);border:1px solid var(--border);border-top:3px solid;border-radius:10px;padding:12px 14px;cursor:pointer;text-align:left;box-shadow:var(--shadow);color:var(--text)}
+.gcard:hover{background:var(--surface3)}
+.gcard .g-id{font-size:11px;font-weight:700;font-family:'SF Mono',Consolas,monospace}
+.gcard .g-name{font-size:11px;color:var(--muted);margin:2px 0 8px;line-height:1.35;min-height:30px}
+.gcard .g-val{font-size:24px;font-weight:700;font-family:'SF Mono',Consolas,monospace;line-height:1}
+.mini{height:4px;background:var(--surface3);border-radius:2px;margin-top:8px;overflow:hidden}
+.mini span{display:block;height:100%;border-radius:2px}
+.hm{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.hm-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface);cursor:pointer;text-align:left;color:var(--text);width:100%}
+.hm-row:hover{background:var(--surface3)}
+.hm-code{font-family:'SF Mono',Consolas,monospace;font-size:10.5px;font-weight:700;min-width:50px}
+.hm-name{font-size:11px;flex:1;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.track{position:relative;width:110px;height:8px;background:var(--surface3);border-radius:4px;flex-shrink:0}
+.track .fill{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
+.track .tgt{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--text);border-radius:1px}
+.vlist{display:flex;flex-direction:column}
+.vrow{display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--border);font-size:12px}
+.vrow:last-child{border-bottom:none}
+.vrow .code{font-family:'SF Mono',Consolas,monospace;font-size:10.5px;font-weight:700;min-width:54px}
+.vrow .nm{flex:1;color:var(--text)}
+.val-ok{color:var(--ok)}
+.val-bad{color:var(--bad)}
+.validation{border-radius:10px;margin-bottom:14px;overflow:hidden;border:1px solid var(--bad-line);background:var(--bad-soft)}
+.validation.ok{border-color:var(--ok-line);background:var(--ok-soft)}
+.validation .v-head{padding:10px 14px;font-size:12px;font-weight:700;color:var(--bad);display:flex;gap:8px;align-items:center}
+.validation.ok .v-head{color:var(--ok)}
+.validation .v-body{padding:0 14px 10px;font-size:11.5px;color:var(--text2);line-height:1.8}
+.vcount{display:inline-block;background:var(--bad);color:#fff;font-family:'SF Mono',Consolas,monospace;font-size:10px;font-weight:700;padding:0 6px;border-radius:3px;margin-right:6px}
+.linkish{background:none;border:none;color:var(--accent);cursor:pointer;font-size:inherit;text-decoration:underline;padding:0}
+
+/* TABLES */
+.tbl{width:100%;border-collapse:collapse;font-size:11.5px}
+.tbl th{padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);color:var(--muted);font-weight:600;background:var(--surface2);font-size:10.5px;white-space:nowrap}
+.tbl td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top}
+.tbl tr:last-child td{border-bottom:none}
+.tbl .mono{font-weight:700;font-size:10.5px;white-space:nowrap}
+.tbl-wrap{overflow-x:auto}
+
+/* PLAN */
+.hz{margin-bottom:18px}
+.hz-title{font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.hz-title span{font-size:11px;font-weight:400;color:var(--muted)}
+.imp{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden;box-shadow:var(--shadow)}
+.imp-head{padding:11px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.imp-rank{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:'SF Mono',Consolas,monospace;background:var(--text);color:var(--surface);flex-shrink:0}
+.imp-body{padding:10px 16px 14px;font-size:12px;color:var(--text2);line-height:1.7}
+.imp-metrics{display:flex;gap:18px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-bottom:8px}
+.imp-metrics strong{color:var(--text)}
+
+/* READINESS */
+.theme-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid;border-radius:0 10px 10px 0;padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow)}
+.theme-card h4{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.theme-card p{font-size:12px;color:var(--text2);line-height:1.65;margin-bottom:8px}
+.theme-areas{display:flex;flex-wrap:wrap;gap:6px}
+.theme-areas span{display:inline-flex;align-items:center;gap:6px;font-size:11px;border:1px solid var(--border);border-radius:6px;padding:3px 8px;background:var(--surface2)}
+
+/* MODALS */
+.overlay{position:fixed;inset:0;background:var(--overlay);z-index:999;display:flex;align-items:center;justify-content:center}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:24px;width:640px;max-width:94vw;max-height:88vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2);color:var(--text)}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:10px}
+.modal-sec{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin:20px 0 10px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.field-grid .full{grid-column:1 / -1}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px}
+.field input,.field textarea,.field select{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;resize:vertical}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent)}
+.hint{font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.5}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+.mbn{padding:7px 16px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;cursor:pointer}
+.mbn:hover{background:var(--surface3);color:var(--text)}
+.mbp{padding:7px 16px;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);font-size:12px;cursor:pointer;font-weight:600}
+.mbp:hover{background:var(--accent-h)}
+.fw-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.fw-opt{border:1.5px solid var(--border2);border-radius:9px;padding:11px 13px;cursor:pointer;background:var(--surface);text-align:left;color:var(--text)}
+.fw-opt:hover{border-color:var(--accent)}
+.fw-opt.on{border-color:var(--accent);background:var(--accent-soft)}
+.fw-opt b{display:block;font-size:12.5px}
+.fw-opt span{display:block;font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.45}
+.custom-row{display:grid;grid-template-columns:70px 1fr 1.3fr 110px 130px 30px;gap:6px;margin-bottom:6px;align-items:center}
+.custom-row input{background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;width:100%}
+.custom-row label{font-size:10px;color:var(--muted);display:flex;align-items:center;gap:4px}
+.help-list{margin:0 0 4px;padding-left:20px;font-size:12.5px;line-height:1.7;color:var(--text)}
+.help-list li{margin-bottom:6px}
+.help-callout{display:flex;gap:12px;background:var(--ok-soft);border:1px solid var(--ok-line);border-radius:9px;padding:12px 14px;margin:12px 0;font-size:12.5px;line-height:1.6}
+.pal-row{display:flex;gap:8px;flex-wrap:wrap}
+.pal{border:1.5px solid var(--border2);border-radius:8px;padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:7px;font-size:11.5px;background:var(--surface);color:var(--text)}
+.pal.on{border-color:var(--accent);background:var(--accent-soft)}
+.pal i{display:inline-block;width:14px;height:14px;border-radius:3px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.fu{animation:fadeUp .18s ease}
+@media (prefers-reduced-motion:reduce){.fu{animation:none}.prog-fill,.chevron,.toast{transition:none}}
+@media (max-width:900px){.summary,.two-col{grid-template-columns:1fr}.hm{grid-template-columns:1fr}.aid-grid{grid-template-columns:1fr 1fr}.sidebar{width:200px;min-width:200px}}
+/* ═══════════ REPORT (screen preview + print) ═══════════ */
+.report-toolbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:18px;box-shadow:var(--shadow)}
+.rt-title{font-size:12px;font-weight:600;color:var(--text)}
+.rt-sub{font-size:11px;color:var(--muted);line-height:1.5}
+.rt-btn{background:var(--accent);color:var(--on-accent);border:none;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.rt-btn:hover{background:var(--accent-h)}
+.rt-btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--border2)}
+.rt-btn.ghost:hover{background:var(--surface2);color:var(--text)}
+.rt-first{margin-left:auto}
+
+.doc{--rp-d:#0A1A3A;--rp-m:#12336E;--rp-a:#1456CC;--rp-soft:#F4F7FC;--rp-line:#DCE6F5;background:#8A93A3;padding:24px;border-radius:10px}
+.doc.pal-teal{--rp-d:#062B2A;--rp-m:#0D4F4C;--rp-a:#0B7A75;--rp-soft:#F0F8F7;--rp-line:#CBE6E3}
+.doc.pal-graphite{--rp-d:#15191F;--rp-m:#2F3640;--rp-a:#4E5B6E;--rp-soft:#F4F5F7;--rp-line:#DDE1E7}
+.doc.pal-burgundy{--rp-d:#2A0B14;--rp-m:#561A2B;--rp-a:#94243F;--rp-soft:#FBF3F5;--rp-line:#EFD3DA}
+.page{background:#fff;width:210mm;min-height:297mm;margin:0 auto 24px;padding:18mm 17mm 16mm;box-shadow:0 3px 16px rgba(0,0,0,.22);position:relative;color:#1A2230;font-size:10pt;line-height:1.55;font-family:Arial,Helvetica,sans-serif}
+.page:last-child{margin-bottom:0}
+.page-foot{position:absolute;bottom:9mm;left:17mm;right:17mm;font-size:7.5pt;color:#8A9BB0;display:flex;justify-content:space-between;gap:10px}
+
+/* Cover */
+.cover{display:flex;flex-direction:column;color:#fff;background:linear-gradient(155deg,var(--rp-d) 0%,var(--rp-m) 58%,var(--rp-a) 100%);padding:0;overflow:hidden}
+.cover-inner{padding:22mm 18mm;display:flex;flex-direction:column;flex:1;min-height:297mm}
+.cover-badge{font-size:9pt;letter-spacing:2px;text-transform:uppercase;opacity:.85;font-weight:600}
+.cover-rule{width:54px;height:3px;background:rgba(255,255,255,.7);margin:14px 0 26px}
+.cover h1{font-size:30pt;font-weight:700;line-height:1.12;margin:0 0 10px;letter-spacing:-.5px}
+.cover-sub{font-size:13pt;opacity:.9}
+.cover-class{display:inline-block;align-self:flex-start;margin-top:16px;font-size:8pt;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:4px 10px}
+.cover-spacer{flex:1}
+.cover-meta{margin-top:30px;border-top:1px solid rgba(255,255,255,.22);padding-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px 30px}
+.cm-lbl{font-size:7.5pt;letter-spacing:1.4px;text-transform:uppercase;opacity:.65;margin-bottom:3px}
+.cm-val{font-size:11pt;font-weight:600;line-height:1.35}
+.cover-verdict{margin-top:24px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);border-radius:10px;padding:16px 20px;display:flex;align-items:center;gap:20px}
+.cv-big{font-size:26pt;font-weight:700;line-height:1;font-family:'SF Mono',Consolas,monospace}
+.cv-name{font-size:10pt;letter-spacing:1px;text-transform:uppercase;opacity:.9;margin-top:4px}
+.cv-dist{flex:1}
+.cv-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:rgba(255,255,255,.15)}
+.cv-bar span{display:block;height:100%}
+.cv-note{font-size:8.5pt;opacity:.85;margin-top:7px;line-height:1.5}
+.cover-foot{font-size:7.5pt;opacity:.65;margin-top:20px;line-height:1.55}
+
+/* Report typography */
+.rp-h2{font-size:16pt;font-weight:700;color:var(--rp-d);margin:0 0 3px;letter-spacing:-.3px}
+.rp-h2 .rp-num{color:var(--rp-a);margin-right:8px}
+.rp-lead{font-size:9.5pt;color:#5A6A80;margin:0 0 16px;padding-bottom:10px;border-bottom:2px solid #E4E9F0}
+.rp-h3{font-size:11.5pt;font-weight:700;color:var(--rp-m);margin:18px 0 7px}
+.rp-p{margin:0 0 9px;color:#28313F}
+.rp-callout{background:var(--rp-soft);border-left:3px solid var(--rp-a);border-radius:0 8px 8px 0;padding:11px 15px;margin:12px 0;font-size:9.5pt;line-height:1.6;color:#28313F}
+.rp-callout.warn{background:#FDF6F7;border-left-color:#C0283A}
+.rp-callout.ok{background:#F2FBF6;border-left-color:#0A7A50}
+.rp-table{width:100%;border-collapse:collapse;font-size:8.5pt;margin:8px 0}
+.rp-table th{background:var(--rp-d);color:#fff;text-align:left;padding:6px 8px;font-weight:600;font-size:8pt}
+.rp-table td{padding:5px 8px;border-bottom:1px solid #E8ECF2;vertical-align:top;color:#28313F}
+.rp-table tr:nth-child(even) td{background:#F8FAFC}
+.rp-table .ref{font-family:'SF Mono',Consolas,monospace;font-weight:700;white-space:nowrap}
+.rp-table tr.grp{break-after:avoid;page-break-after:avoid}
+.rp-table .grp td{background:var(--rp-m)!important;color:#fff;font-weight:700;font-size:8.5pt}
+.rp-details th.k{background:var(--rp-soft);color:#28313F;width:32%;font-weight:600;font-size:8.5pt}
+.rlv{display:inline-block;min-width:18px;text-align:center;padding:1px 5px;border-radius:4px;color:#fff;font-weight:700;font-size:8pt;font-family:'SF Mono',Consolas,monospace}
+.rlv.na{background:#EAEEF3;color:#4A5A6E}
+.rlv.ns{background:#fff;color:#8A9BB0;border:1px dashed #B8C4D0}
+.rpill{display:inline-block;padding:1px 7px;border-radius:20px;font-size:7.5pt;font-weight:700;white-space:nowrap}
+.rp-Critical{background:#FDE2E6;color:#A81828}.rp-High{background:#FFE9D6;color:#9A3A00}.rp-Medium{background:#FFF3D6;color:#8A4A00}.rp-Low{background:#DCFAEE;color:#076B40}
+.rp-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:12px 0 14px}
+.rp-stat{border:1px solid #E4E9F0;border-radius:8px;padding:9px 6px;text-align:center}
+.rs-val{font-size:18pt;font-weight:700;line-height:1;font-family:'SF Mono',Consolas,monospace}
+.rs-lbl{font-size:6.8pt;letter-spacing:.5px;text-transform:uppercase;color:#6B7A90;margin-top:4px;font-weight:600}
+.rp-grow{display:flex;align-items:center;gap:10px;margin:7px 0;break-inside:avoid}
+.rp-grow .gid{width:30px;height:20px;border-radius:5px;color:#fff;font-weight:700;font-size:8pt;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'SF Mono',Consolas,monospace}
+.rp-grow .gnm{font-size:9pt;font-weight:600;width:210px;flex-shrink:0;color:#28313F}
+.rp-grow .gtr{flex:1;height:14px;background:#EEF1F5;border-radius:7px;position:relative}
+.rp-grow .gfl{position:absolute;left:0;top:0;bottom:0;border-radius:7px}
+.rp-grow .gtg{position:absolute;top:-3px;bottom:-3px;width:2px;background:#1A2230}
+.rp-grow .gvl{font-family:monospace;font-size:9pt;font-weight:700;width:36px;text-align:right}
+.rp-method{background:var(--rp-soft);border:1px solid var(--rp-line);border-radius:9px;padding:12px 15px;margin:8px 0 12px;font-size:9pt;line-height:1.6;color:#28313F}
+.rp-formula{background:var(--rp-d);color:#fff;font-family:'SF Mono',Consolas,monospace;font-size:9pt;text-align:center;padding:8px;border-radius:6px;margin:8px 0}
+.radar-block{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:4px}
+.radar-svg{flex:0 0 330px;max-width:330px}
+.radar-legend{flex:1;min-width:230px;display:grid;grid-template-columns:1fr;gap:1px;font-size:8pt}
+.rl-row{display:flex;gap:6px;align-items:baseline;line-height:1.45;break-inside:avoid}
+.rl-code{font-family:'SF Mono',Consolas,monospace;font-weight:700;flex:0 0 42px}
+.rl-name{flex:1;color:#33404F}
+.rl-val{font-family:monospace;font-weight:700;color:#5A6A80}
+.rp-rec{border:1px solid #E4E9F0;border-left:3px solid var(--rp-a);border-radius:0 9px 9px 0;padding:10px 14px;margin:9px 0;break-inside:avoid}
+.rp-rec-head{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap}
+.rp-rec-rank{width:20px;height:20px;border-radius:50%;background:var(--rp-d);color:#fff;font-size:8pt;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rp-rec-name{font-size:10pt;font-weight:700;color:var(--rp-d);flex:1}
+.rp-rec-meta{font-size:8pt;color:#6B7A90;margin-bottom:5px}
+.rp-rec-body{font-size:9pt;line-height:1.6;color:#28313F}
+.rp-hz{font-size:10.5pt;font-weight:700;color:var(--rp-m);margin:16px 0 4px;padding-bottom:4px;border-bottom:1px solid #E4E9F0}
+.rp-reg{border:1px solid #E4E9F0;border-radius:9px;padding:10px 14px;margin:8px 0;break-inside:avoid}
+.rp-reg-just{font-size:9pt;color:#33404F;background:#F6F8FB;border-left:2px solid #8A9BB0;border-radius:0 6px 6px 0;padding:7px 11px;margin-top:6px;white-space:pre-wrap;line-height:1.6}
+.rp-detail{border:1px solid #E4E9F0;border-radius:9px;padding:10px 14px;margin:8px 0;break-inside:avoid}
+.rp-detail h5{font-size:9.5pt;margin:0 0 4px;color:var(--rp-d);display:flex;gap:8px;align-items:center}
+.rp-detail .dl{font-size:8pt;color:#6B7A90;margin-top:5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.rp-detail .dv{font-size:9pt;color:#28313F;white-space:pre-wrap;line-height:1.55}
+.rp-theme{border-left:3px solid;padding:8px 13px;margin:9px 0;background:#FAFBFC;border-radius:0 8px 8px 0;break-inside:avoid}
+.rp-theme h5{font-size:10pt;margin:0 0 3px;display:flex;align-items:center;gap:8px}
+.rp-theme p{font-size:9pt;margin:0;color:#28313F;line-height:1.58}
+.rp-theme .ta{font-size:8pt;color:#5A6A80;margin-top:4px}
+
+@media screen and (max-width:1100px){.page{width:100%;padding:14mm 12mm 18mm;min-height:auto}.doc{padding:12px}.cover-inner{min-height:250mm}}
+
+@media print{
+  html,body{height:auto!important;overflow:visible!important;background:#fff!important}
+  #app{display:block!important;height:auto!important;overflow:visible!important}
+  .main{display:block!important;height:auto!important;overflow:visible!important}
+  .content{display:block!important;height:auto!important;overflow:visible!important;padding:0!important;background:#fff!important}
+  .wrap{max-width:none!important}
+  .fu{animation:none!important}
+  .sidebar,.topbar,.no-print,.report-toolbar,.overlay,.toast{display:none!important}
+  .doc{background:none!important;padding:0!important;border-radius:0!important}
+  @page{size:A4;margin:12mm}
+  .page{box-shadow:none!important;margin:0!important;width:auto!important;min-height:0!important;padding:0!important;break-after:page;page-break-after:always}
+  .page:last-child{break-after:auto;page-break-after:auto}
+  .page.cover{height:273mm!important;max-height:273mm!important;overflow:hidden!important}
+  .cover-inner{min-height:0!important;height:273mm;padding:22mm 20mm!important}
+  .rp-table thead{display:table-header-group}
+  .rp-table tr{break-inside:avoid;page-break-inside:avoid}
+  .rp-rec,.rp-reg,.rp-detail,.rp-stat,.rp-callout,.rp-theme,.rp-grow{break-inside:avoid;page-break-inside:avoid}
+  .rp-h2,.rp-h3,.rp-hz{break-after:avoid}
+  .page-foot{position:static!important;margin-top:8mm}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <nav class="sidebar" aria-label="Assessment navigation">
+    <div class="sidebar-logo">
+      <div class="logo-badge">MATURITY</div>
+      <div class="logo-title">Cyber Maturity Assessment</div>
+      <div class="logo-sub" id="logo-sub">Select a framework in Setup</div>
+    </div>
+    <div class="sidebar-setup no-print">
+      <button class="btn btn-primary" onclick="showSetup()">⚙ Assessment setup</button>
+    </div>
+    <div class="sidebar-progress">
+      <div class="prog-label"><span>Areas addressed</span><span id="prog-text">0 / 0</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      <div class="prog-warn" id="prog-warn" style="display:none"></div>
+    </div>
+    <div class="sidebar-nav" id="sidebar-nav"></div>
+    <div class="sidebar-footer no-print">
+      <button class="btn btn-primary" onclick="navigate('report')">📄 Generate report</button>
+      <div class="footer-group">
+        <div class="footer-label">Data</div>
+        <div class="btn-row">
+          <button class="btn btn-half" onclick="exportJSON()" title="Export the full assessment as JSON (re-importable)">⬇ JSON</button>
+          <button class="btn btn-half" onclick="exportCSV()" title="Export scores, evidence and priorities as CSV">⬇ CSV</button>
+        </div>
+        <button class="btn" onclick="document.getElementById('import-file').click()">⬆ Import JSON</button>
+        <input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importJSON(this)"/>
+        <button class="btn btn-save" onclick="enableDiskAutosave()" title="Chrome/Edge: choose a file that updates automatically as you work">💾 Auto-save to file…</button>
+      </div>
+      <button class="btn btn-reset" onclick="resetScores()">↺ Reset all scores</button>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="topbar no-print">
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-meta">
+        <span id="topbar-org"></span>
+        <button id="save-status" class="save-status" onclick="enableDiskAutosave()" title="Changes are saved in this browser automatically. Click to also auto-save to a file (Chrome/Edge)."><span class="ss-dot"></span>Not yet saved</button>
+        <span class="fw-chip" id="fw-chip">No framework</span>
+        <select class="tb-select" id="theme-select" onchange="setTheme(this.value)" aria-label="Colour theme" title="Colour theme">
+          <option value="system">◐ System</option>
+          <option value="light">☀ Light</option>
+          <option value="dark">☾ Dark</option>
+          <option value="ocean">≈ Ocean</option>
+          <option value="contrast">◼ High contrast</option>
+        </select>
+        <button class="tb-action" onclick="loadSample()" title="Load an illustrative worked example">✦ Sample</button>
+        <button class="tb-action tb-help" onclick="showHelp()" aria-label="Help" title="Help">?</button>
+      </div>
+    </div>
+    <main class="content" id="content"></main>
+  </div>
+</div>
+
+<!-- SETUP MODAL -->
+<div class="overlay" id="setup-modal" style="display:none" onclick="if(event.target===this)hideSetup()">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="setup-h">
+    <h3 id="setup-h">Assessment setup</h3>
+    <div class="small-muted" style="line-height:1.55">Everything here feeds the report. All fields except the framework can be edited at any time.</div>
+
+    <div class="modal-sec">Framework</div>
+    <div class="fw-grid" id="fw-grid"></div>
+    <div id="cis-ig-wrap" style="display:none;margin-top:12px">
+      <div class="field"><label>CIS Implementation Group</label>
+        <select id="f-cisig">
+          <option value="1">IG1: essential cyber hygiene</option>
+          <option value="2">IG2: IG1 plus enterprise-scale safeguards</option>
+          <option value="3">IG3: full safeguard set</option>
+        </select>
+        <div class="hint">Sets which safeguards "implementation" is judged against. Controls with no safeguards in the chosen group become Not assessed (out of scope).</div>
+      </div>
+    </div>
+    <div id="custom-wrap" style="display:none;margin-top:12px">
+      <div class="small-muted" style="margin-bottom:8px">Define the domains for a bespoke model. Code is a short reference (e.g. D1); group is optional and becomes a page in the sidebar; choose a ◆ readiness theme to include the domain in the incident readiness view.</div>
+      <div class="custom-row small-muted" style="font-weight:600"><span>Code</span><span>Domain name</span><span>Description</span><span>Group</span><span>◆ Readiness</span><span></span></div>
+      <div id="custom-list"></div>
+      <button class="mbn" onclick="addCustomRow()" style="margin-top:4px">+ Add domain</button>
+    </div>
+
+    <div class="modal-sec">Organisation &amp; scope</div>
+    <div class="field-grid">
+      <div class="field full"><label>Organisation name</label><input type="text" id="f-org" placeholder="Organisation being assessed"/></div>
+      <div class="field"><label>Sector / industry</label><input type="text" id="f-sector" placeholder="e.g. Financial services, Energy"/></div>
+      <div class="field"><label>Organisation size</label><input type="text" id="f-size" placeholder="e.g. 1,200 staff, 3 sites"/></div>
+      <div class="field full"><label>Scope</label><textarea id="f-scope" rows="2" placeholder="Business units, environments and services covered, and anything explicitly excluded"></textarea></div>
+    </div>
+
+    <div class="modal-sec">Assessment team</div>
+    <div class="field-grid">
+      <div class="field"><label>Lead assessor</label><input type="text" id="f-assessor" placeholder="Name, role"/></div>
+      <div class="field"><label>Quality reviewer</label><input type="text" id="f-qc" placeholder="Name, role"/></div>
+      <div class="field"><label>Prepared by (organisation)</label><input type="text" id="f-preparedby" placeholder="Consultancy or internal team"/></div>
+      <div class="field"><label>Client sponsor</label><input type="text" id="f-owner" placeholder="Name, role"/></div>
+      <div class="field full"><label>Team members</label><input type="text" id="f-team" placeholder="Names and roles"/></div>
+    </div>
+
+    <div class="modal-sec">Dates, evidence &amp; method</div>
+    <div class="field-grid">
+      <div class="field"><label>Assessment date</label><input type="date" id="f-date"/></div>
+      <div class="field"><label>Assessment period</label><input type="text" id="f-period" placeholder="e.g. 3–14 August 2026"/></div>
+      <div class="field full"><label>Method</label><textarea id="f-method" rows="2" placeholder="e.g. Workshops, document review, configuration sampling, control testing"></textarea></div>
+      <div class="field full"><label>Evidence location</label><input type="text" id="f-evidence" placeholder="Where supporting evidence is held"/></div>
+      <div class="field full"><label>Basis for targets</label><textarea id="f-targetbasis" rows="2" placeholder="e.g. Agreed with the CISO against risk appetite; regulatory expectations; CIS IG1"></textarea></div>
+      <div class="field"><label>Version / reference</label><input type="text" id="f-version" placeholder="e.g. v1.0 DRAFT"/></div>
+      <div class="field"><label>Classification</label><input type="text" id="f-classification" placeholder="e.g. CONFIDENTIAL"/></div>
+    </div>
+
+    <div class="modal-sec">Scoring &amp; targets</div>
+    <div class="field"><label style="display:flex;align-items:center;gap:8px;color:var(--text);font-size:12px"><input type="checkbox" id="f-useaid" style="width:auto"/> Show the scoring aid on each area</label>
+      <div class="hint">Four quick questions suggest a level; the assessor confirms or overrides it, and overrides need a note.</div></div>
+    <div class="small-muted" style="margin:6px 0 8px">Target presets fill every area at once; adjust individual areas afterwards and record the rationale.</div>
+    <div class="btns" id="preset-btns"></div>
+    <div class="small-muted" id="target-count" style="margin-top:8px;font-style:italic"></div>
+
+    <div class="modal-sec">Report</div>
+    <div class="small-muted" style="margin-bottom:8px">Colour palette for the report cover, headings and tables.</div>
+    <div class="pal-row" id="pal-row"></div>
+
+    <div class="modal-actions">
+      <button class="mbn" onclick="hideSetup()">Cancel</button>
+      <button class="mbp" onclick="saveSetup()">Save setup</button>
+    </div>
+  </div>
+</div>
+
+<!-- HELP MODAL -->
+<div class="overlay" id="help-modal" style="display:none" onclick="if(event.target===this)hideHelp()">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="help-h">
+    <h3 id="help-h">Getting started</h3>
+    <p class="small-muted" style="font-size:12.5px;line-height:1.6">An organisation-wide maturity assessment against NIST CSF 2.0, ISO/IEC 27001:2022 or CIS Controls v8.1, scored on a 0–5 scale aligned to ISO/IEC 33020 capability levels. Everything runs locally in your browser; nothing is uploaded.</p>
+    <div class="help-callout"><span>💾</span><div><strong>Turn on auto-save to file.</strong> Work is saved in this browser automatically, but that copy is lost if browsing data is cleared. In Chrome or Edge, use <strong>Auto-save to file…</strong> in the sidebar. In other browsers, export JSON regularly.</div></div>
+    <div class="modal-sec">Workflow</div>
+    <ol class="help-list">
+      <li><strong>Setup</strong>: choose the framework, record scope and team, and apply a target preset.</li>
+      <li><strong>Score each area</strong> 0–5 using the level descriptors and the "Level 3 looks like" anchor. Levels are cumulative: award a level only when every lower level is met.</li>
+      <li><strong>Record confidence and evidence.</strong> High = tested or observed; Medium = documents reviewed; Low = interview only.</li>
+      <li><strong>Review</strong> the dashboard, gap &amp; risk view, roadmap, incident readiness and CAF alignment, then generate the report.</li>
+    </ol>
+    <div class="modal-sec">Rules</div>
+    <ul class="help-list">
+      <li><strong>Not applicable</strong> requires a justification and appears in the report's register.</li>
+      <li><strong>Not assessed</strong> is excluded from all calculations and listed as a limitation.</li>
+      <li>Priority = gap to target × likelihood × impact. Each area has default likelihood, impact and effort values you can adjust.</li>
+      <li>The CAF alignment view is indicative. For a formal CAF assessment use the dedicated CAF tool.</li>
+    </ul>
+    <div class="modal-sec">Exporting the report</div>
+    <p style="font-size:12.5px;line-height:1.6">Open <strong>Generate report</strong>, then <strong>Download PDF</strong>. In the print dialog choose <em>Save as PDF</em>, margins <em>Default</em>, <em>Background graphics</em> on and <em>Headers and footers</em> off.</p>
+    <p class="small-muted" style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px;line-height:1.6">Framework names and references are used for alignment only. This tool supports professional judgement and is not a certification or regulatory determination.</p>
+    <div class="modal-actions"><button class="mbp" onclick="hideHelp()">Got it</button></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// CYBER MATURITY ASSESSMENT v2.0
+// Frameworks: NIST CSF 2.0 (Feb 2024) · ISO/IEC 27001:2022 + Amd 1:2024
+//             CIS Critical Security Controls v8.1 · Custom model
+// Scale: 0–5, level names aligned to ISO/IEC 33020 capability levels,
+//        cumulative (C2M2 principle). Descriptors are original wording.
+// ═══════════════════════════════════════════════════════════════════
+
+const LEVELS = [
+  {n:0, name:'Incomplete', color:'#C0283A',
+   desc:'Not performed, or performed so partially that it does not achieve its purpose.',
+   evidence:'Nothing, or claims with no supporting evidence.'},
+  {n:1, name:'Performed', color:'#D4600A',
+   desc:'Happens, but depends on individuals. Undocumented, inconsistent and reactive; would likely stop if a key person left.',
+   evidence:'Interviews; ad hoc tickets, emails or scripts.'},
+  {n:2, name:'Managed', color:'#B58100',
+   desc:'Documented and owned, with resources assigned. Applied to critical systems or high-risk areas, but not yet consistently across the organisation.',
+   evidence:'Named owner, written procedure, records showing it is followed for in-scope systems.'},
+  {n:3, name:'Established', color:'#5E9A1E',
+   desc:'Standardised across the organisation from a common policy or standard, applied consistently regardless of team or system, and reviewed on a defined cycle.',
+   evidence:'Approved organisation-wide standard, coverage data, review records.'},
+  {n:4, name:'Measured', color:'#0A8A5A',
+   desc:'Performance and coverage are tracked against defined metrics and reported to decision-makers; effectiveness is independently verified through testing, audit or exercises.',
+   evidence:'KPIs/KRIs, management reporting, test and exercise results, audit findings.'},
+  {n:5, name:'Optimising', color:'#0B5E8E',
+   desc:'Continuously improved. Metrics, threat intelligence and lessons from incidents and exercises drive planned change; automation is used where it reduces risk or error.',
+   evidence:'Improvement log tied to incidents and intelligence, trend data, automated enforcement.'}
+];
+const NEXT_STEP = {
+  1:'start performing the activity for critical systems, even informally, so there is a practice to build on',
+  2:'document the approach, assign a named owner and allocate resources, applying it at least to critical systems',
+  3:'standardise the approach organisation-wide from an approved policy or standard, and review it on a defined cycle',
+  4:'define metrics, report performance to decision-makers and verify effectiveness through testing, audit or exercises',
+  5:'use metrics, threat intelligence and lessons learned to drive planned improvement, automating where it reduces risk or error'
+};
+const CONF = {H:{label:'High',desc:'Tested or observed working'}, M:{label:'Medium',desc:'Documentary evidence reviewed'}, L:{label:'Low',desc:'Interview or self-declaration only'}};
+const AID_DIMS = [
+  {k:'policy', q:'Policy', h:'Is the activity defined in approved policy or standards?'},
+  {k:'impl',   q:'Implementation', h:'How far is it in place across in-scope systems and teams?'},
+  {k:'meas',   q:'Measurement & reporting', h:'Is performance measured, reported and verified?'},
+  {k:'auto',   q:'Automation & improvement', h:'Is it automated and continuously improved from metrics and lessons?'}
+];
+const AID_VALS = ['None','Partial','Full'];
+
+const IR_THEMES = {
+  intel:  {name:'Threat understanding', color:'#6D28D9',
+    low:'Threat understanding is limited. Defensive priorities are unlikely to reflect the actors and techniques targeting the sector, and incident scoping will lack intelligence context.',
+    mid:'Threat information is used for critical risks but is not applied consistently. Expect uneven prioritisation of detections and patching against active threats.',
+    good:'Threat intelligence relevant to the sector informs risk decisions and detection priorities on a consistent basis.'},
+  detect: {name:'Detection & logging', color:'#B45309',
+    low:'Detection and log coverage is unlikely to support timely discovery or reliable reconstruction of an intrusion. Investigations will be constrained by missing or short-lived telemetry.',
+    mid:'Core telemetry exists but coverage or retention gaps are likely to limit scoping confidence and extend dwell time during an investigation.',
+    good:'Telemetry coverage, retention and alert handling should support detection, investigation and scoping of most incidents.'},
+  respond:{name:'Response & investigation', color:'#B91C1C',
+    low:'Response relies on individuals rather than a practised process. Containment, evidence handling and escalation decisions will be made under pressure, with a real risk of evidence loss.',
+    mid:'A documented response capability exists but is not applied consistently; evidence preservation and escalation may vary between incidents.',
+    good:'A consistent, documented response and investigation capability is in place, including evidence preservation and defined escalation.'},
+  recover:{name:'Recovery', color:'#047857',
+    low:'Recovery to a trusted state cannot be assured. Backup integrity and restoration to defined objectives have not been demonstrated.',
+    mid:'Recovery arrangements exist for critical systems but are not consistently tested against recovery objectives.',
+    good:'Recovery objectives are defined and recovery, including clean-restore verification, is carried out consistently.'},
+  improve:{name:'Learning & improvement', color:'#1D4ED8',
+    low:'Lessons from incidents and exercises are not systematically captured, so the same weaknesses are likely to recur.',
+    mid:'Lessons are captured after significant events but are not consistently tracked through to completed improvements.',
+    good:'Findings from incidents, exercises and assessments are tracked to completion and drive improvement.'}
+};
+
+const CAF_PRINCIPLES = [
+  {id:'A1',obj:'A',name:'Governance'},{id:'A2',obj:'A',name:'Risk Management'},{id:'A3',obj:'A',name:'Asset Management'},{id:'A4',obj:'A',name:'Supply Chain'},
+  {id:'B1',obj:'B',name:'Service Protection Policies, Processes & Procedures'},{id:'B2',obj:'B',name:'Identity & Access Control'},{id:'B3',obj:'B',name:'Data Security'},
+  {id:'B4',obj:'B',name:'System Security'},{id:'B5',obj:'B',name:'Resilient Networks & Systems'},{id:'B6',obj:'B',name:'Staff Awareness & Training'},
+  {id:'C1',obj:'C',name:'Security Monitoring'},{id:'C2',obj:'C',name:'Threat Hunting'},
+  {id:'D1',obj:'D',name:'Response & Recovery Planning'},{id:'D2',obj:'D',name:'Lessons Learned'}
+];
+const CAF_OBJ = {A:{name:'Managing Security Risk',color:'#3B82F6'},B:{name:'Protecting Against Cyber Attack',color:'#8B5CF6'},C:{name:'Detecting Cyber Security Events',color:'#F59E0B'},D:{name:'Minimising Impact of Incidents',color:'#EF4444'}};
+
+// a(id, code, group, name, desc, l3, action, imp, lik, eff, ir[], caf[], extra)
+function a(id,code,group,name,desc,l3,action,imp,lik,eff,ir,caf,extra){ return Object.assign({id,code,group,name,desc,l3,action,imp,lik,eff,ir:ir||[],caf:caf||[]},extra||{}); }
+
+const FW = {
+csf:{
+  id:'csf', name:'NIST Cybersecurity Framework', short:'NIST CSF 2.0', version:'2.0', published:'26 February 2024',
+  blurb:'22 categories across Govern, Identify, Protect, Detect, Respond and Recover.',
+  unit:'category',
+  groups:[
+    {id:'GV',name:'Govern',color:'#4F46E5',desc:'The organisation\'s cybersecurity risk management strategy, expectations and policy are established, communicated and monitored.'},
+    {id:'ID',name:'Identify',color:'#0284C7',desc:'The organisation\'s current cybersecurity risks are understood.'},
+    {id:'PR',name:'Protect',color:'#7C3AED',desc:'Safeguards to manage the organisation\'s cybersecurity risks are used.'},
+    {id:'DE',name:'Detect',color:'#D97706',desc:'Possible cybersecurity attacks and compromises are found and analysed.'},
+    {id:'RS',name:'Respond',color:'#DC2626',desc:'Actions regarding a detected cybersecurity incident are taken.'},
+    {id:'RC',name:'Recover',color:'#059669',desc:'Assets and operations affected by a cybersecurity incident are restored.'}
+  ],
+  areas:[
+    a('GV.OC','GV.OC','GV','Organisational Context','Mission, stakeholder expectations, legal, regulatory and contractual obligations, and critical dependencies are understood and inform cyber risk decisions.',
+      'A maintained record of mission-critical services, obligations and dependencies exists, is agreed with the business and is reviewed at least annually to inform risk decisions.',
+      'Document critical services, legal and contractual obligations and dependencies with business owners, and set a review cycle so risk decisions start from an agreed context.',4,2,2,[],['A1','A2']),
+    a('GV.RM','GV.RM','GV','Risk Management Strategy','Risk appetite and tolerance, priorities and assumptions are established, communicated and used to support operational risk decisions.',
+      'A board-approved risk appetite and cyber risk methodology is applied consistently, with cyber risks recorded in the enterprise risk register.',
+      'Agree a board-approved cyber risk appetite and methodology, and integrate cyber risks into the enterprise risk register with named owners.',5,2,3,[],['A2']),
+    a('GV.RR','GV.RR','GV','Roles, Responsibilities & Authorities','Leadership accountability, security roles, authorities and resourcing are established and communicated; cybersecurity is included in HR practices.',
+      'Named executive accountability, a documented RACI for security activities with deputies, and security duties reflected in role profiles across the organisation.',
+      'Assign executive accountability for cyber risk, document a RACI covering security and incident roles including deputies, and reflect duties in role profiles.',4,2,2,[],['A1']),
+    a('GV.PO','GV.PO','GV','Policy','Cybersecurity policy is established from organisational context and strategy, communicated, enforced and kept current.',
+      'An approved policy set covers all key domains, is communicated to staff and suppliers, has owners and review dates, and exceptions are tracked.',
+      'Establish an owned, approved policy framework with a review cycle, a communication plan and a formal exceptions process.',3,2,2,[],['A1','B1']),
+    a('GV.OV','GV.OV','GV','Oversight','Results of cyber risk management activities are used by leadership to inform, improve and adjust strategy.',
+      'Leadership receives regular, structured cyber risk reporting and records the decisions and actions arising from it.',
+      'Introduce a regular cyber risk report to the board or risk committee with defined content, and track the decisions it drives.',4,2,2,[],['A1']),
+    a('GV.SC','GV.SC','GV','Supply Chain Risk Management','Supplier cyber risk is identified, assessed and managed across the supplier life cycle, from due diligence through contract to offboarding.',
+      'Suppliers are tiered by criticality, critical suppliers undergo security due diligence before contract, contracts include security and incident-notification clauses, and offboarding removes access.',
+      'Tier suppliers by criticality, run proportionate due diligence for critical suppliers, and standardise security and incident-notification clauses in contracts.',4,4,3,[],['A4']),
+    a('ID.AM','ID.AM','ID','Asset Management','Hardware, software, services, data and data flows are inventoried, prioritised by criticality and managed through their life cycle.',
+      'Authoritative inventories for hardware, software, cloud services and key data are maintained, reconciled against discovery tooling and linked to owners and criticality.',
+      'Build authoritative asset and data inventories reconciled against discovery tooling, with owners and criticality recorded for each asset.',4,4,3,[],['A3']),
+    a('ID.RA','ID.RA','ID','Risk Assessment','Vulnerabilities, threat intelligence, likelihood and impact are used to understand and prioritise cyber risk.',
+      'Risk assessments follow a defined method, incorporate current threat intelligence relevant to the sector, and vulnerability information feeds prioritised risk responses.',
+      'Adopt a defined risk assessment method informed by sector-relevant threat intelligence, and link vulnerability data to prioritised risk treatment.',4,4,3,['intel'],['A2']),
+    a('ID.IM','ID.IM','ID','Improvement','Improvements are identified from assessments, testing, exercises and incidents, and tracked to completion.',
+      'Findings from audits, tests, exercises and incidents are captured in a single tracked improvement log with owners and due dates.',
+      'Create a single improvement log for findings from audits, tests, exercises and incidents, with owners, due dates and periodic review.',3,3,2,['improve'],['D2']),
+    a('PR.AA','PR.AA','PR','Identity, Authentication & Access Control','Identities and credentials are managed, users and devices are authenticated (including MFA), access follows least privilege, and physical access is controlled.',
+      'Joiner-mover-leaver processes are consistent, MFA is enforced for remote, cloud and privileged access, privileged accounts are separate, and access is reviewed periodically.',
+      'Enforce MFA for all remote, cloud and privileged access, separate administrative accounts, and run periodic access reviews tied to joiner-mover-leaver processes.',5,5,3,[],['B2']),
+    a('PR.AT','PR.AT','PR','Awareness & Training','Personnel receive awareness and role-based training so they can perform cyber-related tasks with appropriate knowledge.',
+      'All staff complete awareness training at induction and annually, and privileged, developer and security roles receive role-specific training.',
+      'Deliver induction and annual awareness training, with role-specific modules for privileged users, developers and security staff.',3,4,2,[],['B6']),
+    a('PR.DS','PR.DS','PR','Data Security','Confidentiality, integrity and availability of data are protected at rest, in transit and in use, including backups.',
+      'Data is classified, encryption is applied to sensitive data at rest and in transit, and backups are protected, segregated and restore-tested.',
+      'Classify data, encrypt sensitive data at rest and in transit, and protect backups with segregation, immutability and regular restore tests.',5,4,3,[],['B3','B5']),
+    a('PR.PS','PR.PS','PR','Platform Security','Hardware, software and services are securely configured and maintained; patching, log generation and secure development are managed.',
+      'Hardened baselines are applied and monitored for drift, patches are deployed within defined timescales, and security-relevant logs are generated on all key platforms.',
+      'Define hardened build baselines, enforce patch timescales by severity, and make sure security-relevant logging is enabled on all key platforms.',5,5,3,['detect'],['B4','C1']),
+    a('PR.IR','PR.IR','PR','Technology Infrastructure Resilience','Networks and environments are protected from unauthorised access and designed for resilience and adequate capacity.',
+      'Networks are segmented by trust and criticality, external exposure is managed, and resilience and capacity requirements are defined for critical services.',
+      'Segment networks by trust level and criticality, minimise external exposure, and define resilience requirements for critical services.',4,4,4,[],['B5','B4']),
+    a('DE.CM','DE.CM','DE','Continuous Monitoring','Networks, endpoints, user activity, external service providers and the physical environment are monitored to find potentially adverse events.',
+      'Centralised log collection and EDR cover all critical systems and cloud services, with defined log sources, retention that supports investigation, and 24/7 alert handling arrangements.',
+      'Centralise logs and deploy EDR across critical systems and cloud services, define log sources and retention to support investigations, and establish 24/7 alert coverage.',5,4,4,['detect'],['C1']),
+    a('DE.AE','DE.AE','DE','Adverse Event Analysis','Anomalies and potential incidents are analysed, correlated, enriched with threat intelligence and escalated so incidents can be declared.',
+      'Documented triage procedures, maintained detection use cases mapped to relevant threats, and defined incident declaration criteria are applied consistently.',
+      'Document triage procedures, maintain detection use cases mapped to threats relevant to the organisation, and set clear incident declaration criteria.',4,4,3,['detect'],['C1','C2']),
+    a('RS.MA','RS.MA','RS','Incident Management','Incident response plans are executed when incidents are declared, with triage, categorisation, prioritisation, escalation and third-party coordination.',
+      'An approved incident response plan with a severity model, roles, escalation paths and supplier contacts is used for all declared incidents, with playbooks for priority scenarios.',
+      'Approve an incident response plan with a severity model, roles and escalation paths, add playbooks for priority scenarios such as ransomware and business email compromise, and secure a DFIR retainer.',5,4,2,['respond'],['D1']),
+    a('RS.AN','RS.AN','RS','Incident Analysis','Investigations establish what happened, the root cause and the scope, with evidence preserved to support recovery, legal and regulatory needs.',
+      'A consistent investigation procedure covers all incidents above a defined severity, including evidence preservation, chain of custody and recorded root cause.',
+      'Define an investigation procedure covering evidence preservation and chain of custody, confirm log retention supports the investigation window, and record root cause for significant incidents.',5,3,3,['respond'],['D1','D2']),
+    a('RS.CO','RS.CO','RS','Incident Reporting & Communication','Response activities are coordinated with internal and external stakeholders, including regulators, as required by law and policy.',
+      'Notification obligations and timescales are mapped, communication templates and approval routes exist, and they are used consistently in incidents and exercises.',
+      'Map regulatory and contractual notification obligations and timescales, and prepare pre-approved communication templates and approval routes.',4,3,2,[],['D1']),
+    a('RS.MI','RS.MI','RS','Incident Mitigation','Activities are performed to prevent expansion of an event and mitigate its effects, through containment and eradication.',
+      'Containment actions such as host isolation, account disablement and network blocking are pre-authorised, documented and executable by the response team.',
+      'Pre-authorise and document containment actions, and confirm the team can execute isolation, credential resets and blocking at speed.',5,4,2,['respond'],['D1']),
+    a('RC.RP','RC.RP','RC','Incident Recovery Plan Execution','Restoration activities are performed to ensure operational availability of affected systems and services, with integrity verified.',
+      'Recovery plans with defined RTOs and RPOs exist for critical services, backup integrity is checked before restoration, and recovery is tested.',
+      'Define RTOs and RPOs for critical services, document recovery runbooks including clean-restore verification, and test recovery at least annually.',5,3,3,['recover'],['D1','B5']),
+    a('RC.CO','RC.CO','RC','Incident Recovery Communication','Restoration activities are coordinated with internal and external parties, including public communications.',
+      'Recovery status reporting and external communications follow agreed templates, spokespeople and approval routes.',
+      'Agree recovery status reporting, spokespeople and external communication templates, and rehearse them in exercises.',3,2,1,[],['D1'])
+  ]
+},
+iso:{
+  id:'iso', name:'ISO/IEC 27001', short:'ISO/IEC 27001:2022', version:'2022 + Amd 1:2024', published:'October 2022 (Amd 1 February 2024)',
+  blurb:'Clauses 4–10 plus Annex A (93 controls) grouped into 12 areas.',
+  unit:'area',
+  groups:[
+    {id:'CL',short:'Cl.',name:'Management system (clauses 4–10)',color:'#1456CC',desc:'The ISMS requirements. These clauses cannot be excluded and are what certification audits test first.'},
+    {id:'AX',short:'A',name:'Annex A controls',color:'#7C3AED',desc:'All 93 Annex A controls grouped into 12 areas. Applicability should match the Statement of Applicability. ★ marks controls new in the 2022 edition.'}
+  ],
+  areas:[
+    a('C4','Cl.4','CL','Context of the Organisation','Internal and external issues, interested parties and their requirements, and the ISMS scope, including whether climate change is a relevant issue (Amd 1:2024).',
+      'A documented context analysis, interested-party register and ISMS scope statement are approved and reviewed, with the climate change consideration recorded.',
+      'Document the context analysis, interested-party requirements and ISMS scope, including an explicit climate change consideration as required by Amd 1:2024.',4,3,2,[],['A1','A2'],{refs:'4.1–4.4'}),
+    a('C5','Cl.5','CL','Leadership','Top management commitment, the information security policy, and assignment of roles, responsibilities and authorities.',
+      'Top management demonstrably directs the ISMS, the policy is approved and communicated, and ISMS roles are formally assigned.',
+      'Secure visible top-management sponsorship, approve and communicate the information security policy, and formally assign ISMS roles.',5,2,2,[],['A1'],{refs:'5.1–5.3'}),
+    a('C6','Cl.6','CL','Planning','Risk assessment and treatment methodology, the Statement of Applicability, information security objectives and planning of changes.',
+      'A repeatable risk methodology produces consistent results, the Statement of Applicability justifies every Annex A decision, and measurable objectives have plans.',
+      'Formalise a repeatable risk assessment methodology, complete the Statement of Applicability with justifications, and set measurable security objectives.',5,3,3,[],['A2'],{refs:'6.1–6.3'}),
+    a('C7','Cl.7','CL','Support','Resources, competence, awareness, communication and control of documented information.',
+      'ISMS resources are allocated, competence requirements are defined and evidenced, and documented information is version- and access-controlled.',
+      'Define competence requirements with records, allocate ISMS resources, and put documented information under version and access control.',3,3,2,[],['A1','B6'],{refs:'7.1–7.5'}),
+    a('C8','Cl.8','CL','Operation','Operational planning and control, performing risk assessments at planned intervals and implementing risk treatment plans.',
+      'Risk assessments are repeated at planned intervals and on significant change, and treatment plans are tracked to completion.',
+      'Schedule risk reassessments, trigger them on significant change, and track risk treatment plans to completion with owners.',4,3,2,[],['A2','B1'],{refs:'8.1–8.3'}),
+    a('C9','Cl.9','CL','Performance Evaluation','Monitoring, measurement, analysis and evaluation, the internal audit programme and management review.',
+      'A defined metrics set is reported, a risk-based internal audit programme covers the ISMS, and management reviews are held with recorded outputs.',
+      'Define ISMS metrics, run a risk-based internal audit programme, and hold minuted management reviews covering all required inputs.',4,3,3,[],['A2','A1'],{refs:'9.1–9.3'}),
+    a('C10','Cl.10','CL','Improvement','Continual improvement, nonconformity and corrective action.',
+      'Nonconformities are logged with root cause and corrective action, and the effectiveness of actions is verified.',
+      'Log nonconformities with root cause analysis and corrective actions, and verify the effectiveness of completed actions.',3,3,2,['improve'],['D2'],{refs:'10.1–10.2'}),
+    a('AX.GOV','A.GOV','AX','Governance, Policy & Compliance','Policies, roles, segregation of duties, management responsibilities, contact with authorities and interest groups, security in projects, legal and privacy obligations, records, independent review and documented procedures.',
+      'Topic-specific policies and procedures are approved and reviewed, legal and privacy obligations are mapped to controls, and independent review occurs on a planned basis.',
+      'Complete topic-specific policies, map legal, regulatory and privacy obligations to controls, and schedule independent reviews.',4,2,2,[],['A1','B1'],{refs:'5.1–5.6, 5.8, 5.31–5.37'}),
+    a('AX.AST','A.AST','AX','Information & Asset Management','Asset inventory, acceptable use, return of assets, classification, labelling, information transfer, storage media, secure disposal, deletion, masking, DLP, cryptography and test data.',
+      'Inventories and classification are applied consistently, cryptography follows an approved standard, and deletion, masking and DLP controls operate for sensitive data.',
+      'Consolidate the asset inventory and classification scheme, adopt a cryptography standard, and implement deletion, masking and DLP controls for sensitive data.',4,3,3,[],['A3','B3'],{refs:'5.9–5.14, 7.10, 7.14, 8.10★, 8.11★, 8.12★, 8.24, 8.33'}),
+    a('AX.IAM','A.IAM','AX','Identity & Access Management','Access control, identity management, authentication information, access rights, privileged access, information access restriction, source code access, secure authentication and privileged utilities.',
+      'The access control policy is enforced through managed identities, MFA, privileged access controls and periodic access reviews.',
+      'Enforce MFA for remote, cloud and privileged access, separate privileged accounts, and run periodic access reviews tied to joiner-mover-leaver processes.',5,5,3,[],['B2'],{refs:'5.15–5.18, 8.2–8.5, 8.18'}),
+    a('AX.SUP','A.SUP','AX','Supplier & Cloud Security','Supplier relationships and agreements, the ICT supply chain, monitoring of supplier services and information security for use of cloud services.',
+      'Suppliers are tiered and assessed, agreements contain security requirements, and cloud services are adopted and exited under a defined process.',
+      'Tier suppliers, embed security requirements in agreements, and define a process for acquiring, using and exiting cloud services.',4,4,3,[],['A4'],{refs:'5.19–5.22, 5.23★'}),
+    a('AX.PPL','A.PPL','AX','People Security','Screening, terms of employment, awareness and training, disciplinary process, post-employment responsibilities, confidentiality agreements and remote working.',
+      'Screening is proportionate to role risk, training is delivered and tracked, and remote working and confidentiality requirements are applied consistently.',
+      'Apply role-based screening, track training completion, and formalise remote working and confidentiality obligations.',3,3,2,[],['B6'],{refs:'6.1–6.7'}),
+    a('AX.PHY','A.PHY','AX','Physical & Environmental Security','Perimeters, entry controls, secure offices, physical security monitoring, environmental threats, secure areas, clear desk, equipment siting, off-site assets, utilities, cabling and maintenance.',
+      'Physical zones are defined with entry controls and monitoring, key facilities are protected against environmental threats, and equipment is maintained.',
+      'Define physical security zones with entry control and monitoring, and protect key facilities against environmental and utility failures.',3,2,3,[],['B2'],{refs:'7.1–7.3, 7.4★, 7.5–7.9, 7.11–7.13'}),
+    a('AX.CFG','A.CFG','AX','Configuration, Vulnerability & Change','User endpoint devices, capacity management, malware protection, technical vulnerability management, configuration management, software installation and change management.',
+      'Secure baselines are enforced, vulnerabilities are remediated within defined timescales, malware protection is universal and changes follow a controlled process.',
+      'Enforce secure configuration baselines, set vulnerability remediation timescales by severity, and route changes through a security-aware change process.',5,5,3,[],['B4'],{refs:'8.1, 8.6–8.8, 8.9★, 8.19, 8.32'}),
+    a('AX.NET','A.NET','AX','Network Security','Network controls, security of network services, segregation of networks and web filtering.',
+      'Networks are segregated by trust, network services have defined security requirements, and web filtering is applied.',
+      'Segregate networks by trust level, define security requirements for network services, and apply web filtering.',4,4,3,[],['B4','B5'],{refs:'8.20–8.22, 8.23★'}),
+    a('AX.DEV','A.DEV','AX','Secure Development','Secure development life cycle, application security requirements, secure architecture, secure coding, security testing, outsourced development, environment separation and protection during audit testing.',
+      'A secure development life cycle with secure coding standards and security testing is applied to all in-house and outsourced development.',
+      'Adopt a secure development life cycle with coding standards, automated security testing and equivalent requirements for outsourced development.',4,3,4,[],['A4','B4'],{refs:'8.25–8.27, 8.28★, 8.29–8.31, 8.34'}),
+    a('AX.MON','A.MON','AX','Threat Intelligence, Logging & Monitoring','Threat intelligence, logging, monitoring activities and clock synchronisation.',
+      'Threat intelligence is collected and applied, logs are protected and retained to support investigations, activity is monitored for anomalies, and clocks are synchronised.',
+      'Establish a threat intelligence process, protect and retain logs to support investigations, monitor for anomalous behaviour and synchronise clocks.',5,4,3,['intel','detect'],['A2','C1','C2'],{refs:'5.7★, 8.15, 8.16★, 8.17'}),
+    a('AX.INC','A.INC','AX','Incident Management','Incident management planning, assessment of events, incident response, learning from incidents, collection of evidence and event reporting by staff.',
+      'An incident management process with defined roles, evidence collection procedures and post-incident learning is applied to all significant incidents.',
+      'Formalise incident management with evidence collection procedures aligned to forensic good practice, and embed post-incident reviews.',5,4,2,['respond','improve'],['D1','D2'],{refs:'5.24–5.28, 6.8'}),
+    a('AX.BC','A.BC','AX','Business Continuity & Resilience','Information security during disruption, ICT readiness for business continuity, backup and redundancy.',
+      'ICT continuity requirements are derived from business impact analysis, backups are protected and restore-tested, and redundancy meets availability requirements.',
+      'Derive ICT continuity requirements from business impact analysis, test restores regularly, and implement redundancy for critical services.',5,3,3,['recover'],['B5','D1'],{refs:'5.29, 5.30★, 8.13, 8.14'})
+  ]
+},
+cis:{
+  id:'cis', name:'CIS Critical Security Controls', short:'CIS Controls v8.1', version:'8.1', published:'June 2024',
+  blurb:'18 controls, with Implementation Group (IG1–3) targets.',
+  unit:'control',
+  groups:[
+    {id:'C1',short:'1–6',name:'Controls 1–6',color:'#0369A1',desc:'Inventory, data protection, secure configuration, accounts and access.'},
+    {id:'C2',short:'7–12',name:'Controls 7–12',color:'#7C3AED',desc:'Vulnerabilities, audit logs, email and web, malware, data recovery and network infrastructure.'},
+    {id:'C3',short:'13–18',name:'Controls 13–18',color:'#B91C1C',desc:'Network monitoring, awareness, service providers, application security, incident response and penetration testing.'}
+  ],
+  areas:[
+    a('CIS1','CIS 1','C1','Inventory and Control of Enterprise Assets','Actively manage all enterprise assets connected to the infrastructure, physically, virtually, remotely and in the cloud.',
+      'An accurate asset inventory is maintained and reconciled with discovery tools, and unauthorised assets are addressed within a defined timescale.',
+      'Maintain an asset inventory reconciled with active and passive discovery, and define how unauthorised assets are handled.',4,4,3,[],['A3'],{ig1:true}),
+    a('CIS2','CIS 2','C1','Inventory and Control of Software Assets','Actively manage all software on the network so only authorised software is installed and can execute.',
+      'A software inventory is maintained, unsupported software is identified and addressed, and unauthorised software is removed or formally excepted.',
+      'Maintain a software inventory, remove or formally except unsupported software, and move toward application allowlisting.',4,4,3,[],['A3'],{ig1:true}),
+    a('CIS3','CIS 3','C1','Data Protection','Processes and technical controls to identify, classify, securely handle, retain and dispose of data.',
+      'A data management process defines classification, retention and disposal, data inventories exist, and sensitive data is encrypted and access-controlled.',
+      'Establish a data management process covering classification, retention and disposal, maintain a data inventory, and encrypt sensitive data.',4,4,3,[],['B3'],{ig1:true}),
+    a('CIS4','CIS 4','C1','Secure Configuration of Enterprise Assets and Software','Establish and maintain secure configuration of enterprise assets and software.',
+      'Documented secure baselines are applied across assets, default accounts are managed, and configuration drift is detected.',
+      'Document secure configuration baselines for each asset type, manage default accounts, and monitor for configuration drift.',5,5,3,[],['B4'],{ig1:true}),
+    a('CIS5','CIS 5','C1','Account Management','Processes and tools to assign and manage credentials for user, administrator and service accounts.',
+      'Account inventories are maintained, unique passwords or passwordless methods are used, dormant accounts are disabled and administrator accounts are dedicated.',
+      'Maintain an account inventory, disable dormant accounts, and use dedicated administrator accounts with unique credentials.',5,5,2,[],['B2'],{ig1:true}),
+    a('CIS6','CIS 6','C1','Access Control Management','Create, assign, manage and revoke access credentials and privileges.',
+      'Access granting and revocation follow defined processes, MFA is enforced for external, remote and administrative access, and role-based access is applied.',
+      'Define access granting and revocation processes and enforce MFA for externally exposed applications, remote access and administrative access.',5,5,3,[],['B2'],{ig1:true}),
+    a('CIS7','CIS 7','C2','Continuous Vulnerability Management','Continuously assess and track vulnerabilities to remediate them and minimise the window of opportunity for attackers.',
+      'Authenticated vulnerability scanning runs on a schedule, patching follows risk-based timescales, and remediation is tracked.',
+      'Run authenticated vulnerability scans on a schedule, set risk-based remediation timescales, and track remediation to closure.',5,5,3,[],['B4'],{ig1:true}),
+    a('CIS8','CIS 8','C2','Audit Log Management','Collect, alert on, review and retain audit logs of events that could help detect, understand or recover from an attack.',
+      'A log management process defines sources, retention and review; logs are centralised and time-synchronised, and retention supports investigation needs.',
+      'Define log sources, retention and review in a log management process, centralise and time-synchronise logs, and set retention to support investigations.',5,4,3,['detect'],['C1'],{ig1:true}),
+    a('CIS9','CIS 9','C2','Email and Web Browser Protections','Improve protections and detections of threats from email and web vectors.',
+      'Only supported browsers and email clients are used, DNS filtering is in place, and email is protected with DMARC and anti-malware scanning.',
+      'Restrict to supported browsers and email clients, deploy DNS filtering, and implement DMARC with anti-malware scanning of email.',4,5,2,[],['B4'],{ig1:true}),
+    a('CIS10','CIS 10','C2','Malware Defenses','Prevent or control the installation, spread and execution of malicious applications, code or scripts.',
+      'Centrally managed anti-malware with automatic updates covers all assets, and autorun is disabled for removable media.',
+      'Deploy centrally managed anti-malware or EDR with automatic updates across all assets, and disable autorun for removable media.',5,5,2,[],['B4'],{ig1:true}),
+    a('CIS11','CIS 11','C2','Data Recovery','Establish and maintain data recovery practices sufficient to restore in-scope assets to a pre-incident, trusted state.',
+      'A documented recovery process covers in-scope data, automated backups are protected and isolated, and recovery is tested on a schedule.',
+      'Document the data recovery process, automate backups with an isolated copy, and test recovery on a defined schedule.',5,4,3,['recover'],['B5'],{ig1:true}),
+    a('CIS12','CIS 12','C2','Network Infrastructure Management','Actively manage network devices to prevent attackers exploiting vulnerable network services and access points.',
+      'Network infrastructure is kept up to date, network architecture is documented, and secure management protocols are used.',
+      'Keep network infrastructure up to date, document the network architecture, and use secure protocols for network management.',4,3,3,[],['B5','B4'],{ig1:true}),
+    a('CIS13','CIS 13','C3','Network Monitoring and Defense','Operate processes and tooling to establish comprehensive network monitoring and defence against security threats.',
+      'Security event alerting is centralised, network intrusion detection covers key segments, and alerts are tuned and triaged.',
+      'Centralise security event alerting, deploy network intrusion detection on key segments, and tune and triage alerts.',4,4,4,['detect'],['C1','C2'],{ig1:false}),
+    a('CIS14','CIS 14','C3','Security Awareness and Skills Training','Establish and maintain a security awareness programme so the workforce is security-conscious and properly skilled.',
+      'Awareness training covers social engineering, data handling and incident reporting at induction and annually, with role-specific training.',
+      'Run awareness training at induction and annually covering social engineering, data handling and incident reporting, with role-specific modules.',3,4,2,[],['B6'],{ig1:true}),
+    a('CIS15','CIS 15','C3','Service Provider Management','Evaluate service providers who hold sensitive data or are responsible for critical platforms or processes.',
+      'A service provider inventory exists, providers are classified, and contracts include security requirements.',
+      'Maintain a service provider inventory, classify providers by risk, and include security requirements in contracts.',4,4,2,[],['A4'],{ig1:true}),
+    a('CIS16','CIS 16','C3','Application Software Security','Manage the security life cycle of in-house developed, hosted or acquired software.',
+      'A secure development process with vulnerability handling, secure design and testing is applied to in-house and acquired software.',
+      'Establish a secure development process with a vulnerability handling procedure, secure design principles and security testing.',4,3,4,[],['A4','B4'],{ig1:false}),
+    a('CIS17','CIS 17','C3','Incident Response Management','Establish a programme to prepare for, detect and quickly respond to an attack.',
+      'Incident response roles, contact information and reporting processes are documented and maintained, and the plan is reviewed and exercised.',
+      'Document incident response roles, contacts and reporting processes, maintain an incident response plan and exercise it regularly.',5,4,2,['respond'],['D1','D2'],{ig1:true}),
+    a('CIS18','CIS 18','C3','Penetration Testing','Test the effectiveness and resilience of assets by identifying and exploiting weaknesses in controls.',
+      'A penetration testing programme defines scope and frequency, external tests run periodically, and findings are remediated and tracked.',
+      'Establish a penetration testing programme with defined scope and frequency, and track remediation of findings.',3,3,3,[],['A2'],{ig1:false})
+  ]
+},
+custom:{
+  id:'custom', name:'Custom model', short:'Custom model', version:'', published:'',
+  blurb:'Consultant-defined domains for bespoke engagements.',
+  unit:'domain', groups:[], areas:[]
+}
+};
+
+const TARGET_PRESETS = {
+  clear:   {label:'Clear all targets', fn:()=>null},
+  base3:   {label:'All → 3 Established', fn:()=>3},
+  tiered:  {label:'Risk-tiered (3, or 4 where impact is 5)', fn:(ar)=>ar.imp>=5?4:3},
+  all2:    {label:'All → 2 Managed', fn:()=>2}
+};
+const PALETTES = {navy:{label:'Navy',c:'#12336E'},teal:{label:'Teal',c:'#0D4F4C'},graphite:{label:'Graphite',c:'#2F3640'},burgundy:{label:'Burgundy',c:'#561A2B'}};
+
+// ═══════════ STATE ═══════════
+const DEFAULT_META = () => ({framework:null, org:'', sector:'', size:'', scope:'', assessor:'', qc:'', preparedBy:'', owner:'', team:'',
+  date:new Date().toISOString().split('T')[0], period:'', method:'', evidence:'', targetBasis:'', version:'', classification:'',
+  cisIG:1, useAid:true, palette:'navy', customAreas:[]});
+let meta = DEFAULT_META();
+let areas = {};
+let currentPage = 'dashboard';
+const openCards = new Set();
+let guideOpen = false;
+
+// ═══════════ HELPERS ═══════════
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function jsq(s){ return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+function uid(id){ return String(id).replace(/[^a-zA-Z0-9]/g,'_'); }
+function fmtDate(d){ if(!d) return '—'; const dt=new Date(d); if(isNaN(dt)) return esc(d); return dt.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}); }
+function plural(n,w,p){ return n+' '+(n===1?w:(p||w+'s')); }
+function fmt1(x){ return (x==null||isNaN(x))?'—':(Math.round(x*10)/10).toFixed(1); }
+function upl(f){ return f.unit==='category'?'categories':f.unit+'s'; }
+function lvName(n){ return LEVELS[n]?LEVELS[n].name:''; }
+function lvColor(n){ return LEVELS[n]?LEVELS[n].color:'#8A9BB0'; }
+function bandForAvg(x){ return x==null?null:Math.min(5,Math.max(0,Math.floor(x+1e-9))); }
+
+const CUSTOM_COLORS = ['#1456CC','#7C3AED','#D97706','#DC2626','#059669','#0284C7','#DB2777','#4F46E5'];
+function getFw(){
+  if(!meta.framework) return null;
+  if(meta.framework!=='custom') return FW[meta.framework];
+  const base = FW.custom;
+  const gnames = [];
+  (meta.customAreas||[]).forEach(c=>{ const g=(c.group||'').trim()||'Domains'; if(!gnames.includes(g)) gnames.push(g); });
+  const groups = gnames.map((g,i)=>({id:'G'+i, name:g, color:CUSTOM_COLORS[i%CUSTOM_COLORS.length], desc:''}));
+  const list = (meta.customAreas||[]).filter(c=>(c.name||'').trim()).map(c=>{
+    const g=(c.group||'').trim()||'Domains'; const gi=gnames.indexOf(g);
+    return a(c.id, (c.code||'').trim()||c.id, 'G'+gi, c.name.trim(), (c.desc||'').trim(),
+      '', '', 3,3,3, (c.ir===true?['respond']:(IR_THEMES[c.ir]?[c.ir]:[])), []);
+  });
+  return Object.assign({}, base, {groups, areas:list});
+}
+function defs(){ const f=getFw(); return f?f.areas:[]; }
+function def(id){ return defs().find(d=>d.id===id); }
+function gShort(g){ return g.short||(meta.framework==='csf'?g.id:''); }
+function grp(gid){ const f=getFw(); return f?f.groups.find(g=>g.id===gid):null; }
+function S(id){ if(!areas[id]) areas[id]={lv:null,tgt:null,tgtWhy:'',conf:'',aid:{},ovr:'',just:'',ev:'',rec:'',L:null,I:null,E:null}; return areas[id]; }
+function lv(id){ const s=areas[id]; return s?s.lv:null; }
+function isScored(id){ return typeof lv(id)==='number'; }
+function isNA(id){ return lv(id)==='NA'; }
+function isNS(id){ return lv(id)==='NS'; }
+function isUnset(id){ const v=lv(id); return v===null||v===undefined; }
+function tgt(id){ const s=areas[id]; return s&&typeof s.tgt==='number'?s.tgt:null; }
+function Lk(id){ const s=areas[id], d=def(id); return (s&&s.L)||d.lik; }
+function Im(id){ const s=areas[id], d=def(id); return (s&&s.I)||d.imp; }
+function Ef(id){ const s=areas[id], d=def(id); return (s&&s.E)||d.eff; }
+function gapOf(id){ if(!isScored(id)||tgt(id)==null) return null; return Math.max(0,tgt(id)-lv(id)); }
+function prioOf(id){ const g=gapOf(id); return g?g*Lk(id)*Im(id):0; }
+function band(p){ if(p<=0) return null; if(p>=45) return 'Critical'; if(p>=24) return 'High'; if(p>=10) return 'Medium'; return 'Low'; }
+function aidSuggest(aid){
+  if(!aid) return null;
+  const P=aid.policy, M=aid.impl, R=aid.meas||0, U=aid.auto||0;
+  if(P==null||M==null) return null;
+  if(M===0) return 0;
+  if(P===0) return 1;
+  if(!(P===2&&M===2)) return 2;
+  if(R!==2) return 3;
+  if(U!==2) return 4;
+  return 5;
+}
+function overrideMissing(id){
+  if(!meta.useAid||!isScored(id)) return false;
+  const sg=aidSuggest(S(id).aid); if(sg==null) return false;
+  return sg!==lv(id) && !(S(id).ovr||'').trim();
+}
+function naMissing(id){ return isNA(id) && !(S(id).just||'').trim(); }
+function inScopeCIS(d){ return !(meta.framework==='cis' && Number(meta.cisIG)===1 && d.ig1===false); }
+
+function statsFor(list){
+  const scored = list.filter(d=>isScored(d.id));
+  const vals = scored.map(d=>lv(d.id));
+  const dist=[0,0,0,0,0,0]; vals.forEach(v=>dist[v]++);
+  const mean = vals.length? vals.reduce((x,y)=>x+y,0)/vals.length : null;
+  const withTgt = scored.filter(d=>tgt(d.id)!=null);
+  const meet = withTgt.filter(d=>gapOf(d.id)===0);
+  return {total:list.length, scored:scored.length, mean, min:vals.length?Math.min(...vals):null, max:vals.length?Math.max(...vals):null, dist,
+    na:list.filter(d=>isNA(d.id)).length, ns:list.filter(d=>isNS(d.id)).length, unset:list.filter(d=>isUnset(d.id)).length,
+    withTgt:withTgt.length, meet:meet.length, lowConf:scored.filter(d=>S(d.id).conf==='L').length,
+    noConf:scored.filter(d=>!S(d.id).conf).length};
+}
+function groupStats(gid){ return statsFor(defs().filter(d=>d.group===gid)); }
+function gaps(){
+  return defs().filter(d=>gapOf(d.id)>0).map(d=>{
+    const g=gapOf(d.id), p=prioOf(d.id), b=band(p), e=Ef(d.id);
+    const horizon = (b==='Critical' || (e<=2 && b!=='Low')) ? 0 : (e<=3 ? 1 : 2);
+    const cat = e<=2 ? 'Quick win' : b==='Critical' ? 'Urgent' : e>=4 ? 'Strategic' : 'Foundation';
+    return {d, gap:g, prio:p, band:b, L:Lk(d.id), I:Im(d.id), E:e, horizon, cat};
+  }).sort((x,y)=>y.prio-x.prio || y.gap-x.gap || x.d.code.localeCompare(y.d.code));
+}
+const HORIZONS = [{id:0,label:'0–3 months',sub:'Critical risks and quick wins'},{id:1,label:'3–6 months',sub:'Foundations for consistent practice'},{id:2,label:'6–12 months',sub:'Strategic, resource-intensive uplift'}];
+
+function validation(){
+  const ds=defs();
+  return {
+    unset: ds.filter(d=>isUnset(d.id)),
+    naMissing: ds.filter(d=>naMissing(d.id)),
+    ovrMissing: ds.filter(d=>overrideMissing(d.id)),
+    noTarget: ds.filter(d=>isScored(d.id)&&tgt(d.id)==null),
+    noConf: ds.filter(d=>isScored(d.id)&&!S(d.id).conf)
+  };
+}
+
+// Readiness: per theme, the weakest scored tagged area drives the statement.
+function readiness(){
+  const ds=defs();
+  const out=[];
+  Object.keys(IR_THEMES).forEach(k=>{
+    const list=ds.filter(d=>d.ir.includes(k));
+    if(!list.length) return;
+    const sc=list.filter(d=>isScored(d.id));
+    const minV = sc.length?Math.min(...sc.map(d=>lv(d.id))):null;
+    const mean = sc.length?sc.reduce((x,d)=>x+lv(d.id),0)/sc.length:null;
+    const th=IR_THEMES[k];
+    let text = minV==null ? 'No tagged areas have been scored yet.' : minV<2 ? th.low : minV<3 ? th.mid : th.good + (minV>=4?' Performance is measured and tested, so this can be relied on with confidence.':'');
+    out.push({k, th, list, minV, mean, text});
+  });
+  const tagged=ds.filter(d=>d.ir.length), sc=tagged.filter(d=>isScored(d.id));
+  const mean=sc.length?sc.reduce((x,d)=>x+lv(d.id),0)/sc.length:null;
+  const minV=sc.length?Math.min(...sc.map(d=>lv(d.id))):null;
+  let label = minV==null?'Not yet assessed': minV<2?'Limited':minV<3?'Developing':minV<4?'Established':'Strong';
+  return {themes:out, mean, minV, label, tagged, scored:sc.length};
+}
+function readinessColor(label){ return {Limited:'#C0283A',Developing:'#B58100',Established:'#5E9A1E',Strong:'#0A8A5A'}[label]||'#8A9BB0'; }
+
+// Framework-specific interpretation
+function csfTier(){
+  const st=groupStats('GV'); if(st.mean==null) return null;
+  const m=st.mean;
+  const t = m<1.5?{n:1,name:'Partial',d:'Cybersecurity risk management is ad hoc and reactive, with limited organisational awareness of cyber risk.'}
+        : m<2.5?{n:2,name:'Risk Informed',d:'Risk management practices are approved by management but may not be established as organisation-wide policy.'}
+        : m<3.5?{n:3,name:'Repeatable',d:'Risk management practices are formally approved, expressed as policy and regularly updated.'}
+        :{n:4,name:'Adaptive',d:'Cybersecurity risk management adapts based on lessons learned and predictive indicators, and is part of organisational culture.'};
+  return Object.assign(t,{mean:m});
+}
+function isoReadiness(){
+  const cl=defs().filter(d=>d.group==='CL'), ax=defs().filter(d=>d.group==='AX');
+  const clRisk=cl.filter(d=>isScored(d.id)&&lv(d.id)<3), clCrit=cl.filter(d=>isScored(d.id)&&lv(d.id)<2);
+  const axRisk=ax.filter(d=>isScored(d.id)&&lv(d.id)<2);
+  const clNA=cl.filter(d=>isNA(d.id)), axNA=ax.filter(d=>isNA(d.id));
+  const anyScored=cl.concat(ax).some(d=>isScored(d.id));
+  let status,col,text;
+  if(!anyScored){status='Not yet assessed';col='#8A9BB0';text='Score the clauses and Annex A areas to see an indicative certification-readiness position.';}
+  else if(clCrit.length||clNA.length){status='Not ready';col='#C0283A';text='One or more management-system clauses is below Level 2 or marked not applicable. Clauses 4–10 cannot be excluded, so certification is unlikely until these are addressed.';}
+  else if(clRisk.length||axRisk.length){status='Significant gaps';col='#B58100';text='The management system exists but is not yet consistent, or applicable Annex A areas are below Level 2. Expect nonconformities at a certification audit.';}
+  else {status='Indicatively ready';col='#0A8A5A';text='Clauses are at Level 3 or above and applicable Annex A areas at Level 2 or above. A Stage 1 audit is a reasonable next step, subject to at least one completed internal audit and management review cycle.';}
+  return {status,col,text,clRisk,axRisk,clNA,axNA};
+}
+function cisCoverage(){
+  const ds=defs(), ig=Number(meta.cisIG)||1;
+  const inScope=ds.filter(d=>inScopeCIS(d)&&!isNA(d.id)&&!isNS(d.id));
+  const sc=inScope.filter(d=>isScored(d.id));
+  const at3=sc.filter(d=>lv(d.id)>=3);
+  return {ig, inScope:inScope.length, scored:sc.length, at3:at3.length, pct: sc.length?Math.round(at3.length/sc.length*100):null,
+    below:sc.filter(d=>lv(d.id)<3), outScope:ds.filter(d=>!inScopeCIS(d))};
+}
+function cafCrosswalk(){
+  const ds=defs();
+  return CAF_PRINCIPLES.map(p=>{
+    const mapped=ds.filter(d=>d.caf.includes(p.id));
+    const sc=mapped.filter(d=>isScored(d.id));
+    const mean=sc.length?sc.reduce((x,d)=>x+lv(d.id),0)/sc.length:null;
+    const minV=sc.length?Math.min(...sc.map(d=>lv(d.id))):null;
+    let outlook = !mapped.length?'Not covered':mean==null?'Not scored':mean<2?'Weak':mean<3?'Developing':mean<4?'Reasonable':'Strong';
+    const focus = mean!=null && (mean<2.5 || minV<2);
+    return {p, mapped, mean, minV, outlook, focus};
+  });
+}
+function outlookColor(o){ return {Weak:'#C0283A',Developing:'#B58100',Reasonable:'#5E9A1E',Strong:'#0A8A5A'}[o]||'#8A9BB0'; }
+
+// ═══════════ RECOMMENDATION TEXT ═══════════
+function buildRecommendation(g){
+  const d=g.d, id=d.id, s=S(id), cur=lv(id), t=tgt(id);
+  const impWord = g.I>=5?'severe':g.I>=4?'major':g.I>=3?'material':'limited';
+  const likWord = g.L>=4?'a high likelihood of being exploited under current threat conditions':g.L>=3?'a realistic likelihood of being exploited':'a lower but real likelihood of being exploited';
+  let txt = `<strong>${esc(d.name)} (${esc(d.code)})</strong> is assessed at Level ${cur} (${lvName(cur)}) against a target of Level ${t} (${lvName(t)}), a gap of ${plural(g.gap,'level')}. `;
+  txt += `Weakness here carries ${impWord} potential impact (${g.I}/5) with ${likWord} (${g.L}/5), giving a priority score of ${g.prio}. `;
+  if(s.conf==='L') txt += `The rating rests on interview evidence only, so validate the position before committing significant investment. `;
+  if((s.rec||'').trim()){
+    txt += `<strong>Recommended action:</strong> ${esc(s.rec.trim())} `;
+  } else {
+    txt += `The next step is Level ${cur+1} (${lvName(cur+1)}): ${NEXT_STEP[cur+1]}. `;
+    if(d.action) txt += `<strong>Recommended action:</strong> ${esc(d.action)} `;
+  }
+  const eff=['','very low','low','moderate','high','very high'][g.E];
+  if(g.cat==='Quick win') txt += `Effort is ${eff}, making this a quick win to schedule early.`;
+  else if(g.cat==='Urgent') txt += `Treat this as a near-term priority despite ${eff} effort, and consider interim compensating controls while the full fix is delivered.`;
+  else if(g.cat==='Strategic') txt += `Effort is ${eff}, so plan this as a funded work package with an owner and milestones rather than expecting a fast fix.`;
+  else txt += `Effort is ${eff}; fold this into the improvement programme with a named owner and target date.`;
+  return txt;
+}
+
+// ═══════════ SMALL RENDER HELPERS ═══════════
+function lvPill(id){
+  const v=lv(id);
+  if(typeof v==='number') return `<span class="lv" style="background:${lvColor(v)}" title="Level ${v}: ${lvName(v)}">${v}</span>`;
+  if(v==='NA') return `<span class="lv na" title="Not applicable">N/A</span>`;
+  if(v==='NS') return `<span class="lv ns" title="Not assessed">—</span>`;
+  return `<span class="lv un" title="Not yet scored">·</span>`;
+}
+function lvPillN(v){ return v==null?`<span class="lv un">·</span>`:`<span class="lv" style="background:${lvColor(v)}">${v}</span>`; }
+function codeChip(d){ const g=grp(d.group); const c=g?g.color:'#6B7A90'; return `<span class="area-code" style="background:${c}1c;color:${c};border:1px solid ${c}40">${esc(d.code)}</span>`; }
+function prioChip(b){ return b?`<span class="chip prio-${b}">${b}</span>`:''; }
+function distBar(dist, cls){
+  const tot=dist.reduce((x,y)=>x+y,0)||1;
+  return `<div class="${cls||'dist'}">${dist.map((n,i)=>n?`<span style="width:${n/tot*100}%;background:${lvColor(i)}" title="Level ${i}: ${n}"></span>`:'').join('')}</div>`;
+}
+function distLegend(dist){ return `<div class="dist-legend">${dist.map((n,i)=>`<span><i style="background:${lvColor(i)}"></i>${i} ${lvName(i)} (${n})</span>`).join('')}</div>`; }
+function track(v,t,w){
+  const pct=v==null?0:v/5*100;
+  return `<div class="track" style="${w?'width:'+w+'px':''}"><div class="fill" style="width:${pct}%;background:${v==null?'transparent':lvColor(Math.floor(v))}"></div>${t!=null?`<div class="tgt" style="left:calc(${t/5*100}% - 1px)" title="Target ${t}"></div>`:''}</div>`;
+}
+
+// ═══════════ NAVIGATION ═══════════
+function buildNav(){
+  const nav=document.getElementById('sidebar-nav'); const f=getFw();
+  let h=`<div class="nav-section">Views</div>
+    <button class="nav-item" id="nav-dashboard" onclick="navigate('dashboard')"><span class="nav-dot" style="background:#4A90E2"></span><span class="nav-lbl">Dashboard</span></button>`;
+  if(f && f.areas.length){
+    h+=`<div class="nav-section">Assessment</div>`;
+    f.groups.forEach(g=>{
+      h+=`<button class="nav-item" id="nav-g-${g.id}" onclick="navigate('g:${g.id}')"><span class="nav-dot" style="background:${g.color}"></span><span class="nav-lbl">${esc(g.name)}</span><span class="nav-lvl" id="navlv-${g.id}">—</span></button>`;
+    });
+    h+=`<div class="nav-section">Analysis</div>
+      <button class="nav-item" id="nav-gap" onclick="navigate('gap')"><span class="nav-dot" style="background:#C0283A"></span><span class="nav-lbl">Gap &amp; risk</span></button>
+      <button class="nav-item" id="nav-plan" onclick="navigate('plan')"><span class="nav-dot" style="background:#D97706"></span><span class="nav-lbl">Improvement roadmap</span></button>
+      <button class="nav-item" id="nav-ready" onclick="navigate('ready')"><span class="nav-dot" style="background:#B45309"></span><span class="nav-lbl">Incident readiness</span></button>`;
+    if(meta.framework!=='custom') h+=`<button class="nav-item" id="nav-caf" onclick="navigate('caf')"><span class="nav-dot" style="background:#3B82F6"></span><span class="nav-lbl">CAF alignment</span></button>`;
+    h+=`<div class="nav-section">Output</div>
+      <button class="nav-item" id="nav-report" onclick="navigate('report')"><span class="nav-dot" style="background:#5A7A9A"></span><span class="nav-lbl">Full report</span></button>`;
+  }
+  nav.innerHTML=h;
+  document.getElementById('logo-sub').textContent = f ? `${f.short}${f.version&&meta.framework!=='iso'&&meta.framework!=='custom'?'':''} · 0–5 maturity scale` : 'Choose a framework in setup';
+  document.getElementById('fw-chip').textContent = f ? `${f.short} · ${f.areas.length} ${f.areas.length===1?f.unit:upl(f)}` : 'No framework';
+}
+function pageTitle(p){
+  if(p.startsWith('g:')){ const g=grp(p.slice(2)); return g?g.name:'Assessment'; }
+  return {dashboard:'Dashboard',gap:'Gap & risk',plan:'Improvement roadmap',ready:'Incident readiness',caf:'CAF alignment (indicative)',report:'Full assessment report'}[p]||p;
+}
+function navigate(p){
+  if(!getFw() && p!=='dashboard'){ p='dashboard'; }
+  currentPage=p;
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  const el=document.getElementById('nav-'+(p.startsWith('g:')?'g-'+p.slice(2):p)); if(el) el.classList.add('active');
+  document.getElementById('topbar-title').textContent=pageTitle(p);
+  renderPage();
+  document.getElementById('content').scrollTop=0;
+}
+function renderPage(){
+  const c=document.getElementById('content'); let h='';
+  if(currentPage==='dashboard') h=renderDashboard();
+  else if(currentPage.startsWith('g:')) h=renderGroup(currentPage.slice(2));
+  else if(currentPage==='gap') h=renderGap();
+  else if(currentPage==='plan') h=renderPlan();
+  else if(currentPage==='ready') h=renderReady();
+  else if(currentPage==='caf') h=renderCaf();
+  else if(currentPage==='report') h=renderReport();
+  c.innerHTML=h;
+}
+function rerender(){ const c=document.getElementById('content'); const s=c.scrollTop; renderPage(); c.scrollTop=s; }
+function updateMeta(){
+  const ds=defs(); const addressed=ds.filter(d=>!isUnset(d.id)).length;
+  document.getElementById('prog-fill').style.width=(ds.length?addressed/ds.length*100:0)+'%';
+  document.getElementById('prog-text').textContent=addressed+' / '+ds.length;
+  const v=validation(); const w=document.getElementById('prog-warn');
+  const msgs=[];
+  if(v.unset.length) msgs.push(plural(v.unset.length,'area')+' not yet addressed');
+  if(v.naMissing.length) msgs.push(v.naMissing.length+' N/A without justification');
+  if(v.ovrMissing.length) msgs.push(plural(v.ovrMissing.length,'override')+' without a note');
+  w.style.display=msgs.length?'block':'none'; w.textContent=msgs.join(' · ');
+  const f=getFw();
+  if(f) f.groups.forEach(g=>{ const el=document.getElementById('navlv-'+g.id); if(!el) return; const st=groupStats(g.id); el.textContent=st.mean==null?'—':fmt1(st.mean); el.style.background=st.mean==null?'':lvColor(bandForAvg(st.mean)); el.style.color=st.mean==null?'':'#fff'; });
+  document.getElementById('topbar-org').textContent=meta.org||'';
+  persist();
+}
+function update(){ buildNav(); updateMeta(); navigate(currentPage); }
+
+// ═══════════ STATE MUTATORS ═══════════
+function setLevel(id,v){
+  const s=S(id);
+  s.lv = (s.lv===v) ? null : v;
+  if(s.lv!=='NS') s.nsAuto=false;
+  updateMeta(); rerender();
+}
+function setTgt(id,v){ S(id).tgt = (S(id).tgt===v)?null:v; updateMeta(); rerender(); }
+function setConf(id,v){ S(id).conf = (S(id).conf===v)?'':v; updateMeta(); rerender(); }
+function setAid(id,k,v){ const s=S(id); s.aid=s.aid||{}; s.aid[k]=(s.aid[k]===v)?null:v; updateMeta(); rerender(); }
+function applySugg(id){ const sg=aidSuggest(S(id).aid); if(sg==null) return; S(id).lv=sg; updateMeta(); rerender(); }
+function setRisk(id,k,v){ S(id)[k]=Number(v)||null; updateMeta(); rerender(); }
+function setText(id,k,v){
+  S(id)[k]=v;
+  const u=uid(id);
+  if(k==='ovr'){ const w=document.getElementById('w-ovr-'+u); if(w) w.style.display=overrideMissing(id)?'flex':'none'; }
+  if(k==='just'){ const w=document.getElementById('w-just-'+u); if(w) w.style.display=naMissing(id)?'flex':'none'; }
+  updateMeta();
+}
+function toggleCard(id){ if(openCards.has(id)) openCards.delete(id); else openCards.add(id); rerender(); }
+function expandAll(gid,open){ defs().filter(d=>d.group===gid).forEach(d=>open?openCards.add(d.id):openCards.delete(d.id)); rerender(); }
+function openArea(id){ const d=def(id); if(!d) return; openCards.add(id); navigate('g:'+d.group); setTimeout(()=>{ const el=document.getElementById('card-'+uid(id)); if(el) el.scrollIntoView({block:'start',behavior:'smooth'}); },30); }
+function toggleGuide(){ guideOpen=!guideOpen; rerender(); }
+
+// ═══════════ SCALE GUIDANCE (shared) ═══════════
+function scaleGuide(){
+  return `<div class="guide no-print">
+    <button class="guide-head" onclick="toggleGuide()" aria-expanded="${guideOpen}"><span class="guide-tag">SCALE</span><span class="guide-title">Maturity levels, scoring rules and confidence</span><span class="chevron ${guideOpen?'open':''}">▸</span></button>
+    ${guideOpen?`<div class="guide-body">
+      <table class="scale-table"><thead><tr><th style="width:120px">Level</th><th>What it looks like</th><th style="width:30%">Typical evidence</th></tr></thead><tbody>
+      ${LEVELS.map(l=>`<tr><td><span class="lv" style="background:${l.color}">${l.n}</span> <strong>${l.name}</strong></td><td>${l.desc}</td><td>${l.evidence}</td></tr>`).join('')}
+      </tbody></table>
+      <p><strong>Cumulative.</strong> Award a level only when every lower level is fully met. Excellent tooling with no owner or documentation is Level 1, not Level 4.</p>
+      <p><strong>Not applicable</strong> needs a written justification and appears in the report's register. <strong>Not assessed</strong> is excluded from every calculation and listed as a limitation.</p>
+      <p><strong>Confidence.</strong> High: tested or observed working. Medium: documentary evidence reviewed. Low: interview or self-declaration only.</p>
+    </div>`:''}
+  </div>`;
+}
+
+// ═══════════ AREA CARD ═══════════
+function renderAreaCard(d){
+  const id=d.id, u=uid(id), s=S(id), open=openCards.has(id), v=s.lv, t=tgt(id);
+  const g=gapOf(id), b=band(prioOf(id));
+  const tChip = t==null ? `<span class="chip chip-muted">No target</span>` : g==null ? `<span class="chip chip-muted">Target ${t}</span>` : g===0 ? `<span class="chip chip-ok">✓ Target ${t}</span>` : `<span class="chip chip-warn">Target ${t} · gap ${g}</span>`;
+  const cChip = s.conf ? `<span class="chip ${s.conf==='L'?'chip-warn':'chip-muted'}" title="${CONF[s.conf].desc}">${CONF[s.conf].label} conf.</span>` : '';
+  const irChip = d.ir.length ? `<span class="chip chip-ir" title="Feeds the incident readiness view">◆ IR</span>` : '';
+  const outChip = !inScopeCIS(d) ? `<span class="chip chip-muted">Outside IG${meta.cisIG}</span>` : '';
+  let h=`<div class="area" id="card-${u}">
+    <button class="area-head" onclick="toggleCard('${jsq(id)}')" aria-expanded="${open}">
+      ${lvPill(id)}${codeChip(d)}<span class="area-name">${esc(d.name)}</span>${outChip}${irChip}${cChip}${isScored(id)?tChip:''}${prioChip(b)}
+      <span class="chevron ${open?'open':''}">▸</span>
+    </button>`;
+  if(!open) return h+`</div>`;
+  h+=`<div class="area-body">
+    <div class="area-desc">${esc(d.desc)||'<span class="small-muted">No description.</span>'}</div>
+    ${d.refs?`<div class="area-refs">Annex A / clause references: <span class="mono">${esc(d.refs)}</span></div>`:''}
+    ${d.caf&&d.caf.length?`<div class="area-refs">CAF principles: <span class="mono">${d.caf.join(', ')}</span></div>`:''}
+    ${d.l3?`<div class="anchor"><b>Level 3 (Established) looks like:</b> ${esc(d.l3)}</div>`:''}
+    <div class="row"><span class="row-lbl">Maturity level</span><div class="btns">
+      ${LEVELS.map(l=>`<button class="lb ${v===l.n?'on':''}" style="${v===l.n?`background:${l.color};border-color:${l.color}`:''}" onclick="setLevel('${jsq(id)}',${l.n})" aria-pressed="${v===l.n}" title="${esc(l.desc)}"><span class="n">${l.n}</span>${l.name}</button>`).join('')}
+      <button class="lb ${v==='NA'?'on-na':''}" onclick="setLevel('${jsq(id)}','NA')" aria-pressed="${v==='NA'}">N/A</button>
+      <button class="lb ${v==='NS'?'on-na':''}" onclick="setLevel('${jsq(id)}','NS')" aria-pressed="${v==='NS'}">Not assessed</button>
+    </div></div>`;
+  if(meta.useAid){
+    const sg=aidSuggest(s.aid);
+    h+=`<div class="aid"><div class="small-muted" style="font-weight:600;color:var(--text2)">Scoring aid <span style="font-weight:400">(optional)</span></div>
+      <div class="aid-grid">${AID_DIMS.map(q=>`<div><div class="aid-q">${q.q}<span>${q.h}</span></div><div class="btns">${AID_VALS.map((lbl,i)=>`<button class="sb ${s.aid&&s.aid[q.k]===i?'on':''}" onclick="setAid('${jsq(id)}','${q.k}',${i})">${lbl}</button>`).join('')}</div></div>`).join('')}</div>
+      <div class="aid-sugg">${sg==null?'<span class="small-muted">Answer Policy and Implementation to see a suggested level.</span>':
+        `Suggests <span class="lv" style="background:${lvColor(sg)}">${sg}</span> <strong>${lvName(sg)}</strong>
+         ${v!==sg?`<button class="mbn" onclick="applySugg('${jsq(id)}')">Use Level ${sg}</button>`:'<span class="chip chip-ok">Matches the score</span>'}`}</div>
+      ${sg!=null&&isScored(id)&&v!==sg?`<div style="margin-top:10px"><div class="warnline" id="w-ovr-${u}" style="display:${overrideMissing(id)?'flex':'none'}">⚠ The score differs from the suggestion. Record why.</div>
+        <textarea class="inp" rows="2" placeholder="Override rationale: why the evidence supports Level ${v} rather than ${sg}" oninput="setText('${jsq(id)}','ovr',this.value)">${esc(s.ovr)}</textarea></div>`:''}
+    </div>`;
+  }
+  h+=`<div class="row alt"><span class="row-lbl">Evidence confidence</span><div class="btns">
+      ${Object.keys(CONF).map(k=>`<button class="sb ${s.conf===k?'on':''}" onclick="setConf('${jsq(id)}','${k}')" title="${CONF[k].desc}">${CONF[k].label}</button>`).join('')}
+      <span class="small-muted" style="align-self:center;margin-left:6px">${s.conf?CONF[s.conf].desc:''}</span></div></div>
+    <div class="row"><span class="row-lbl">Target level</span><div class="btns">
+      ${LEVELS.map(l=>`<button class="sb ${t===l.n?'on':''}" onclick="setTgt('${jsq(id)}',${l.n})" title="${l.name}">${l.n}</button>`).join('')}
+      ${t!=null?`<span class="small-muted" style="align-self:center;margin-left:6px">${lvName(t)}</span>`:''}</div>
+      <input class="inp inp-line" style="flex:1;min-width:220px" placeholder="Target rationale (optional)" value="${esc(s.tgtWhy)}" oninput="setText('${jsq(id)}','tgtWhy',this.value)"/></div>
+    <div class="row alt"><span class="row-lbl">Prioritisation</span><div class="risk-inputs">
+      ${[['L','Likelihood'],['I','Impact'],['E','Effort']].map(([k,lb])=>{const cur=k==='L'?Lk(id):k==='I'?Im(id):Ef(id); const dflt=k==='L'?d.lik:k==='I'?d.imp:d.eff;
+        return `<label>${lb}<select onchange="setRisk('${jsq(id)}','${k}',this.value)">${[1,2,3,4,5].map(n=>`<option value="${n}" ${cur===n?'selected':''}>${n}${n===dflt?' (default)':''}</option>`).join('')}</select></label>`}).join('')}
+      <span class="small-muted">${g>0?`Priority score ${prioOf(id)} = gap ${g} × L${Lk(id)} × I${Im(id)}`:'Priority applies once scored below target'}</span></div></div>`;
+  if(v==='NA'){
+    h+=`<div class="box na"><div class="warnline" id="w-just-${u}" style="display:${naMissing(id)?'flex':'none'}">⚠ Not applicable needs a written justification.</div>
+      <label class="box-lbl">Justification for not applicable</label>
+      <div class="box-hint">Explain why this area does not apply to the organisation in scope, and note any compensating arrangements.</div>
+      <textarea class="inp" rows="3" oninput="setText('${jsq(id)}','just',this.value)">${esc(s.just)}</textarea></div>`;
+  }
+  if(v==='NS'){
+    h+=`<div class="box"><label class="box-lbl">Reason not assessed</label><div class="box-hint">Listed in the report as a limitation of the assessment.</div>
+      <textarea class="inp" rows="2" placeholder="e.g. Out of engagement scope; evidence not available during fieldwork" oninput="setText('${jsq(id)}','just',this.value)">${esc(s.just)}</textarea></div>`;
+  }
+  h+=`<div class="box"><label class="box-lbl">Evidence &amp; observations</label>
+      <div class="box-hint">Reference verifiable artefacts: policy versions, configuration exports, scan results, exercise reports, meeting minutes.</div>
+      <textarea class="inp" rows="3" placeholder="Evidence supporting this rating…" oninput="setText('${jsq(id)}','ev',this.value)">${esc(s.ev)}</textarea></div>
+    <div class="box"><label class="box-lbl">Recommendation <span class="small-muted" style="font-weight:400">(optional; replaces the generated action in the roadmap and report)</span></label>
+      <textarea class="inp" rows="2" placeholder="${esc(d.action||'Specific recommended action for this area')}" oninput="setText('${jsq(id)}','rec',this.value)">${esc(s.rec)}</textarea></div>
+  </div></div>`;
+  return h;
+}
+
+// ═══════════ GROUP PAGE ═══════════
+function renderGroup(gid){
+  const g=grp(gid); if(!g) return '';
+  const list=defs().filter(d=>d.group===gid); const st=statsFor(list);
+  let h=`<div class="wrap fu"><div class="page-head"><div>
+      <div style="display:flex;align-items:center;gap:10px">${gShort(g)?`<span class="mono" style="font-weight:700;color:${g.color}">${esc(gShort(g))}</span>`:''}<h2>${esc(g.name)}</h2></div>
+      ${g.desc?`<p>${esc(g.desc)}</p>`:''}
+    </div><div style="text-align:right;flex-shrink:0">
+      <div class="big-num" style="color:${st.mean==null?'var(--muted)':lvColor(bandForAvg(st.mean))}">${fmt1(st.mean)}</div>
+      <div class="small-muted">average of ${st.scored} scored · ${st.na} N/A · ${st.ns} not assessed</div>
+      ${st.unset?`<div class="small-muted" style="color:var(--bad);font-weight:600">${st.unset} outstanding</div>`:''}
+    </div></div>
+    ${meta.framework==='cis'&&Number(meta.cisIG)===1&&list.some(d=>d.ig1===false)?`<div class="notice">Assessing against <strong>IG1</strong>. Controls marked "Outside IG1" have no IG1 safeguards and are set to Not assessed; change the Implementation Group in setup to include them.</div>`:''}
+    ${scaleGuide()}
+    <div style="display:flex;justify-content:flex-end;gap:6px;margin-bottom:8px" class="no-print"><button class="mbn" onclick="expandAll('${gid}',true)">Expand all</button><button class="mbn" onclick="expandAll('${gid}',false)">Collapse all</button></div>
+    ${list.map(renderAreaCard).join('')}
+  </div>`;
+  return h;
+}
+
+// ═══════════ DASHBOARD ═══════════
+function renderWelcome(){
+  return `<div class="wrap fu"><div class="panel"><div class="panel-body" style="padding:28px">
+    <h2 style="font-size:20px;margin-bottom:6px">Start a maturity assessment</h2>
+    <p style="font-size:13px;color:var(--muted);line-height:1.65;max-width:720px;margin-bottom:18px">Choose the framework that fits the client. Each area is scored on a 0–5 scale aligned to ISO/IEC 33020 capability levels, with evidence, confidence and a target, and the report adds risk-weighted priorities, a roadmap, an incident readiness view and an indicative CAF alignment.</p>
+    <div class="fw-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+      ${['csf','iso','cis','custom'].map(k=>`<button class="fw-opt" onclick="showSetup('${k}')"><b>${FW[k].short}</b><span>${FW[k].blurb}</span></button>`).join('')}
+    </div>
+    <p class="small-muted" style="margin-top:16px">Want to see it populated first? Use <button class="linkish" onclick="loadSample()">Sample</button> to load a worked NIST CSF 2.0 example.</p>
+  </div></div></div>`;
+}
+function renderValidation(){
+  const v=validation(); const items=[];
+  if(v.unset.length) items.push(`<span class="vcount">${v.unset.length}</span>Not yet addressed: ${v.unset.slice(0,12).map(d=>`<button class="linkish" onclick="openArea('${jsq(d.id)}')">${esc(d.code)}</button>`).join(', ')}${v.unset.length>12?'…':''}`);
+  if(v.naMissing.length) items.push(`<span class="vcount">${v.naMissing.length}</span>Not applicable without justification: ${v.naMissing.map(d=>`<button class="linkish" onclick="openArea('${jsq(d.id)}')">${esc(d.code)}</button>`).join(', ')}`);
+  if(v.ovrMissing.length) items.push(`<span class="vcount">${v.ovrMissing.length}</span>Scores that differ from the scoring aid without a note: ${v.ovrMissing.map(d=>`<button class="linkish" onclick="openArea('${jsq(d.id)}')">${esc(d.code)}</button>`).join(', ')}`);
+  if(v.noTarget.length) items.push(`<span class="vcount">${v.noTarget.length}</span>Scored areas without a target (excluded from gap analysis). <button class="linkish" onclick="showSetup()">Apply a target preset</button>`);
+  if(v.noConf.length) items.push(`<span class="vcount">${v.noConf.length}</span>Scored areas without an evidence confidence rating`);
+  if(!items.length) return `<div class="validation ok"><div class="v-head">✓ Assessment complete: every area addressed, justified and targeted.</div></div>`;
+  return `<div class="validation"><div class="v-head">⚠ ${plural(items.length,'item')} to resolve before issuing the report</div><div class="v-body">${items.map(i=>`<div>${i}</div>`).join('')}</div></div>`;
+}
+function fwSpecificPanel(){
+  if(meta.framework==='csf'){
+    const t=csfTier();
+    return `<div class="panel"><div class="panel-head">Indicative NIST CSF Tier <span class="sub">Derived from the Govern function average; Tiers describe risk-management rigour, not control implementation</span></div><div class="panel-body">
+      ${t?`<div style="display:flex;gap:16px;align-items:center"><div class="big-num" style="color:var(--accent)">Tier ${t.n}</div><div><div style="font-weight:700">${t.name}</div><div class="small-muted" style="font-size:11.5px;line-height:1.55">${t.d} Govern average ${fmt1(t.mean)}.</div></div></div>`:'<div class="small-muted">Score the Govern categories to derive an indicative Tier.</div>'}
+    </div></div>`;
+  }
+  if(meta.framework==='iso'){
+    const r=isoReadiness();
+    return `<div class="panel"><div class="panel-head">Certification readiness (indicative) <span class="sub">Clauses need Level 3; applicable Annex A areas need Level 2</span></div><div class="panel-body">
+      <div style="display:flex;gap:14px;align-items:flex-start"><span class="badge" style="background:${r.col};color:#fff;font-size:11px;padding:4px 10px">${r.status}</span><div style="font-size:12px;color:var(--text2);line-height:1.6">${r.text}
+      ${r.clRisk.length?`<div style="margin-top:6px"><strong>Clauses below Level 3:</strong> ${r.clRisk.map(d=>esc(d.code)).join(', ')}</div>`:''}
+      ${r.axRisk.length?`<div><strong>Annex A areas below Level 2:</strong> ${r.axRisk.map(d=>esc(d.code)).join(', ')}</div>`:''}
+      ${r.axNA.length?`<div><strong>Annex A areas marked N/A</strong> (check against the Statement of Applicability): ${r.axNA.map(d=>esc(d.code)).join(', ')}</div>`:''}</div></div>
+    </div></div>`;
+  }
+  if(meta.framework==='cis'){
+    const c=cisCoverage();
+    return `<div class="panel"><div class="panel-head">CIS Implementation Group ${c.ig} coverage <span class="sub">In-scope controls at Level 3 (Established) or above</span></div><div class="panel-body">
+      <div style="display:flex;gap:16px;align-items:center"><div class="big-num" style="color:var(--accent)">${c.pct==null?'—':c.pct+'%'}</div><div style="font-size:12px;color:var(--text2);line-height:1.6">${c.at3} of ${c.scored} scored in-scope controls are Established or better (${c.inScope} in scope for IG${c.ig}).
+      ${c.below.length?`<div><strong>Below Level 3:</strong> ${c.below.map(d=>esc(d.code)).join(', ')}</div>`:''}${c.outScope.length?`<div class="small-muted">Outside IG${c.ig}: ${c.outScope.map(d=>esc(d.code)).join(', ')}</div>`:''}</div></div>
+    </div></div>`;
+  }
+  return '';
+}
+function renderDashboard(){
+  const f=getFw(); if(!f) return renderWelcome();
+  if(!f.areas.length) return `<div class="wrap fu"><div class="panel"><div class="empty">Add at least one domain to the custom model in <button class="linkish" onclick="showSetup()">setup</button>.</div></div></div>`;
+  const st=statsFor(f.areas); const rd=readiness(); const gp=gaps();
+  const crit=gp.filter(x=>x.band==='Critical').length, high=gp.filter(x=>x.band==='High').length;
+  const band0=bandForAvg(st.mean);
+  let h=`<div class="wrap fu">${renderValidation()}
+    <div class="summary">
+      <div class="overall">
+        <div style="flex:1">
+          <div class="small-muted">${esc(meta.org)||'Organisation not set'} · ${f.short}</div>
+          <h2 style="margin-top:4px">${st.mean==null?'Not yet scored':`<span class="mono" style="color:${lvColor(band0)}">${fmt1(st.mean)}</span> ${lvName(band0)}`}</h2>
+          <div class="lead">${st.mean==null?'Score areas to see the maturity profile.':`Average across ${st.scored} scored ${upl(f)}, ranging from Level ${st.min} to Level ${st.max}. The average is shown with its spread because a single figure can hide weak areas.`}</div>
+          ${distBar(st.dist)}${distLegend(st.dist)}
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="stat-val" style="color:var(--accent)">${st.withTgt?st.meet+'/'+st.withTgt:'—'}</div><div class="stat-lbl">Meeting target</div></div>
+        <div class="stat"><div class="stat-val" style="color:var(--bad)">${crit+high}</div><div class="stat-lbl">Critical &amp; high gaps</div></div>
+        <div class="stat"><div class="stat-val" style="color:${readinessColor(rd.label)}">${rd.mean==null?'—':fmt1(rd.mean)}</div><div class="stat-lbl">Incident readiness · ${rd.label}</div></div>
+        <div class="stat"><div class="stat-val" style="color:${st.lowConf?'var(--warn)':'var(--ok)'}">${st.lowConf}</div><div class="stat-lbl">Low-confidence ratings</div></div>
+      </div>
+    </div>
+    <div class="groups">${f.groups.map(g=>{const s=groupStats(g.id);return `<button class="gcard" style="border-top-color:${g.color}" onclick="navigate('g:${g.id}')">
+      <div class="g-id" style="color:${g.color}">${esc(gShort(g)||g.name)}</div><div class="g-name">${esc(g.name)}</div>
+      <div class="g-val" style="color:${s.mean==null?'var(--faint)':lvColor(bandForAvg(s.mean))}">${fmt1(s.mean)}</div>
+      <div class="mini"><span style="width:${s.mean==null?0:s.mean/5*100}%;background:${g.color}"></span></div>
+      <div class="small-muted" style="margin-top:5px">${s.scored}/${s.total} scored${s.unset?` · ${s.unset} open`:''}</div></button>`}).join('')}</div>
+    ${fwSpecificPanel()}
+    <div class="two-col">
+      <div class="panel"><div class="panel-head">Maturity by ${f.unit} <span class="sub">Bar = current level · marker = target</span></div><div class="panel-body"><div class="hm" style="grid-template-columns:1fr">
+        ${f.areas.map(d=>`<button class="hm-row" onclick="openArea('${jsq(d.id)}')">${lvPill(d.id)}<span class="hm-code" style="color:${grp(d.group).color}">${esc(d.code)}</span><span class="hm-name">${esc(d.name)}</span>${track(isScored(d.id)?lv(d.id):null,tgt(d.id))}</button>`).join('')}
+      </div></div></div>
+      <div>
+        <div class="panel"><div class="panel-head">Top priorities <span class="sub">Gap × likelihood × impact</span></div><div class="vlist">
+          ${gp.length?gp.slice(0,10).map((x,i)=>`<div class="vrow"><span class="small-muted mono">${i+1}</span><span class="code" style="color:${grp(x.d.group).color}">${esc(x.d.code)}</span><span class="nm">${esc(x.d.name)}</span>${lvPill(x.d.id)}<span class="small-muted">→ ${tgt(x.d.id)}</span>${prioChip(x.band)}</div>`).join(''):'<div class="empty">No gaps yet. Gaps appear once areas are scored below their target.</div>'}
+        </div></div>
+        <div class="panel"><div class="panel-head">Incident readiness <span class="sub">◆ tagged areas</span></div><div class="vlist">
+          ${rd.themes.map(t=>`<div class="vrow"><span class="nav-dot" style="background:${t.th.color}"></span><span class="nm">${t.th.name}</span><span class="small-muted">${t.list.map(d=>esc(d.code)).join(', ')}</span>${t.minV==null?'<span class="lv un">·</span>':`<span class="lv" style="background:${lvColor(t.minV)}" title="Weakest level">${t.minV}</span>`}</div>`).join('')||'<div class="empty">No areas are tagged for incident readiness.</div>'}
+        </div></div>
+      </div>
+    </div>
+  </div>`;
+  return h;
+}
+
+// ═══════════ RISK MATRIX (SVG, shared by app and report) ═══════════
+function svgMatrix(big){
+  const items=gaps();
+  const cell=big?82:52, ox=big?78:66, oy=14, gap=3;
+  const heat=(l,i)=>{const s=l*i; return s>=20?'#FBDDE0':s>=15?'#FDE8EA':s>=10?'#FFF0E8':s>=6?'#FFF8E8':s>=3?'#FDFDF0':'#F0FBF5';};
+  const likL=['','Rare','Unlikely','Possible','Likely','Almost certain'], impL=['','Minimal','Minor','Moderate','Major','Severe'];
+  const W=ox+cell*5+gap*4+10, H=oy+cell*5+gap*4+(big?46:40);
+  const bcol={Critical:'#C0283A',High:'#D4600A',Medium:'#B58100',Low:'#0A8A5A'};
+  const grid={}; items.forEach(x=>{const k=x.L+'_'+x.I;(grid[k]=grid[k]||[]).push(x);});
+  let s=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="max-width:100%;display:block;font-family:system-ui,Arial" role="img" aria-label="Risk matrix of gaps by likelihood and impact">`;
+  for(let l=5;l>=1;l--){ const y=oy+(5-l)*(cell+gap);
+    s+=`<text x="${ox-8}" y="${y+cell/2}" text-anchor="end" dy=".3em" font-size="${big?9.5:8}" fill="#6B7A90">${likL[l]}</text>`;
+    for(let i=1;i<=5;i++){ const x=ox+(i-1)*(cell+gap);
+      s+=`<rect x="${x}" y="${y}" width="${cell}" height="${cell}" rx="4" fill="${heat(l,i)}" stroke="#E4E9F0"/>`;
+      const list=grid[l+'_'+i]||[]; const per=Math.max(1,Math.floor((cell-6)/(big?30:22)));
+      list.forEach((it,idx)=>{ const r=big?13:9; const bx=x+4+r+(idx%per)*(r*2+3); const by=y+4+r+Math.floor(idx/per)*(r*2+3);
+        if(by+r>y+cell) return;
+        s+=`<g><title>${esc(it.d.code)} ${esc(it.d.name)}: Level ${lv(it.d.id)} → ${tgt(it.d.id)}, priority ${it.prio} (${it.band})</title><circle cx="${bx}" cy="${by}" r="${r}" fill="${bcol[it.band]}"/><text x="${bx}" y="${by}" text-anchor="middle" dy=".33em" font-size="${big?7.2:5.4}" font-weight="700" fill="#fff" font-family="Consolas,monospace">${esc(it.d.code.replace(/^CIS /,'C').replace(/^Cl\./,'').replace(/^A\./,''))}</text></g>`; });
+    }}
+  for(let i=1;i<=5;i++){ const x=ox+(i-1)*(cell+gap)+cell/2; s+=`<text x="${x}" y="${oy+cell*5+gap*4+14}" text-anchor="middle" font-size="${big?9.5:8}" fill="#6B7A90">${impL[i]}</text>`; }
+  s+=`<text x="${ox+(cell*5+gap*4)/2}" y="${H-6}" text-anchor="middle" font-size="${big?10:8.5}" font-weight="700" fill="#28313F">IMPACT →</text>`;
+  s+=`<text transform="translate(10 ${oy+(cell*5)/2}) rotate(-90)" text-anchor="middle" font-size="${big?10:8.5}" font-weight="700" fill="#28313F">LIKELIHOOD →</text></svg>`;
+  return s;
+}
+function renderGap(){
+  const gp=gaps(); const v=validation();
+  let h=`<div class="wrap fu"><div class="page-head"><div><h2>Gap &amp; risk</h2><p>Each gap is weighted by the likelihood and impact of weakness in that area, so a one-level gap in access control can outrank a two-level gap in physical security. Priority = gap to target × likelihood × impact (maximum 125).</p></div></div>
+    ${v.noTarget.length?`<div class="notice">${plural(v.noTarget.length,'scored area has','scored areas have')} no target and ${v.noTarget.length===1?'is':'are'} excluded. <button class="linkish" onclick="showSetup()">Apply a target preset</button>.</div>`:''}
+    <div class="two-col" style="grid-template-columns:auto 1fr;align-items:start">
+      <div class="panel" style="background:#fff"><div class="panel-head">Risk matrix</div><div class="panel-body">${svgMatrix(true)}
+        <div class="dist-legend" style="margin-top:10px">${['Critical','High','Medium','Low'].map(b=>`<span><i style="background:${{Critical:'#C0283A',High:'#D4600A',Medium:'#B58100',Low:'#0A8A5A'}[b]};border-radius:50%"></i>${b}</span>`).join('')}</div></div></div>
+      <div class="panel"><div class="panel-head">Priority bands</div><div class="panel-body" style="font-size:12px;color:var(--text2);line-height:1.8">
+        <div><span class="chip prio-Critical">Critical</span> score 45 or more</div><div><span class="chip prio-High">High</span> 24–44</div><div><span class="chip prio-Medium">Medium</span> 10–23</div><div><span class="chip prio-Low">Low</span> 1–9</div>
+        <p class="small-muted" style="margin-top:10px;line-height:1.6">Default likelihood, impact and effort values reflect typical exposure for each ${getFw().unit}. Adjust them on the area card to reflect the client's threat profile; the defaults are marked in each selector.</p></div></div>
+    </div>
+    <div class="panel"><div class="panel-head">Prioritised gaps <span class="sub">${plural(gp.length,'gap')}</span></div><div class="tbl-wrap">
+    ${gp.length?`<table class="tbl"><thead><tr><th>#</th><th>Area</th><th>Current</th><th>Target</th><th>Gap</th><th>L</th><th>I</th><th>Score</th><th>Priority</th><th>Confidence</th><th>Horizon</th></tr></thead><tbody>
+      ${gp.map((x,i)=>`<tr style="cursor:pointer" onclick="openArea('${jsq(x.d.id)}')"><td class="mono">${i+1}</td><td><span class="mono" style="color:${grp(x.d.group).color}">${esc(x.d.code)}</span> ${esc(x.d.name)}</td><td>${lvPill(x.d.id)}</td><td>${lvPillN(tgt(x.d.id))}</td><td class="mono">+${x.gap}</td><td class="mono">${x.L}</td><td class="mono">${x.I}</td><td class="mono">${x.prio}</td><td>${prioChip(x.band)}</td><td>${S(x.d.id).conf?CONF[S(x.d.id).conf].label:'—'}</td><td>${HORIZONS[x.horizon].label}</td></tr>`).join('')}
+    </tbody></table>`:'<div class="empty">No gaps to prioritise. Score areas and set targets to populate this view.</div>'}</div></div></div>`;
+  return h;
+}
+function renderPlan(){
+  const gp=gaps();
+  const byH=HORIZONS.map(hz=>({hz,items:gp.filter(x=>x.horizon===hz.id)}));
+  let h=`<div class="wrap fu"><div class="page-head"><div><h2>Improvement roadmap</h2><p>Gaps are sequenced by priority and effort. Critical risks and low-effort improvements come first; foundations follow; resource-intensive uplift is planned as funded work packages. Recommendations are generated from the gap, the next maturity level and the area's guidance, unless you have written your own on the area card.</p></div></div>
+    <div class="groups" style="grid-template-columns:repeat(3,1fr)">${byH.map(b=>`<div class="gcard" style="border-top-color:var(--accent);cursor:default"><div class="g-id">${b.hz.label}</div><div class="g-name">${b.hz.sub}</div><div class="g-val">${b.items.length}</div></div>`).join('')}</div>`;
+  if(!gp.length) return h+`<div class="panel"><div class="empty">No gaps to plan. Score areas below their targets to build the roadmap.</div></div></div>`;
+  let rank=0;
+  byH.forEach(b=>{ if(!b.items.length) return;
+    h+=`<div class="hz"><div class="hz-title">${b.hz.label} <span>${b.hz.sub} · ${plural(b.items.length,'item')}</span></div>`;
+    b.items.forEach(x=>{ rank++;
+      h+=`<div class="imp"><div class="imp-head"><span class="imp-rank">${rank}</span>${codeChip(x.d)}<span class="area-name">${esc(x.d.name)}</span>${prioChip(x.band)}<span class="chip chip-acc">${x.cat}</span></div>
+        <div class="imp-body"><div class="imp-metrics"><span>Current <strong>${lv(x.d.id)} ${lvName(lv(x.d.id))}</strong></span><span>Target <strong>${tgt(x.d.id)} ${lvName(tgt(x.d.id))}</strong></span><span>Priority <strong>${x.prio}</strong></span><span>Effort <strong>${x.E}/5</strong></span></div>${buildRecommendation(x)}</div></div>`;
+    });
+    h+=`</div>`;
+  });
+  return h+`</div>`;
+}
+function renderReady(){
+  const rd=readiness();
+  let h=`<div class="wrap fu"><div class="page-head"><div><h2>Incident readiness</h2><p>How well the organisation could detect, investigate, contain and recover from a significant incident, drawn from the ◆ tagged areas. Each theme is judged on its weakest area, because an investigation is only as good as its weakest link: excellent response procedures cannot compensate for logs that no longer exist.</p></div>
+    <div style="text-align:right"><div class="big-num" style="color:${readinessColor(rd.label)}">${rd.label}</div><div class="small-muted">${rd.mean==null?'':'average '+fmt1(rd.mean)+' · weakest '+rd.minV}</div></div></div>`;
+  if(!rd.themes.length) return h+`<div class="panel"><div class="empty">No areas are tagged for incident readiness in this model.${meta.framework==='custom'?' Choose a readiness theme for domains in setup to include them.':''}</div></div></div>`;
+  rd.themes.forEach(t=>{
+    h+=`<div class="theme-card" style="border-left-color:${t.th.color}"><h4>${t.th.name} ${t.minV==null?'':`<span class="lv" style="background:${lvColor(t.minV)}" title="Weakest level">${t.minV}</span>`}</h4>
+      <p>${t.text}</p><div class="theme-areas">${t.list.map(d=>`<span>${lvPill(d.id)}<button class="linkish" style="text-decoration:none;color:var(--text)" onclick="openArea('${jsq(d.id)}')"><strong class="mono">${esc(d.code)}</strong> ${esc(d.name)}</button></span>`).join('')}</div></div>`;
+  });
+  return h+`</div>`;
+}
+function renderCaf(){
+  const cw=cafCrosswalk();
+  let h=`<div class="wrap fu"><div class="page-head"><div><h2>CAF alignment (indicative)</h2><p>How the findings map to the 14 principles of the NCSC Cyber Assessment Framework v4.0. This is an indicative view to help decide where a full CAF assessment should focus. It is not a CAF rating: CAF outcomes are judged as Achieved, Partially Achieved or Not Achieved against a regulator-set profile, and are scoped to essential functions rather than the whole organisation.</p></div></div>
+    <div class="notice">For CAF-regulated organisations, use the dedicated <strong>CAF v4.0 assessment tool</strong>. Principles flagged <strong>Focus</strong> have a mapped average below 2.5 or a mapped area below Level 2.</div>
+    <div class="panel"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Principle</th><th>Mapped ${upl(getFw())}</th><th>Avg</th><th>Outlook</th><th></th></tr></thead><tbody>`;
+  ['A','B','C','D'].forEach(o=>{
+    h+=`<tr><td colspan="5" style="background:var(--surface2);font-weight:700;color:${CAF_OBJ[o].color}">Objective ${o}: ${CAF_OBJ[o].name}</td></tr>`;
+    cw.filter(r=>r.p.obj===o).forEach(r=>{
+      h+=`<tr><td><span class="mono" style="color:${CAF_OBJ[o].color}">${r.p.id}</span> ${r.p.name}</td>
+        <td>${r.mapped.length?r.mapped.map(d=>`<span style="display:inline-flex;align-items:center;gap:4px;margin:1px 8px 1px 0">${lvPill(d.id)}<span class="mono">${esc(d.code)}</span></span>`).join(''):'<span class="small-muted">Not covered by this framework</span>'}</td>
+        <td class="mono">${fmt1(r.mean)}</td><td><span class="badge" style="background:${outlookColor(r.outlook)}1f;color:${outlookColor(r.outlook)};border:1px solid ${outlookColor(r.outlook)}55">${r.outlook}</span></td>
+        <td>${r.focus?'<span class="chip chip-bad">Focus</span>':''}</td></tr>`;
+    });
+  });
+  return h+`</tbody></table></div></div></div>`;
+}
+
+// ═══════════ REPORT ═══════════
+function svgRadar(){
+  const ds=defs(); const n=ds.length; if(n<3) return '';
+  const cx=175, cy=172, R=118;
+  const ang=i=>(Math.PI*2*i/n)-Math.PI/2, xy=(i,r)=>[cx+Math.cos(ang(i))*r, cy+Math.sin(ang(i))*r];
+  let s=`<svg width="330" height="330" viewBox="0 0 350 350" style="max-width:100%;display:block;font-family:Arial" role="img" aria-label="Maturity radar">`;
+  [1,2,3,4,5].forEach(k=>{ s+=`<polygon points="${ds.map((_,i)=>xy(i,R*k/5).map(v=>v.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="${k===3?'#C9D2DE':'#E4E9F0'}" stroke-width="${k===3?1.2:1}"/>`;
+    const[,y]=xy(0,R*k/5); s+=`<text x="${cx+3}" y="${y.toFixed(1)}" dy=".3em" font-size="7" fill="#9AA8BA">${k}</text>`; });
+  ds.forEach((d,i)=>{ const[x,y]=xy(i,R); s+=`<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#EEF1F5"/>`;
+    const[lx,ly]=xy(i,R+15); const an=Math.abs(lx-cx)<8?'middle':(lx>cx?'start':'end'); const g=grp(d.group);
+    s+=`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="${an}" dy=".3em" font-size="${n>18?7.6:8.6}" font-weight="700" fill="${g?g.color:'#333'}" font-family="Consolas,monospace">${esc(d.code)}</text>`; });
+  const tp=ds.map((d,i)=>xy(i,R*((tgt(d.id)??0)/5)).map(v=>v.toFixed(1)).join(',')).join(' ');
+  if(ds.some(d=>tgt(d.id)!=null)) s+=`<polygon points="${tp}" fill="none" stroke="#6B7A90" stroke-width="1.2" stroke-dasharray="4 3"/>`;
+  const cp=ds.map((d,i)=>xy(i,R*((isScored(d.id)?lv(d.id):0)/5)).map(v=>v.toFixed(1)).join(',')).join(' ');
+  s+=`<polygon points="${cp}" fill="var(--rp-a)" fill-opacity=".16" stroke="var(--rp-a)" stroke-width="1.8"/>`;
+  ds.forEach((d,i)=>{ if(!isScored(d.id)) return; const[x,y]=xy(i,R*lv(d.id)/5); s+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.6" fill="${lvColor(lv(d.id))}"/>`; });
+  s+=`</svg>`;
+  const legend=`<div class="radar-legend">${ds.map(d=>{const g=grp(d.group);return `<div class="rl-row"><span class="rl-code" style="color:${g?g.color:'#333'}">${esc(d.code)}</span><span class="rl-name">${esc(d.name)}</span><span class="rl-val">${isScored(d.id)?lv(d.id):isNA(d.id)?'N/A':'—'}${tgt(d.id)!=null?' / '+tgt(d.id):''}</span></div>`}).join('')}</div>`;
+  return `<div class="radar-block"><div class="radar-svg">${s}<div style="font-size:7.5pt;color:#6B7A90;margin-top:2px">Solid: current level · dashed: target · values shown as current / target</div></div>${legend}</div>`;
+}
+function rlv(id){ const v=lv(id); if(typeof v==='number') return `<span class="rlv" style="background:${lvColor(v)}">${v}</span>`; if(v==='NA') return `<span class="rlv na">N/A</span>`; if(v==='NS') return `<span class="rlv ns">—</span>`; return `<span class="rlv ns">·</span>`; }
+function rlvN(v){ return v==null?'<span style="color:#8A9BB0">—</span>':`<span class="rlv" style="background:${lvColor(v)}">${v}</span>`; }
+function rPrio(b){ return b?`<span class="rpill rp-${b}">${b}</span>`:''; }
+function detailsTable(){
+  const f=getFw();
+  const rows=[['Organisation',meta.org],['Sector / industry',meta.sector],['Organisation size',meta.size],
+    ['Framework',f?`${f.name} ${f.version}${meta.framework==='cis'?` (Implementation Group ${meta.cisIG})`:''}`:''],
+    ['Lead assessor',meta.assessor],['Quality reviewer',meta.qc],['Assessment team',meta.team],['Prepared by',meta.preparedBy],['Client sponsor',meta.owner],
+    ['Assessment date',meta.date?fmtDate(meta.date):''],['Assessment period',meta.period],['Version / reference',meta.version],['Classification',meta.classification]].filter(r=>(r[1]||'').toString().trim());
+  if(!rows.length) return '';
+  return `<h3 class="rp-h3">Assessment details</h3><table class="rp-table rp-details"><tbody>${rows.map(([k,v])=>`<tr><th class="k">${esc(k)}</th><td>${esc(v).replace(/\n/g,'<br>')}</td></tr>`).join('')}</tbody></table>`;
+}
+function execNarrative(){
+  const f=getFw(), st=statsFor(f.areas), gp=gaps(), rd=readiness(), org=esc(meta.org)||'The organisation';
+  if(st.mean==null) return `<p class="rp-p">No areas have been scored yet.</p>`;
+  const b=bandForAvg(st.mean);
+  let p=`<p class="rp-p">${org} was assessed against ${esc(f.name)} ${esc(f.version)} across ${f.areas.length} ${upl(f)}: ${st.scored} scored${st.na?`, ${st.na} not applicable`:''}${st.ns?`, ${st.ns} not assessed`:''}${st.unset?`, ${st.unset} outstanding`:''}. The average maturity is <strong>${fmt1(st.mean)}</strong>, which sits at <strong>Level ${b} (${lvName(b)})</strong>, with individual ${upl(f)} ranging from Level ${st.min} to Level ${st.max}.</p>`;
+  const low=st.dist[0]+st.dist[1];
+  if(low) p+=`<p class="rp-p">${plural(low,f.unit,upl(f))} ${low===1?'is':'are'} at Level 1 or below, meaning ${low===1?'it relies':'they rely'} on individuals rather than documented, owned practice. ${st.withTgt?`${st.meet} of ${st.withTgt} ${upl(f)} with targets currently meet them.`:''}</p>`;
+  else if(st.withTgt) p+=`<p class="rp-p">${st.meet} of ${st.withTgt} ${upl(f)} with targets currently meet them.</p>`;
+  if(gp.length){
+    const top=gp.slice(0,3).map(x=>`${esc(x.d.name)} (${esc(x.d.code)})`);
+    const ch=gp.filter(x=>x.band==='Critical'||x.band==='High').length;
+    p+=`<p class="rp-p">Weighted by likelihood and impact, the most significant gaps are in ${top.length>1?top.slice(0,-1).join(', ')+' and '+top[top.length-1]:top[0]}. ${ch?`${plural(ch,'gap')} ${ch===1?'is':'are'} rated critical or high priority and should be addressed within the next three to six months.`:'No gaps are rated critical or high priority.'}</p>`;
+  }
+  if(rd.minV!=null) p+=`<p class="rp-p">Incident readiness is <strong>${rd.label.toLowerCase()}</strong>. ${rd.themes.filter(t=>t.minV!=null).sort((x,y)=>x.minV-y.minV)[0].text}</p>`;
+  if(st.scored && st.lowConf/st.scored>0.3) p+=`<p class="rp-p">${plural(st.lowConf,'rating')} (${Math.round(st.lowConf/st.scored*100)}%) rest on interview evidence only. These should be validated before significant investment decisions are made.</p>`;
+  return p;
+}
+function strengths(){
+  return defs().filter(d=>isScored(d.id)).sort((x,y)=>lv(y.id)-lv(x.id)||(gapOf(x.id)||0)-(gapOf(y.id)||0)).slice(0,3);
+}
+function renderReport(){
+  const f=getFw(); if(!f) return renderWelcome();
+  const st=statsFor(f.areas), gp=gaps(), rd=readiness(), v=validation();
+  const b0=bandForAvg(st.mean);
+  const incomplete=v.unset.length||v.naMissing.length||v.ovrMissing.length;
+  let pageNo=0;
+  const foot=()=>`<div class="page-foot"><span>${esc(meta.org)||'Cyber maturity assessment'} · ${esc(f.short)}${meta.classification?' · '+esc(meta.classification):''}</span><span>Page ${++pageNo}</span></div>`;
+  let sec=0; const H2=(t,lead)=>`<h2 class="rp-h2"><span class="rp-num">${++sec}</span>${t}</h2><div class="rp-lead">${lead}</div>`;
+
+  let h=`<div class="wrap fu"><div class="report-toolbar no-print"><div><div class="rt-title">Report preview</div>
+    <div class="rt-sub">Download PDF opens the print dialog: choose <strong>Save as PDF</strong>, margins <strong>Default</strong>, <strong>Background graphics</strong> on, <strong>Headers and footers</strong> off. ${incomplete?'<span style="color:var(--bad);font-weight:600">The assessment has unresolved items; they are flagged in the report.</span>':''}</div></div>
+    <button class="rt-btn ghost rt-first" onclick="showSetup()">Edit details</button><button class="rt-btn" onclick="printReport()">⬇ Download PDF</button></div>
+    <div class="doc pal-${esc(meta.palette||'navy')}">`;
+
+  // COVER
+  h+=`<div class="page cover"><div class="cover-inner">
+    <div class="cover-badge">${esc(meta.preparedBy)||'Cyber security'} · Maturity assessment</div><div class="cover-rule"></div>
+    <h1>Cyber Maturity<br>Assessment</h1>
+    <div class="cover-sub">${esc(meta.org)||'Organisation'} · assessed against ${esc(f.short)}${meta.framework==='cis'?` (IG${meta.cisIG})`:''}</div>
+    ${meta.classification?`<div class="cover-class">${esc(meta.classification)}</div>`:''}
+    <div class="cover-spacer"></div>
+    <div class="cover-meta">
+      <div><div class="cm-lbl">Organisation</div><div class="cm-val">${esc(meta.org)||'—'}</div></div>
+      <div><div class="cm-lbl">Assessment date</div><div class="cm-val">${fmtDate(meta.date)}</div></div>
+      <div><div class="cm-lbl">Framework</div><div class="cm-val">${esc(f.name)} ${esc(f.version)}</div></div>
+      <div><div class="cm-lbl">Lead assessor</div><div class="cm-val">${esc(meta.assessor)||'—'}</div></div>
+      ${meta.scope?`<div style="grid-column:span 2"><div class="cm-lbl">Scope</div><div class="cm-val" style="font-weight:400;font-size:10pt">${esc(meta.scope)}</div></div>`:''}
+    </div>
+    <div class="cover-verdict">
+      <div><div class="cv-big">${st.mean==null?'—':fmt1(st.mean)}</div><div class="cv-name">${st.mean==null?'Not yet scored':'Level '+b0+' · '+lvName(b0)}</div></div>
+      <div class="cv-dist">${distBar(st.dist,'cv-bar')}<div class="cv-note">Average across ${st.scored} scored ${upl(f)} (range ${st.min??'—'}–${st.max??'—'}). ${st.withTgt?`${st.meet} of ${st.withTgt} meet their target.`:''} Incident readiness: ${rd.label.toLowerCase()}.</div></div>
+    </div>
+    <div class="cover-foot">Maturity scored on a 0–5 scale with level names aligned to ISO/IEC 33020 capability levels. ${esc(meta.version)?esc(meta.version)+' · ':''}Generated ${fmtDate(new Date().toISOString())}.</div>
+  </div></div>`;
+
+  // ABOUT + METHOD
+  h+=`<div class="page">${H2('About this assessment','What this report is, how it was produced and how to read it.')}
+    <h3 class="rp-h3">Purpose</h3>
+    <p class="rp-p">This report sets out an organisation-wide assessment of cyber security maturity for ${esc(meta.org)||'the organisation'} against ${esc(f.name)} ${esc(f.version)}. It establishes where capability stands today, compares it with agreed targets, and prioritises improvement by risk so that investment goes where it reduces exposure most.</p>
+    <h3 class="rp-h3">Scope and audience</h3>
+    <p class="rp-p">${meta.scope?`The assessment covered: ${esc(meta.scope)}. `:''}It is written for senior leadership and risk owners, and for the security and technology teams responsible for delivering the improvements. Ratings describe the organisation's practice across the scope, not the performance of any individual.</p>
+    <h3 class="rp-h3">Who assessed it</h3>
+    <p class="rp-p">The assessment was led by <strong>${esc(meta.assessor)||'the assessment team'}</strong>${meta.preparedBy?` of ${esc(meta.preparedBy)}`:''}${meta.date?`, dated ${fmtDate(meta.date)}`:''}${meta.qc?`, with quality review by ${esc(meta.qc)}`:''}. ${meta.method?`The method comprised: ${esc(meta.method)}.`:''} Evidence supporting each rating is summarised in Appendix A${meta.evidence?` and held at ${esc(meta.evidence)}`:''}.</p>
+    ${detailsTable()}
+    ${foot()}</div>`;
+
+  h+=`<div class="page">${H2('Maturity scale and method','How levels, confidence, targets and priorities were determined.')}
+    <table class="rp-table"><thead><tr><th style="width:18%">Level</th><th>What it looks like</th><th style="width:30%">Typical evidence</th></tr></thead><tbody>
+    ${LEVELS.map(l=>`<tr><td><span class="rlv" style="background:${l.color}">${l.n}</span> <strong>${l.name}</strong></td><td>${l.desc}</td><td>${l.evidence}</td></tr>`).join('')}</tbody></table>
+    <div class="rp-method"><p style="margin:0 0 6px"><strong>Cumulative scoring.</strong> A level is awarded only when every lower level is fully met, so well-tooled but undocumented practice scores Level 1. Level names align to ISO/IEC 33020 process capability levels; descriptors are specific to this assessment.</p>
+    <p style="margin:0 0 6px"><strong>Not applicable and not assessed.</strong> Not applicable requires a written justification (Section ${meta.framework==='custom'?8:9}). Not assessed ${upl(f)} are excluded from all calculations and listed as limitations.</p>
+    <p style="margin:0 0 6px"><strong>Evidence confidence.</strong> High: the control was tested or observed working. Medium: documentary evidence was reviewed. Low: interview or self-declaration only.</p>
+    <p style="margin:0"><strong>Targets.</strong> ${meta.targetBasis?esc(meta.targetBasis):'Target levels were set per area to reflect the organisation\'s risk appetite and obligations.'}</p></div>
+    <h3 class="rp-h3">Prioritisation</h3>
+    <p class="rp-p">Each gap is weighted by the likelihood and impact of weakness in that area, each rated 1–5, so that small gaps in high-risk areas rank above larger gaps in low-risk areas.</p>
+    <div class="rp-formula">Priority = (target − current) × likelihood × impact</div>
+    <table class="rp-table"><thead><tr><th>Band</th><th>Score</th><th>Roadmap treatment</th></tr></thead><tbody>
+      <tr><td>${rPrio('Critical')}</td><td>45 or more</td><td>0–3 months, with interim compensating controls where the full fix takes longer</td></tr>
+      <tr><td>${rPrio('High')}</td><td>24–44</td><td>0–3 months if low effort, otherwise 3–6 months</td></tr>
+      <tr><td>${rPrio('Medium')}</td><td>10–23</td><td>Scheduled by effort: quick wins early, larger work in 3–12 months</td></tr>
+      <tr><td>${rPrio('Low')}</td><td>1–9</td><td>Folded into the normal improvement cycle</td></tr></tbody></table>
+    ${foot()}</div>`;
+
+  // EXEC SUMMARY
+  const str=strengths();
+  h+=`<div class="page">${H2('Executive summary','The overall position, where it is strongest and where it most needs attention.')}
+    ${incomplete?`<div class="rp-callout warn"><strong>Draft: assessment incomplete.</strong> ${[v.unset.length?plural(v.unset.length,f.unit,upl(f))+' not yet addressed':'',v.naMissing.length?v.naMissing.length+' not-applicable claims without justification':'',v.ovrMissing.length?plural(v.ovrMissing.length,'override')+' without a rationale':''].filter(Boolean).join('; ')}. Findings may change.</div>`:''}
+    <div class="rp-stats">
+      <div class="rp-stat"><div class="rs-val" style="color:${st.mean==null?'#8A9BB0':lvColor(b0)}">${fmt1(st.mean)}</div><div class="rs-lbl">Average level</div></div>
+      <div class="rp-stat"><div class="rs-val">${st.min??'—'}–${st.max??'—'}</div><div class="rs-lbl">Range</div></div>
+      <div class="rp-stat"><div class="rs-val" style="color:var(--rp-a)">${st.withTgt?st.meet+'/'+st.withTgt:'—'}</div><div class="rs-lbl">Meeting target</div></div>
+      <div class="rp-stat"><div class="rs-val" style="color:#C0283A">${gp.filter(x=>x.band==='Critical'||x.band==='High').length}</div><div class="rs-lbl">Critical/high gaps</div></div>
+      <div class="rp-stat"><div class="rs-val" style="color:${readinessColor(rd.label)};font-size:12pt;line-height:1.5">${rd.label}</div><div class="rs-lbl">Incident readiness</div></div>
+    </div>
+    ${execNarrative()}
+    <h3 class="rp-h3">Maturity by ${meta.framework==='csf'?'function':'group'}</h3>
+    ${f.groups.map(g=>{const s=groupStats(g.id); const tg=f.areas.filter(d=>d.group===g.id&&tgt(d.id)!=null); const tm=tg.length?tg.reduce((x,d)=>x+tgt(d.id),0)/tg.length:null;
+      return `<div class="rp-grow"><span class="gid" style="background:${g.color}">${esc(gShort(g)||'')}</span><span class="gnm">${esc(g.name)}</span><div class="gtr"><div class="gfl" style="width:${s.mean==null?0:s.mean/5*100}%;background:${g.color}"></div>${tm!=null?`<div class="gtg" style="left:${tm/5*100}%"></div>`:''}</div><span class="gvl">${fmt1(s.mean)}</span></div>`}).join('')}
+    <div style="font-size:7.5pt;color:#6B7A90">Bar: average current level (0–5). Marker: average target.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px">
+      <div><h3 class="rp-h3">Strongest areas</h3>${str.length?str.map(d=>`<div style="font-size:9pt;margin:4px 0">${rlv(d.id)} <strong>${esc(d.code)}</strong> ${esc(d.name)}</div>`).join(''):'<p class="rp-p">None scored.</p>'}</div>
+      <div><h3 class="rp-h3">Highest priorities</h3>${gp.length?gp.slice(0,5).map(x=>`<div style="font-size:9pt;margin:4px 0">${rPrio(x.band)} <strong>${esc(x.d.code)}</strong> ${esc(x.d.name)} <span style="color:#6B7A90">(${lv(x.d.id)} → ${tgt(x.d.id)})</span></div>`).join(''):'<p class="rp-p">No gaps against target.</p>'}</div>
+    </div>
+    ${reportFwCallout()}
+    ${foot()}</div>`;
+
+  // PROFILE
+  h+=`<div class="page">${H2('Maturity profile',`Current and target level for every ${f.unit}.`)}
+    ${svgRadar()}
+    <table class="rp-table" style="margin-top:14px"><thead><tr><th>Ref</th><th>${f.unit[0].toUpperCase()+f.unit.slice(1)}</th><th>Current</th><th>Target</th><th>Gap</th><th>Confidence</th><th>Priority</th></tr></thead><tbody>
+    ${f.groups.map(g=>`<tr class="grp"><td colspan="7">${esc(g.name)}</td></tr>`+f.areas.filter(d=>d.group===g.id).map(d=>{const gg=gapOf(d.id);return `<tr><td class="ref">${esc(d.code)}</td><td>${esc(d.name)}${d.ir.length?' <span style="color:#9A3A00">◆</span>':''}</td><td>${rlv(d.id)}</td><td>${rlvN(tgt(d.id))}</td><td>${gg==null?'—':gg===0?'<span style="color:#076B40;font-weight:700">Met</span>':'+'+gg}</td><td>${S(d.id).conf?CONF[S(d.id).conf].label:'—'}</td><td>${rPrio(band(prioOf(d.id)))}</td></tr>`}).join('')).join('')}
+    </tbody></table><div style="font-size:7.5pt;color:#6B7A90">◆ feeds the incident readiness assessment (Section 7).</div>
+    ${foot()}</div>`;
+
+  // GAP & RISK
+  h+=`<div class="page">${H2('Gap and risk analysis','Gaps against target, weighted by likelihood and impact.')}
+    ${gp.length?`<div style="display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap"><div>${svgMatrix(false)}</div>
+      <div style="flex:1;min-width:200px;font-size:9pt;color:#28313F;line-height:1.6"><p class="rp-p">Each bubble is a ${f.unit} below its target, placed by the likelihood and impact of weakness in that area and coloured by priority band.</p>
+      <p class="rp-p">${['Critical','High','Medium','Low'].map(b=>`${rPrio(b)} ${gp.filter(x=>x.band===b).length}`).join('&nbsp; ')}</p></div></div>
+    <table class="rp-table"><thead><tr><th>#</th><th>Ref</th><th>${f.unit[0].toUpperCase()+f.unit.slice(1)}</th><th>Current</th><th>Target</th><th>L</th><th>I</th><th>Score</th><th>Priority</th></tr></thead><tbody>
+    ${gp.map((x,i)=>`<tr><td>${i+1}</td><td class="ref">${esc(x.d.code)}</td><td>${esc(x.d.name)}</td><td>${rlv(x.d.id)}</td><td>${rlvN(tgt(x.d.id))}</td><td>${x.L}</td><td>${x.I}</td><td><strong>${x.prio}</strong></td><td>${rPrio(x.band)}</td></tr>`).join('')}</tbody></table>`
+    :`<div class="rp-callout ok">No ${upl(f)} are below target.</div>`}
+    ${foot()}</div>`;
+
+  // ROADMAP
+  h+=`<div class="page">${H2('Improvement roadmap','Recommended actions, sequenced by priority and effort.')}`;
+  if(!gp.length) h+=`<div class="rp-callout ok">No gaps against target; no improvement actions are required to meet the agreed targets.</div>`;
+  let rank=0;
+  HORIZONS.forEach(hz=>{ const items=gp.filter(x=>x.horizon===hz.id); if(!items.length) return;
+    h+=`<div class="rp-hz">${hz.label} <span style="font-weight:400;color:#6B7A90;font-size:9pt">· ${hz.sub}</span></div>`;
+    items.forEach(x=>{ rank++;
+      h+=`<div class="rp-rec"><div class="rp-rec-head"><span class="rp-rec-rank">${rank}</span><span class="rp-rec-name">${esc(x.d.code)} · ${esc(x.d.name)}</span>${rPrio(x.band)}<span class="rpill" style="background:var(--rp-soft);color:var(--rp-m)">${x.cat}</span></div>
+      <div class="rp-rec-meta">Level ${lv(x.d.id)} → ${tgt(x.d.id)} · priority ${x.prio} · effort ${x.E}/5${S(x.d.id).conf?' · confidence '+CONF[S(x.d.id).conf].label.toLowerCase():''}</div>
+      <div class="rp-rec-body">${buildRecommendation(x)}</div></div>`; });
+  });
+  h+=`${foot()}</div>`;
+
+  // READINESS
+  h+=`<div class="page">${H2('Incident readiness','How well the organisation could detect, investigate, contain and recover from a significant incident.')}
+    <p class="rp-p">This view draws on the ${plural(rd.tagged.length,f.unit,upl(f))} most relevant to handling a real incident. Each theme is judged on its weakest ${f.unit}, because an investigation is only as strong as its weakest link: sound response procedures cannot compensate for telemetry that was never collected or has already been overwritten.</p>
+    <div class="rp-callout" style="border-left-color:${readinessColor(rd.label)}"><strong>Overall readiness: ${rd.label}.</strong> ${rd.mean==null?'No tagged areas have been scored.':`Average ${fmt1(rd.mean)} across ${rd.scored} scored ${upl(f)}; weakest Level ${rd.minV}.`}</div>
+    ${rd.themes.map(t=>`<div class="rp-theme" style="border-left-color:${t.th.color}"><h5 style="color:${t.th.color}">${t.th.name} ${t.minV==null?'':rlvN(t.minV)}</h5><p>${t.text}</p><div class="ta">${t.list.map(d=>`${esc(d.code)} ${esc(d.name)} (${isScored(d.id)?lv(d.id):isNA(d.id)?'N/A':'—'})`).join(' · ')}</div></div>`).join('')||'<p class="rp-p">No areas are tagged for incident readiness in this model.</p>'}
+    ${foot()}</div>`;
+
+  // CAF
+  if(meta.framework!=='custom'){
+    const cw=cafCrosswalk();
+    h+=`<div class="page">${H2('CAF alignment (indicative)','How the findings map to the NCSC Cyber Assessment Framework v4.0 principles.')}
+      <p class="rp-p">This crosswalk shows how the ${upl(f)} assessed here relate to the 14 principles of CAF v4.0, to indicate where a full CAF assessment should focus. It is <strong>not a CAF rating</strong>: CAF outcomes are judged Achieved, Partially Achieved or Not Achieved against a regulator-set profile, and are scoped to essential functions rather than the whole organisation. Principles marked <strong>Focus</strong> have a mapped average below 2.5 or a mapped ${f.unit} below Level 2.</p>
+      <table class="rp-table"><thead><tr><th>Principle</th><th>Mapped ${upl(f)} (level)</th><th>Avg</th><th>Outlook</th></tr></thead><tbody>
+      ${['A','B','C','D'].map(o=>`<tr class="grp"><td colspan="4">Objective ${o}: ${CAF_OBJ[o].name}</td></tr>`+cw.filter(r=>r.p.obj===o).map(r=>`<tr><td><span class="ref">${r.p.id}</span> ${r.p.name}</td><td>${r.mapped.length?r.mapped.map(d=>`${esc(d.code)} (${isScored(d.id)?lv(d.id):isNA(d.id)?'N/A':'—'})`).join(', '):'<span style="color:#8A9BB0">Not covered by this framework</span>'}</td><td>${fmt1(r.mean)}</td><td><strong style="color:${outlookColor(r.outlook)}">${r.outlook}</strong>${r.focus?' <span class="rpill rp-Critical">Focus</span>':''}</td></tr>`).join('')).join('')}
+      </tbody></table>${foot()}</div>`;
+  }
+
+  // REGISTER
+  const naL=f.areas.filter(d=>isNA(d.id)), nsL=f.areas.filter(d=>isNS(d.id)), unL=f.areas.filter(d=>isUnset(d.id));
+  h+=`<div class="page">${H2('Not applicable register and limitations','Areas excluded from scoring, and why.')}
+    <h3 class="rp-h3">Not applicable</h3>
+    ${naL.length?naL.map(d=>`<div class="rp-reg"><strong class="ref" style="font-family:monospace">${esc(d.code)}</strong> <strong>${esc(d.name)}</strong><div class="rp-reg-just">${esc(S(d.id).just)||'<span style="color:#A81828;font-weight:700">No justification recorded.</span>'}</div></div>`).join(''):'<p class="rp-p">No areas were declared not applicable.</p>'}
+    <h3 class="rp-h3">Not assessed</h3>
+    ${nsL.length?nsL.map(d=>`<div class="rp-reg"><strong style="font-family:monospace">${esc(d.code)}</strong> <strong>${esc(d.name)}</strong><div class="rp-reg-just">${esc(S(d.id).just)||'No reason recorded.'}</div></div>`).join(''):'<p class="rp-p">All in-scope areas were assessed.</p>'}
+    ${unL.length?`<h3 class="rp-h3">Outstanding</h3><div class="rp-callout warn">${plural(unL.length,f.unit,upl(f))} had not been addressed when this report was generated: ${unL.map(d=>esc(d.code)).join(', ')}.</div>`:''}
+    <h3 class="rp-h3">General limitations</h3>
+    <p class="rp-p">Ratings reflect evidence available during the assessment period and the professional judgement of the assessment team. Where confidence is recorded as low, ratings rest on interview and have not been verified. The assessment is a point-in-time view and does not constitute certification or a regulatory determination.</p>
+    ${foot()}</div>`;
+
+  // APPENDIX
+  h+=`<div class="page">${H2('Appendix A: area detail','Evidence, confidence and rationale recorded for each area.').replace('<span class="rp-num">'+sec+'</span>','<span class="rp-num">A</span>')}
+    ${f.areas.map(d=>{const s=S(d.id); const sg=meta.useAid?aidSuggest(s.aid):null;
+      return `<div class="rp-detail"><h5>${rlv(d.id)} <span style="font-family:monospace">${esc(d.code)}</span> ${esc(d.name)} ${tgt(d.id)!=null?`<span style="font-weight:400;color:#6B7A90;font-size:8.5pt">target ${tgt(d.id)}</span>`:''} ${s.conf?`<span style="font-weight:400;color:#6B7A90;font-size:8.5pt">· ${CONF[s.conf].label.toLowerCase()} confidence</span>`:''}</h5>
+      ${d.refs?`<div style="font-size:8pt;color:#6B7A90">References: ${esc(d.refs)}</div>`:''}
+      ${s.ev?`<div class="dl">Evidence and observations</div><div class="dv">${esc(s.ev)}</div>`:''}
+      ${sg!=null&&isScored(d.id)&&sg!==lv(d.id)?`<div class="dl">Assessor override (scoring aid suggested ${sg})</div><div class="dv">${esc(s.ovr)||'<span style="color:#A81828">No rationale recorded.</span>'}</div>`:''}
+      ${s.tgtWhy?`<div class="dl">Target rationale</div><div class="dv">${esc(s.tgtWhy)}</div>`:''}
+      ${!s.ev&&!s.tgtWhy&&(sg==null||sg===lv(d.id))?'<div class="dv" style="color:#8A9BB0">No evidence notes recorded.</div>':''}</div>`}).join('')}
+    ${foot()}</div>`;
+
+  h+=`</div></div>`;
+  return h;
+}
+function reportFwCallout(){
+  if(meta.framework==='csf'){ const t=csfTier(); return t?`<div class="rp-callout"><strong>Indicative NIST CSF Tier ${t.n}: ${t.name}.</strong> ${t.d} Derived from the Govern function average (${fmt1(t.mean)}); Tiers describe the rigour of risk management rather than control implementation.</div>`:''; }
+  if(meta.framework==='iso'){ const r=isoReadiness(); return `<div class="rp-callout ${r.status==='Indicatively ready'?'ok':r.status==='Not yet assessed'?'':'warn'}"><strong>Certification readiness (indicative): ${r.status}.</strong> ${r.text}${r.clRisk.length?` Clauses below Level 3: ${r.clRisk.map(d=>esc(d.code)).join(', ')}.`:''}${r.axRisk.length?` Annex A areas below Level 2: ${r.axRisk.map(d=>esc(d.code)).join(', ')}.`:''}</div>`; }
+  if(meta.framework==='cis'){ const c=cisCoverage(); return `<div class="rp-callout"><strong>CIS Implementation Group ${c.ig}:</strong> ${c.pct==null?'no in-scope controls scored yet.':`${c.at3} of ${c.scored} scored in-scope controls (${c.pct}%) are at Level 3 or above.`}${c.below.length?` Below Level 3: ${c.below.map(d=>esc(d.code)).join(', ')}.`:''}</div>`; }
+  return '';
+}
+function printReport(){
+  if(currentPage!=='report'){ navigate('report'); setTimeout(()=>window.print(),150); } else window.print();
+}
+
+// ═══════════ SETUP MODAL ═══════════
+let pendingFw=null, pendingPreset=null, pendingPalette=null;
+const F_IDS={org:'f-org',sector:'f-sector',size:'f-size',scope:'f-scope',assessor:'f-assessor',qc:'f-qc',preparedBy:'f-preparedby',owner:'f-owner',team:'f-team',
+  date:'f-date',period:'f-period',method:'f-method',evidence:'f-evidence',targetBasis:'f-targetbasis',version:'f-version',classification:'f-classification'};
+function showSetup(fwPick){
+  pendingFw = fwPick || meta.framework; pendingPreset=null; pendingPalette=meta.palette||'navy';
+  Object.entries(F_IDS).forEach(([k,id])=>{ document.getElementById(id).value=meta[k]||''; });
+  document.getElementById('f-cisig').value=String(meta.cisIG||1);
+  document.getElementById('f-useaid').checked=!!meta.useAid;
+  document.getElementById('custom-list').innerHTML='';
+  (meta.customAreas||[]).forEach(c=>addCustomRow(c));
+  if(!(meta.customAreas||[]).length){ addCustomRow(); addCustomRow(); addCustomRow(); }
+  renderFwGrid(); renderPresets(); renderPalettes();
+  document.getElementById('setup-modal').style.display='flex';
+}
+function hideSetup(){ document.getElementById('setup-modal').style.display='none'; }
+function renderFwGrid(){
+  document.getElementById('fw-grid').innerHTML=['csf','iso','cis','custom'].map(k=>`<button class="fw-opt ${pendingFw===k?'on':''}" onclick="pickFw('${k}')" aria-pressed="${pendingFw===k}"><b>${FW[k].short}</b><span>${FW[k].blurb}</span></button>`).join('');
+  document.getElementById('cis-ig-wrap').style.display=pendingFw==='cis'?'block':'none';
+  document.getElementById('custom-wrap').style.display=pendingFw==='custom'?'block':'none';
+}
+function pickFw(k){ pendingFw=k; renderFwGrid(); renderPresets(); }
+function renderPresets(){
+  document.getElementById('preset-btns').innerHTML=Object.entries(TARGET_PRESETS).map(([k,p])=>`<button class="mbn ${pendingPreset===k?'mbp':''}" style="font-size:11px" onclick="pickPreset('${k}')">${p.label}</button>`).join('');
+  const el=document.getElementById('target-count');
+  if(pendingPreset) el.textContent=`"${TARGET_PRESETS[pendingPreset].label}" will be applied to every area when you save${pendingFw==='cis'?' (controls outside the Implementation Group are skipped)':''}.`;
+  else { const n=defs().filter(d=>tgt(d.id)!=null).length; el.textContent=meta.framework?`${n} of ${defs().length} areas currently have a target.`:''; }
+}
+function pickPreset(k){ pendingPreset=(pendingPreset===k)?null:k; renderPresets(); }
+function renderPalettes(){
+  document.getElementById('pal-row').innerHTML=Object.entries(PALETTES).map(([k,p])=>`<button class="pal ${pendingPalette===k?'on':''}" onclick="pendingPalette='${k}';renderPalettes()"><i style="background:${p.c}"></i>${p.label}</button>`).join('');
+}
+let customSeq=0;
+function addCustomRow(c){
+  c=c||{}; customSeq++;
+  const id=c.id||('D'+Date.now().toString(36)+customSeq);
+  const row=document.createElement('div'); row.className='custom-row'; row.dataset.id=id;
+  row.innerHTML=`<input placeholder="Code" value="${esc(c.code||'')}"/><input placeholder="Domain name" value="${esc(c.name||'')}"/><input placeholder="Short description" value="${esc(c.desc||'')}"/><input placeholder="Group" value="${esc(c.group||'')}"/><select aria-label="Incident readiness theme" style="background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:5px;color:var(--text);font-size:11px;width:100%"><option value="">None</option>${Object.entries(IR_THEMES).map(([k,t])=>`<option value="${k}" ${(c.ir===k||(c.ir===true&&k==='respond'))?'selected':''}>${t.name}</option>`).join('')}</select><button class="mbn" style="padding:4px 8px" onclick="this.parentElement.remove()" aria-label="Remove domain">✕</button>`;
+  document.getElementById('custom-list').appendChild(row);
+}
+function readCustomRows(){
+  return [...document.querySelectorAll('#custom-list .custom-row')].map(r=>{ const i=r.querySelectorAll('input');
+    return {id:r.dataset.id, code:i[0].value.trim(), name:i[1].value.trim(), desc:i[2].value.trim(), group:i[3].value.trim(), ir:r.querySelector('select').value}; }).filter(c=>c.name);
+}
+function hasData(){ return Object.values(areas).some(s=>s.lv!=null||s.ev||s.tgt!=null); }
+function applyCisScope(){
+  if(meta.framework!=='cis') return;
+  defs().forEach(d=>{ const s=S(d.id);
+    if(!inScopeCIS(d)){ if(s.lv==null){ s.lv='NS'; s.nsAuto=true; s.just='Outside the assessed CIS Implementation Group (IG'+meta.cisIG+'): this control has no safeguards in that group.'; } s.tgt=null; }
+    else if(s.nsAuto){ s.lv=null; s.nsAuto=false; s.just=''; }
+  });
+}
+function applyPreset(k){
+  const p=TARGET_PRESETS[k]; if(!p) return;
+  defs().forEach(d=>{ if(meta.framework==='cis'&&!inScopeCIS(d)){ S(d.id).tgt=null; return; } S(d.id).tgt=p.fn(d); });
+}
+function saveSetup(){
+  if(!pendingFw){ toast('Choose a framework to assess against.',true); return; }
+  let custom=null;
+  if(pendingFw==='custom'){ custom=readCustomRows(); if(!custom.length){ toast('Add at least one named domain for the custom model.',true); return; } }
+  const fwChanged = pendingFw!==meta.framework;
+  if(fwChanged && meta.framework && hasData() && !confirm('Changing framework clears all scores, evidence and targets for the current assessment. Export JSON first if you need a copy.\n\nChange framework?')) return;
+  Object.entries(F_IDS).forEach(([k,id])=>{ meta[k]=document.getElementById(id).value; });
+  meta.cisIG=Number(document.getElementById('f-cisig').value)||1;
+  meta.useAid=document.getElementById('f-useaid').checked;
+  meta.palette=pendingPalette||'navy';
+  if(fwChanged){ areas={}; openCards.clear(); }
+  meta.framework=pendingFw;
+  if(custom){ meta.customAreas=custom; const ids=new Set(custom.map(c=>c.id)); Object.keys(areas).forEach(k=>{ if(!ids.has(k)) delete areas[k]; }); }
+  applyCisScope();
+  if(pendingPreset) applyPreset(pendingPreset);
+  hideSetup();
+  if(fwChanged) currentPage='dashboard';
+  if(currentPage.startsWith('g:') && !grp(currentPage.slice(2))) currentPage='dashboard';
+  update();
+  toast(fwChanged?`Assessing against ${getFw().short}.`:'Setup saved.');
+}
+
+// ═══════════ HELP / THEME ═══════════
+function showHelp(){ document.getElementById('help-modal').style.display='flex'; }
+function hideHelp(){ document.getElementById('help-modal').style.display='none'; }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ hideSetup(); hideHelp(); } });
+const THEME_KEY='cyber-maturity-theme';
+const mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+function applyTheme(pref){ const t = pref==='system' ? (mq&&mq.matches?'dark':'light') : pref; document.documentElement.setAttribute('data-theme',t); }
+function setTheme(v){ const sel=document.getElementById('theme-select'); if(sel&&sel.value!==v) sel.value=v; try{ localStorage.setItem(THEME_KEY,v); }catch(e){} applyTheme(v); }
+function initTheme(){ let v='light'; try{ v=localStorage.getItem(THEME_KEY)||'light'; }catch(e){} document.getElementById('theme-select').value=v; applyTheme(v);
+  if(mq&&mq.addEventListener) mq.addEventListener('change',()=>{ if(document.getElementById('theme-select').value==='system') applyTheme('system'); }); }
+
+// ═══════════ TOAST / DOWNLOAD ═══════════
+function toast(msg,isErr){
+  const ex=document.getElementById('toast'); if(ex) ex.remove();
+  const t=document.createElement('div'); t.id='toast'; t.className='toast'+(isErr?' err':''); t.setAttribute('role','status');
+  t.innerHTML='<span class="toast-dot"></span><span></span>'; t.lastChild.textContent=msg; document.body.appendChild(t);
+  requestAnimationFrame(()=>t.classList.add('show'));
+  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),300); }, isErr?5200:3200);
+}
+function slug(s){ return (s||'').trim().replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)||'assessment'; }
+let _downloadsNS=null;
+async function getDownloads(){ if(_downloadsNS) return _downloadsNS; try{ if(window.claude&&window.claude.use) _downloadsNS=await window.claude.use('downloads'); }catch(e){ _downloadsNS=null; } return _downloadsNS; }
+function isFramed(){ try{ return window.self!==window.top; }catch(e){ return true; } }
+async function download(filename,mime,text){
+  const dl=await getDownloads();
+  if(dl){ try{ await dl.save({filename,data:new Blob([text],{type:mime+';charset=utf-8;'})}); return; }catch(e){ if(e&&e.code==='declined') return; } }
+  if(!isFramed()){
+    const url=URL.createObjectURL(new Blob([text],{type:mime+';charset=utf-8;'}));
+    const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000); return;
+  }
+  toast('Downloads are not available in this embedded view. Open the tool in its own browser tab to save files.',true);
+}
+
+// ═══════════ JSON / CSV ═══════════
+const SCHEMA_VERSION=1;
+function buildJSON(){
+  const f=getFw(); const st=f?statsFor(f.areas):null; const rd=f?readiness():null;
+  const m=Object.assign({},meta); delete m.customAreas; delete m.cisIG; delete m.useAid; delete m.palette; delete m.framework;
+  return {
+    schemaVersion:SCHEMA_VERSION, tool:{name:'Cyber Maturity Assessment',version:'2.0'},
+    framework: f?{id:f.id,name:f.name,version:f.version}:null,
+    assessment:m, settings:{cisIG:meta.cisIG,useAid:meta.useAid,palette:meta.palette},
+    customModel: meta.framework==='custom'?meta.customAreas:undefined,
+    scale: LEVELS.map(l=>({level:l.n,name:l.name})),
+    areas: f?f.areas.map(d=>{ const s=S(d.id); const gp=gapOf(d.id); const p=prioOf(d.id);
+      return {ref:d.id, code:d.code, name:d.name, group:(grp(d.group)||{}).name, level:s.lv??null, target:tgt(d.id), targetRationale:s.tgtWhy||'',
+        confidence:s.conf||'', scoringAid:s.aid||{}, overrideRationale:s.ovr||'', justification:s.just||'', evidence:s.ev||'', recommendation:s.rec||'',
+        likelihood:Lk(d.id), impact:Im(d.id), effort:Ef(d.id), gap:gp, priorityScore:p||0, priorityBand:band(p), readinessThemes:d.ir, cafPrinciples:d.caf}; }):[],
+    summary: f?{average:st.mean, min:st.min, max:st.max, distribution:st.dist, scored:st.scored, notApplicable:st.na, notAssessed:st.ns, outstanding:st.unset,
+      withTarget:st.withTgt, meetingTarget:st.meet, incidentReadiness:rd.label}:null,
+    exportedAt:new Date().toISOString()
+  };
+}
+async function exportJSON(){
+  if(!getFw()){ toast('Choose a framework before exporting.',true); return; }
+  await download(`Maturity-${slug(getFw().short)}-${slug(meta.org)}-${meta.date||'undated'}.json`,'application/json',JSON.stringify(buildJSON(),null,2));
+}
+function csvCell(v){ const s=String(v==null?'':v); return /[",\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }
+async function exportCSV(){
+  const f=getFw(); if(!f){ toast('Choose a framework before exporting.',true); return; }
+  const g=gaps(); const hz={}; g.forEach(x=>hz[x.d.id]=HORIZONS[x.horizon].label);
+  const rows=[['Ref','Name','Group','Level','Level name','Target','Gap','Confidence','Likelihood','Impact','Effort','Priority score','Priority band','Horizon','Incident readiness','CAF principles','References','Evidence','Justification / reason','Override rationale','Target rationale','Recommendation']];
+  f.areas.forEach(d=>{ const s=S(d.id); const v=s.lv; const p=prioOf(d.id);
+    rows.push([d.code,d.name,(grp(d.group)||{}).name,v==null?'':v==='NA'?'N/A':v==='NS'?'Not assessed':v,typeof v==='number'?lvName(v):'',tgt(d.id)??'',gapOf(d.id)??'',s.conf?CONF[s.conf].label:'',
+      Lk(d.id),Im(d.id),Ef(d.id),p||'',band(p)||'',hz[d.id]||'',d.ir.map(k=>IR_THEMES[k].name).join('; '),d.caf.join('; '),d.refs||'',s.ev,s.just,s.ovr,s.tgtWhy,s.rec]); });
+  await download(`Maturity-${slug(f.short)}-${slug(meta.org)}-${meta.date||'undated'}.csv`,'text/csv','\ufeff'+rows.map(r=>r.map(csvCell).join(',')).join('\r\n'));
+}
+function applyAssessment(data){
+  if(!data||typeof data!=='object'||!data.framework||!FW[data.framework.id]) return {ok:false,err:'Unrecognised file. Expected a Cyber Maturity Assessment JSON export.'};
+  const next=DEFAULT_META();
+  Object.keys(next).forEach(k=>{ if(data.assessment&&data.assessment[k]!=null&&typeof next[k]==='string') next[k]=String(data.assessment[k]); });
+  const st=data.settings||{};
+  next.cisIG=[1,2,3].includes(Number(st.cisIG))?Number(st.cisIG):1;
+  next.useAid=st.useAid!==false; next.palette=PALETTES[st.palette]?st.palette:'navy';
+  next.framework=data.framework.id;
+  if(next.framework==='custom'){ next.customAreas=Array.isArray(data.customModel)?data.customModel.filter(c=>c&&c.id&&c.name).map(c=>({id:String(c.id),code:String(c.code||''),name:String(c.name),desc:String(c.desc||''),group:String(c.group||''),ir:c.ir===true?'respond':(IR_THEMES[c.ir]?c.ir:'')})):[]; }
+  meta=next; areas={}; openCards.clear();
+  const valid=new Set(defs().map(d=>d.id)); let applied=0; const unknown=[];
+  (data.areas||[]).forEach(r=>{
+    if(!r||!valid.has(r.ref)){ if(r&&r.ref) unknown.push(r.ref); return; }
+    const d=def(r.ref), s=S(r.ref);
+    s.lv = (Number.isInteger(r.level)&&r.level>=0&&r.level<=5)?r.level:(r.level==='NA'||r.level==='NS')?r.level:null;
+    s.tgt = (Number.isInteger(r.target)&&r.target>=0&&r.target<=5)?r.target:null;
+    s.conf = ['H','M','L'].includes(r.confidence)?r.confidence:'';
+    s.aid = {}; if(r.scoringAid&&typeof r.scoringAid==='object') AID_DIMS.forEach(q=>{ const x=r.scoringAid[q.k]; if([0,1,2].includes(x)) s.aid[q.k]=x; });
+    ['targetRationale:tgtWhy','overrideRationale:ovr','justification:just','evidence:ev','recommendation:rec'].forEach(pair=>{ const [src,dst]=pair.split(':'); s[dst]=r[src]?String(r[src]):''; });
+    [['likelihood','L','lik'],['impact','I','imp'],['effort','E','eff']].forEach(([src,dst,dk])=>{ const x=Number(r[src]); s[dst]=(x>=1&&x<=5&&x!==d[dk])?x:null; });
+    if(meta.framework==='cis'&&s.lv==='NS'&&!inScopeCIS(d)) s.nsAuto=true;
+    applied++;
+  });
+  applyCisScope();
+  currentPage='dashboard'; update();
+  return {ok:true,applied,unknown};
+}
+function importJSON(input){
+  const file=input.files&&input.files[0]; input.value=''; if(!file) return;
+  if(hasData()&&!confirm('Importing replaces the current assessment. Continue?')) return;
+  const rd=new FileReader();
+  rd.onload=()=>{ let data; try{ data=JSON.parse(rd.result); }catch(e){ toast('That file is not valid JSON.',true); return; }
+    const res=applyAssessment(data);
+    if(!res.ok){ toast(res.err,true); return; }
+    toast(`Imported ${res.applied} areas${res.unknown.length?`; ${res.unknown.length} unrecognised references skipped`:''}.`); };
+  rd.readAsText(file);
+}
+function resetScores(){
+  if(!getFw()) return;
+  if(!confirm('Clear every score, target, note and piece of evidence? Setup details are kept. This cannot be undone unless you have exported JSON.')) return;
+  areas={}; openCards.clear(); applyCisScope(); update(); toast('All scores cleared.');
+}
+
+// ═══════════ PERSISTENCE ═══════════
+const LS_KEY='cyber-maturity-assessment-v2', LS_META_KEY='cyber-maturity-assessment-v2-meta';
+let fileHandle=null, saveTimer=null, lastSavedAt=null;
+const HAS_FS_ACCESS=(typeof window!=='undefined')&&('showSaveFilePicker' in window);
+function persist(){
+  if(saveTimer) clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    if(!meta.framework) return;
+    const json=JSON.stringify(buildJSON());
+    try{ localStorage.setItem(LS_KEY,json); localStorage.setItem(LS_META_KEY,JSON.stringify({savedAt:new Date().toISOString(),org:meta.org||'',framework:getFw().short,addressed:defs().filter(d=>!isUnset(d.id)).length,total:defs().length})); }catch(e){}
+    if(fileHandle) writeToDisk(json);
+    lastSavedAt=new Date(); updateSaveStatus('saved');
+  },600);
+}
+async function writeToDisk(json){ try{ const w=await fileHandle.createWritable(); await w.write(json); await w.close(); }catch(e){ updateSaveStatus('diskerror'); fileHandle=null; } }
+async function enableDiskAutosave(){
+  if(!HAS_FS_ACCESS){ toast('Auto-save to a file needs Chrome or Edge. Work is still saved in this browser; export JSON for a file copy.',true); return; }
+  if(!meta.framework){ toast('Choose a framework in setup first.',true); return; }
+  try{
+    fileHandle=await window.showSaveFilePicker({suggestedName:`Maturity-${slug(getFw().short)}-${slug(meta.org)}.json`,types:[{description:'Maturity assessment',accept:{'application/json':['.json']}}]});
+    await writeToDisk(JSON.stringify(buildJSON())); lastSavedAt=new Date(); updateSaveStatus('saved'); toast('Auto-save on. The file updates as you work.');
+  }catch(e){ if(e&&e.name==='AbortError') return; toast('Could not enable auto-save: '+(e.message||e),true); }
+}
+function updateSaveStatus(state){
+  const el=document.getElementById('save-status'); if(!el) return;
+  const t=lastSavedAt?lastSavedAt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'';
+  if(state==='saved'){ el.innerHTML=`<span class="ss-dot ok"></span>${fileHandle?'Auto-saving to file':'Saved in browser'} · ${t}`; }
+  else if(state==='diskerror'){ el.innerHTML=`<span class="ss-dot warn"></span>File link lost; click to re-link`; }
+  else el.innerHTML=`<span class="ss-dot"></span>Not yet saved`;
+}
+function checkForSavedSession(){
+  let raw,m; try{ raw=localStorage.getItem(LS_KEY); m=JSON.parse(localStorage.getItem(LS_META_KEY)||'null'); }catch(e){ return false; }
+  if(!raw) return false;
+  let data; try{ data=JSON.parse(raw); }catch(e){ return false; }
+  const when=m&&m.savedAt?new Date(m.savedAt).toLocaleString('en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'a previous session';
+  const desc=`${m&&m.org?' for '+m.org:''}${m&&m.framework?' ('+m.framework+(m.total?`, ${m.addressed} of ${m.total} areas addressed`:'')+')':''}`;
+  if(confirm(`Recover your saved assessment${desc}?\n\nLast saved ${when}. Cancel starts blank; the saved copy is kept until you make changes.`)){
+    const res=applyAssessment(data);
+    if(res.ok){ lastSavedAt=m&&m.savedAt?new Date(m.savedAt):new Date(); updateSaveStatus('saved'); toast(`Recovered ${res.applied} areas from your last session.`); }
+    else toast('Could not read the saved session: '+res.err,true);
+  }
+  return true;
+}
+
+// ═══════════ SAMPLE ═══════════
+// Fictional organisation for demonstration only.
+function sa(ref,level,target,conf,ev,extra){ return Object.assign({ref,level,target,confidence:conf,evidence:ev},extra||{}); }
+const SAMPLE = {
+  framework:{id:'csf'},
+  assessment:{org:'Harbourline Logistics Ltd', sector:'Transport & logistics', size:'1,450 staff · 6 UK sites · 2 EU depots',
+    scope:'Corporate IT, Microsoft 365 tenancy, warehouse management system and customer portal. Depot operational technology excluded (separate engagement).',
+    assessor:'J. Okafor, Principal Consultant', qc:'R. Lindqvist, Head of Assurance', preparedBy:'Northgate Cyber Advisory', owner:'S. Patel, CIO',
+    team:'J. Okafor; M. Reyes (DFIR); A. Chen (GRC)', date:'2026-09-14', period:'1–11 September 2026',
+    method:'Stakeholder workshops, document review, configuration sampling of Entra ID, Defender and firewall policy, and a review of the two most recent incident records',
+    evidence:'Client SharePoint › Security › Maturity 2026 › Evidence', targetBasis:'Agreed with the CIO: Level 3 baseline across all categories, Level 4 where a weakness would directly enable ransomware or prolonged disruption.',
+    version:'v1.0 DRAFT', classification:'CONFIDENTIAL'},
+  settings:{useAid:true, palette:'navy'},
+  areas:[
+    sa('GV.OC',2,3,'M','Critical services listed in the BCP (2024). Regulatory obligations mapped for GDPR only; customs and contractual obligations not recorded.'),
+    sa('GV.RM',2,3,'M','Cyber risks appear on the enterprise risk register as a single "cyber attack" entry. No agreed cyber risk appetite statement.'),
+    sa('GV.RR',3,3,'H','CISO role in place since 2023 with a board-approved RACI. Deputies named for incident roles.'),
+    sa('GV.PO',3,3,'H','Policy suite approved March 2026 with owners and annual review dates. Exceptions log maintained by GRC.'),
+    sa('GV.OV',1,3,'M','Board receives an annual security update only; no recorded decisions or actions from the last two updates.'),
+    sa('GV.SC',1,3,'L','No supplier tiering. Security questionnaire used ad hoc by procurement for some new suppliers. Stated by procurement lead; not evidenced.',{likelihood:5}),
+    sa('ID.AM',2,3,'M','Intune and Defender inventories exist for endpoints; servers tracked in a spreadsheet last updated Q1. No SaaS inventory.'),
+    sa('ID.RA',1,3,'M','Risk assessments are project-driven. No threat intelligence feed or sector-specific threat picture in use.',{scoringAid:{policy:0,impl:1,meas:0,auto:0}}),
+    sa('ID.IM',1,3,'L','Pen test findings tracked in email; lessons from the March 2026 BEC incident not recorded.'),
+    sa('PR.AA',3,4,'H','Conditional access enforces MFA for all users and admin roles; separate admin accounts verified in Entra ID sample. Quarterly access reviews for finance only.',{scoringAid:{policy:2,impl:2,meas:1,auto:1}}),
+    sa('PR.AT',3,3,'H','Annual e-learning at 94% completion; quarterly phishing simulations. No role-specific training for admins.'),
+    sa('PR.DS',2,4,'M','BitLocker on all laptops; backups run nightly to on-premises NAS on the same domain. No immutable or offline copy.',{recommendation:'Introduce an immutable, off-domain backup copy for the WMS and file services, and complete a restore test of the WMS within the next quarter.'}),
+    sa('PR.PS',2,3,'H','Patching within 14 days for Windows; third-party applications and network devices patched irregularly. Server audit policy not standardised.',{scoringAid:{policy:1,impl:1}}),
+    sa('PR.IR',null,3,'',''),
+    sa('DE.CM',1,4,'H','Defender for Endpoint on 88% of endpoints; firewall, VPN and Entra sign-in logs retained 30 days locally and not centralised. No out-of-hours monitoring.',{scoringAid:{policy:1,impl:1,meas:0,auto:0},overrideRationale:'Aid suggests Level 2, but no owner or documented monitoring procedure exists and alerting stops outside business hours, so Level 2 is not met.'}),
+    sa('DE.AE',1,3,'M','Defender alerts reviewed by the service desk when noticed. No triage procedure or defined incident declaration criteria.'),
+    sa('RS.MA',2,4,'M','IR plan dated 2023 with severity model; no playbooks. No DFIR retainer. Plan not used during the March BEC incident.'),
+    sa('RS.AN',1,3,'M','BEC investigation relied on one engineer; mailbox audit logs had expired for the first 12 days of attacker access. No evidence handling procedure.'),
+    sa('RS.CO',2,3,'L','GDPR notification process documented; contractual customer notification obligations not mapped.'),
+    sa('RS.MI',2,3,'M','Defender isolation used by the infrastructure team; account disablement documented. No pre-authorisation for network blocking.'),
+    sa('RC.RP',2,4,'H','DR plan for the WMS with a 24h RTO; last restore test 2024 took 41 hours. No clean-restore verification step.'),
+    sa('RC.CO',1,3,'L','No recovery communication templates. Communications team not involved in IR planning.')
+  ]
+};
+SAMPLE.areas.find(a=>a.ref==='PR.IR').level='NS';
+SAMPLE.areas.find(a=>a.ref==='PR.IR').justification='Network architecture review is scheduled as phase 2 of the engagement; evidence was not available during fieldwork.';
+function loadSample(){
+  if(hasData()&&!confirm('Loading the sample replaces the current assessment. Export JSON first if you need it.\n\nLoad the sample?')) return;
+  const res=applyAssessment(JSON.parse(JSON.stringify(SAMPLE)));
+  if(res.ok) toast('Sample loaded: Harbourline Logistics Ltd against NIST CSF 2.0 (fictional).');
+}
+
+// ═══════════ INIT ═══════════
+initTheme();
+buildNav();
+updateMeta();
+navigate('dashboard');
+setTimeout(()=>{
+  const had=checkForSavedSession();
+  updateSaveStatus(lastSavedAt?'saved':'idle');
+  let seen=false; try{ seen=localStorage.getItem('cyber-maturity-help-seen')==='1'; }catch(e){}
+  if(!had&&!seen){ showHelp(); try{ localStorage.setItem('cyber-maturity-help-seen','1'); }catch(e){} }
+},0);
+</script>
+</body>
+</html>
