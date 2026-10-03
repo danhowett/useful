@@ -1,688 +1,569 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Attacker's Eye View · Dan Howett</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Attacker's Eye View</title>
 <style>
-:root {
-  --bg: #f7f7f4;
-  --bg-card: #ffffff;
-  --bg-subtle: #f1f1ec;
-  --bg-darker: #ededea;
-  --ink: #18181b;
-  --ink-soft: #52525b;
-  --ink-faint: #a1a1aa;
-  --line: #e4e4e7;
-  --line-strong: #d4d4d8;
-  --accent: #1d4ed8;
-  --accent-soft: #eff6ff;
-  --warn: #b45309;
-  --warn-soft: #fef3c7;
-  --danger: #b91c1c;
-  --danger-soft: #fee2e2;
-  --ok: #15803d;
-  --ok-soft: #dcfce7;
-  --attacker: #7c2d12;
-  --attacker-soft: #fef2f2;
-  --defender: #1e40af;
-  --defender-soft: #dbeafe;
-  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-  --sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --serif: 'Source Serif Pro', Georgia, serif;
+*{box-sizing:border-box;margin:0;padding:0}
+:root,[data-theme="light"]{
+  --bg:#F3F5F8;--surface:#FFFFFF;--surface2:#F8F9FB;--surface3:#F1F4F8;--border:#E2E6EC;--border2:#D0D6DF;
+  --text:#1A2130;--text2:#3A4658;--muted:#6B7A90;--faint:#B8C4D0;
+  --accent:#1456CC;--accent-h:#0F48B0;--accent-soft:#EEF3FC;--accent-line:#C5D4F5;--on-accent:#FFFFFF;
+  --ok:#0A7A50;--ok-soft:#DCFAEE;--ok-line:#A8D8BC;--warn:#9A5000;--warn-soft:#FFF5D6;--warn-line:#F5D580;--bad:#C0283A;--bad-soft:#FDEDF0;--bad-line:#F0A8B0;
+  --sidebar-bg:#1C2333;--sidebar-text:#C8D4E8;--sidebar-muted:#7A8FA8;--sidebar-border:#2A3548;--sidebar-hover:#253047;--sidebar-active:#2D3A55;--sidebar-hi:#E8EEF8;--sidebar-accent:#4A90E2;
+  --shadow:0 1px 3px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.45);
+}
+[data-theme="dark"]{
+  --bg:#0E131B;--surface:#151B25;--surface2:#1A212D;--surface3:#202938;--border:#263042;--border2:#344058;
+  --text:#E4E9F2;--text2:#BAC5D6;--muted:#8796AE;--faint:#4B5871;
+  --accent:#4C8DF6;--accent-h:#6AA0F8;--accent-soft:#17243A;--accent-line:#2B4674;--on-accent:#FFFFFF;
+  --ok:#3DD68C;--ok-soft:#0F2A1F;--ok-line:#1F5A40;--warn:#F2B64C;--warn-soft:#2E2410;--warn-line:#6A4F18;--bad:#F2707F;--bad-soft:#321419;--bad-line:#6E2A34;
+  --sidebar-bg:#0A0E15;--sidebar-text:#C8D4E8;--sidebar-muted:#6F819B;--sidebar-border:#1C2433;--sidebar-hover:#151C29;--sidebar-active:#1B2436;--sidebar-hi:#EEF3FA;--sidebar-accent:#4C8DF6;
+  --shadow:0 1px 3px rgba(0,0,0,.35);--overlay:rgba(0,0,0,.6);
+}
+[data-theme="ocean"]{
+  --bg:#EFF5F5;--surface:#FFFFFF;--surface2:#F5F9F9;--surface3:#EAF2F2;--border:#D9E5E5;--border2:#C3D5D5;
+  --text:#152426;--text2:#334A4D;--muted:#5F7A7D;--faint:#AFC4C6;
+  --accent:#0B7A75;--accent-h:#086460;--accent-soft:#E6F4F3;--accent-line:#A9D9D5;--on-accent:#FFFFFF;
+  --ok:#0A7A50;--ok-soft:#DCFAEE;--ok-line:#A8D8BC;--warn:#9A5000;--warn-soft:#FFF5D6;--warn-line:#F5D580;--bad:#C0283A;--bad-soft:#FDEDF0;--bad-line:#F0A8B0;
+  --sidebar-bg:#0F2A2C;--sidebar-text:#C6DEDD;--sidebar-muted:#7EA3A3;--sidebar-border:#1E3F41;--sidebar-hover:#16383A;--sidebar-active:#1C4447;--sidebar-hi:#EAF6F5;--sidebar-accent:#3CC2BA;
+  --shadow:0 1px 3px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.45);
+}
+[data-theme="contrast"]{
+  --bg:#FFFFFF;--surface:#FFFFFF;--surface2:#F4F4F4;--surface3:#EAEAEA;--border:#6E6E6E;--border2:#3C3C3C;
+  --text:#000000;--text2:#111111;--muted:#2E2E2E;--faint:#6E6E6E;
+  --accent:#0033A0;--accent-h:#00226E;--accent-soft:#E3EAFB;--accent-line:#0033A0;--on-accent:#FFFFFF;
+  --ok:#005A32;--ok-soft:#D8F5E6;--ok-line:#005A32;--warn:#6B3500;--warn-soft:#FFF0C8;--warn-line:#6B3500;--bad:#9E0018;--bad-soft:#FDE2E6;--bad-line:#9E0018;
+  --sidebar-bg:#000000;--sidebar-text:#FFFFFF;--sidebar-muted:#D0D0D0;--sidebar-border:#555555;--sidebar-hover:#222222;--sidebar-active:#333333;--sidebar-hi:#FFFFFF;--sidebar-accent:#FFD400;
+  --shadow:none;--overlay:rgba(0,0,0,.7);
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+button,input,textarea,select{font-family:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.mono{font-family:'SF Mono',Consolas,'Liberation Mono',monospace}
+
+/* LAYOUT */
+#app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:236px;min-width:236px;background:var(--sidebar-bg);border-right:1px solid var(--sidebar-border);display:flex;flex-direction:column;overflow:hidden}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* SIDEBAR */
+.sidebar-logo{padding:18px 16px 14px;border-bottom:1px solid var(--sidebar-border)}
+.logo-badge{display:inline-block;background:var(--sidebar-accent);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:1.2px;margin-bottom:8px}
+[data-theme="contrast"] .logo-badge{color:#000}
+.logo-title{font-size:16px;font-weight:700;letter-spacing:-.3px;color:var(--sidebar-hi)}
+.logo-sub{font-size:10.5px;color:var(--sidebar-muted);margin-top:3px;line-height:1.4}
+.sidebar-setup{padding:12px 16px;border-bottom:1px solid var(--sidebar-border)}
+.sidebar-progress{padding:12px 16px;border-bottom:1px solid var(--sidebar-border)}
+.prog-label{font-size:10.5px;color:var(--sidebar-muted);margin-bottom:6px;display:flex;justify-content:space-between}
+.prog-bar{height:3px;background:var(--sidebar-border);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:var(--sidebar-accent);border-radius:2px;transition:width .4s}
+.prog-warn{font-size:10px;color:#F0A8B0;margin-top:7px;line-height:1.4}
+.sidebar-nav{flex:1;overflow-y:auto;padding:6px 0}
+.nav-section{font-size:9.5px;color:var(--sidebar-muted);letter-spacing:1.2px;padding:12px 16px 4px;text-transform:uppercase;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 16px;cursor:pointer;font-size:12px;color:var(--sidebar-muted);border-left:2px solid transparent;user-select:none;background:none;border-top:none;border-right:none;border-bottom:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--sidebar-hover);color:var(--sidebar-text)}
+.nav-item.active{background:var(--sidebar-active);color:var(--sidebar-hi);border-left-color:var(--sidebar-accent)}
+.nav-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.nav-lbl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav-lvl{font-family:'SF Mono',Consolas,monospace;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--sidebar-border);color:var(--sidebar-text);flex-shrink:0}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--sidebar-border);display:flex;flex-direction:column;gap:8px}
+.footer-group{display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--sidebar-border);border-radius:8px}
+.footer-label{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--sidebar-muted);padding:0 2px 2px}
+.btn{padding:7px 12px;border-radius:6px;border:1px solid var(--sidebar-border);background:transparent;color:var(--sidebar-muted);font-size:11px;cursor:pointer;transition:all .15s;width:100%;text-align:left}
+.btn:hover{background:var(--sidebar-hover);color:var(--sidebar-text)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent);text-align:center;font-weight:600;padding:9px 12px;font-size:12px}
+.btn-primary:hover{background:var(--accent-h);color:var(--on-accent)}
+.btn-save{border-color:#2A7A55;color:#8FE6BC}
+.btn-save:hover{background:rgba(42,122,85,.18);color:#B8F0D4}
+.btn-reset{color:#C98A94;border-color:transparent;font-size:10.5px;opacity:.8}
+.btn-reset:hover{background:rgba(192,40,58,.12);color:#E0A8B0;opacity:1}
+.btn-row{display:flex;gap:6px}
+.btn-half{flex:1;text-align:center}
+
+/* TOPBAR */
+.topbar{height:48px;min-height:48px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:12px}
+.topbar-title{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar-meta{font-size:11px;color:var(--muted);display:flex;gap:10px;align-items:center;flex-shrink:0}
+.tb-action{font-size:11px;font-weight:600;color:var(--text);background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;cursor:pointer}
+.tb-action:hover{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.tb-help{width:26px;height:26px;padding:0;border-radius:50%;font-weight:700;font-size:13px;display:inline-flex;align-items:center;justify-content:center}
+.tb-select{width:auto;max-width:150px;font-size:11px;font-weight:600;color:var(--text);background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:4px 8px;cursor:pointer}
+.fw-chip{display:inline-block;padding:3px 9px;border-radius:5px;font-size:10.5px;font-weight:600;background:var(--surface2);color:var(--muted);border:1px solid var(--border2);white-space:nowrap}
+.save-status{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);cursor:pointer;padding:3px 9px;border:1px solid var(--border2);border-radius:20px;user-select:none;white-space:nowrap;background:none}
+.save-status:hover{background:var(--surface2);border-color:var(--accent)}
+.ss-dot{width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.ss-dot.ok{background:#0A9A60}
+.ss-dot.warn{background:#C0283A}
+.content{flex:1;overflow-y:auto;padding:24px;background:var(--bg)}
+.wrap{max-width:1180px;margin:0 auto}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:#1C2333;color:#E8EEF8;font-size:12px;padding:11px 18px;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.28);z-index:2000;opacity:0;transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .28s;display:flex;align-items:center;gap:9px;max-width:min(560px,88vw);line-height:1.5}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.err{background:#5C1620}
+.toast-dot{width:7px;height:7px;border-radius:50%;background:#4ADE80;flex-shrink:0}
+.toast.err .toast-dot{background:#F0A8B0}
+
+/* GENERIC */
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.3px;white-space:nowrap}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
+.panel-head{padding:11px 16px;border-bottom:1px solid var(--border);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface2);color:var(--text)}
+.panel-head .sub{font-weight:400;color:var(--muted);font-size:11px}
+.panel-body{padding:14px 16px}
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:16px}
+.page-head h2{font-size:18px;font-weight:700;color:var(--text)}
+.page-head p{font-size:12px;color:var(--muted);max-width:700px;line-height:1.65;margin-top:4px}
+.big-num{font-family:'SF Mono',Consolas,monospace;font-size:28px;font-weight:700;line-height:1}
+.small-muted{font-size:10.5px;color:var(--muted)}
+.notice{background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:8px;padding:10px 14px;font-size:11.5px;color:var(--text2);margin-bottom:14px;line-height:1.7}
+.notice strong{color:var(--text)}
+.empty{padding:28px 16px;text-align:center;color:var(--muted);font-size:12px;line-height:1.7}
+
+/* LEVEL PILLS */
+.lv{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:6px;font-family:'SF Mono',Consolas,monospace;font-size:11px;font-weight:700;color:#fff}
+.lv.na{background:var(--surface3);color:var(--muted);border:1px solid var(--border2)}
+.lv.ns{background:transparent;color:var(--muted);border:1px dashed var(--border2)}
+.lv.un{background:transparent;color:var(--faint);border:1.5px solid var(--border2)}
+.chip{display:inline-block;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.2px;white-space:nowrap;border:1px solid transparent}
+.chip-ok{background:var(--ok-soft);color:var(--ok);border-color:var(--ok-line)}
+.chip-warn{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-line)}
+.chip-bad{background:var(--bad-soft);color:var(--bad);border-color:var(--bad-line)}
+.chip-muted{background:var(--surface3);color:var(--muted);border-color:var(--border2)}
+.chip-acc{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-line)}
+.chip-ir{background:#FFF1E6;color:#9A3A00;border-color:#F5C088}
+[data-theme="dark"] .chip-ir{background:#2E1C10;color:#F7A865;border-color:#6A3F18}
+.prio-Critical{background:var(--bad-soft);color:var(--bad);border-color:var(--bad-line)}
+.prio-High{background:#FFF0E0;color:#9A3A00;border-color:#F5C088}
+[data-theme="dark"] .prio-High{background:#2E1C10;color:#F7A865;border-color:#6A3F18}
+.prio-Medium{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-line)}
+.prio-Low{background:var(--ok-soft);color:var(--ok);border-color:var(--ok-line)}
+
+/* GUIDANCE */
+.guide{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow)}
+.guide-head{padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;width:100%;background:none;border:none;text-align:left;color:var(--text)}
+.guide-head:hover{background:var(--surface3)}
+.guide-tag{font-size:9px;font-weight:700;letter-spacing:1px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-line);padding:3px 7px;border-radius:4px}
+.guide-title{font-size:12.5px;font-weight:600;flex:1}
+.guide-body{padding:4px 16px 16px;font-size:12px;color:var(--text2);line-height:1.7}
+.guide-body p{margin-bottom:10px}
+.scale-table{width:100%;border-collapse:collapse;font-size:11.5px;margin:6px 0 12px}
+.scale-table td,.scale-table th{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:top;text-align:left}
+.scale-table th{font-size:10.5px;color:var(--muted);font-weight:600;background:var(--surface2)}
+.chevron{color:var(--muted);font-size:11px;transition:transform .2s;flex-shrink:0;display:inline-block}
+.chevron.open{transform:rotate(90deg)}
+
+/* TABLES */
+.tbl{width:100%;border-collapse:collapse;font-size:11.5px}
+.tbl th{padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);color:var(--muted);font-weight:600;background:var(--surface2);font-size:10.5px;white-space:nowrap}
+.tbl td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top}
+.tbl tr:last-child td{border-bottom:none}
+.tbl .mono{font-weight:700;font-size:10.5px;white-space:nowrap}
+.tbl-wrap{overflow-x:auto}
+
+/* MODALS */
+.overlay{position:fixed;inset:0;background:var(--overlay);z-index:999;display:flex;align-items:center;justify-content:center}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:24px;width:640px;max-width:94vw;max-height:88vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2);color:var(--text)}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:10px}
+.modal-sec{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin:20px 0 10px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.field-grid .full{grid-column:1 / -1}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px}
+.field input,.field textarea,.field select{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;resize:vertical}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent)}
+.hint{font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.5}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+.mbn{padding:7px 16px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;cursor:pointer}
+.mbn:hover{background:var(--surface3);color:var(--text)}
+.mbp{padding:7px 16px;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);font-size:12px;cursor:pointer;font-weight:600}
+.mbp:hover{background:var(--accent-h)}
+.fw-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.fw-opt{border:1.5px solid var(--border2);border-radius:9px;padding:11px 13px;cursor:pointer;background:var(--surface);text-align:left;color:var(--text)}
+.fw-opt:hover{border-color:var(--accent)}
+.fw-opt.on{border-color:var(--accent);background:var(--accent-soft)}
+.fw-opt b{display:block;font-size:12.5px}
+.fw-opt span{display:block;font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.45}
+.custom-row{display:grid;grid-template-columns:70px 1fr 1.3fr 110px 130px 30px;gap:6px;margin-bottom:6px;align-items:center}
+.custom-row input{background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;width:100%}
+.custom-row label{font-size:10px;color:var(--muted);display:flex;align-items:center;gap:4px}
+.help-list{margin:0 0 4px;padding-left:20px;font-size:12.5px;line-height:1.7;color:var(--text)}
+.help-list li{margin-bottom:6px}
+.help-callout{display:flex;gap:12px;background:var(--ok-soft);border:1px solid var(--ok-line);border-radius:9px;padding:12px 14px;margin:12px 0;font-size:12.5px;line-height:1.6}
+.pal-row{display:flex;gap:8px;flex-wrap:wrap}
+.pal{border:1.5px solid var(--border2);border-radius:8px;padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:7px;font-size:11.5px;background:var(--surface);color:var(--text)}
+.pal.on{border-color:var(--accent);background:var(--accent-soft)}
+.pal i{display:inline-block;width:14px;height:14px;border-radius:3px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.fu{animation:fadeUp .18s ease}
+@media (prefers-reduced-motion:reduce){.fu{animation:none}.prog-fill,.chevron,.toast{transition:none}}
+@media (max-width:900px){.summary,.two-col{grid-template-columns:1fr}.hm{grid-template-columns:1fr}.aid-grid{grid-template-columns:1fr 1fr}.sidebar{width:200px;min-width:200px}}
+/* ═══════════ REPORT (screen preview + print) ═══════════ */
+.report-toolbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:18px;box-shadow:var(--shadow)}
+.rt-title{font-size:12px;font-weight:600;color:var(--text)}
+.rt-sub{font-size:11px;color:var(--muted);line-height:1.5}
+.rt-btn{background:var(--accent);color:var(--on-accent);border:none;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.rt-btn:hover{background:var(--accent-h)}
+.rt-btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--border2)}
+.rt-btn.ghost:hover{background:var(--surface2);color:var(--text)}
+.rt-first{margin-left:auto}
+
+.doc{--rp-d:#0A1A3A;--rp-m:#12336E;--rp-a:#1456CC;--rp-soft:#F4F7FC;--rp-line:#DCE6F5;background:#8A93A3;padding:24px;border-radius:10px}
+.doc.pal-teal{--rp-d:#062B2A;--rp-m:#0D4F4C;--rp-a:#0B7A75;--rp-soft:#F0F8F7;--rp-line:#CBE6E3}
+.doc.pal-graphite{--rp-d:#15191F;--rp-m:#2F3640;--rp-a:#4E5B6E;--rp-soft:#F4F5F7;--rp-line:#DDE1E7}
+.doc.pal-burgundy{--rp-d:#2A0B14;--rp-m:#561A2B;--rp-a:#94243F;--rp-soft:#FBF3F5;--rp-line:#EFD3DA}
+.page{background:#fff;width:210mm;min-height:297mm;margin:0 auto 24px;padding:18mm 17mm 16mm;box-shadow:0 3px 16px rgba(0,0,0,.22);position:relative;color:#1A2230;font-size:10pt;line-height:1.55;font-family:Arial,Helvetica,sans-serif}
+.page:last-child{margin-bottom:0}
+.page-foot{position:absolute;bottom:9mm;left:17mm;right:17mm;font-size:7.5pt;color:#8A9BB0;display:flex;justify-content:space-between;gap:10px}
+
+/* Cover */
+.cover{display:flex;flex-direction:column;color:#fff;background:linear-gradient(155deg,var(--rp-d) 0%,var(--rp-m) 58%,var(--rp-a) 100%);padding:0;overflow:hidden}
+.cover-inner{padding:22mm 18mm;display:flex;flex-direction:column;flex:1;min-height:297mm}
+.cover-badge{font-size:9pt;letter-spacing:2px;text-transform:uppercase;opacity:.85;font-weight:600}
+.cover-rule{width:54px;height:3px;background:rgba(255,255,255,.7);margin:14px 0 26px}
+.cover h1{font-size:30pt;font-weight:700;line-height:1.12;margin:0 0 10px;letter-spacing:-.5px}
+.cover-sub{font-size:13pt;opacity:.9}
+.cover-class{display:inline-block;align-self:flex-start;margin-top:16px;font-size:8pt;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);border-radius:5px;padding:4px 10px}
+.cover-spacer{flex:1}
+.cover-meta{margin-top:30px;border-top:1px solid rgba(255,255,255,.22);padding-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px 30px}
+.cm-lbl{font-size:7.5pt;letter-spacing:1.4px;text-transform:uppercase;opacity:.65;margin-bottom:3px}
+.cm-val{font-size:11pt;font-weight:600;line-height:1.35}
+.cover-verdict{margin-top:24px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);border-radius:10px;padding:16px 20px;display:flex;align-items:center;gap:20px}
+.cv-big{font-size:26pt;font-weight:700;line-height:1;font-family:'SF Mono',Consolas,monospace}
+.cv-name{font-size:10pt;letter-spacing:1px;text-transform:uppercase;opacity:.9;margin-top:4px}
+.cv-dist{flex:1}
+.cv-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:rgba(255,255,255,.15)}
+.cv-bar span{display:block;height:100%}
+.cv-note{font-size:8.5pt;opacity:.85;margin-top:7px;line-height:1.5}
+.cover-foot{font-size:7.5pt;opacity:.65;margin-top:20px;line-height:1.55}
+
+/* Report typography */
+.rp-h2{font-size:16pt;font-weight:700;color:var(--rp-d);margin:0 0 3px;letter-spacing:-.3px}
+.rp-h2 .rp-num{color:var(--rp-a);margin-right:8px}
+.rp-lead{font-size:9.5pt;color:#5A6A80;margin:0 0 16px;padding-bottom:10px;border-bottom:2px solid #E4E9F0}
+.rp-h3{font-size:11.5pt;font-weight:700;color:var(--rp-m);margin:18px 0 7px}
+.rp-p{margin:0 0 9px;color:#28313F}
+.rp-callout{background:var(--rp-soft);border-left:3px solid var(--rp-a);border-radius:0 8px 8px 0;padding:11px 15px;margin:12px 0;font-size:9.5pt;line-height:1.6;color:#28313F}
+.rp-callout.warn{background:#FDF6F7;border-left-color:#C0283A}
+.rp-callout.ok{background:#F2FBF6;border-left-color:#0A7A50}
+.rp-table{width:100%;border-collapse:collapse;font-size:8.5pt;margin:8px 0}
+.rp-table th{background:var(--rp-d);color:#fff;text-align:left;padding:6px 8px;font-weight:600;font-size:8pt}
+.rp-table td{padding:5px 8px;border-bottom:1px solid #E8ECF2;vertical-align:top;color:#28313F}
+.rp-table tr:nth-child(even) td{background:#F8FAFC}
+.rp-table .ref{font-family:'SF Mono',Consolas,monospace;font-weight:700;white-space:nowrap}
+.rp-table tr.grp{break-after:avoid;page-break-after:avoid}
+.rp-table .grp td{background:var(--rp-m)!important;color:#fff;font-weight:700;font-size:8.5pt}
+.rp-details th.k{background:var(--rp-soft);color:#28313F;width:32%;font-weight:600;font-size:8.5pt}
+.rlv{display:inline-block;min-width:18px;text-align:center;padding:1px 5px;border-radius:4px;color:#fff;font-weight:700;font-size:8pt;font-family:'SF Mono',Consolas,monospace}
+.rlv.na{background:#EAEEF3;color:#4A5A6E}
+.rlv.ns{background:#fff;color:#8A9BB0;border:1px dashed #B8C4D0}
+.rpill{display:inline-block;padding:1px 7px;border-radius:20px;font-size:7.5pt;font-weight:700;white-space:nowrap}
+.rp-Critical{background:#FDE2E6;color:#A81828}.rp-High{background:#FFE9D6;color:#9A3A00}.rp-Medium{background:#FFF3D6;color:#8A4A00}.rp-Low{background:#DCFAEE;color:#076B40}
+.rp-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:12px 0 14px}
+.rp-stat{border:1px solid #E4E9F0;border-radius:8px;padding:9px 6px;text-align:center}
+.rs-val{font-size:18pt;font-weight:700;line-height:1;font-family:'SF Mono',Consolas,monospace}
+.rs-lbl{font-size:6.8pt;letter-spacing:.5px;text-transform:uppercase;color:#6B7A90;margin-top:4px;font-weight:600}
+.rp-grow{display:flex;align-items:center;gap:10px;margin:7px 0;break-inside:avoid}
+.rp-grow .gid{width:30px;height:20px;border-radius:5px;color:#fff;font-weight:700;font-size:8pt;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'SF Mono',Consolas,monospace}
+.rp-grow .gnm{font-size:9pt;font-weight:600;width:210px;flex-shrink:0;color:#28313F}
+.rp-grow .gtr{flex:1;height:14px;background:#EEF1F5;border-radius:7px;position:relative}
+.rp-grow .gfl{position:absolute;left:0;top:0;bottom:0;border-radius:7px}
+.rp-grow .gtg{position:absolute;top:-3px;bottom:-3px;width:2px;background:#1A2230}
+.rp-grow .gvl{font-family:monospace;font-size:9pt;font-weight:700;width:36px;text-align:right}
+.rp-method{background:var(--rp-soft);border:1px solid var(--rp-line);border-radius:9px;padding:12px 15px;margin:8px 0 12px;font-size:9pt;line-height:1.6;color:#28313F}
+.rp-formula{background:var(--rp-d);color:#fff;font-family:'SF Mono',Consolas,monospace;font-size:9pt;text-align:center;padding:8px;border-radius:6px;margin:8px 0}
+.radar-block{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:4px}
+.radar-svg{flex:0 0 330px;max-width:330px}
+.radar-legend{flex:1;min-width:230px;display:grid;grid-template-columns:1fr;gap:1px;font-size:8pt}
+.rl-row{display:flex;gap:6px;align-items:baseline;line-height:1.45;break-inside:avoid}
+.rl-code{font-family:'SF Mono',Consolas,monospace;font-weight:700;flex:0 0 42px}
+.rl-name{flex:1;color:#33404F}
+.rl-val{font-family:monospace;font-weight:700;color:#5A6A80}
+.rp-rec{border:1px solid #E4E9F0;border-left:3px solid var(--rp-a);border-radius:0 9px 9px 0;padding:10px 14px;margin:9px 0;break-inside:avoid}
+.rp-rec-head{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap}
+.rp-rec-rank{width:20px;height:20px;border-radius:50%;background:var(--rp-d);color:#fff;font-size:8pt;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.rp-rec-name{font-size:10pt;font-weight:700;color:var(--rp-d);flex:1}
+.rp-rec-meta{font-size:8pt;color:#6B7A90;margin-bottom:5px}
+.rp-rec-body{font-size:9pt;line-height:1.6;color:#28313F}
+.rp-hz{font-size:10.5pt;font-weight:700;color:var(--rp-m);margin:16px 0 4px;padding-bottom:4px;border-bottom:1px solid #E4E9F0}
+.rp-reg{border:1px solid #E4E9F0;border-radius:9px;padding:10px 14px;margin:8px 0;break-inside:avoid}
+.rp-reg-just{font-size:9pt;color:#33404F;background:#F6F8FB;border-left:2px solid #8A9BB0;border-radius:0 6px 6px 0;padding:7px 11px;margin-top:6px;white-space:pre-wrap;line-height:1.6}
+.rp-detail{border:1px solid #E4E9F0;border-radius:9px;padding:10px 14px;margin:8px 0;break-inside:avoid}
+.rp-detail h5{font-size:9.5pt;margin:0 0 4px;color:var(--rp-d);display:flex;gap:8px;align-items:center}
+.rp-detail .dl{font-size:8pt;color:#6B7A90;margin-top:5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.rp-detail .dv{font-size:9pt;color:#28313F;white-space:pre-wrap;line-height:1.55}
+.rp-theme{border-left:3px solid;padding:8px 13px;margin:9px 0;background:#FAFBFC;border-radius:0 8px 8px 0;break-inside:avoid}
+.rp-theme h5{font-size:10pt;margin:0 0 3px;display:flex;align-items:center;gap:8px}
+.rp-theme p{font-size:9pt;margin:0;color:#28313F;line-height:1.58}
+.rp-theme .ta{font-size:8pt;color:#5A6A80;margin-top:4px}
+
+@media screen and (max-width:1100px){.page{width:100%;padding:14mm 12mm 18mm;min-height:auto}.doc{padding:12px}.cover-inner{min-height:250mm}}
+
+@media print{
+  html,body{height:auto!important;overflow:visible!important;background:#fff!important}
+  #app{display:block!important;height:auto!important;overflow:visible!important}
+  .main{display:block!important;height:auto!important;overflow:visible!important}
+  .content{display:block!important;height:auto!important;overflow:visible!important;padding:0!important;background:#fff!important}
+  .wrap{max-width:none!important}
+  .fu{animation:none!important}
+  .sidebar,.topbar,.no-print,.report-toolbar,.overlay,.toast{display:none!important}
+  .doc{background:none!important;padding:0!important;border-radius:0!important}
+  @page{size:A4;margin:12mm}
+  .page{box-shadow:none!important;margin:0!important;width:auto!important;min-height:0!important;padding:0!important;break-after:page;page-break-after:always}
+  .page:last-child{break-after:auto;page-break-after:auto}
+  .page.cover{height:273mm!important;max-height:273mm!important;overflow:hidden!important}
+  .cover-inner{min-height:0!important;height:273mm;padding:22mm 20mm!important}
+  .rp-table thead{display:table-header-group}
+  .rp-table tr{break-inside:avoid;page-break-inside:avoid}
+  .rp-rec,.rp-reg,.rp-detail,.rp-stat,.rp-callout,.rp-theme,.rp-grow{break-inside:avoid;page-break-inside:avoid}
+  .rp-h2,.rp-h3,.rp-hz{break-after:avoid}
+  .page-foot{position:static!important;margin-top:8mm}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+.privacy{display:flex;gap:10px;align-items:flex-start;font-size:11.5px;color:var(--text2);line-height:1.55;background:var(--ok-soft);border:1px solid var(--ok-line);border-radius:8px;padding:9px 12px;margin-bottom:12px}
+.tlp{display:inline-block;font-family:'SF Mono',Consolas,monospace;font-weight:800;font-size:8pt;padding:3px 9px;border-radius:3px;background:#000;letter-spacing:.5px}
+.tlp-CLEAR{color:#fff}.tlp-GREEN{color:#33FF00}.tlp-AMBER,.tlp-AMBER-STRICT{color:#FFC000}.tlp-RED{color:#FF2B2B}
+@media (max-width:900px){.kv2{grid-template-columns:1fr}}
 
-html, body {
-  background: var(--bg);
-  color: var(--ink);
-  font-family: var(--sans);
-  font-size: 15px;
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-}
+/* ═══════════ ATTACKER'S EYE VIEW ═══════════ */
+html,body{height:100%}
+#app{height:100%}
+.aev-attacker{--ac:#C0283A}
+.aev-defender{--ac:var(--accent)}
 
-a { color: var(--accent); text-decoration: none; }
-a:hover { text-decoration: underline; }
+/* landing */
+.lede{max-width:70ch;color:var(--text2);font-size:13.5px;line-height:1.7;margin:0 0 6px}
+.how{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:14px 0 4px}
+.how-step{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:12px 14px}
+.how-step .n{font-family:'SF Mono',Consolas,monospace;font-size:10px;font-weight:700;color:var(--accent);letter-spacing:.1em}
+.how-step p{margin:5px 0 0;font-size:12px;color:var(--text2);line-height:1.5}
+.scn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px;margin-top:4px}
+.scn{display:flex;flex-direction:column;text-align:left;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--bad);border-radius:var(--radius,12px);overflow:hidden;box-shadow:var(--shadow);cursor:pointer;color:var(--text);transition:transform .15s,border-color .15s}
+.scn:hover{transform:translateY(-2px);border-left-color:var(--bad)}
+.scn-top{padding:16px 18px 6px;flex:1}
+.scn-class{display:inline-block;font-family:'SF Mono',Consolas,monospace;font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--bad);background:var(--bad-soft);border:1px solid var(--bad-line);border-radius:4px;padding:2px 7px;margin-bottom:10px}
+.scn-name{font-size:17px;font-weight:700;margin:0 0 6px;letter-spacing:-.01em}
+.scn-desc{font-size:12.5px;color:var(--text2);line-height:1.55;margin:0}
+.scn-meta{display:flex;flex-wrap:wrap;gap:4px 14px;padding:10px 18px;border-top:1px dashed var(--border);font-family:'SF Mono',Consolas,monospace;font-size:10.5px;color:var(--muted)}
+.scn-meta b{color:var(--text2);font-weight:600}
 
-.topnav {
-  position: sticky; top: 0; z-index: 100;
-  background: rgba(247, 247, 244, 0.92);
-  backdrop-filter: saturate(180%) blur(12px);
-  border-bottom: 1px solid var(--line);
-}
-.topnav-inner {
-  max-width: 1200px; margin: 0 auto;
-  padding: 14px 28px;
-  display: flex; align-items: center; justify-content: space-between;
-}
-.topnav-brand {
-  display: flex; align-items: center; gap: 10px;
-  font-family: var(--mono); font-size: 13px;
-  color: var(--ink); text-decoration: none;
-}
-.topnav-brand:hover { text-decoration: none; }
-.topnav-brand-mark {
-  width: 24px; height: 24px;
-  background: var(--ink); color: var(--bg-card);
-  display: inline-flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 12px; border-radius: 4px;
-}
-.topnav-brand-sep { color: var(--ink-faint); }
-.topnav-brand-section { color: var(--ink-soft); }
-.topnav-actions { display: flex; gap: 8px; }
-.topnav-actions a, .topnav-actions button {
-  background: transparent; border: 1px solid var(--line-strong);
-  color: var(--ink-soft);
-  padding: 6px 12px;
-  font-family: var(--mono); font-size: 12px;
-  cursor: pointer; border-radius: 4px;
-  transition: all 0.15s; text-decoration: none;
-}
-.topnav-actions a:hover, .topnav-actions button:hover {
-  background: var(--ink); color: var(--bg-card); border-color: var(--ink);
-  text-decoration: none;
-}
+/* run header */
+.run-anchor{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12px;color:var(--muted);margin:2px 0 14px}
+.run-anchor b{color:var(--text2)}
+.dprofile{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:12px 16px;margin-bottom:12px}
+.dprofile-lbl{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.dprofile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px 18px}
+.dprofile-k{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.dprofile-v{font-size:12.5px;color:var(--text);margin-top:1px}
+.briefing{background:var(--bad-soft);border:1px solid var(--bad-line);border-radius:9px;padding:14px 16px;margin-bottom:16px}
+.briefing-lbl{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--bad);margin-bottom:6px}
+.briefing-body p{margin:0 0 8px;font-size:12.5px;color:var(--text2);line-height:1.6}
+.briefing-body p:last-child{margin-bottom:0}
 
-.page { max-width: 1200px; margin: 0 auto; padding: 48px 28px 120px; }
+/* progress rail */
+.rail{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:4px 0 16px;font-size:0}
+.rail-node{display:flex;align-items:center;gap:6px}
+.rail-dot{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--border2);background:var(--surface);display:grid;place-items:center;font-family:'SF Mono',Consolas,monospace;font-size:10px;font-weight:700;color:var(--muted)}
+.rail-node.done .rail-dot{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.rail-node.done.flagged .rail-dot{background:var(--bad);border-color:var(--bad)}
+.rail-node.current .rail-dot{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.rail-line{width:18px;height:2px;background:var(--border2)}
+.rail-node.done + .rail-line{background:var(--accent)}
 
-/* HERO */
-.hero { margin-bottom: 36px; }
-.hero-eyebrow {
-  font-family: var(--mono); font-size: 11px;
-  letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--ink-soft); margin-bottom: 16px;
-}
-.hero-title {
-  font-family: var(--serif); font-size: 56px;
-  line-height: 1.05; font-weight: 400; letter-spacing: -0.02em;
-  margin-bottom: 20px;
-}
-.hero-title em { font-style: italic; color: var(--attacker); }
-.hero-lede {
-  font-size: 17px; color: var(--ink-soft);
-  max-width: 820px; line-height: 1.6;
-}
-.hero-lede strong { color: var(--ink); }
+/* stage */
+.stage-top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:2px}
+.stage-kicker{font-family:'SF Mono',Consolas,monospace;font-size:11px;font-weight:700;color:var(--bad);letter-spacing:.06em}
+.stage-name{font-size:19px;font-weight:700;letter-spacing:-.01em}
+.stage-count{margin-left:auto;font-family:'SF Mono',Consolas,monospace;font-size:11px;color:var(--muted)}
+.vblock{border-radius:9px;padding:12px 15px;margin:12px 0;border:1px solid;border-left-width:3px}
+.vblock-lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:7px}
+.vblock-lbl .ic{width:15px;height:15px}
+.vblock-body{font-size:12.5px;line-height:1.6;color:var(--text2)}
+.vblock-body p{margin:0 0 8px}.vblock-body p:last-child{margin:0}
+.vblock.att{background:var(--bad-soft);border-color:var(--bad-line);color:var(--bad)}
+.vblock.att .vblock-body{color:var(--text2)}
+.vblock.def{background:var(--accent-soft);border-color:var(--accent-line)}
+.vblock.def .vblock-lbl{color:var(--accent)}
 
-/* DISCLAIMER */
-.disclaimer {
-  background: var(--warn-soft);
-  border: 1px solid #fcd34d;
-  border-radius: 8px;
-  padding: 16px 20px; margin: 28px 0;
-  display: flex; gap: 16px; align-items: flex-start;
-}
-.disclaimer-mark {
-  font-family: var(--mono); font-size: 20px;
-  color: var(--warn); font-weight: 700; line-height: 1;
-}
-.disclaimer-body { font-size: 13px; color: #78350f; line-height: 1.55; }
-.disclaimer-body strong { color: #451a03; }
+/* reflection prompt */
+.reflect{background:var(--surface2);border:1px dashed var(--border2);border-radius:9px;padding:13px 15px;margin:14px 0}
+.reflect-lbl{font-size:11px;font-weight:700;color:var(--text);margin-bottom:3px}
+.reflect-hint{font-size:11.5px;color:var(--muted);line-height:1.5;margin-bottom:9px}
+.reflect textarea{width:100%;min-height:54px;background:var(--surface);border:1px solid var(--border2);border-radius:7px;padding:9px 11px;color:var(--text);font:inherit;font-size:12.5px;line-height:1.5;resize:vertical;outline:none}
+.reflect textarea:focus{border-color:var(--accent)}
+.reflect-conf{display:flex;gap:6px;margin-top:9px;align-items:center;flex-wrap:wrap}
+.reflect-conf .q{font-size:11px;color:var(--muted);margin-right:2px}
+.cbtn{border:1px solid var(--border2);background:var(--surface);color:var(--text2);border-radius:6px;padding:4px 11px;font:inherit;font-size:11.5px;cursor:pointer}
+.cbtn:hover{border-color:var(--accent)}
+.cbtn.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600}
 
-/* SCENARIO PICKER */
-.section-title {
-  font-family: var(--serif); font-size: 28px; font-weight: 400;
-  letter-spacing: -0.01em; margin-bottom: 8px;
-}
-.section-sub { color: var(--ink-soft); margin-bottom: 24px; max-width: 720px; }
+.opts-lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:16px 0 8px}
+.opts{display:grid;gap:10px}
+.opt{text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:13px 15px;cursor:pointer;color:var(--text);transition:border-color .12s,box-shadow .12s}
+.opt:hover{border-color:var(--bad);box-shadow:var(--shadow)}
+.opt-h{font-size:13.5px;font-weight:600;margin-bottom:4px}
+.opt-d{font-size:12px;color:var(--text2);line-height:1.55;margin-bottom:10px}
+.meters{display:flex;gap:16px;flex-wrap:wrap}
+.meter-lbl{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+.dots{display:flex;gap:3px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--border2)}
+.meter.effort .dot.on{background:var(--muted)}
+.meter.detection .dot.on{background:var(--bad)}
+.meter.progress .dot.on{background:var(--ok)}
 
-.scenario-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-  gap: 16px;
-}
-.scenario-card {
-  background: var(--bg-card);
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--attacker);
-  border-radius: 8px;
-  padding: 22px 24px;
-  cursor: pointer;
-  text-align: left;
-  font-family: var(--sans);
-  transition: all 0.15s;
-  display: block;
-  text-decoration: none;
-  color: var(--ink);
-}
-.scenario-card:hover {
-  text-decoration: none;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.04);
-}
-.scenario-card-eyebrow {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--attacker);
-  font-weight: 600;
-  margin-bottom: 10px;
-}
-.scenario-card-title {
-  font-family: var(--serif);
-  font-size: 22px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  letter-spacing: -0.01em;
-}
-.scenario-card-desc {
-  font-size: 13.5px;
-  color: var(--ink-soft);
-  line-height: 1.55;
-  margin-bottom: 12px;
-}
-.scenario-card-meta {
-  display: flex; flex-wrap: wrap; gap: 6px 14px;
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--ink-faint);
-  letter-spacing: 0.02em;
-  padding-top: 12px;
-  border-top: 1px dashed var(--line);
-}
-.scenario-card-meta strong { color: var(--ink-soft); font-weight: 600; }
+/* outcome */
+.outcome{border-radius:10px;padding:14px 16px;margin-top:14px;border:1px solid var(--border);border-left:3px solid var(--muted);background:var(--surface2)}
+.outcome.detected{border-left-color:var(--warn);background:var(--warn-soft)}
+.outcome.stopped{border-left-color:var(--ok);background:var(--ok-soft)}
+.outcome-lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.outcome.detected .outcome-lbl{color:var(--warn)}
+.outcome.stopped .outcome-lbl{color:var(--ok)}
+.outcome-body{font-size:12.5px;line-height:1.6;color:var(--text2)}
+.outcome-you{margin-top:12px;padding-top:11px;border-top:1px solid var(--border);font-size:12px;color:var(--text2);line-height:1.55}
+.outcome-you b{color:var(--text)}
+.outcome-you .conf-badge{display:inline-block;font-family:'SF Mono',Consolas,monospace;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--surface3);border:1px solid var(--border2);color:var(--text2);margin-left:4px}
+.ctrls{margin-top:12px}
+.ctrls-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.ctag{display:inline-block;font-size:11px;padding:2px 9px;margin:0 5px 5px 0;border-radius:20px;background:var(--surface);border:1px solid var(--border2);color:var(--text2);cursor:help}
+.ctag:hover{border-color:var(--accent);color:var(--text)}
+.outcome-next{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
 
-/* RUN VIEW */
-.run-view { display: none; }
-.run-view.active { display: block; }
+/* debrief */
+.db-end{display:inline-block;font-family:'SF Mono',Consolas,monospace;font-size:11px;font-weight:700;letter-spacing:.06em;padding:4px 11px;border-radius:5px;margin-bottom:10px}
+.db-end.compromise{background:var(--bad-soft);color:var(--bad);border:1px solid var(--bad-line)}
+.db-end.held{background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok-line)}
+.db-end.detected-midway{background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn-line)}
+.db-title{font-size:20px;font-weight:700;letter-spacing:-.01em;margin:0 0 6px}
+.db-summary{font-size:13px;color:var(--text2);line-height:1.65;max-width:75ch;margin:0 0 4px}
+.rw-callout{background:var(--accent-soft);border:1px solid var(--accent-line);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:10px 14px;margin:14px 0;font-size:12px;color:var(--text2);line-height:1.55}
+.rw-callout b{color:var(--accent);display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
+.path{display:flex;flex-direction:column}
+.path-step{padding:10px 0;border-bottom:1px solid var(--border)}
+.path-step:last-child{border-bottom:none}
+.path-stage{font-family:'SF Mono',Consolas,monospace;font-size:10.5px;color:var(--muted);letter-spacing:.04em}
+.path-choice{font-size:13px;font-weight:600;color:var(--text);margin-top:2px}
+.path-reflection{margin-top:6px;font-size:12px;color:var(--text2);background:var(--surface2);border-left:2px solid var(--accent-line);border-radius:0 6px 6px 0;padding:7px 11px;line-height:1.5}
+.path-reflection .rl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);display:block;margin-bottom:2px}
+.path-reflection .conf-badge{display:inline-block;font-family:'SF Mono',Consolas,monospace;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--surface3);border:1px solid var(--border2);color:var(--text2);margin-left:6px}
+.path-verdict{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:4px;margin-top:6px}
+.pv-caught{background:var(--ok-soft);color:var(--ok)}
+.pv-missed{background:var(--bad-soft);color:var(--bad)}
+.ctrl-row{display:grid;grid-template-columns:minmax(160px,34%) 1fr;gap:4px 14px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.ctrl-row:last-child{border-bottom:none}
+.ctrl-key{font-family:'SF Mono',Consolas,monospace;font-weight:600;color:var(--accent);font-size:11.5px}
+.ctrl-key.hit{color:var(--bad)}
+.ctrl-desc{color:var(--text2);line-height:1.5}
+.ctrl-flag{display:inline-block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--bad);background:var(--bad-soft);border:1px solid var(--bad-line);border-radius:3px;padding:0 5px;margin-left:6px;vertical-align:1px}
+.bs-list{margin:0;padding-left:20px}
+.bs-list li{font-size:12.5px;color:var(--text2);line-height:1.6;margin-bottom:7px}
+@media (max-width:900px){.ctrl-row{grid-template-columns:1fr}.dprofile-grid{grid-template-columns:1fr 1fr}}
 
-.scenario-header {
-  display: flex; align-items: baseline; justify-content: space-between;
-  margin-bottom: 8px; gap: 16px; flex-wrap: wrap;
-}
-.scenario-title {
-  font-family: var(--serif); font-size: 36px; font-weight: 400;
-  letter-spacing: -0.01em;
-}
-.scenario-back {
-  font-family: var(--mono); font-size: 12px;
-  color: var(--ink-soft); cursor: pointer;
-  background: transparent; border: 1px solid var(--line-strong);
-  padding: 6px 12px; border-radius: 4px;
-  letter-spacing: 0.04em;
-}
-.scenario-back:hover { color: var(--ink); border-color: var(--ink); }
-.scenario-anchor {
-  font-family: var(--mono); font-size: 11px;
-  color: var(--ink-soft); margin-bottom: 24px;
-  letter-spacing: 0.02em;
-}
-.scenario-anchor strong { color: var(--ink); font-weight: 600; }
+/* report */
+.rp-aev-view{border:1px solid #E4E9F0;border-radius:9px;padding:9px 13px;margin:7px 0;break-inside:avoid;font-size:9pt;line-height:1.55;color:#28313F}
+.rp-aev-view.att{background:#FDF3F4;border-left:3px solid #C0283A}
+.rp-aev-view.def{background:#F4F7FC;border-left:3px solid #1456CC}
+.rp-aev-view .vl{font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.rp-aev-view.att .vl{color:#C0283A}.rp-aev-view.def .vl{color:#1456CC}
+.rp-aev-reflect{background:var(--rp-soft);border:1px solid var(--rp-line);border-radius:8px;padding:9px 13px;margin:7px 0;break-inside:avoid}
+.rp-aev-reflect .rl{font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6B7A90;margin-bottom:3px}
+.rp-aev-reflect .rt{font-size:9pt;color:#28313F;white-space:pre-wrap;line-height:1.55}
+.rp-aev-reflect .conf{font-family:'SF Mono',Consolas,monospace;font-size:7.5pt;font-weight:700;color:#5A6A80}
+.rp-aev-choice{font-size:10pt;font-weight:700;color:var(--rp-d);margin:10px 0 2px}
+.rp-aev-outcome{font-size:9pt;color:#28313F;line-height:1.55;margin:2px 0 4px}
+.rp-verdict{display:inline-block;font-size:7.5pt;font-weight:700;padding:1px 7px;border-radius:3px}
+.rp-verdict.caught{background:#DCFAEE;color:#076B40}.rp-verdict.missed{background:#FDE2E6;color:#A81828}
 
-.defender-profile {
-  background: var(--defender-soft);
-  border: 1px solid #bfdbfe;
-  border-radius: 8px;
-  padding: 18px 22px;
-  margin-bottom: 24px;
-}
-.defender-profile-label {
-  font-family: var(--mono); font-size: 10px;
-  letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--defender); font-weight: 700;
-  margin-bottom: 10px;
-}
-.defender-profile-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px 20px;
-}
-.defender-profile-item { font-size: 13px; }
-.defender-profile-item-key {
-  font-family: var(--mono); font-size: 10px;
-  letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--defender); font-weight: 600;
-  margin-bottom: 2px;
-}
-.defender-profile-item-val { color: var(--ink); }
-
-.briefing {
-  background: var(--attacker-soft);
-  border: 1px solid #fecaca;
-  border-radius: 8px;
-  padding: 22px 26px;
-  margin-bottom: 32px;
-}
-.briefing-label {
-  font-family: var(--mono); font-size: 10px;
-  letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--attacker); font-weight: 700;
-  margin-bottom: 10px;
-}
-.briefing-body {
-  font-family: var(--serif); font-size: 15.5px;
-  line-height: 1.7; color: var(--ink);
-}
-.briefing-body p { margin-bottom: 12px; }
-.briefing-body p:last-child { margin-bottom: 0; }
-
-/* STAGE */
-.stage {
-  background: var(--bg-card);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 28px 32px;
-  margin-bottom: 20px;
-}
-.stage-header {
-  display: flex; align-items: baseline; justify-content: space-between;
-  margin-bottom: 16px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--line);
-}
-.stage-num {
-  font-family: var(--mono); font-size: 11px;
-  color: var(--ink-faint); letter-spacing: 0.1em;
-}
-.stage-label {
-  font-family: var(--serif); font-size: 26px; font-weight: 600;
-  letter-spacing: -0.01em; flex: 1; margin-left: 16px;
-}
-.stage-progress {
-  font-family: var(--mono); font-size: 11px;
-  color: var(--ink-soft); letter-spacing: 0.04em;
-}
-
-.view-block { margin-bottom: 20px; }
-.view-block-label {
-  font-family: var(--mono); font-size: 10px;
-  letter-spacing: 0.1em; text-transform: uppercase;
-  font-weight: 700; margin-bottom: 8px;
-  display: flex; align-items: center; gap: 6px;
-}
-.view-block-label::before {
-  content: ''; width: 8px; height: 8px; border-radius: 50%;
-}
-.view-block.attacker .view-block-label { color: var(--attacker); }
-.view-block.attacker .view-block-label::before { background: var(--attacker); }
-.view-block.defender .view-block-label { color: var(--defender); }
-.view-block.defender .view-block-label::before { background: var(--defender); }
-.view-block-body {
-  font-family: var(--serif); font-size: 15px;
-  line-height: 1.7; color: var(--ink);
-}
-.view-block.defender .view-block-body {
-  font-size: 14px; color: var(--ink-soft); font-style: italic;
-}
-
-.options-label {
-  font-family: var(--mono); font-size: 10px;
-  letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--ink-soft); font-weight: 700;
-  margin: 24px 0 12px 0;
-}
-.options-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
-.option-card {
-  background: var(--bg);
-  border: 1px solid var(--line-strong);
-  border-radius: 8px;
-  padding: 18px 22px;
-  cursor: pointer;
-  text-align: left;
-  font-family: var(--sans);
-  transition: all 0.15s;
-  position: relative;
-}
-.option-card:hover {
-  border-color: var(--attacker);
-  background: var(--bg-card);
-}
-.option-card-headline {
-  font-size: 15px; font-weight: 600;
-  margin-bottom: 6px; color: var(--ink);
-}
-.option-card-detail {
-  font-size: 13.5px;
-  color: var(--ink-soft);
-  line-height: 1.55;
-  margin-bottom: 14px;
-}
-.option-meters {
-  display: flex; gap: 16px;
-  padding-top: 12px;
-  border-top: 1px dashed var(--line);
-}
-.meter {
-  flex: 1;
-  display: flex; flex-direction: column; gap: 4px;
-}
-.meter-label {
-  font-family: var(--mono); font-size: 9px;
-  letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--ink-faint); font-weight: 600;
-}
-.meter-bar {
-  display: flex; gap: 2px;
-}
-.meter-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--line-strong);
-}
-.meter-dot.filled { background: var(--ink-soft); }
-.meter.effort .meter-dot.filled { background: var(--ink-soft); }
-.meter.detection .meter-dot.filled { background: var(--warn); }
-.meter.progress .meter-dot.filled { background: var(--ok); }
-
-/* OUTCOME REVEAL */
-.outcome-reveal {
-  background: var(--bg-card);
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--attacker);
-  border-radius: 8px;
-  padding: 24px 28px;
-  margin-bottom: 20px;
-}
-.outcome-reveal.detected { border-left-color: var(--warn); }
-.outcome-reveal.stopped { border-left-color: var(--danger); }
-.outcome-label {
-  font-family: var(--mono); font-size: 11px;
-  letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--attacker); font-weight: 700;
-  margin-bottom: 10px;
-}
-.outcome-reveal.detected .outcome-label { color: var(--warn); }
-.outcome-reveal.stopped .outcome-label { color: var(--danger); }
-.outcome-narrative {
-  font-family: var(--serif); font-size: 15.5px;
-  line-height: 1.7; color: var(--ink);
-  margin-bottom: 16px;
-}
-.outcome-controls {
-  padding-top: 14px;
-  border-top: 1px dashed var(--line);
-  font-size: 13px;
-  color: var(--ink-soft);
-}
-.outcome-controls-label {
-  font-family: var(--mono); font-size: 10px;
-  letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--defender); font-weight: 600;
-  margin-bottom: 6px;
-}
-.outcome-controls-list {
-  display: flex; flex-wrap: wrap; gap: 6px;
-}
-.outcome-control-tag {
-  background: var(--defender-soft);
-  color: var(--defender);
-  font-family: var(--mono);
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 3px;
-  letter-spacing: 0.02em;
-}
-.outcome-continue {
-  display: block;
-  width: 100%;
-  margin-top: 18px;
-  background: var(--ink);
-  color: var(--bg-card);
-  border: none;
-  padding: 12px 18px;
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.15s;
-}
-.outcome-continue:hover { background: var(--attacker); }
-
-/* DEBRIEF */
-.debrief {
-  background: var(--bg-card);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 32px 36px;
-  margin-bottom: 24px;
-}
-.debrief-end-state {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-  margin-bottom: 8px;
-  font-weight: 700;
-}
-.debrief-end-state.compromise { color: var(--danger); }
-.debrief-end-state.held { color: var(--ok); }
-.debrief-end-state.detected-midway { color: var(--warn); }
-.debrief-title {
-  font-family: var(--serif);
-  font-size: 32px;
-  font-weight: 400;
-  letter-spacing: -0.01em;
-  margin-bottom: 16px;
-}
-.debrief-summary {
-  font-family: var(--serif);
-  font-size: 16px;
-  line-height: 1.7;
-  color: var(--ink);
-  margin-bottom: 28px;
-}
-.debrief-section { margin-bottom: 28px; }
-.debrief-section:last-child { margin-bottom: 0; }
-.debrief-section-label {
-  font-family: var(--mono); font-size: 10px;
-  letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--defender); font-weight: 700;
-  margin-bottom: 12px;
-}
-.debrief-section h4 {
-  font-size: 14px; font-weight: 600;
-  color: var(--ink); margin-bottom: 8px;
-}
-.debrief-section ul { padding-left: 20px; margin-bottom: 8px; }
-.debrief-section li { margin-bottom: 8px; line-height: 1.6; font-size: 14px; }
-.debrief-section li strong { color: var(--ink); font-weight: 600; }
-
-.controls-list {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
-}
-.control-row {
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 16px;
-  padding: 10px 14px;
-  background: var(--bg-subtle);
-  border-radius: 6px;
-  border-left: 2px solid var(--defender);
-}
-.control-row-key {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--defender);
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  line-height: 1.5;
-}
-.control-row-desc {
-  font-size: 13px;
-  color: var(--ink);
-  line-height: 1.55;
-}
-@media (max-width: 720px) {
-  .control-row { grid-template-columns: 1fr; gap: 4px; }
-}
-
-.path-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.path-step {
-  display: grid;
-  grid-template-columns: 60px 1fr;
-  gap: 14px;
-  padding: 10px 14px;
-  background: var(--bg-subtle);
-  border-radius: 6px;
-}
-.path-step-stage {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-  font-weight: 600;
-  padding-top: 2px;
-}
-.path-step-choice {
-  font-size: 13px;
-  color: var(--ink);
-  line-height: 1.5;
-}
-
-.real-world-callout {
-  background: var(--accent-soft);
-  border-left: 3px solid var(--accent);
-  border-radius: 0 8px 8px 0;
-  padding: 14px 18px;
-  margin: 16px 0;
-  font-size: 13.5px;
-  color: var(--ink);
-  line-height: 1.6;
-}
-.real-world-callout strong {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--accent);
-  font-weight: 700;
-  display: block;
-  margin-bottom: 4px;
-}
-
-.debrief-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 28px;
-  padding-top: 24px;
-  border-top: 1px solid var(--line);
-}
-.debrief-actions button {
-  background: transparent;
-  border: 1px solid var(--line-strong);
-  color: var(--ink);
-  padding: 10px 16px;
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: all 0.15s;
-}
-.debrief-actions button:hover {
-  border-color: var(--ink);
-  background: var(--ink);
-  color: var(--bg-card);
-}
-.debrief-actions button.primary {
-  background: var(--ink);
-  color: var(--bg-card);
-  border-color: var(--ink);
-}
-.debrief-actions button.primary:hover {
-  background: var(--attacker);
-  border-color: var(--attacker);
-}
-
-@media (max-width: 720px) {
-  .hero-title { font-size: 40px; }
-  .stage { padding: 20px; }
-  .stage-header { flex-direction: column; align-items: flex-start; }
-  .stage-label { margin-left: 0; }
-}
 </style>
 </head>
 <body>
-
-<nav class="topnav">
-  <div class="topnav-inner">
-    <a href="https://danhowett.github.io/useful/" class="topnav-brand">
-      <span class="topnav-brand-mark">DH</span>
-      <span>Dan Howett</span>
-      <span class="topnav-brand-sep">/</span>
-      <span class="topnav-brand-section">Attacker's Eye View</span>
-    </a>
-    <div class="topnav-actions">
-      <a href="https://danhowett.github.io/useful/adversary-mindsets.html">ADVERSARY MINDSETS</a>
-      <a href="https://danhowett.github.io/useful/threat-actor-index.html">THREAT ACTORS</a>
-      <a href="https://danhowett.github.io/useful/">ALL TOOLS</a>
+<div id="app">
+  <nav class="sidebar" aria-label="Attacker's Eye View navigation">
+    <div class="sidebar-logo">
+      <div class="logo-badge" style="background:#C0283A">ADVERSARY</div>
+      <div class="logo-title">Attacker's Eye View</div>
+      <div class="logo-sub">Walk the kill chain · see the blind spots<br>Runs offline; nothing is uploaded</div>
     </div>
-  </div>
-</nav>
-
-<main class="page">
-
-  <!-- LANDING VIEW -->
-  <div id="landingView">
-    <header class="hero">
-      <div class="hero-eyebrow">Attacker's Eye View · Interactive narrative</div>
-      <h1 class="hero-title">See your defence through <em>attacker eyes.</em></h1>
-      <p class="hero-lede">
-        Pick a scenario. Play the attacker for a series of decisions across the kill chain. At each stage, you see what
-        the attacker observes, what the defender sees, and the options the attacker would consider. Pick one; see what
-        would happen and which control would (or wouldn't) catch it. End with a <strong>defender debrief</strong> showing
-        the controls that mattered, the blind spots exposed, and the real-world incident this most resembles.
-      </p>
-      <p class="hero-lede" style="margin-top: 12px;">
-        Five hand-built scenarios, each 5-7 stages, ~10 minutes per run. No live offensive techniques — all decisions
-        are at the category level. The defender's perspective is the point.
-      </p>
-    </header>
-
-    <div class="disclaimer">
-      <span class="disclaimer-mark">!</span>
-      <div class="disclaimer-body">
-        <strong>Orientation, not threat modelling.</strong> This is a thinking aid built to reveal defender blind spots
-        through attacker perspective — not a substitute for organisation-specific threat assessment, red teaming, or
-        intelligence analysis. Scenarios are calibrated to attacker class and defender archetype, not to your specific
-        environment. <strong>You should not rely on this tool's output</strong> as the basis for security investment
-        decisions without independent verification by qualified personnel. The author accepts no liability whatsoever
-        for any loss, damage, or consequence arising from use of, or reliance on, this tool or its outputs. Use
-        entirely at your own risk.
+    <div class="sidebar-progress" id="side-status"><div class="prog-label"><span>No scenario running</span></div></div>
+    <div class="sidebar-nav" id="sidebar-nav"></div>
+    <div class="sidebar-footer no-print">
+      <button class="btn btn-primary" id="btn-report" onclick="navigate('report')" disabled>📄 Facilitated debrief</button>
+      <div class="footer-group">
+        <div class="footer-label">Export</div>
+        <div class="btn-row"><button class="btn btn-half" id="btn-copy" onclick="copySummary()" disabled>⧉ Copy notes</button><button class="btn btn-half" id="btn-json" onclick="exportJSON()" disabled>⬇ JSON</button></div>
+      </div>
+      <button class="btn btn-reset" onclick="resetRun()">✕ Reset run</button>
+    </div>
+  </nav>
+  <div class="main">
+    <div class="topbar no-print">
+      <div class="topbar-title" id="topbar-title">Scenarios</div>
+      <div class="topbar-meta">
+        <span id="topbar-sub" style="max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+        <span class="fw-chip">Offline · nothing stored</span>
+        <select class="tb-select" id="theme-select" onchange="setTheme(this.value)" aria-label="Colour theme" title="Colour theme">
+          <option value="system">◐ System</option><option value="light">☀ Light</option><option value="dark">☾ Dark</option><option value="ocean">≈ Ocean</option><option value="contrast">◼ High contrast</option>
+        </select>
+        <button class="tb-action" onclick="showModal('details-modal');fillDetails()" title="Facilitator and report details">⚙ Details</button>
+        <button class="tb-action tb-help" onclick="showModal('help-modal')" aria-label="Help" title="Help">?</button>
       </div>
     </div>
-
-    <h2 class="section-title">Pick a scenario</h2>
-    <p class="section-sub">
-      Each scenario covers a different attacker class and defender profile. The first time through, pick whichever
-      pattern best matches your sector. Coming back? Pick a different one to see how the disposition shifts.
-    </p>
-
-    <div class="scenario-grid" id="scenarioGrid"></div>
+    <main class="content" id="content"></main>
   </div>
+</div>
 
-  <!-- RUN VIEW -->
-  <div class="run-view" id="runView">
-    <div class="scenario-header">
-      <button class="scenario-back" onclick="returnToLanding()">← back to scenarios</button>
+<div class="overlay" id="details-modal" style="display:none" onclick="if(event.target===this)hideModal('details-modal')">
+  <div class="modal" role="dialog" aria-modal="true">
+    <h3>Report details</h3>
+    <div class="small-muted" style="line-height:1.55">Shown on the facilitated debrief. Facilitator, reference and colour preferences are remembered in this browser; your reflections are held in memory only.</div>
+    <div class="field-grid" style="margin-top:14px">
+      <div class="field"><label>Facilitator / analyst</label><input id="d-analyst" placeholder="Name, role"/></div>
+      <div class="field"><label>Session reference</label><input id="d-ref" placeholder="e.g. AEV-2026-003"/></div>
+      <div class="field"><label>Prepared by (organisation)</label><input id="d-prep" placeholder="Team or consultancy"/></div>
+      <div class="field"><label>Traffic Light Protocol</label><select id="d-tlp"><option value="">Not marked</option><option>TLP:CLEAR</option><option>TLP:GREEN</option><option>TLP:AMBER</option><option>TLP:AMBER+STRICT</option><option>TLP:RED</option></select></div>
     </div>
-    <h1 class="scenario-title" id="runTitle"></h1>
-    <div class="scenario-anchor" id="runAnchor"></div>
-    <div class="defender-profile" id="runDefenderProfile"></div>
-    <div class="briefing" id="runBriefing"></div>
-    <div id="stagesContainer"></div>
+    <div class="modal-sec">Report colours</div><div class="pal-row" id="pal-row"></div>
+    <div class="modal-actions"><button class="mbn" onclick="hideModal('details-modal')">Cancel</button><button class="mbp" onclick="saveDetails()">Save</button></div>
   </div>
-
-</main>
+</div>
+<div class="overlay" id="help-modal" style="display:none" onclick="if(event.target===this)hideModal('help-modal')">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="help-h">
+    <h3 id="help-h">Using Attacker's Eye View</h3>
+    <p class="small-muted" style="font-size:12.5px;line-height:1.6">Pick a scenario and play the attacker across the kill chain. At each stage you see what the attacker observes and what the defender sees, then you commit to a reflection before choosing a move. The point is the defender's perspective: where your controls would catch this, and where they would not.</p>
+    <div class="help-callout"><span>💬</span><div><strong>Made for discussion.</strong> Before each move, note which of your own controls would catch it, and how confident you are. The debrief plays your predictions back against what actually happened, so a team can talk through the gaps. It is an orientation aid, not a tabletop exercise or a threat model.</div></div>
+    <div class="modal-sec">How a run works</div>
+    <ul class="help-list">
+      <li>Each stage shows the <strong>attacker view</strong> and the <strong>defender view</strong> side by side.</li>
+      <li>You answer a short <strong>reflection</strong> — which control catches this, and your confidence — then pick a move.</li>
+      <li>The <strong>outcome</strong> reveals what happened and which controls were in play; hover a control for its meaning.</li>
+      <li>The <strong>debrief</strong> compares your predictions with reality and lists the controls and blind spots for this profile.</li>
+    </ul>
+    <div class="modal-sec">Scope and limits</div>
+    <ul class="help-list">
+      <li>No live offensive technique. Every decision is at the category level.</li>
+      <li>Scenarios are calibrated to an attacker class and a defender archetype, not to your environment.</li>
+      <li>Treat the output as a starting point for discussion, verified by qualified people against your own estate.</li>
+    </ul>
+    <div class="modal-actions"><button class="mbp" onclick="hideModal('help-modal')">Got it</button></div>
+  </div>
+</div>
 
 <script>
+// ═══════════════════════════════════════════════════════════════════
+// Attacker's Eye View · runs entirely offline, no network requests.
+// Reflections are held in memory only and never written to storage.
+// ═══════════════════════════════════════════════════════════════════
+const $=s=>document.querySelector(s);
+const PALETTES={navy:{label:'Navy',c:'#12336E'},teal:{label:'Teal',c:'#0D4F4C'},graphite:{label:'Graphite',c:'#2F3640'},burgundy:{label:'Burgundy',c:'#561A2B'}};
+const PREF_KEY='dh-aev-prefs', THEME_KEY='dh-aev-theme';
+let prefs={analyst:'',ref:'',prep:'',tlp:'',palette:'navy'};
+try{ const p=JSON.parse(localStorage.getItem(PREF_KEY)||'null'); if(p) prefs=Object.assign(prefs,p); }catch(e){}
+
 // === SCENARIO 1: THE HELP DESK CALL ===
 // Scattered Spider-style social engineering against mid-market UK retail
 // Real-world anchor: M&S, Co-op, Harrods (2025)
@@ -2150,407 +2031,322 @@ const ALL_SCENARIOS = [
   SCENARIO_PATCH_WINDOW
 ];
 
-// === STATE ===
-const state = {
-  view: 'landing',         // 'landing' | 'run' | 'debrief'
-  scenarioId: null,
-  stageIndex: 0,
-  choicesMade: [],
-  accumulated: {
-    detectionEvents: [],
-    cost: 0,
-    dwellDays: 0,
-    privilege: 'none',
-    persistence: null,
-    stopped: false,
-    stoppedReason: null,
-    notes: [],
-    controlsReferenced: new Set(),
-    requirementsMet: new Set(),
-    objectiveProgress: 0
-  }
-};
 
-// === HELPERS ===
-function escapeHtml(s) {
-  if (s === null || s === undefined) return '';
-  return String(s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+
+const CONF_LABELS={yes:'We would catch this',maybe:'Maybe / unsure',no:"We wouldn't catch this"};
+
+// ── state ───────────────────────────────────────────────────────────
+let currentPage='scenarios', scenarioId=null, stageIndex=0;
+let run=null, startedAt=null;
+function blankRun(){ return {choices:[], reflections:{}, detections:[], controls:new Set(), reqs:new Set(), progress:0, stopped:false, stoppedReason:null, privilege:'none', notes:[]}; }
+function scenario(){ return ALL_SCENARIOS.find(s=>s.id===scenarioId); }
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function paras(t){ return esc(t).split('\n\n').map(p=>`<p>${p.replace(/\n/g,'<br>')}</p>`).join(''); }
+function tlpBadge(){ return prefs.tlp?`<span class="tlp tlp-${prefs.tlp.replace('TLP:','').replace('+','-')}">${esc(prefs.tlp)}</span>`:''; }
+function ctrlDesc(key){ const s=scenario(); return (s&&s.controls[key])||key.replace(/-/g,' '); }
+
+// ── chrome ──────────────────────────────────────────────────────────
+const NAV=[['scenarios','Scenarios'],['run','The run'],['report','Debrief']];
+function buildNav(){ $('#sidebar-nav').innerHTML='<div class="nav-section">Session</div>'+NAV.map(([id,l])=>`<button class="nav-item" id="nav-${id}" onclick="navigate('${id}')"><span class="nav-dot" style="background:${{scenarios:'#C0283A',run:'#D97706',report:'#5A7A9A'}[id]}"></span><span class="nav-lbl">${l}</span></button>`).join(''); }
+function navigate(p){
+  if(p==='run'&&!scenarioId){ toast('Pick a scenario first.',true); p='scenarios'; }
+  if(p==='report'&&!(run&&run.choices.length)){ toast('Make at least one decision first.',true); return; }
+  currentPage=p; render();
 }
-
-function getCurrentScenario() {
-  return ALL_SCENARIOS.find(s => s.id === state.scenarioId);
+function render(){
+  document.querySelectorAll('.nav-item').forEach(e=>e.classList.toggle('active',e.id==='nav-'+currentPage));
+  $('#content').innerHTML=({scenarios:pScenarios,run:pRun,report:pReport})[currentPage]();
+  updateTopbar();
+  if(currentPage==='run') restoreStageInputs();
+  window.scrollTo&&$('#content') && ($('#content').scrollTop=0);
 }
-
-// === LANDING ===
-function renderLanding() {
-  const grid = document.getElementById('scenarioGrid');
-  grid.innerHTML = ALL_SCENARIOS.map(s => `
-    <a class="scenario-card" onclick="startScenario('${s.id}')">
-      <div class="scenario-card-eyebrow">${escapeHtml(s.attackerClassLabel)}</div>
-      <div class="scenario-card-title">${escapeHtml(s.title)}</div>
-      <div class="scenario-card-desc">${escapeHtml(s.briefing.split('\n')[0])}</div>
-      <div class="scenario-card-meta">
-        <span><strong>Sector:</strong> ${escapeHtml(s.defenderProfile.sector)}</span>
-        <span><strong>Size:</strong> ${escapeHtml(s.defenderProfile.size)}</span>
-        <span><strong>${s.stages.length - 1} stages</strong></span>
-      </div>
-    </a>
-  `).join('');
+function updateTopbar(){
+  $('#topbar-title').textContent=(NAV.find(n=>n[0]===currentPage)||[])[1]||'';
+  $('#topbar-sub').textContent=scenarioId?scenario().title:'';
+  const live=!!(run&&run.choices.length);
+  ['btn-report','btn-copy','btn-json'].forEach(id=>$('#'+id).disabled=!live);
 }
-
-// === RUN ===
-function startScenario(id) {
-  state.scenarioId = id;
-  state.stageIndex = 0;
-  state.choicesMade = [];
-  state.accumulated = {
-    detectionEvents: [],
-    cost: 0,
-    dwellDays: 0,
-    privilege: 'none',
-    persistence: null,
-    stopped: false,
-    stoppedReason: null,
-    notes: [],
-    controlsReferenced: new Set(),
-    requirementsMet: new Set(),
-    objectiveProgress: 0
-  };
-  state.view = 'run';
-
-  document.getElementById('landingView').style.display = 'none';
-  document.getElementById('runView').classList.add('active');
-
-  renderRunHeader();
-  renderCurrentStage();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+function updateSide(){
+  const el=$('#side-status');
+  if(!scenarioId){ el.innerHTML='<div class="prog-label"><span>No scenario running</span></div>'; return; }
+  const s=scenario(), total=s.stages.filter(st=>!st.isOutcomeStage).length;
+  const done=run.choices.length, flagged=run.detections.length;
+  const pct=Math.round(done/total*100);
+  el.innerHTML=`<div style="display:flex;gap:8px;align-items:center"><span style="width:10px;height:10px;border-radius:50%;background:#C0283A;flex-shrink:0"></span><span style="font-size:12px;font-weight:700;color:var(--sidebar-hi);line-height:1.3">${esc(s.title)}</span></div>
+    <div class="prog-label" style="margin-top:9px"><span>Progress</span><span>${done}/${total}</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+    <div style="font-size:10.5px;color:var(--sidebar-muted);margin-top:7px">${flagged} move${flagged===1?'':'s'} the defender would see</div>`;
 }
+function toast(msg,isErr){ const ex=document.getElementById('toast'); if(ex) ex.remove(); const t=document.createElement('div'); t.id='toast'; t.className='toast'+(isErr?' err':''); t.setAttribute('role','status');
+  t.innerHTML='<span class="toast-dot"></span><span></span>'; t.lastChild.textContent=msg; document.body.appendChild(t); requestAnimationFrame(()=>t.classList.add('show')); setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),300); },isErr?5000:2600); }
+function showModal(id){ document.getElementById(id).style.display='flex'; }
+function hideModal(id){ document.getElementById(id).style.display='none'; }
 
-function returnToLanding() {
-  state.view = 'landing';
-  document.getElementById('landingView').style.display = 'block';
-  document.getElementById('runView').classList.remove('active');
-  document.getElementById('stagesContainer').innerHTML = '';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function renderRunHeader() {
-  const s = getCurrentScenario();
-  document.getElementById('runTitle').textContent = s.title;
-  document.getElementById('runAnchor').innerHTML =
-    `<strong>Attacker class:</strong> ${escapeHtml(s.attackerClassLabel)} &nbsp;·&nbsp; <strong>Real-world anchor:</strong> ${escapeHtml(s.realWorldAnchor)}`;
-
-  const profile = s.defenderProfile;
-  document.getElementById('runDefenderProfile').innerHTML = `
-    <div class="defender-profile-label">The defender</div>
-    <div class="defender-profile-grid">
-      <div class="defender-profile-item"><div class="defender-profile-item-key">Sector</div><div class="defender-profile-item-val">${escapeHtml(profile.sector)}</div></div>
-      <div class="defender-profile-item"><div class="defender-profile-item-key">Size</div><div class="defender-profile-item-val">${escapeHtml(profile.size)} (${escapeHtml(profile.employees)})</div></div>
-      <div class="defender-profile-item"><div class="defender-profile-item-key">Posture</div><div class="defender-profile-item-val">${escapeHtml(profile.posture)}</div></div>
-      <div class="defender-profile-item"><div class="defender-profile-item-key">Crown jewel</div><div class="defender-profile-item-val">${escapeHtml(profile.crownJewel)}</div></div>
+// ── scenarios page ──────────────────────────────────────────────────
+function pScenarios(){
+  const cards=ALL_SCENARIOS.map(s=>`
+    <button class="scn" onclick="startScenario('${s.id}')">
+      <div class="scn-top"><span class="scn-class">${esc(s.attackerClassLabel)}</span>
+        <div class="scn-name">${esc(s.title)}</div>
+        <p class="scn-desc">${esc(s.briefing.split('\n')[0])}</p></div>
+      <div class="scn-meta"><span><b>Sector</b> ${esc(s.defenderProfile.sector)}</span><span><b>Size</b> ${esc(s.defenderProfile.size)}</span><span><b>${s.stages.filter(st=>!st.isOutcomeStage).length} stages</b></span></div>
+    </button>`).join('');
+  return `<div class="wrap fu">
+    <div class="page-head"><div><h2>See your defence through attacker eyes</h2>
+      <p>Play the attacker across a scenario's kill chain. At each stage you see what the attacker observes and what the defender sees, commit to a reflection about your own controls, then choose a move and watch what happens. The defender's perspective is the point.</p></div></div>
+    <div class="notice"><strong>Orientation, not threat modelling.</strong> Scenarios are calibrated to an attacker class and a defender archetype, not to your environment. Treat the output as a starting point for discussion, verified by qualified people — not as a basis for investment decisions on its own. No live offensive technique is shown; every decision is at the category level.</div>
+    <div class="how">
+      <div class="how-step"><span class="n">01 · OBSERVE</span><p>Read the attacker and defender views for the stage.</p></div>
+      <div class="how-step"><span class="n">02 · PREDICT</span><p>Note which of your controls would catch it, and how sure you are.</p></div>
+      <div class="how-step"><span class="n">03 · CHOOSE</span><p>Pick the attacker's move and see the outcome and controls in play.</p></div>
+      <div class="how-step"><span class="n">04 · DEBRIEF</span><p>Compare your predictions with reality; see blind spots and controls.</p></div>
     </div>
-  `;
-
-  document.getElementById('runBriefing').innerHTML = `
-    <div class="briefing-label">Your briefing</div>
-    <div class="briefing-body">${s.briefing.split('\n\n').map(p => `<p>${escapeHtml(p)}</p>`).join('')}</div>
-  `;
+    <div class="panel-head" style="background:none;border:none;padding:18px 0 10px;font-size:15px">Pick a scenario</div>
+    <div class="scn-grid">${cards}</div>
+  </div>`;
 }
+function startScenario(id){ scenarioId=id; stageIndex=0; run=blankRun(); startedAt=new Date(); currentPage='run'; updateSide(); render(); toast('Scenario started: '+scenario().title); }
+function resetRun(){ if(scenarioId&&run.choices.length&&!confirm('Reset this run? Your reflections will be cleared.')) return; scenarioId=null; stageIndex=0; run=null; currentPage='scenarios'; updateSide(); render(); }
+function restartScenario(){ const id=scenarioId; scenarioId=id; stageIndex=0; run=blankRun(); startedAt=new Date(); currentPage='run'; updateSide(); render(); }
 
-function renderCurrentStage() {
-  const s = getCurrentScenario();
-  const stage = s.stages[state.stageIndex];
-
-  // Check for outcome / debrief stage
-  if (stage.isOutcomeStage || state.accumulated.stopped) {
-    renderDebrief();
-    return;
-  }
-
-  const totalStages = s.stages.filter(st => !st.isOutcomeStage).length;
-  const visibleStageNum = state.stageIndex + 1;
-
-  // Filter options by 'requires' field if present
-  const availableOptions = stage.options.filter(opt => {
-    if (!opt.requires) return true;
-    return state.accumulated.requirementsMet.has(opt.requires);
-  });
-
-  // If no available options (rare), fall back to all options
-  const optionsToShow = availableOptions.length > 0 ? availableOptions : stage.options;
-
-  const container = document.getElementById('stagesContainer');
-  const stageHtml = `
-    <div class="stage" id="stage-${stage.id}">
-      <div class="stage-header">
-        <span class="stage-num">STAGE ${String(visibleStageNum).padStart(2, '0')}</span>
-        <span class="stage-label">${escapeHtml(stage.label)}</span>
-        <span class="stage-progress">${visibleStageNum} / ${totalStages}</span>
-      </div>
-
-      <div class="view-block attacker">
-        <div class="view-block-label">Attacker view</div>
-        <div class="view-block-body">${escapeHtml(stage.attackerView).replace(/\n\n/g, '</p><p>').replace(/^/, '<p>').replace(/$/, '</p>')}</div>
-      </div>
-
-      ${stage.defenderView ? `
-        <div class="view-block defender">
-          <div class="view-block-label">Defender view</div>
-          <div class="view-block-body">${escapeHtml(stage.defenderView)}</div>
-        </div>
-      ` : ''}
-
-      <div class="options-label">Choose your move</div>
-      <div class="options-grid">
-        ${optionsToShow.map(opt => `
-          <button class="option-card" onclick="chooseOption('${stage.id}', '${opt.id}')">
-            <div class="option-card-headline">${escapeHtml(opt.headline)}</div>
-            <div class="option-card-detail">${escapeHtml(opt.detail)}</div>
-            <div class="option-meters">
-              ${renderMeter('effort', opt.effort, 'Effort')}
-              ${renderMeter('detection', opt.detection, 'Detection risk')}
-              ${renderMeter('progress', opt.progress, 'Progress')}
-            </div>
-          </button>
-        `).join('')}
-      </div>
-    </div>
-  `;
-
-  container.innerHTML = stageHtml;
-  // Scroll the new stage into view
-  const stageEl = document.getElementById(`stage-${stage.id}`);
-  if (stageEl) stageEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+// ── run page ────────────────────────────────────────────────────────
+function railHTML(s){
+  const stages=s.stages.filter(st=>!st.isOutcomeStage);
+  return '<div class="rail">'+stages.map((st,i)=>{
+    const ch=run.choices[i];
+    let cls=i<run.choices.length?'done':(i===stageIndex?'current':'');
+    if(ch&&run.detections.some(d=>d.i===i)) cls+=' flagged';
+    const node=`<div class="rail-node ${cls}" title="${esc(st.label)}"><span class="rail-dot">${i+1}</span></div>`;
+    return node+(i<stages.length-1?'<span class="rail-line"></span>':'');
+  }).join('')+'</div>';
 }
+function pRun(){
+  const s=scenario(), stage=s.stages[stageIndex];
+  const pf=s.defenderProfile;
+  let head=`<div class="wrap fu">
+    <div class="page-head"><div><h2>${esc(s.title)}</h2>
+      <div class="run-anchor"><span><b>Attacker class:</b> ${esc(s.attackerClassLabel)}</span><span><b>Anchor:</b> ${esc(s.realWorldAnchor)}</span></div></div></div>
+    <div class="dprofile"><div class="dprofile-lbl">The defender</div><div class="dprofile-grid">
+      ${[['Sector',pf.sector],['Size',pf.size+(pf.employees?' ('+pf.employees+')':'')],['Posture',pf.posture],['Crown jewel',pf.crownJewel]].map(([k,v])=>`<div><div class="dprofile-k">${esc(k)}</div><div class="dprofile-v">${esc(v)}</div></div>`).join('')}
+    </div></div>
+    <div class="briefing"><div class="briefing-lbl">Your briefing</div><div class="briefing-body">${paras(s.briefing)}</div></div>
+    ${railHTML(s)}`;
+  if(stage.isOutcomeStage||run.stopped){ currentPage='report'; return pReport(); }
 
-function renderMeter(klass, value, label) {
-  const dots = Array.from({length: 5}, (_, i) =>
-    `<span class="meter-dot ${i < value ? 'filled' : ''}"></span>`).join('');
-  return `
-    <div class="meter ${klass}">
-      <div class="meter-label">${escapeHtml(label)}</div>
-      <div class="meter-bar">${dots}</div>
-    </div>
-  `;
-}
+  const total=s.stages.filter(st=>!st.isOutcomeStage).length, num=stageIndex+1;
+  const opts=stage.options.filter(o=>!o.requires||run.reqs.has(o.requires));
+  const show=opts.length?opts:stage.options;
+  const committed=!!run.choices[stageIndex];
 
-function chooseOption(stageId, optionId) {
-  const s = getCurrentScenario();
-  const stage = s.stages.find(st => st.id === stageId);
-  const option = stage.options.find(o => o.id === optionId);
+  let h=head+`<div class="stage-top"><span class="stage-kicker">STAGE ${String(num).padStart(2,'0')}</span><span class="stage-name">${esc(stage.label)}</span><span class="stage-count">${num} / ${total}</span></div>
+    <div class="vblock att"><div class="vblock-lbl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/></svg>Attacker view</div><div class="vblock-body">${paras(stage.attackerView)}</div></div>
+    ${stage.defenderView?`<div class="vblock def"><div class="vblock-lbl"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v5c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V7z"/></svg>Defender view</div><div class="vblock-body">${paras(stage.defenderView)}</div></div>`:''}`;
 
-  state.choicesMade.push({ stageId, optionId, stageLabel: stage.label, optionHeadline: option.headline });
-
-  // Apply state changes
-  const outcome = option.outcome;
-  if (outcome.controlsReferenced) {
-    outcome.controlsReferenced.forEach(c => state.accumulated.controlsReferenced.add(c));
-  }
-  if (outcome.wasDetected) {
-    state.accumulated.detectionEvents.push({ stageId, optionId });
-  }
-  const changes = outcome.stateChanges || {};
-  if (changes.dwellDays) state.accumulated.dwellDays += changes.dwellDays;
-  if (changes.privilege) state.accumulated.privilege = changes.privilege;
-  if (changes.persistence) state.accumulated.persistence = changes.persistence;
-  if (changes.stopped) {
-    state.accumulated.stopped = true;
-    state.accumulated.stoppedReason = changes.stoppedReason;
-  }
-  if (changes.notes) state.accumulated.notes = state.accumulated.notes.concat(changes.notes);
-
-  // Track requirements met by this option's outcome state
-  const allChanges = Object.values(changes);
-  allChanges.forEach(v => {
-    if (typeof v === 'string') state.accumulated.requirementsMet.add(v);
-  });
-
-  // Estimate objective progress contribution (capped at 100)
-  state.accumulated.objectiveProgress = Math.min(100, state.accumulated.objectiveProgress + (option.progress * 10));
-
-  // Render the outcome reveal
-  renderOutcomeReveal(stage, option);
-}
-
-function renderOutcomeReveal(stage, option) {
-  const container = document.getElementById('stagesContainer');
-  const outcome = option.outcome;
-
-  const klass = state.accumulated.stopped
-    ? 'stopped'
-    : outcome.wasDetected
-      ? 'detected'
-      : '';
-  const label = state.accumulated.stopped
-    ? 'Stopped'
-    : outcome.wasDetected
-      ? 'Detected'
-      : 'Outcome';
-
-  const controlsHtml = (outcome.controlsReferenced && outcome.controlsReferenced.length > 0)
-    ? `
-      <div class="outcome-controls">
-        <div class="outcome-controls-label">Controls in play</div>
-        <div class="outcome-controls-list">
-          ${outcome.controlsReferenced.map(c => `<span class="outcome-control-tag">${escapeHtml(c)}</span>`).join('')}
-        </div>
-      </div>
-    `
-    : '';
-
-  const revealHtml = `
-    <div class="outcome-reveal ${klass}">
-      <div class="outcome-label">${escapeHtml(label)}</div>
-      <div class="outcome-narrative">${escapeHtml(outcome.narrative)}</div>
-      ${controlsHtml}
-      <button class="outcome-continue" onclick="advanceStage()">${state.accumulated.stopped ? 'See debrief →' : 'Continue →'}</button>
-    </div>
-  `;
-
-  // Append to the existing stage, replacing options
-  const stageEl = container.querySelector('.stage');
-  if (stageEl) {
-    // Hide the options
-    const optionsLabel = stageEl.querySelector('.options-label');
-    const optionsGrid = stageEl.querySelector('.options-grid');
-    if (optionsLabel) optionsLabel.style.display = 'none';
-    if (optionsGrid) optionsGrid.style.display = 'none';
-    stageEl.insertAdjacentHTML('beforeend', revealHtml);
-    const reveal = stageEl.querySelector('.outcome-reveal');
-    if (reveal) reveal.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-}
-
-function advanceStage() {
-  if (state.accumulated.stopped) {
-    renderDebrief();
-    return;
-  }
-  state.stageIndex += 1;
-  renderCurrentStage();
-}
-
-// === DEBRIEF ===
-function renderDebrief() {
-  const s = getCurrentScenario();
-
-  // Compute end state
-  let endState;
-  if (state.accumulated.stopped) {
-    endState = 'DEFENDER_HELD';
-  } else if (state.accumulated.objectiveProgress >= 80) {
-    endState = 'COMPROMISE';
-  } else if (state.accumulated.detectionEvents.length >= 2) {
-    endState = 'DETECTED_MIDWAY';
-  } else if (state.accumulated.objectiveProgress >= 50) {
-    endState = 'COMPROMISE';
+  if(!committed){
+    h+=`<div class="reflect" id="reflect"><div class="reflect-lbl">Before you choose — the defender's question</div>
+      <div class="reflect-hint">Whatever the attacker does here, which of <em>your</em> controls or processes would catch or slow it? Jot a note, then say how confident you are. This is captured for the debrief.</div>
+      <textarea id="reflect-text" placeholder="e.g. Help desk callback policy; identity-layer alerting on MFA resets; SOC out-of-hours triage…"></textarea>
+      <div class="reflect-conf"><span class="q">Would your environment catch this?</span>
+        ${Object.entries(CONF_LABELS).map(([k,v])=>`<button type="button" class="cbtn" data-conf="${k}">${esc(v)}</button>`).join('')}</div></div>
+    <div class="opts-lbl">Choose the attacker's move</div><div class="opts">
+      ${show.map(o=>`<button class="opt" data-opt="${o.id}">
+        <div class="opt-h">${esc(o.headline)}</div><div class="opt-d">${esc(o.detail)}</div>
+        <div class="meters">${meter('effort',o.effort,'Effort')}${meter('detection',o.detection,'Detection risk')}${meter('progress',o.progress,'Progress')}</div></button>`).join('')}
+    </div>`;
   } else {
-    endState = 'DETECTED_MIDWAY';
+    h+=renderOutcome(stage, stage.options.find(o=>o.id===run.choices[stageIndex].optionId), true);
   }
+  return h+'</div>';
+}
+function meter(cls,v,label){ return `<div class="meter ${cls}"><div class="meter-lbl">${esc(label)}</div><div class="dots">${Array.from({length:5},(_,i)=>`<span class="dot ${i<v?'on':''}"></span>`).join('')}</div></div>`; }
 
-  const endStateConfig = {
-    'COMPROMISE': {
-      label: 'End state · COMPROMISE',
-      title: 'The attacker reached the objective.',
-      summary: 'The defender did not stop the attacker before significant impact. The path through this scenario succeeded — not because the attacker was sophisticated, but because the controls that would have made the difference were not in place or not tuned to catch this particular pattern. The debrief below shows which controls would have changed the outcome.',
-      klass: 'compromise'
-    },
-    'DEFENDER_HELD': {
-      label: 'End state · DEFENDER HELD',
-      title: 'The defender stopped the attacker.',
-      summary: 'Controls fired, response was timely, the attack did not advance to material impact. The debrief below shows which specific controls earned their keep — and which blind spots remained that a different choice or a different attacker would have exploited.',
-      klass: 'held'
-    },
-    'DETECTED_MIDWAY': {
-      label: 'End state · DETECTED MIDWAY',
-      title: 'The attacker was detected, but only after significant advance.',
-      summary: 'Some controls fired but late. The attacker reached partial objectives before being noticed. This is the most common real-world outcome for a moderately mature defender against a determined attacker. The debrief shows the controls that mattered, the moments where the response could have been faster, and the blind spots the attacker exploited.',
-      klass: 'detected-midway'
-    }
-  };
+let pendingConf=null;
+function restoreStageInputs(){ pendingConf=null; }
 
-  const cfg = endStateConfig[endState];
-
-  // Controls that mattered: those referenced in chosen outcomes
-  const controlsMattered = Array.from(state.accumulated.controlsReferenced);
-  const controlsForProfile = s.debrief.keyControlsForThisProfile;
-  const allRelevantControls = Array.from(new Set([...controlsForProfile, ...controlsMattered]));
-
-  const pathHtml = state.choicesMade.map((c, i) => `
-    <div class="path-step">
-      <div class="path-step-stage">STAGE ${String(i + 1).padStart(2, '0')} · ${escapeHtml(c.stageLabel)}</div>
-      <div class="path-step-choice">${escapeHtml(c.optionHeadline)}</div>
-    </div>
-  `).join('');
-
-  const blindSpotsHtml = s.debrief.blindSpots.map(b => `<li>${escapeHtml(b)}</li>`).join('');
-
-  const controlsListHtml = allRelevantControls.map(key => {
-    const desc = s.controls[key] || '(no description)';
-    return `
-      <div class="control-row">
-        <div class="control-row-key">${escapeHtml(key)}</div>
-        <div class="control-row-desc">${escapeHtml(desc)}</div>
-      </div>
-    `;
-  }).join('');
-
-  const debriefHtml = `
-    <div class="debrief">
-      <div class="debrief-end-state ${cfg.klass}">${escapeHtml(cfg.label)}</div>
-      <h2 class="debrief-title">${escapeHtml(cfg.title)}</h2>
-      <p class="debrief-summary">${escapeHtml(cfg.summary)}</p>
-
-      <div class="real-world-callout">
-        <strong>Real-world parallel</strong>
-        ${escapeHtml(s.realWorldAnchor)}
-      </div>
-
-      <div class="debrief-section">
-        <div class="debrief-section-label">The path you took</div>
-        <div class="path-list">${pathHtml}</div>
-      </div>
-
-      <div class="debrief-section">
-        <div class="debrief-section-label">Blind spots this scenario exposes</div>
-        <ul>${blindSpotsHtml}</ul>
-      </div>
-
-      <div class="debrief-section">
-        <div class="debrief-section-label">Controls that would have mattered</div>
-        <p style="font-size:13px;color:var(--ink-soft);margin-bottom:14px;">
-          Controls referenced across the choices you made, plus the baseline set for this defender profile.
-          Not a prescription — a starting point for further investigation against your specific environment.
-        </p>
-        <div class="controls-list">${controlsListHtml}</div>
-      </div>
-
-      <div class="debrief-actions">
-        <button class="primary" onclick="restartScenario()">Run this scenario again</button>
-        <button onclick="returnToLanding()">Pick a different scenario</button>
-        <button onclick="window.print()">Print debrief</button>
-      </div>
-    </div>
-  `;
-
-  document.getElementById('stagesContainer').innerHTML = debriefHtml;
-  state.view = 'debrief';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+function renderOutcome(stage, option, inline){
+  const o=option.outcome, det=run.detections.some(d=>d.i===run.choices.findIndex(c=>c.optionId===option.id));
+  const cls=run.stopped?'stopped':(o.wasDetected?'detected':'');
+  const lbl=run.stopped?'Stopped':(o.wasDetected?'Detected':'Outcome');
+  const ref=run.reflections[stage.id];
+  const ctrls=(o.controlsReferenced||[]).length?`<div class="ctrls"><div class="ctrls-lbl">Controls in play</div>${o.controlsReferenced.map(c=>`<span class="ctag" title="${esc(ctrlDesc(c))}">${esc(c)}</span>`).join('')}</div>`:'';
+  let you='';
+  if(ref){
+    const caught=o.wasDetected||run.stopped;
+    const match=(ref.conf==='yes'&&caught)||(ref.conf==='no'&&!caught);
+    you=`<div class="outcome-you"><b>Your call:</b> ${esc(CONF_LABELS[ref.conf]||'—')}<span class="conf-badge">${match?'matched':'differed'}</span>${ref.text?`<br><b>You noted:</b> ${esc(ref.text)}`:''}</div>`;
+  }
+  const last=stageIndex>=scenario().stages.filter(st=>!st.isOutcomeStage).length-1 || run.stopped;
+  const next=inline?`<div class="outcome-next"><button class="mbp" onclick="advance()">${last?'See debrief →':'Continue →'}</button>${!last?'<button class="mbn" onclick="undoChoice()">↩ Change this choice</button>':''}</div>`:'';
+  return `<div class="outcome ${cls}"><div class="outcome-lbl">${esc(lbl)}</div><div class="outcome-body">${paras(o.narrative)}</div>${you}${ctrls}${next}</div>`;
 }
 
-function restartScenario() {
-  startScenario(state.scenarioId);
+function commitChoice(stageId, optionId){
+  const s=scenario(), stage=s.stages.find(st=>st.id===stageId), option=stage.options.find(o=>o.id===optionId);
+  const text=($('#reflect-text')&&$('#reflect-text').value.trim())||'';
+  run.reflections[stageId]={text, conf:pendingConf||'skip'};
+  run.choices[stageIndex]={stageId, optionId, stageLabel:stage.label, optionHeadline:option.headline};
+  const o=option.outcome, ch=o.stateChanges||{};
+  (o.controlsReferenced||[]).forEach(c=>run.controls.add(c));
+  if(o.wasDetected) run.detections.push({i:stageIndex, stageId});
+  if(ch.privilege) run.privilege=ch.privilege;
+  if(ch.stopped){ run.stopped=true; run.stoppedReason=ch.stoppedReason; }
+  if(ch.notes) run.notes=run.notes.concat(ch.notes);
+  Object.values(ch).forEach(v=>{ if(typeof v==='string') run.reqs.add(v); });
+  run.progress=Math.min(100, run.progress+option.progress*10);
+  updateSide(); updateTopbar(); render();
+  const el=document.querySelector('.outcome'); if(el) el.scrollIntoView({behavior:'smooth',block:'center'});
 }
+function advance(){
+  const s=scenario(), total=s.stages.filter(st=>!st.isOutcomeStage).length;
+  if(run.stopped||stageIndex>=total-1){ currentPage='report'; render(); return; }
+  stageIndex++; render();
+  const st=document.querySelector('.stage-top'); if(st) st.scrollIntoView({behavior:'smooth',block:'start'}); }
+function undoChoice(){ run.choices.splice(stageIndex,1); delete run.reflections[scenario().stages[stageIndex].id]; run.detections=run.detections.filter(d=>d.i!==stageIndex); updateSide(); updateTopbar(); render(); }
 
-// === BOOT ===
-document.addEventListener('DOMContentLoaded', () => {
-  renderLanding();
+document.addEventListener('click',e=>{
+  const cf=e.target.closest('[data-conf]');
+  if(cf){ pendingConf=cf.dataset.conf; document.querySelectorAll('[data-conf]').forEach(b=>b.classList.toggle('on',b===cf)); return; }
+  const op=e.target.closest('[data-opt]');
+  if(op){ const stage=scenario().stages[stageIndex]; commitChoice(stage.id, op.dataset.opt); return; }
+  const rd=e.target.closest('[data-rdiff]'); // reserved
 });
 
-</script>
+// ── end state ───────────────────────────────────────────────────────
+function endState(){
+  if(run.stopped) return 'DEFENDER_HELD';
+  if(run.progress>=80) return 'COMPROMISE';
+  if(run.detections.length>=2) return 'DETECTED_MIDWAY';
+  if(run.progress>=50) return 'COMPROMISE';
+  return 'DETECTED_MIDWAY';
+}
+const END_CFG={
+  COMPROMISE:{label:'End state · COMPROMISE',klass:'compromise',title:'The attacker reached the objective.',summary:'The defender did not stop the attacker before significant impact — not because the attacker was sophisticated, but because the controls that would have made the difference were absent or not tuned to this pattern.'},
+  DEFENDER_HELD:{label:'End state · DEFENDER HELD',klass:'held',title:'The defender stopped the attacker.',summary:'Controls fired and response was timely; the attack did not reach material impact. The debrief shows which controls earned their keep and which blind spots a different choice would still have exploited.'},
+  DETECTED_MIDWAY:{label:'End state · DETECTED MIDWAY',klass:'detected-midway',title:'The attacker was detected, but only after significant advance.',summary:'Some controls fired, but late. The attacker reached partial objectives before being noticed — the most common real-world outcome for a moderately mature defender against a determined attacker.'}
+};
+function choiceCaught(i){ const c=run.choices[i], s=scenario(), st=s.stages.find(x=>x.id===c.stageId), o=st.options.find(x=>x.id===c.optionId).outcome; return o.wasDetected||(run.stopped&&i===run.choices.length-1); }
 
+// ── debrief page ────────────────────────────────────────────────────
+function pReport(){
+  const s=scenario(), es=endState(), cfg=END_CFG[es];
+  const total=s.stages.filter(st=>!st.isOutcomeStage).length;
+  const matched=run.choices.filter((c,i)=>{ const r=run.reflections[c.stageId]; if(!r||r.conf==='skip') return false; const caught=choiceCaught(i); return (r.conf==='yes'&&caught)||(r.conf==='no'&&!caught); }).length;
+  const answered=run.choices.filter(c=>{ const r=run.reflections[c.stageId]; return r&&r.conf!=='skip'; }).length;
+
+  let pn=0; const foot=()=>`<div class="page-foot"><span>${esc(prefs.ref||'')}${prefs.ref?' · ':''}Attacker's Eye View${prefs.tlp?' · '+esc(prefs.tlp):''}</span><span>Page ${++pn}</span></div>`;
+  let sec=0; const H2=(t,l,n)=>`<h2 class="rp-h2"><span class="rp-num">${n||++sec}</span>${t}</h2><div class="rp-lead">${l}</div>`;
+  const when=startedAt.toLocaleString('en-GB',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
+
+  // controls union: profile baseline + referenced
+  const referenced=Array.from(run.controls);
+  const all=Array.from(new Set([...s.debrief.keyControlsForThisProfile, ...referenced]));
+
+  let h=`<div class="wrap fu"><div class="report-toolbar no-print"><div><div class="rt-title">Debrief preview</div><div class="rt-sub">Choose <strong>Save as PDF</strong> in the print dialog, with <strong>Background graphics</strong> on and <strong>Headers and footers</strong> off.</div></div>
+    <button class="rt-btn ghost rt-first" onclick="showModal('details-modal');fillDetails()">Edit details</button><button class="rt-btn" onclick="window.print()">⬇ Download PDF</button></div><div class="doc pal-${esc(prefs.palette)}">`;
+
+  // cover
+  h+=`<div class="page cover"><div class="cover-inner"><div class="cover-badge">${esc(prefs.prep||'Security operations')} · Attacker's Eye View</div><div class="cover-rule"></div>
+    <h1>${esc(s.title)}</h1><div class="cover-sub">${esc(s.attackerClassLabel)} vs ${esc(s.defenderProfile.sector)}, ${esc(s.defenderProfile.size)}</div>${prefs.tlp?`<div style="margin-top:14px">${tlpBadge()}</div>`:''}
+    <div class="cover-spacer"></div>
+    <div class="cover-meta"><div><div class="cm-lbl">Run</div><div class="cm-val">${esc(when)}</div></div><div><div class="cm-lbl">Decisions</div><div class="cm-val">${run.choices.length} of ${total}</div></div>
+      <div><div class="cm-lbl">Facilitator</div><div class="cm-val">${esc(prefs.analyst||'—')}</div></div><div><div class="cm-lbl">Reference</div><div class="cm-val">${esc(prefs.ref||'—')}</div></div></div>
+    <div class="cover-verdict"><div><div class="cv-big" style="font-size:15pt">${es.replace('_',' ')}</div><div class="cv-name">${esc(cfg.title)}</div></div>
+      <div class="cv-dist"><div class="cv-note" style="margin-top:0">${run.detections.length} move(s) the defender would see · predictions matched reality ${matched}/${answered||0}</div></div></div>
+    <div class="cover-foot">Run offline; no content transmitted. An orientation aid, not a threat model. Generated ${esc(startedAt.toISOString())}.</div></div></div>`;
+
+  // on-screen end state banner (screen only, above the doc is fine inside first page already). Add screen summary at top of first content page.
+  h+=`<div class="page">${H2('Outcome','How this run ended, and what it means.')}
+    <div class="rp-callout ${es==='DEFENDER_HELD'?'ok':es==='COMPROMISE'?'warn':''}"><strong>${esc(cfg.title)}</strong> ${esc(cfg.summary)}</div>
+    <div class="rp-method"><strong>Attacker class</strong> ${esc(s.attackerClassLabel)}. <strong>Defender</strong> ${esc(s.defenderProfile.sector)}, ${esc(s.defenderProfile.size)} — ${esc(s.defenderProfile.posture)}. <strong>Crown jewel</strong> ${esc(s.defenderProfile.crownJewel)}.</div>
+    <div class="rw-callout" style="background:var(--rp-soft);border-color:var(--rp-line)"><b>Real-world parallel</b>${esc(s.realWorldAnchor)}</div>
+    ${foot()}</div>`;
+
+  // path with reflections
+  h+=`<div class="page">${H2('The path, and what you predicted','Each decision, your reflection before it, and whether the defender would have seen it.')}`;
+  run.choices.forEach((c,i)=>{
+    const r=run.reflections[c.stageId], caught=choiceCaught(i);
+    const st=s.stages.find(x=>x.id===c.stageId), o=st.options.find(x=>x.id===c.optionId).outcome;
+    h+=`<div style="break-inside:avoid;margin-bottom:12px">
+      <div class="rp-aev-view def" style="margin:0 0 4px"><span class="vl">Stage ${i+1} · ${esc(c.stageLabel)}</span></div>
+      <div class="rp-aev-choice">${esc(c.optionHeadline)}</div>
+      <div class="rp-aev-outcome">${esc(o.narrative)}</div>
+      <span class="rp-verdict ${caught?'caught':'missed'}">${caught?'Defender would see this':'Slipped past the defender'}</span>
+      ${r&&(r.text||r.conf!=='skip')?`<div class="rp-aev-reflect"><span class="rl">Your reflection ${r.conf&&r.conf!=='skip'?'· <span class="conf">'+esc(CONF_LABELS[r.conf])+'</span>':''}</span><div class="rt">${esc(r.text||'(no note)')}</div></div>`:''}
+    </div>`;
+  });
+  h+=foot()+'</div>';
+
+  // blind spots + controls
+  h+=`<div class="page">${H2('Blind spots and controls','Where this profile is typically weak, and the controls to discuss against your own estate.')}
+    <h3 class="rp-h3">Blind spots this scenario exposes</h3>
+    <ul style="margin:0 0 14px;padding-left:18px">${s.debrief.blindSpots.map(b=>`<li style="font-size:9pt;color:#28313F;line-height:1.55;margin-bottom:6px">${esc(b)}</li>`).join('')}</ul>
+    <h3 class="rp-h3">Controls that would have mattered</h3>
+    <p class="rp-p" style="font-size:8.5pt;color:#5A6A80">Controls referenced by the choices made (marked in play), plus the baseline set for this defender profile. A starting point for discussion, not a prescription.</p>
+    <table class="rp-table"><thead><tr><th style="width:32%">Control</th><th>What it is</th></tr></thead><tbody>
+    ${all.map(k=>`<tr><td class="ref">${esc(k)}${referenced.includes(k)?' <span style="color:#A81828">●</span>':''}</td><td>${esc(ctrlDesc(k))}</td></tr>`).join('')}</tbody></table>
+    <p class="rp-p" style="font-size:8pt;color:#6B7A90;margin-top:6px"><span style="color:#A81828">●</span> in play during this run.</p>
+    ${foot()}</div>`;
+  h+='</div></div>';
+
+  // attach a screen-only end-state header above the doc preview
+  const banner=`<div class="db-end ${cfg.klass} no-print" style="margin-top:4px">${esc(cfg.label)}</div><h2 class="db-title no-print" style="margin-bottom:4px">${esc(cfg.title)}</h2><p class="db-summary no-print">${esc(cfg.summary)} <strong>Your predictions matched reality on ${matched} of ${answered} answered stages.</strong></p>`;
+  return h.replace('<div class="report-toolbar', banner+'<div class="report-toolbar');
+}
+
+// ── exports ─────────────────────────────────────────────────────────
+let _dl=null;
+async function getDownloads(){ if(_dl) return _dl; try{ if(window.claude&&window.claude.use) _dl=await window.claude.use('downloads'); }catch(e){ _dl=null; } return _dl; }
+function isFramed(){ try{ return window.self!==window.top; }catch(e){ return true; } }
+async function download(filename,mime,text){
+  const dl=await getDownloads();
+  if(dl){ try{ await dl.save({filename,data:new Blob([text],{type:mime+';charset=utf-8;'})}); return; }catch(e){ if(e&&e.code==='declined') return; } }
+  if(!isFramed()){ const url=URL.createObjectURL(new Blob([text],{type:mime+';charset=utf-8;'})); const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000); return; }
+  toast('Downloads are not available in this embedded view. Open the tool in its own browser tab to save files.',true);
+}
+function fname(ext){ return 'attackers-eye-view-'+(prefs.ref?prefs.ref.replace(/[^a-z0-9-]+/gi,'-')+'-':'')+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')+'.'+ext; }
+function summaryText(){
+  const s=scenario(), es=endState(), cfg=END_CFG[es], line='='.repeat(64);
+  const L=["ATTACKER'S EYE VIEW — SESSION NOTES",line,'Scenario: '+s.title,'Attacker class: '+s.attackerClassLabel,'Defender: '+s.defenderProfile.sector+', '+s.defenderProfile.size];
+  if(prefs.ref) L.push('Reference: '+prefs.ref); if(prefs.analyst) L.push('Facilitator: '+prefs.analyst);
+  L.push('Run: '+startedAt.toISOString(),'','End state: '+cfg.title,'',"PATH AND REFLECTIONS",line);
+  run.choices.forEach((c,i)=>{ const r=run.reflections[c.stageId], caught=choiceCaught(i);
+    L.push(`${i+1}. ${c.stageLabel}: ${c.optionHeadline}`, `   ${caught?'[defender would see this]':'[slipped past]'}`);
+    if(r&&r.conf!=='skip') L.push('   Prediction: '+(CONF_LABELS[r.conf]||r.conf));
+    if(r&&r.text) L.push('   Note: '+r.text); });
+  L.push('','BLIND SPOTS',line); s.debrief.blindSpots.forEach((b,i)=>L.push((i+1)+'. '+b));
+  return L.join('\n');
+}
+async function copySummary(){ if(!(run&&run.choices.length)){ toast('Make a decision first.',true); return; } const t=summaryText();
+  try{ await navigator.clipboard.writeText(t); toast('Notes copied.'); }
+  catch(e){ const ta=document.createElement('textarea'); ta.value=t; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); let ok=false; try{ ok=document.execCommand('copy'); }catch(_){} ta.remove(); toast(ok?'Notes copied.':'Copy failed.',!ok); } }
+async function exportJSON(){
+  if(!(run&&run.choices.length)){ toast('Make a decision first.',true); return; }
+  const s=scenario();
+  const out={schema:'dh-attackers-eye-view',version:1,generatedAt:new Date().toISOString(),runStarted:startedAt.toISOString(),
+    facilitator:prefs.analyst||null,reference:prefs.ref||null,preparedBy:prefs.prep||null,tlp:prefs.tlp||null,
+    scenario:{id:s.id,title:s.title,attackerClass:s.attackerClassLabel,realWorldAnchor:s.realWorldAnchor,defenderProfile:s.defenderProfile},
+    endState:endState(),
+    path:run.choices.map((c,i)=>{ const r=run.reflections[c.stageId]||{}; return {stage:i+1,label:c.stageLabel,choice:c.optionHeadline,defenderWouldSee:choiceCaught(i),prediction:r.conf&&r.conf!=='skip'?r.conf:null,reflection:r.text||null}; }),
+    controlsInPlay:Array.from(run.controls),
+    keyControlsForProfile:s.debrief.keyControlsForThisProfile,
+    blindSpots:s.debrief.blindSpots};
+  await download(fname('json'),'application/json',JSON.stringify(out,null,2));
+}
+
+// ── details / theme / init ──────────────────────────────────────────
+let pPal='navy';
+function fillDetails(){ ['analyst','ref','prep','tlp'].forEach(k=>document.getElementById('d-'+k).value=prefs[k]||''); pPal=prefs.palette||'navy'; drawPal(); }
+function drawPal(){ $('#pal-row').innerHTML=Object.entries(PALETTES).map(([k,p])=>`<button class="pal ${pPal===k?'on':''}" onclick="pPal='${k}';drawPal()"><i style="background:${p.c}"></i>${p.label}</button>`).join(''); }
+function saveDetails(){ ['analyst','ref','prep','tlp'].forEach(k=>prefs[k]=document.getElementById('d-'+k).value); prefs.palette=pPal; try{ localStorage.setItem(PREF_KEY,JSON.stringify(prefs)); }catch(e){} hideModal('details-modal'); if(currentPage==='report') render(); toast('Details saved.'); }
+const mq=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null;
+function applyTheme(p){ document.documentElement.setAttribute('data-theme',p==='system'?(mq&&mq.matches?'dark':'light'):p); }
+function setTheme(v){ const sel=$('#theme-select'); if(sel&&sel.value!==v) sel.value=v; try{ localStorage.setItem(THEME_KEY,v); }catch(e){} applyTheme(v); }
+(function init(){ let v='light'; try{ v=localStorage.getItem(THEME_KEY)||'light'; }catch(e){} $('#theme-select').value=v; applyTheme(v);
+  if(mq&&mq.addEventListener) mq.addEventListener('change',()=>{ if($('#theme-select').value==='system') applyTheme('system'); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ hideModal('help-modal'); hideModal('details-modal'); } });
+  buildNav(); updateSide(); render();
+})();
+
+</script>
 </body>
 </html>
