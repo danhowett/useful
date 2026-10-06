@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>File Hasher</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root,[data-theme="light"]{
+  --bg:#F3F5F8;--surface:#FFFFFF;--surface2:#F8F9FB;--surface3:#F1F4F8;--border:#E2E6EC;--border2:#D0D6DF;
+  --text:#1A2130;--text2:#3A4658;--muted:#6B7A90;--faint:#B8C4D0;
+  --accent:#1456CC;--accent-h:#0F48B0;--accent-soft:#EEF3FC;--accent-line:#C5D4F5;--on-accent:#FFFFFF;
+  --ok:#0A7A50;--ok-soft:#DCFAEE;--ok-line:#A8D8BC;--warn:#9A5000;--warn-soft:#FFF5D6;--warn-line:#F5D580;--bad:#C0283A;--bad-soft:#FDEDF0;--bad-line:#F0A8B0;
+  --sidebar-bg:#1C2333;--sidebar-text:#C8D4E8;--sidebar-muted:#7A8FA8;--sidebar-border:#2A3548;--sidebar-hover:#253047;--sidebar-active:#2D3A55;--sidebar-hi:#E8EEF8;--sidebar-accent:#4A90E2;
+  --shadow:0 1px 3px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.45);
+}
+[data-theme="dark"]{
+  --bg:#0E131B;--surface:#151B25;--surface2:#1A212D;--surface3:#202938;--border:#263042;--border2:#344058;
+  --text:#E4E9F2;--text2:#BAC5D6;--muted:#8796AE;--faint:#4B5871;
+  --accent:#4C8DF6;--accent-h:#6AA0F8;--accent-soft:#17243A;--accent-line:#2B4674;--on-accent:#FFFFFF;
+  --ok:#3DD68C;--ok-soft:#0F2A1F;--ok-line:#1F5A40;--warn:#F2B64C;--warn-soft:#2E2410;--warn-line:#6A4F18;--bad:#F2707F;--bad-soft:#321419;--bad-line:#6E2A34;
+  --sidebar-bg:#0A0E15;--sidebar-text:#C8D4E8;--sidebar-muted:#6F819B;--sidebar-border:#1C2433;--sidebar-hover:#151C29;--sidebar-active:#1B2436;--sidebar-hi:#EEF3FA;--sidebar-accent:#4C8DF6;
+  --shadow:0 1px 3px rgba(0,0,0,.35);--overlay:rgba(0,0,0,.6);
+}
+[data-theme="ocean"]{
+  --bg:#EFF5F5;--surface:#FFFFFF;--surface2:#F5F9F9;--surface3:#EAF2F2;--border:#D9E5E5;--border2:#C3D5D5;
+  --text:#152426;--text2:#334A4D;--muted:#5F7A7D;--faint:#AFC4C6;
+  --accent:#0B7A75;--accent-h:#086460;--accent-soft:#E6F4F3;--accent-line:#A9D9D5;--on-accent:#FFFFFF;
+  --ok:#0A7A50;--ok-soft:#DCFAEE;--ok-line:#A8D8BC;--warn:#9A5000;--warn-soft:#FFF5D6;--warn-line:#F5D580;--bad:#C0283A;--bad-soft:#FDEDF0;--bad-line:#F0A8B0;
+  --sidebar-bg:#0F2A2C;--sidebar-text:#C6DEDD;--sidebar-muted:#7EA3A3;--sidebar-border:#1E3F41;--sidebar-hover:#16383A;--sidebar-active:#1C4447;--sidebar-hi:#EAF6F5;--sidebar-accent:#3CC2BA;
+  --shadow:0 1px 3px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.45);
+}
+[data-theme="contrast"]{
+  --bg:#FFFFFF;--surface:#FFFFFF;--surface2:#F4F4F4;--surface3:#EAEAEA;--border:#6E6E6E;--border2:#3C3C3C;
+  --text:#000000;--text2:#111111;--muted:#2E2E2E;--faint:#6E6E6E;
+  --accent:#0033A0;--accent-h:#00226E;--accent-soft:#E3EAFB;--accent-line:#0033A0;--on-accent:#FFFFFF;
+  --ok:#005A32;--ok-soft:#D8F5E6;--ok-line:#005A32;--warn:#6B3500;--warn-soft:#FFF0C8;--warn-line:#6B3500;--bad:#9E0018;--bad-soft:#FDE2E6;--bad-line:#9E0018;
+  --sidebar-bg:#000000;--sidebar-text:#FFFFFF;--sidebar-muted:#D0D0D0;--sidebar-border:#555555;--sidebar-hover:#222222;--sidebar-active:#333333;--sidebar-hi:#FFFFFF;--sidebar-accent:#FFD400;
+  --shadow:none;--overlay:rgba(0,0,0,.7);
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+button,input,textarea,select{font-family:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.mono{font-family:'SF Mono',Consolas,'Liberation Mono',monospace}
+
+/* LAYOUT */
+#app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:236px;min-width:236px;background:var(--sidebar-bg);border-right:1px solid var(--sidebar-border);display:flex;flex-direction:column;overflow:hidden}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* SIDEBAR */
+.sidebar-logo{padding:18px 16px 14px;border-bottom:1px solid var(--sidebar-border)}
+.logo-badge{display:inline-block;background:var(--sidebar-accent);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:1.2px;margin-bottom:8px}
+[data-theme="contrast"] .logo-badge{color:#000}
+.logo-title{font-size:16px;font-weight:700;letter-spacing:-.3px;color:var(--sidebar-hi)}
+.logo-sub{font-size:10.5px;color:var(--sidebar-muted);margin-top:3px;line-height:1.4}
+.sidebar-setup{padding:12px 16px;border-bottom:1px solid var(--sidebar-border)}
+.sidebar-progress{padding:12px 16px;border-bottom:1px solid var(--sidebar-border)}
+.prog-label{font-size:10.5px;color:var(--sidebar-muted);margin-bottom:6px;display:flex;justify-content:space-between}
+.prog-bar{height:3px;background:var(--sidebar-border);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:var(--sidebar-accent);border-radius:2px;transition:width .4s}
+.prog-warn{font-size:10px;color:#F0A8B0;margin-top:7px;line-height:1.4}
+.sidebar-nav{flex:1;overflow-y:auto;padding:6px 0}
+.nav-section{font-size:9.5px;color:var(--sidebar-muted);letter-spacing:1.2px;padding:12px 16px 4px;text-transform:uppercase;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 16px;cursor:pointer;font-size:12px;color:var(--sidebar-muted);border-left:2px solid transparent;user-select:none;background:none;border-top:none;border-right:none;border-bottom:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--sidebar-hover);color:var(--sidebar-text)}
+.nav-item.active{background:var(--sidebar-active);color:var(--sidebar-hi);border-left-color:var(--sidebar-accent)}
+.nav-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.nav-lbl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav-lvl{font-family:'SF Mono',Consolas,monospace;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--sidebar-border);color:var(--sidebar-text);flex-shrink:0}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--sidebar-border);display:flex;flex-direction:column;gap:8px}
+.footer-group{display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--sidebar-border);border-radius:8px}
+.footer-label{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--sidebar-muted);padding:0 2px 2px}
+.btn{padding:7px 12px;border-radius:6px;border:1px solid var(--sidebar-border);background:transparent;color:var(--sidebar-muted);font-size:11px;cursor:pointer;transition:all .15s;width:100%;text-align:left}
+.btn:hover{background:var(--sidebar-hover);color:var(--sidebar-text)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent);text-align:center;font-weight:600;padding:9px 12px;font-size:12px}
+.btn-primary:hover{background:var(--accent-h);color:var(--on-accent)}
+.btn-save{border-color:#2A7A55;color:#8FE6BC}
+.btn-save:hover{background:rgba(42,122,85,.18);color:#B8F0D4}
+.btn-reset{color:#C98A94;border-color:transparent;font-size:10.5px;opacity:.8}
+.btn-reset:hover{background:rgba(192,40,58,.12);color:#E0A8B0;opacity:1}
+.btn-row{display:flex;gap:6px}
+.btn-half{flex:1;text-align:center}
+
+/* TOPBAR */
+.topbar{height:48px;min-height:48px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:12px}
+.topbar-title{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar-meta{font-size:11px;color:var(--muted);display:flex;gap:10px;align-items:center;flex-shrink:0}
+.tb-action{font-size:11px;font-weight:600;color:var(--text);background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;cursor:pointer}
+.tb-action:hover{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.tb-help{width:26px;height:26px;padding:0;border-radius:50%;font-weight:700;font-size:13px;display:inline-flex;align-items:center;justify-content:center}
+.tb-select{width:auto;max-width:150px;font-size:11px;font-weight:600;color:var(--text);background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:4px 8px;cursor:pointer}
+.fw-chip{display:inline-block;padding:3px 9px;border-radius:5px;font-size:10.5px;font-weight:600;background:var(--surface2);color:var(--muted);border:1px solid var(--border2);white-space:nowrap}
+.save-status{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);cursor:pointer;padding:3px 9px;border:1px solid var(--border2);border-radius:20px;user-select:none;white-space:nowrap;background:none}
+.save-status:hover{background:var(--surface2);border-color:var(--accent)}
+.ss-dot{width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.ss-dot.ok{background:#0A9A60}
+.ss-dot.warn{background:#C0283A}
+.content{flex:1;overflow-y:auto;padding:24px;background:var(--bg)}
+.wrap{max-width:1180px;margin:0 auto}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:#1C2333;color:#E8EEF8;font-size:12px;padding:11px 18px;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.28);z-index:2000;opacity:0;transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .28s;display:flex;align-items:center;gap:9px;max-width:min(560px,88vw);line-height:1.5}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.err{background:#5C1620}
+.toast-dot{width:7px;height:7px;border-radius:50%;background:#4ADE80;flex-shrink:0}
+.toast.err .toast-dot{background:#F0A8B0}
+
+/* GENERIC */
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.3px;white-space:nowrap}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
+.panel-head{padding:11px 16px;border-bottom:1px solid var(--border);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface2);color:var(--text)}
+.panel-head .sub{font-weight:400;color:var(--muted);font-size:11px}
+.panel-body{padding:14px 16px}
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:16px}
+.page-head h2{font-size:18px;font-weight:700;color:var(--text)}
+.page-head p{font-size:12px;color:var(--muted);max-width:700px;line-height:1.65;margin-top:4px}
+.big-num{font-family:'SF Mono',Consolas,monospace;font-size:28px;font-weight:700;line-height:1}
+.small-muted{font-size:10.5px;color:var(--muted)}
+.notice{background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:8px;padding:10px 14px;font-size:11.5px;color:var(--text2);margin-bottom:14px;line-height:1.7}
+.notice strong{color:var(--text)}
+.empty{padding:28px 16px;text-align:center;color:var(--muted);font-size:12px;line-height:1.7}
+
+/* LEVEL PILLS */
+.lv{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:6px;font-family:'SF Mono',Consolas,monospace;font-size:11px;font-weight:700;color:#fff}
+.lv.na{background:var(--surface3);color:var(--muted);border:1px solid var(--border2)}
+.lv.ns{background:transparent;color:var(--muted);border:1px dashed var(--border2)}
+.lv.un{background:transparent;color:var(--faint);border:1.5px solid var(--border2)}
+.chip{display:inline-block;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.2px;white-space:nowrap;border:1px solid transparent}
+.chip-ok{background:var(--ok-soft);color:var(--ok);border-color:var(--ok-line)}
+.chip-warn{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-line)}
+.chip-bad{background:var(--bad-soft);color:var(--bad);border-color:var(--bad-line)}
+.chip-muted{background:var(--surface3);color:var(--muted);border-color:var(--border2)}
+.chip-acc{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-line)}
+.chip-ir{background:#FFF1E6;color:#9A3A00;border-color:#F5C088}
+[data-theme="dark"] .chip-ir{background:#2E1C10;color:#F7A865;border-color:#6A3F18}
+.prio-Critical{background:var(--bad-soft);color:var(--bad);border-color:var(--bad-line)}
+.prio-High{background:#FFF0E0;color:#9A3A00;border-color:#F5C088}
+[data-theme="dark"] .prio-High{background:#2E1C10;color:#F7A865;border-color:#6A3F18}
+.prio-Medium{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-line)}
+.prio-Low{background:var(--ok-soft);color:var(--ok);border-color:var(--ok-line)}
+
+/* GUIDANCE */
+.guide{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow)}
+.guide-head{padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;width:100%;background:none;border:none;text-align:left;color:var(--text)}
+.guide-head:hover{background:var(--surface3)}
+.guide-tag{font-size:9px;font-weight:700;letter-spacing:1px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-line);padding:3px 7px;border-radius:4px}
+.guide-title{font-size:12.5px;font-weight:600;flex:1}
+.guide-body{padding:4px 16px 16px;font-size:12px;color:var(--text2);line-height:1.7}
+.guide-body p{margin-bottom:10px}
+.scale-table{width:100%;border-collapse:collapse;font-size:11.5px;margin:6px 0 12px}
+.scale-table td,.scale-table th{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:top;text-align:left}
+.scale-table th{font-size:10.5px;color:var(--muted);font-weight:600;background:var(--surface2)}
+.chevron{color:var(--muted);font-size:11px;transition:transform .2s;flex-shrink:0;display:inline-block}
+.chevron.open{transform:rotate(90deg)}
+
+/* MODALS */
+.overlay{position:fixed;inset:0;background:var(--overlay);z-index:999;display:flex;align-items:center;justify-content:center}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:24px;width:640px;max-width:94vw;max-height:88vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2);color:var(--text)}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:10px}
+.modal-sec{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin:20px 0 10px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.field-grid .full{grid-column:1 / -1}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px}
+.field input,.field textarea,.field select{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;resize:vertical}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent)}
+.hint{font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.5}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+.mbn{padding:7px 16px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;cursor:pointer}
+.mbn:hover{background:var(--surface3);color:var(--text)}
+.mbp{padding:7px 16px;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);font-size:12px;cursor:pointer;font-weight:600}
+.mbp:hover{background:var(--accent-h)}
+.fw-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.fw-opt{border:1.5px solid var(--border2);border-radius:9px;padding:11px 13px;cursor:pointer;background:var(--surface);text-align:left;color:var(--text)}
+.fw-opt:hover{border-color:var(--accent)}
+.fw-opt.on{border-color:var(--accent);background:var(--accent-soft)}
+.fw-opt b{display:block;font-size:12.5px}
+.fw-opt span{display:block;font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.45}
+.custom-row{display:grid;grid-template-columns:70px 1fr 1.3fr 110px 130px 30px;gap:6px;margin-bottom:6px;align-items:center}
+.custom-row input{background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;width:100%}
+.custom-row label{font-size:10px;color:var(--muted);display:flex;align-items:center;gap:4px}
+.help-list{margin:0 0 4px;padding-left:20px;font-size:12.5px;line-height:1.7;color:var(--text)}
+.help-list li{margin-bottom:6px}
+.help-callout{display:flex;gap:12px;background:var(--ok-soft);border:1px solid var(--ok-line);border-radius:9px;padding:12px 14px;margin:12px 0;font-size:12.5px;line-height:1.6}
+.pal-row{display:flex;gap:8px;flex-wrap:wrap}
+.pal{border:1.5px solid var(--border2);border-radius:8px;padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:7px;font-size:11.5px;background:var(--surface);color:var(--text)}
+.pal.on{border-color:var(--accent);background:var(--accent-soft)}
+.pal i{display:inline-block;width:14px;height:14px;border-radius:3px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.fu{animation:fadeUp .18s ease}
+@media (prefers-reduced-motion:reduce){.fu{animation:none}.prog-fill,.chevron,.toast{transition:none}}
+@media (max-width:900px){.summary,.two-col{grid-template-columns:1fr}.hm{grid-template-columns:1fr}.aid-grid{grid-template-columns:1fr 1fr}.sidebar{width:200px;min-width:200px}}
+
+.side-search{padding:12px 16px;border-bottom:1px solid var(--sidebar-border)}
+.side-search-box{display:flex;align-items:center;gap:7px;background:var(--sidebar-hover);border:1px solid var(--sidebar-border);border-radius:7px;padding:6px 9px}
+.side-search-box:focus-within{border-color:var(--sidebar-accent)}
+.side-search-box svg{width:14px;height:14px;stroke:var(--sidebar-muted);fill:none;stroke-width:2;flex-shrink:0}
+.side-search-box input{flex:1;min-width:0;background:none;border:none;outline:none;color:var(--sidebar-hi);font:inherit;font-size:12px}
+.side-search-box input::placeholder{color:var(--sidebar-muted)}
+.filter-grp{padding:11px 16px 4px}
+.filter-grp-lbl{font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sidebar-muted);margin-bottom:7px;font-family:'SF Mono',Consolas,monospace}
+.fchip{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;text-align:left;background:none;border:1px solid var(--sidebar-border);border-radius:6px;padding:5px 9px;margin-bottom:5px;cursor:pointer;color:var(--sidebar-muted);font:inherit;font-size:11.5px;transition:all .12s}
+.fchip:hover{background:var(--sidebar-hover);color:var(--sidebar-text);border-color:var(--sidebar-hover)}
+.fchip.on{background:var(--sidebar-active);color:var(--sidebar-hi);border-color:var(--sidebar-accent)}
+.fchip .fn{font-family:'SF Mono',Consolas,monospace;font-size:10px;font-weight:700;padding:0 6px;border-radius:9px;background:var(--sidebar-border);color:var(--sidebar-text);flex-shrink:0}
+.fchip.on .fn{background:var(--sidebar-accent);color:#fff}
+[data-theme="contrast"] .fchip.on .fn{color:#000}
+.side-count{padding:8px 16px 2px;font-size:11px;color:var(--sidebar-muted);font-family:'SF Mono',Consolas,monospace}
+.side-count b{color:var(--sidebar-hi)}
+
+/* ═══════════ FILE HASHER ═══════════ */
+html,body{height:100%}
+#app{height:100%}
+.fchip .ck{width:13px;height:13px;border:1px solid var(--sidebar-muted);border-radius:3px;flex-shrink:0;position:relative}
+.fchip.on .ck{background:var(--sidebar-accent);border-color:var(--sidebar-accent)}
+.fchip.on .ck::after{content:'';position:absolute;left:3.5px;top:.5px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+[data-theme="contrast"] .fchip.on .ck::after{border-color:#000}
+.fchip .fl{flex:1;display:flex;align-items:center;gap:8px}
+.fchip .fbits{font-family:'SF Mono',Consolas,monospace;font-size:9.5px;color:var(--sidebar-muted)}
+.side-field{padding:4px 16px 10px}
+.side-field input{width:100%;background:var(--sidebar-hover);border:1px solid var(--sidebar-border);border-radius:7px;padding:6px 9px;color:var(--sidebar-hi);font-size:12px;outline:none}
+.side-field input:focus{border-color:var(--sidebar-accent)}
+.side-field input::placeholder{color:var(--sidebar-muted)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn:disabled:hover{background:transparent;color:var(--sidebar-muted)}
+.btn-save:disabled:hover{color:#8FE6BC}
+
+.th-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 16px;margin-bottom:16px}
+.th-head h2{font-size:18px;font-weight:700}
+.th-head p{margin-top:4px;font-size:12.5px;color:var(--muted);max-width:74ch;line-height:1.6}
+
+/* drop zone */
+.drop{border:1.5px dashed var(--border2);border-radius:10px;background:var(--surface);padding:26px 20px;text-align:center;margin-bottom:16px;transition:all .15s;box-shadow:var(--shadow)}
+.drop.over,body.dragging .drop{border-color:var(--accent);background:var(--accent-soft)}
+.drop-ico{width:34px;height:34px;margin:0 auto 10px;stroke:var(--accent);fill:none;stroke-width:1.6}
+.drop-t{font-size:14px;font-weight:600;color:var(--text)}
+.drop-s{font-size:11.5px;color:var(--muted);margin-top:3px}
+.drop-act{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.dbtn{padding:7px 16px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:12px;font-weight:600;cursor:pointer}
+.dbtn:hover{border-color:var(--accent);color:var(--accent)}
+.dbtn.pri{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.dbtn.pri:hover{background:var(--accent-h);color:var(--on-accent)}
+.drop-algos{margin-top:12px;font-size:11px;color:var(--muted)}
+.drop-algos b{font-family:'SF Mono',Consolas,monospace;color:var(--text2);font-weight:700}
+body.dragging .drop-veil{display:flex}
+.drop-veil{display:none;position:fixed;inset:0;z-index:900;background:color-mix(in srgb,var(--accent) 10%,transparent);border:3px dashed var(--accent);align-items:center;justify-content:center;pointer-events:none}
+.drop-veil span{background:var(--accent);color:var(--on-accent);font-weight:700;font-size:14px;padding:10px 18px;border-radius:8px}
+
+/* progress */
+.run{display:none}
+.run.show{display:block}
+.run-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.run-txt{font-size:12px;color:var(--text2);flex:1;min-width:220px}
+.run-txt b{color:var(--text)}
+.run-txt .mono{font-size:11px;color:var(--muted)}
+.run-bar{height:6px;background:var(--surface3);border-radius:3px;overflow:hidden;margin-top:10px}
+.run-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .25s;width:0}
+.cbtn{padding:5px 12px;border-radius:6px;border:1px solid var(--bad-line);background:var(--bad-soft);color:var(--bad);font-size:11.5px;font-weight:600;cursor:pointer}
+.cbtn:hover{filter:brightness(.97)}
+
+/* match banner */
+.match{display:none;align-items:center;gap:10px;border-radius:8px;padding:10px 14px;font-size:12px;margin-bottom:14px;border:1px solid}
+.match.show{display:flex}
+.match.ok{background:var(--ok-soft);border-color:var(--ok-line);color:var(--ok)}
+.match.no{background:var(--bad-soft);border-color:var(--bad-line);color:var(--bad)}
+.match b{font-weight:700}
+.match .mono{font-size:11px;word-break:break-all;color:var(--text2)}
+
+/* results table */
+.tbl-wrap{overflow-x:auto}
+table.res{width:100%;border-collapse:collapse;font-size:12px}
+table.res th{position:sticky;top:0;background:var(--surface2);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);white-space:nowrap;font-family:'SF Mono',Consolas,monospace}
+table.res td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text2)}
+table.res tr:last-child td{border-bottom:none}
+table.res tr.hit td{background:var(--ok-soft)}
+table.res tr.err td{background:var(--bad-soft)}
+.c-n{width:36px;color:var(--faint)!important;font-family:'SF Mono',Consolas,monospace;font-size:10.5px}
+.fname{font-weight:600;color:var(--text);word-break:break-all;line-height:1.35}
+.fpath{font-family:'SF Mono',Consolas,monospace;font-size:10.5px;color:var(--muted);word-break:break-all;margin-top:2px}
+.c-sz,.c-mt{white-space:nowrap;font-family:'SF Mono',Consolas,monospace;font-size:11px}
+.c-sz .b{display:block;font-size:9.5px;color:var(--faint)}
+.hl{display:flex;align-items:flex-start;gap:8px;padding:2px 0}
+.hl+.hl{border-top:1px dashed var(--border);padding-top:4px;margin-top:2px}
+.alg{font-family:'SF Mono',Consolas,monospace;font-size:9px;font-weight:700;letter-spacing:.04em;padding:2px 6px;border-radius:4px;background:var(--surface3);color:var(--muted);border:1px solid var(--border);flex-shrink:0;min-width:54px;text-align:center;margin-top:1px}
+.hv{font-family:'SF Mono',Consolas,monospace;font-size:11.5px;color:var(--text);word-break:break-all;flex:1;line-height:1.45;cursor:copy;border-radius:3px}
+.hv:hover{background:var(--accent-soft)}
+.hv.pend{color:var(--faint);cursor:default}
+.hv.pend:hover{background:none}
+.hv mark{background:var(--warn-soft);color:var(--warn);border-radius:2px}
+.cpy{font-family:'SF Mono',Consolas,monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);background:none;border:1px solid var(--border2);border-radius:5px;padding:2px 7px;cursor:pointer;flex-shrink:0}
+.cpy:hover{color:var(--text);border-color:var(--accent)}
+.cpy.copied{color:var(--ok);border-color:var(--ok-line)}
+.c-st{white-space:nowrap;width:1%}
+.st-wrap{display:flex;flex-direction:column;align-items:flex-start;gap:5px}
+.dupc{cursor:pointer}
+.rm{background:none;border:none;color:var(--faint);cursor:pointer;font-size:13px;padding:0 2px;line-height:1}
+.rm:hover{color:var(--bad)}
+.errmsg{font-size:10.5px;color:var(--bad);margin-top:3px;white-space:normal;max-width:220px}
+.res-sum{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+@media (max-width:900px){.c-mt{display:none}}
+@media (max-width:720px){.cpy{display:none}}
+.sidebar-footer .btn-half{white-space:nowrap;padding:7px 6px}
+</style>
+</head>
+<body>
+<div class="drop-veil" aria-hidden="true"><span>Drop to hash</span></div>
+<div id="app">
+  <nav class="sidebar" aria-label="File Hasher controls">
+    <div class="sidebar-logo">
+      <div class="logo-badge" style="background:#0B7A75">HASH</div>
+      <div class="logo-title">File Hasher</div>
+      <div class="logo-sub">Files &amp; folders · MD5 to SHA-512<br>Runs offline; nothing is uploaded</div>
+    </div>
+    <div class="side-search">
+      <div class="side-search-box">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>
+        <input type="text" id="search" placeholder="Filter by name, or paste a hash…" autocomplete="off" spellcheck="false" aria-label="Filter results or look up a hash">
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="filter-grp"><div class="filter-grp-lbl">Algorithms</div><div id="f-algos"></div></div>
+      <div class="filter-grp"><div class="filter-grp-lbl">Options</div><div id="f-opts"></div></div>
+      <div class="filter-grp" style="padding-bottom:0"><div class="filter-grp-lbl">Case reference</div></div>
+      <div class="side-field"><input type="text" id="caseref" placeholder="Optional · e.g. IR-2026-041" autocomplete="off" spellcheck="false" aria-label="Case reference"></div>
+      <div class="side-count" id="side-count"></div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="footer-group">
+        <div class="footer-label">Export</div>
+        <button class="btn btn-save" id="btn-csv" onclick="exportCSV()" disabled>⤓ Export CSV (<span id="csv-n">0</span>)</button>
+        <div class="btn-row"><button class="btn btn-half" id="btn-copycsv" onclick="copyCSV()" disabled title="Copy the same CSV to the clipboard">⧉ Copy CSV</button><button class="btn btn-half" id="btn-copylist" onclick="copyList()" disabled title="hash␠␠path, one per line">⧉ Hash list</button></div>
+      </div>
+      <button class="btn btn-reset" id="btn-clear" onclick="clearAll()">✕ Clear list</button>
+    </div>
+  </nav>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">Hash files</div>
+      <div class="topbar-meta">
+        <span id="topbar-sub"></span>
+        <span class="fw-chip">Offline · nothing uploaded</span>
+        <select class="tb-select" id="theme-select" onchange="setTheme(this.value)" aria-label="Colour theme" title="Colour theme">
+          <option value="system">◐ System</option><option value="light">☀ Light</option><option value="dark">☾ Dark</option><option value="ocean">≈ Ocean</option><option value="contrast">◼ High contrast</option>
+        </select>
+        <button class="tb-action tb-help" onclick="showModal('help-modal')" aria-label="Help" title="Help">?</button>
+      </div>
+    </div>
+    <main class="content" id="content">
+      <div class="wrap">
+      <div class="th-head">
+        <div><h2>Hash files and folders</h2><p>Drop files or whole folders below, or browse to them. Pick one or more algorithms in the sidebar; every file is read locally in your browser and listed with its hashes, ready to export to CSV. Paste a known hash into the sidebar search to check it against the list.</p></div>
+      </div>
+
+      <div class="drop" id="drop">
+        <svg class="drop-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7.5 8.5L12 4l4.5 4.5"/><path d="M4 14v4.5A1.5 1.5 0 005.5 20h13a1.5 1.5 0 001.5-1.5V14"/></svg>
+        <div class="drop-t">Drop files or folders here</div>
+        <div class="drop-s">Folders are walked recursively · files are never uploaded</div>
+        <div class="drop-act">
+          <button class="dbtn pri" onclick="$('#in-files').click()">Choose files</button>
+          <button class="dbtn" onclick="$('#in-dir').click()">Choose folder</button>
+        </div>
+        <div class="drop-algos" id="drop-algos"></div>
+        <input type="file" id="in-files" multiple hidden>
+        <input type="file" id="in-dir" webkitdirectory directory multiple hidden>
+      </div>
+
+      <div class="panel run" id="run">
+        <div class="panel-body">
+          <div class="run-row">
+            <div class="run-txt" id="run-txt"></div>
+            <button class="cbtn" onclick="cancelAll()">■ Cancel</button>
+          </div>
+          <div class="run-bar"><div class="run-fill" id="run-fill"></div></div>
+        </div>
+      </div>
+
+      <div class="match" id="match" role="status" aria-live="polite"></div>
+
+      <div class="panel">
+        <div class="panel-head"><span>Results</span><span class="res-sum" id="res-sum"></span></div>
+        <div id="results"></div>
+      </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="overlay" id="help-modal" style="display:none" onclick="if(event.target===this)hideModal('help-modal')">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="help-h">
+    <h3 id="help-h">Using the hasher</h3>
+    <p class="small-muted" style="font-size:12.5px;line-height:1.6">Drop files or folders anywhere on the page, or use <strong>Choose files</strong> / <strong>Choose folder</strong>. Tick the algorithms you need in the sidebar — ticking another one later hashes the files already listed for that algorithm too. Click any hash to copy it.</p>
+    <div class="help-callout"><span>⤓</span><div><strong>Exporting.</strong> <strong>Export CSV</strong> saves every listed file with the ticked algorithms as columns, plus size, last-modified and hashed-at times in UTC, and the case reference if you set one. <strong>Hash list</strong> copies <span class="mono">hash␠␠path</span> lines for the first ticked algorithm, compatible with <span class="mono">sha256sum -c</span> and similar.</div></div>
+    <div class="modal-sec">Checking a known hash</div>
+    <ul class="help-list">
+      <li>Paste an MD5, SHA-1, SHA-256, SHA-384 or SHA-512 value into the sidebar search. A banner says whether any listed file matches, and matching rows are highlighted.</li>
+      <li>Files with identical content are flagged <strong>DUP</strong>; click the flag to show the set.</li>
+    </ul>
+    <div class="modal-sec">Things to know</div>
+    <ul class="help-list">
+      <li><strong>Paths</strong> are relative to the folder you dropped or chose. Browsers do not expose full on-disk paths.</li>
+      <li><strong>Last modified</strong> is the time your OS reports to the browser. It is a convenience field, not a forensic timestamp — use your filesystem tooling for MACB times.</li>
+      <li><strong>CSV safety:</strong> any cell starting with <span class="mono">= + - @</span> is prefixed with an apostrophe so spreadsheet apps cannot run it as a formula. Hostile filenames are common in evidence sets.</li>
+      <li>SHA hashes on files up to 128 MB use the browser's built-in crypto; larger files and all MD5 work are streamed in 8 MB chunks, so very large images are fine but slower than a native tool.</li>
+      <li>This is a triage and verification aid. For evidential acquisition, record hashes from your validated imaging tool.</li>
+    </ul>
+    <p class="small-muted" style="font-size:11.5px;line-height:1.55;margin-top:12px">Runs entirely in your browser. Nothing is uploaded; only your theme and algorithm choices are remembered.</p>
+    <div class="modal-actions"><button class="mbp" onclick="hideModal('help-modal')">Got it</button></div>
+  </div>
+</div>
+<script>
+function HASHLIB(){
+  'use strict';
+  // Incremental, streaming hash implementations (MD5, SHA-1, SHA-256, SHA-384, SHA-512).
+  // Each: new H(); h.update(Uint8Array); h.digest() -> lowercase hex.
+  function hex32be(w){ return (w>>>0).toString(16).padStart(8,'0'); }
+  function hex32le(w){ let s=''; for(let i=0;i<4;i++) s+=((w>>>(i*8))&255).toString(16).padStart(2,'0'); return s; }
+
+  // Generic block buffering for 64- or 128-byte block hashes
+  function Base(blockSize){ this.bs=blockSize; this.buf=new Uint8Array(blockSize); this.bl=0; this.len=0; }
+  Base.prototype.update=function(d){
+    const bs=this.bs; let o=0, n=d.length; this.len+=n;
+    if(this.bl){
+      const take=Math.min(bs-this.bl,n); this.buf.set(d.subarray(0,take),this.bl); this.bl+=take; o=take;
+      if(this.bl<bs) return this;
+      this.block(this.buf,0); this.bl=0;
+    }
+    while(n-o>=bs){ this.block(d,o); o+=bs; }
+    if(o<n){ this.buf.set(d.subarray(o),0); this.bl=n-o; }
+    return this;
+  };
+  Base.prototype.pad=function(le){
+    const bs=this.bs, lenBytes=bs===128?16:8, bits=this.len*8;
+    const padLen=((this.bl<bs-lenBytes)?(bs-lenBytes-this.bl):(2*bs-lenBytes-this.bl));
+    const p=new Uint8Array(padLen+lenBytes); p[0]=0x80;
+    const hi=Math.floor(bits/4294967296), lo=bits>>>0, e=p.length;
+    if(le){ for(let i=0;i<4;i++){ p[e-8+i]=(lo>>>(8*i))&255; p[e-4+i]=(hi>>>(8*i))&255; } }
+    else { for(let i=0;i<4;i++){ p[e-1-i]=(lo>>>(8*i))&255; p[e-5-i]=(hi>>>(8*i))&255; } }
+    const L=this.len; this.update(p); this.len=L;
+  };
+
+  // ── MD5 ──
+  const MK=new Int32Array(64), MS=[7,12,17,22,7,12,17,22,7,12,17,22,7,12,17,22,5,9,14,20,5,9,14,20,5,9,14,20,5,9,14,20,4,11,16,23,4,11,16,23,4,11,16,23,4,11,16,23,6,10,15,21,6,10,15,21,6,10,15,21,6,10,15,21];
+  for(let i=0;i<64;i++) MK[i]=Math.floor(Math.abs(Math.sin(i+1))*4294967296)|0;
+  function MD5(){ Base.call(this,64); this.h=new Int32Array([0x67452301,0xefcdab89|0,0x98badcfe|0,0x10325476]); this.w=new Int32Array(16); }
+  MD5.prototype=Object.create(Base.prototype);
+  MD5.prototype.block=function(d,o){
+    const w=this.w, h=this.h;
+    for(let i=0;i<16;i++){ const j=o+i*4; w[i]=d[j]|(d[j+1]<<8)|(d[j+2]<<16)|(d[j+3]<<24); }
+    let a=h[0],b=h[1],c=h[2],e=h[3];
+    for(let i=0;i<64;i++){
+      let f,g;
+      if(i<16){ f=(b&c)|(~b&e); g=i; }
+      else if(i<32){ f=(e&b)|(~e&c); g=(5*i+1)&15; }
+      else if(i<48){ f=b^c^e; g=(3*i+5)&15; }
+      else { f=c^(b|~e); g=(7*i)&15; }
+      const t=e; e=c; c=b;
+      const x=(a+f+MK[i]+w[g])|0, s=MS[i];
+      b=(b+((x<<s)|(x>>>(32-s))))|0; a=t;
+    }
+    h[0]=(h[0]+a)|0; h[1]=(h[1]+b)|0; h[2]=(h[2]+c)|0; h[3]=(h[3]+e)|0;
+  };
+  MD5.prototype.digest=function(){ this.pad(true); let s=''; for(let i=0;i<4;i++) s+=hex32le(this.h[i]); return s; };
+
+  // ── SHA-1 ──
+  function SHA1(){ Base.call(this,64); this.h=new Int32Array([0x67452301,0xefcdab89|0,0x98badcfe|0,0x10325476,0xc3d2e1f0|0]); this.w=new Int32Array(80); }
+  SHA1.prototype=Object.create(Base.prototype);
+  SHA1.prototype.block=function(d,o){
+    const w=this.w, h=this.h;
+    for(let i=0;i<16;i++){ const j=o+i*4; w[i]=(d[j]<<24)|(d[j+1]<<16)|(d[j+2]<<8)|d[j+3]; }
+    for(let i=16;i<80;i++){ const x=w[i-3]^w[i-8]^w[i-14]^w[i-16]; w[i]=(x<<1)|(x>>>31); }
+    let a=h[0],b=h[1],c=h[2],e=h[3],f=h[4];
+    for(let i=0;i<80;i++){
+      let k,fn;
+      if(i<20){ fn=(b&c)|(~b&e); k=0x5a827999; }
+      else if(i<40){ fn=b^c^e; k=0x6ed9eba1; }
+      else if(i<60){ fn=(b&c)|(b&e)|(c&e); k=0x8f1bbcdc|0; }
+      else { fn=b^c^e; k=0xca62c1d6|0; }
+      const t=(((a<<5)|(a>>>27))+fn+f+k+w[i])|0;
+      f=e; e=c; c=(b<<30)|(b>>>2); b=a; a=t;
+    }
+    h[0]=(h[0]+a)|0; h[1]=(h[1]+b)|0; h[2]=(h[2]+c)|0; h[3]=(h[3]+e)|0; h[4]=(h[4]+f)|0;
+  };
+  SHA1.prototype.digest=function(){ this.pad(false); let s=''; for(let i=0;i<5;i++) s+=hex32be(this.h[i]); return s; };
+
+  // ── SHA-256 ──
+  const K256=new Int32Array([0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2]);
+  function SHA256(){ Base.call(this,64); this.h=new Int32Array([0x6a09e667,0xbb67ae85|0,0x3c6ef372,0xa54ff53a|0,0x510e527f,0x9b05688c|0,0x1f83d9ab,0x5be0cd19]); this.w=new Int32Array(64); }
+  SHA256.prototype=Object.create(Base.prototype);
+  SHA256.prototype.block=function(d,o){
+    const w=this.w, h=this.h;
+    for(let i=0;i<16;i++){ const j=o+i*4; w[i]=(d[j]<<24)|(d[j+1]<<16)|(d[j+2]<<8)|d[j+3]; }
+    for(let i=16;i<64;i++){
+      const x=w[i-15], y=w[i-2];
+      const s0=((x>>>7)|(x<<25))^((x>>>18)|(x<<14))^(x>>>3);
+      const s1=((y>>>17)|(y<<15))^((y>>>19)|(y<<13))^(y>>>10);
+      w[i]=(w[i-16]+s0+w[i-7]+s1)|0;
+    }
+    let a=h[0],b=h[1],c=h[2],e0=h[3],e=h[4],f=h[5],g=h[6],hh=h[7];
+    for(let i=0;i<64;i++){
+      const S1=((e>>>6)|(e<<26))^((e>>>11)|(e<<21))^((e>>>25)|(e<<7));
+      const ch=(e&f)^(~e&g);
+      const t1=(hh+S1+ch+K256[i]+w[i])|0;
+      const S0=((a>>>2)|(a<<30))^((a>>>13)|(a<<19))^((a>>>22)|(a<<10));
+      const mj=(a&b)^(a&c)^(b&c);
+      const t2=(S0+mj)|0;
+      hh=g; g=f; f=e; e=(e0+t1)|0; e0=c; c=b; b=a; a=(t1+t2)|0;
+    }
+    h[0]=(h[0]+a)|0; h[1]=(h[1]+b)|0; h[2]=(h[2]+c)|0; h[3]=(h[3]+e0)|0; h[4]=(h[4]+e)|0; h[5]=(h[5]+f)|0; h[6]=(h[6]+g)|0; h[7]=(h[7]+hh)|0;
+  };
+  SHA256.prototype.digest=function(){ this.pad(false); let s=''; for(let i=0;i<8;i++) s+=hex32be(this.h[i]); return s; };
+
+  // ── SHA-512 / SHA-384 (64-bit words as hi/lo int32 pairs) ──
+  const K512=[0x428a2f98,0xd728ae22,0x71374491,0x23ef65cd,0xb5c0fbcf,0xec4d3b2f,0xe9b5dba5,0x8189dbbc,0x3956c25b,0xf348b538,0x59f111f1,0xb605d019,0x923f82a4,0xaf194f9b,0xab1c5ed5,0xda6d8118,0xd807aa98,0xa3030242,0x12835b01,0x45706fbe,0x243185be,0x4ee4b28c,0x550c7dc3,0xd5ffb4e2,0x72be5d74,0xf27b896f,0x80deb1fe,0x3b1696b1,0x9bdc06a7,0x25c71235,0xc19bf174,0xcf692694,0xe49b69c1,0x9ef14ad2,0xefbe4786,0x384f25e3,0x0fc19dc6,0x8b8cd5b5,0x240ca1cc,0x77ac9c65,0x2de92c6f,0x592b0275,0x4a7484aa,0x6ea6e483,0x5cb0a9dc,0xbd41fbd4,0x76f988da,0x831153b5,0x983e5152,0xee66dfab,0xa831c66d,0x2db43210,0xb00327c8,0x98fb213f,0xbf597fc7,0xbeef0ee4,0xc6e00bf3,0x3da88fc2,0xd5a79147,0x930aa725,0x06ca6351,0xe003826f,0x14292967,0x0a0e6e70,0x27b70a85,0x46d22ffc,0x2e1b2138,0x5c26c926,0x4d2c6dfc,0x5ac42aed,0x53380d13,0x9d95b3df,0x650a7354,0x8baf63de,0x766a0abb,0x3c77b2a8,0x81c2c92e,0x47edaee6,0x92722c85,0x1482353b,0xa2bfe8a1,0x4cf10364,0xa81a664b,0xbc423001,0xc24b8b70,0xd0f89791,0xc76c51a3,0x0654be30,0xd192e819,0xd6ef5218,0xd6990624,0x5565a910,0xf40e3585,0x5771202a,0x106aa070,0x32bbd1b8,0x19a4c116,0xb8d2d0c8,0x1e376c08,0x5141ab53,0x2748774c,0xdf8eeb99,0x34b0bcb5,0xe19b48a8,0x391c0cb3,0xc5c95a63,0x4ed8aa4a,0xe3418acb,0x5b9cca4f,0x7763e373,0x682e6ff3,0xd6b2b8a3,0x748f82ee,0x5defb2fc,0x78a5636f,0x43172f60,0x84c87814,0xa1f0ab72,0x8cc70208,0x1a6439ec,0x90befffa,0x23631e28,0xa4506ceb,0xde82bde9,0xbef9a3f7,0xb2c67915,0xc67178f2,0xe372532b,0xca273ece,0xea26619c,0xd186b8c7,0x21c0c207,0xeada7dd6,0xcde0eb1e,0xf57d4f7f,0xee6ed178,0x06f067aa,0x72176fba,0x0a637dc5,0xa2c898a6,0x113f9804,0xbef90dae,0x1b710b35,0x131c471b,0x28db77f5,0x23047d84,0x32caab7b,0x40c72493,0x3c9ebe0a,0x15c9bebc,0x431d67c4,0x9c100d4c,0x4cc5d4be,0xcb3e42b6,0x597f299c,0xfc657e2a,0x5fcb6fab,0x3ad6faec,0x6c44198c,0x4a475817];
+  const K5=new Int32Array(K512.map(x=>x|0));
+  const IV512=[0x6a09e667,0xf3bcc908,0xbb67ae85,0x84caa73b,0x3c6ef372,0xfe94f82b,0xa54ff53a,0x5f1d36f1,0x510e527f,0xade682d1,0x9b05688c,0x2b3e6c1f,0x1f83d9ab,0xfb41bd6b,0x5be0cd19,0x137e2179];
+  const IV384=[0xcbbb9d5d,0xc1059ed8,0x629a292a,0x367cd507,0x9159015a,0x3070dd17,0x152fecd8,0xf70e5939,0x67332667,0xffc00b31,0x8eb44a87,0x68581511,0xdb0c2e0d,0x64f98fa7,0x47b5481d,0xbefa4fa4];
+  function SHA512(iv,outWords){ Base.call(this,128); this.h=new Int32Array((iv||IV512).map(x=>x|0)); this.w=new Int32Array(160); this.ow=outWords||16; }
+  SHA512.prototype=Object.create(Base.prototype);
+  SHA512.prototype.block=function(d,o){
+    const W=this.w, H=this.h;
+    for(let i=0;i<32;i++){ const j=o+i*4; W[i]=(d[j]<<24)|(d[j+1]<<16)|(d[j+2]<<8)|d[j+3]; }
+    for(let i=16;i<80;i++){
+      // sigma0(w[i-15])
+      let xh=W[(i-15)*2], xl=W[(i-15)*2+1];
+      const s0h=((xh>>>1)|(xl<<31))^((xh>>>8)|(xl<<24))^(xh>>>7);
+      const s0l=((xl>>>1)|(xh<<31))^((xl>>>8)|(xh<<24))^((xl>>>7)|(xh<<25));
+      xh=W[(i-2)*2]; xl=W[(i-2)*2+1];
+      const s1h=((xh>>>19)|(xl<<13))^((xl>>>29)|(xh<<3))^(xh>>>6);
+      const s1l=((xl>>>19)|(xh<<13))^((xh>>>29)|(xl<<3))^((xl>>>6)|(xh<<26));
+      const a7h=W[(i-7)*2], a7l=W[(i-7)*2+1], a16h=W[(i-16)*2], a16l=W[(i-16)*2+1];
+      let lo=(s0l>>>0)+(s1l>>>0)+(a7l>>>0)+(a16l>>>0);
+      let hi=(s0h+s1h+a7h+a16h+((lo/4294967296)|0))|0;
+      W[i*2]=hi; W[i*2+1]=lo|0;
+    }
+    let ah=H[0],al=H[1],bh=H[2],bl=H[3],ch=H[4],cl=H[5],dh=H[6],dl=H[7],eh=H[8],el=H[9],fh=H[10],fl=H[11],gh=H[12],gl=H[13],hh=H[14],hl=H[15];
+    for(let i=0;i<80;i++){
+      const S1h=((eh>>>14)|(el<<18))^((eh>>>18)|(el<<14))^((el>>>9)|(eh<<23));
+      const S1l=((el>>>14)|(eh<<18))^((el>>>18)|(eh<<14))^((eh>>>9)|(el<<23));
+      const chh=(eh&fh)^(~eh&gh), chl=(el&fl)^(~el&gl);
+      let lo=(hl>>>0)+(S1l>>>0)+(chl>>>0)+(K5[i*2+1]>>>0)+(W[i*2+1]>>>0);
+      const t1h=(hh+S1h+chh+K5[i*2]+W[i*2]+((lo/4294967296)|0))|0, t1l=lo|0;
+      const S0h=((ah>>>28)|(al<<4))^((al>>>2)|(ah<<30))^((al>>>7)|(ah<<25));
+      const S0l=((al>>>28)|(ah<<4))^((ah>>>2)|(al<<30))^((ah>>>7)|(al<<25));
+      const mjh=(ah&bh)^(ah&ch)^(bh&ch), mjl=(al&bl)^(al&cl)^(bl&cl);
+      lo=(S0l>>>0)+(mjl>>>0);
+      const t2h=(S0h+mjh+((lo/4294967296)|0))|0, t2l=lo|0;
+      hh=gh; hl=gl; gh=fh; gl=fl; fh=eh; fl=el;
+      lo=(dl>>>0)+(t1l>>>0); eh=(dh+t1h+((lo/4294967296)|0))|0; el=lo|0;
+      dh=ch; dl=cl; ch=bh; cl=bl; bh=ah; bl=al;
+      lo=(t1l>>>0)+(t2l>>>0); ah=(t1h+t2h+((lo/4294967296)|0))|0; al=lo|0;
+    }
+    const v=[ah,al,bh,bl,ch,cl,dh,dl,eh,el,fh,fl,gh,gl,hh,hl];
+    for(let i=0;i<16;i+=2){
+      const lo=(H[i+1]>>>0)+(v[i+1]>>>0);
+      H[i]=(H[i]+v[i]+((lo/4294967296)|0))|0; H[i+1]=lo|0;
+    }
+  };
+  SHA512.prototype.digest=function(){ this.pad(false); let s=''; for(let i=0;i<this.ow;i++) s+=hex32be(this.h[i]); return s; };
+
+  const ALGOS={
+    md5:()=>new MD5(), sha1:()=>new SHA1(), sha256:()=>new SHA256(),
+    sha384:()=>new SHA512(IV384,12), sha512:()=>new SHA512(IV512,16)
+  };
+  return { ALGOS, create:(a)=>ALGOS[a]() };
+}
+// ── shared job: hash one file (runs in a worker, or on the main thread as fallback) ──
+async function hashJob(data, progress){
+  const file=data.file, algos=data.algos, size=file.size;
+  const SUB={sha1:'SHA-1',sha256:'SHA-256',sha384:'SHA-384',sha512:'SHA-512'};
+  const FAST=128*1024*1024, CHUNK=8*1024*1024;
+  const out={};
+  const toHex=b=>{ const u=new Uint8Array(b); let s=''; for(let i=0;i<u.length;i++) s+=u[i].toString(16).padStart(2,'0'); return s; };
+  const subtle=(typeof crypto!=='undefined'&&crypto.subtle)?crypto.subtle:null;
+  if(subtle&&size<=FAST&&algos.some(a=>SUB[a])){
+    const buf=await file.arrayBuffer();
+    const u8=new Uint8Array(buf);
+    const js=algos.filter(a=>!SUB[a]||!subtle);
+    for(const a of algos){
+      if(!SUB[a]) continue;
+      try{ out[a]=toHex(await subtle.digest(SUB[a],buf)); }catch(e){ js.push(a); }
+    }
+    if(js.length){
+      const hs=js.map(a=>LIB.create(a));
+      for(let o=0;o<size;o+=CHUNK){ const sub=u8.subarray(o,Math.min(size,o+CHUNK)); for(const h of hs) h.update(sub); progress(Math.min(size,o+CHUNK)); }
+      js.forEach((a,i)=>out[a]=hs[i].digest());
+    }
+    progress(size);
+    return out;
+  }
+  const hs=algos.map(a=>LIB.create(a));
+  for(let o=0;o<size;o+=CHUNK){
+    const sub=new Uint8Array(await file.slice(o,Math.min(size,o+CHUNK)).arrayBuffer());
+    for(const h of hs) h.update(sub);
+    progress(Math.min(size,o+CHUNK));
+  }
+  algos.forEach((a,i)=>out[a]=hs[i].digest());
+  progress(size);
+  return out;
+}
+const WORKER_SRC='const LIB=('+HASHLIB.toString()+')();\n'+hashJob.toString()+
+  '\nonmessage=async e=>{const d=e.data;let last=0;try{const h=await hashJob(d,b=>{const t=Date.now();if(t-last>120||b===d.file.size){last=t;postMessage({id:d.id,type:"p",bytes:b});}});postMessage({id:d.id,type:"done",hashes:h});}catch(err){postMessage({id:d.id,type:"error",msg:(err&&(err.name+": "+err.message))||String(err)});}};';
+const LIB=HASHLIB();
+
+// ── state ───────────────────────────────────────────────────────────
+const $=s=>document.querySelector(s);
+const THEME_KEY='dh-hash-theme', PREF_KEY='dh-hash-prefs';
+const ALGO_ORDER=['md5','sha1','sha256','sha384','sha512'];
+const ALGO_LABEL={md5:'MD5',sha1:'SHA-1',sha256:'SHA-256',sha384:'SHA-384',sha512:'SHA-512'};
+const ALGO_BITS={md5:128,sha1:160,sha256:256,sha384:384,sha512:512};
+const HEXLEN={32:'md5',40:'sha1',64:'sha256',96:'sha384',128:'sha512'};
+let algos=new Set(['sha256']);
+let opts={upper:false};
+let rows=[], nextId=1, search='';
+let batch=null;
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c])); }
+function fmtBytes(n){ if(n<1024) return n+' B'; const u=['KB','MB','GB','TB']; let i=-1; do{ n/=1024; i++; }while(n>=1024&&i<u.length-1); return n.toFixed(n<10?2:1)+' '+u[i]; }
+function isoUTC(ms){ if(!ms&&ms!==0) return ''; const d=new Date(ms); return isNaN(d)?'':d.toISOString().replace(/\.\d{3}Z$/,'Z'); }
+function shortUTC(ms){ const s=isoUTC(ms); return s?s.replace('T',' ').replace('Z',''):'—'; }
+function hx(h){ return h==null?h:(opts.upper?h.toUpperCase():h); }
+function activeAlgos(){ return ALGO_ORDER.filter(a=>algos.has(a)); }
+function savePrefs(){ try{ localStorage.setItem(PREF_KEY,JSON.stringify({algos:[...algos],upper:opts.upper})); }catch(e){} }
+function loadPrefs(){ try{ const p=JSON.parse(localStorage.getItem(PREF_KEY)||'null'); if(p){ const a=(p.algos||[]).filter(x=>ALGO_ORDER.includes(x)); if(a.length) algos=new Set(a); opts.upper=!!p.upper; } }catch(e){} }
+
+// ── sidebar controls ────────────────────────────────────────────────
+function buildSidebar(){
+  $('#f-algos').innerHTML=ALGO_ORDER.map(a=>`<button class="fchip${algos.has(a)?' on':''}" data-algo="${a}" aria-pressed="${algos.has(a)}"><span class="fl"><span class="ck"></span>${ALGO_LABEL[a]}</span><span class="fbits">${ALGO_BITS[a]}-bit</span></button>`).join('');
+  $('#f-opts').innerHTML=`<button class="fchip${opts.upper?' on':''}" data-opt="upper" aria-pressed="${opts.upper}"><span class="fl"><span class="ck"></span>Uppercase hex</span></button>`;
+  const aa=activeAlgos().map(a=>ALGO_LABEL[a]);
+  $('#drop-algos').innerHTML='Hashing with <b>'+esc(aa.join(' · '))+'</b> — change in the sidebar';
+}
+$('#f-algos').addEventListener('click',e=>{
+  const b=e.target.closest('[data-algo]'); if(!b) return;
+  const a=b.dataset.algo;
+  if(algos.has(a)){ if(algos.size===1){ toast('Keep at least one algorithm selected.',true); return; } algos.delete(a); }
+  else { algos.add(a); requeueMissing(); }
+  savePrefs(); buildSidebar(); render();
+});
+$('#f-opts').addEventListener('click',e=>{
+  const b=e.target.closest('[data-opt]'); if(!b) return;
+  opts[b.dataset.opt]=!opts[b.dataset.opt]; savePrefs(); buildSidebar(); render();
+});
+
+// ── adding files ────────────────────────────────────────────────────
+function addFiles(list){
+  const seen=new Set(rows.map(r=>r.path+'|'+r.size+'|'+r.mtime));
+  let added=0, dup=0;
+  for(const {file,path} of list){
+    const key=path+'|'+file.size+'|'+file.lastModified;
+    if(seen.has(key)){ dup++; continue; }
+    seen.add(key);
+    rows.push({id:nextId++,file,name:file.name,path,size:file.size,mtime:file.lastModified,hashes:{},status:'queued',bytes:0,err:'',hashedAt:null});
+    added++;
+  }
+  if(added){ requeueMissing(); toast('Added '+added+' file'+(added===1?'':'s')+(dup?' · skipped '+dup+' already listed':'')); }
+  else if(dup) toast('All '+dup+' file'+(dup===1?' is':'s are')+' already listed.',true);
+  else toast('No files found in that selection.',true);
+  render();
+}
+function requeueMissing(){
+  const need=activeAlgos();
+  for(const r of rows){
+    if(r.status==='hashing') continue;
+    if(r.status==='error'||r.status==='cancelled') continue;
+    const miss=need.filter(a=>!r.hashes[a]);
+    if(miss.length){
+      if(r.status!=='queued'){ r.status='queued'; }
+      if(!r.inBatch){ ensureBatch(); batch.total+=r.size; batch.files++; r.inBatch=true; }
+    }
+  }
+  pump();
+}
+function ensureBatch(){ if(!batch) batch={total:0,done:0,files:0,doneFiles:0,t0:performance.now()}; }
+
+$('#in-files').addEventListener('change',e=>{ const f=[...e.target.files].map(file=>({file,path:file.name})); e.target.value=''; if(f.length) addFiles(f); });
+$('#in-dir').addEventListener('change',e=>{ const f=[...e.target.files].map(file=>({file,path:file.webkitRelativePath||file.name})); e.target.value=''; if(f.length) addFiles(f); else toast('That folder is empty.',true); });
+
+// drag & drop (whole page)
+let dragDepth=0;
+const hasFiles=e=>e.dataTransfer&&[...e.dataTransfer.types].includes('Files');
+window.addEventListener('dragenter',e=>{ if(!hasFiles(e)) return; e.preventDefault(); dragDepth++; document.body.classList.add('dragging'); });
+window.addEventListener('dragover',e=>{ if(!hasFiles(e)) return; e.preventDefault(); e.dataTransfer.dropEffect='copy'; });
+window.addEventListener('dragleave',e=>{ if(!hasFiles(e)) return; dragDepth=Math.max(0,dragDepth-1); if(!dragDepth) document.body.classList.remove('dragging'); });
+window.addEventListener('drop',async e=>{
+  if(!hasFiles(e)) return;
+  e.preventDefault(); dragDepth=0; document.body.classList.remove('dragging');
+  const items=[...(e.dataTransfer.items||[])];
+  const entries=items.map(i=>i.webkitGetAsEntry?i.webkitGetAsEntry():null);
+  if(entries.length&&entries.every(Boolean)){
+    toast('Reading dropped items…');
+    const out=[];
+    try{ for(const en of entries) await walk(en,out); }catch(err){ toast('Could not read part of the drop: '+(err.message||err),true); }
+    addFiles(out);
+  } else {
+    addFiles([...e.dataTransfer.files].map(file=>({file,path:file.name})));
+  }
+});
+function walk(entry,out){
+  return new Promise((res,rej)=>{
+    if(entry.isFile){ entry.file(f=>{ out.push({file:f,path:entry.fullPath.replace(/^\//,'')}); res(); },rej); }
+    else if(entry.isDirectory){
+      const rd=entry.createReader(), all=[];
+      const next=()=>rd.readEntries(async batch=>{
+        if(!batch.length){ try{ for(const c of all) await walk(c,out); res(); }catch(x){ rej(x); } }
+        else { all.push(...batch); next(); }
+      },rej);
+      next();
+    } else res();
+  });
+}
+
+// ── worker pool ─────────────────────────────────────────────────────
+const POOL_N=Math.max(1,Math.min(3,(navigator.hardwareConcurrency||2)-1));
+let slots=[], workerURL=null, useWorkers=(typeof Worker!=='undefined');
+function newSlot(){
+  const s={row:null,w:null,main:false};
+  if(useWorkers){
+    try{
+      if(!workerURL) workerURL=URL.createObjectURL(new Blob([WORKER_SRC],{type:'text/javascript'}));
+      s.w=new Worker(workerURL);
+      s.w.onmessage=e=>onMsg(s,e.data);
+      s.w.onerror=ev=>{ ev.preventDefault&&ev.preventDefault(); fallbackToMain(); };
+    }catch(e){ useWorkers=false; }
+  }
+  if(!useWorkers){ s.main=true; s.w=null; }
+  return s;
+}
+function fallbackToMain(){
+  if(!useWorkers) return;
+  useWorkers=false;
+  slots.forEach(s=>{ if(s.w) s.w.terminate(); if(s.row&&s.row.status==='hashing'){ s.row.status='queued'; s.row.bytes=0; } });
+  slots=[]; pump();
+}
+function ensureSlots(){ const n=useWorkers?POOL_N:1; while(slots.length<n) slots.push(newSlot()); }
+function pump(){
+  ensureSlots();
+  for(const s of slots){
+    if(s.row) continue;
+    const r=rows.find(x=>x.status==='queued'); if(!r) break;
+    const need=activeAlgos().filter(a=>!r.hashes[a]);
+    if(!need.length){ r.status='done'; continue; }
+    r.status='hashing'; r.bytes=0; s.row=r;
+    const msg={id:r.id,file:r.file,algos:need};
+    if(s.main){
+      let last=0;
+      hashJob(msg,b=>{ const t=Date.now(); if(t-last>120){ last=t; onMsg(s,{id:r.id,type:'p',bytes:b}); } })
+        .then(h=>onMsg(s,{id:r.id,type:'done',hashes:h}))
+        .catch(err=>onMsg(s,{id:r.id,type:'error',msg:(err&&(err.name+': '+err.message))||String(err)}));
+    } else s.w.postMessage(msg);
+  }
+  schedule();
+}
+function onMsg(s,m){
+  const r=s.row; if(!r||r.id!==m.id) return;
+  if(m.type==='p'){ r.bytes=m.bytes; updateRun(); updateRowStatus(r); return; }
+  if(m.type==='done'){ Object.assign(r.hashes,m.hashes); r.status='done'; r.hashedAt=Date.now(); }
+  else { r.status='error'; r.err=m.msg||'Read error'; }
+  if(batch&&r.inBatch){ batch.done+=r.size; batch.doneFiles++; }
+  r.inBatch=false; r.bytes=0; s.row=null;
+  pump();
+  if(!rows.some(x=>x.status==='queued'||x.status==='hashing')) finishBatch();
+}
+function finishBatch(){
+  if(!batch) return;
+  const secs=(performance.now()-batch.t0)/1000, n=batch.doneFiles;
+  const errs=rows.filter(r=>r.status==='error').length;
+  batch=null; render();
+  toast('Hashed '+n+' file'+(n===1?'':'s')+' in '+(secs<1?secs.toFixed(2):secs.toFixed(1))+'s'+(errs?' · '+errs+' error'+(errs===1?'':'s'):''),errs>0);
+}
+function cancelAll(){
+  slots.forEach(s=>{ if(s.w) s.w.terminate(); });
+  slots=[];
+  let n=0;
+  rows.forEach(r=>{ if(r.status==='queued'||r.status==='hashing'){ r.status='cancelled'; r.bytes=0; r.inBatch=false; n++; } });
+  batch=null; render(); toast('Cancelled · '+n+' file'+(n===1?'':'s')+' not hashed',true);
+}
+
+// ── rendering ───────────────────────────────────────────────────────
+let rTimer=null;
+function schedule(){ if(rTimer) return; rTimer=setTimeout(()=>{ rTimer=null; render(); },150); }
+function updateRun(){
+  const el=$('#run');
+  if(!batch){ el.classList.remove('show'); return; }
+  el.classList.add('show');
+  const inflight=rows.reduce((t,r)=>t+(r.status==='hashing'?r.bytes:0),0);
+  const done=batch.done+inflight, pct=batch.total?Math.min(100,done/batch.total*100):100;
+  const secs=Math.max(.001,(performance.now()-batch.t0)/1000), rate=done/secs;
+  $('#run-fill').style.width=pct.toFixed(1)+'%';
+  $('#run-txt').innerHTML=`<b>Hashing ${Math.min(batch.files,batch.doneFiles+1)} of ${batch.files}</b> · ${fmtBytes(done)} / ${fmtBytes(batch.total)} · <span class="mono">${fmtBytes(rate)}/s · ${pct.toFixed(0)}%</span>`;
+}
+function dupMap(){
+  // duplicates by strongest available common algorithm per row (first ticked algorithm that's computed)
+  const key=activeAlgos()[0], m=new Map();
+  rows.forEach(r=>{ const h=r.hashes[key]; if(h) m.set(h,(m.get(h)||0)+1); });
+  return {key,m};
+}
+function matches(r,q){
+  if(!q) return true;
+  if(r.path.toLowerCase().includes(q)) return true;
+  return Object.values(r.hashes).some(h=>h.includes(q));
+}
+function hashSearch(){ const q=search.replace(/\s+/g,''); return /^[0-9a-f]+$/.test(q)&&HEXLEN[q.length]?q:null; }
+function render(){
+  const aa=activeAlgos(), q=search, hq=hashSearch();
+  const shown=rows.filter(r=>matches(r,hq||q));
+  const {key:dk,m:dm}=dupMap();
+  // match banner
+  const mb=$('#match');
+  if(hq){
+    const hits=rows.filter(r=>Object.values(r.hashes).includes(hq));
+    mb.className='match show '+(hits.length?'ok':'no');
+    mb.innerHTML=hits.length
+      ? `<span>✓</span><div><b>Match — ${hits.length} file${hits.length===1?'':'s'}</b> in this list ha${hits.length===1?'s':'ve'} ${ALGO_LABEL[HEXLEN[hq.length]]} <span class="mono">${esc(hx(hq))}</span></div>`
+      : `<span>✕</span><div><b>No match</b> — no hashed file in this list has ${ALGO_LABEL[HEXLEN[hq.length]]} <span class="mono">${esc(hx(hq))}</span>${rows.some(r=>!r.hashes[HEXLEN[hq.length]])?' (some files have not been hashed with '+ALGO_LABEL[HEXLEN[hq.length]]+' — tick it in the sidebar)':''}</div>`;
+  } else mb.className='match';
+  // summary
+  const done=rows.filter(r=>r.status==='done').length, errs=rows.filter(r=>r.status==='error').length;
+  const total=rows.reduce((t,r)=>t+r.size,0);
+  const dupSets=[...dm.values()].filter(v=>v>1).length;
+  const chips=[`<span class="chip chip-muted">${rows.length} file${rows.length===1?'':'s'}</span>`,`<span class="chip chip-muted">${fmtBytes(total)}</span>`];
+  if(done) chips.push(`<span class="chip chip-ok">${done} hashed</span>`);
+  if(dupSets) chips.push(`<span class="chip chip-warn">${dupSets} duplicate set${dupSets===1?'':'s'}</span>`);
+  if(errs) chips.push(`<span class="chip chip-bad">${errs} error${errs===1?'':'s'}</span>`);
+  $('#res-sum').innerHTML=rows.length?chips.join(''):'<span class="sub">nothing yet</span>';
+  $('#topbar-sub').textContent=rows.length?(done+' / '+rows.length+' hashed'):'';
+  $('#side-count').innerHTML=rows.length?(q?`<b>${shown.length}</b> of ${rows.length} shown`:`<b>${rows.length}</b> files listed`):'';
+  const exportable=rows.filter(r=>r.status==='done').length;
+  $('#csv-n').textContent=exportable;
+  ['#btn-csv','#btn-copycsv','#btn-copylist'].forEach(s=>$(s).disabled=!exportable);
+  updateRun();
+  // table
+  const res=$('#results');
+  if(!rows.length){ res.innerHTML='<div class="empty">No files yet. Drop files or a folder above to start.</div>'; return; }
+  if(!shown.length){ res.innerHTML=`<div class="empty">No listed file matches <span class="mono">${esc(q)}</span>.</div>`; return; }
+  const hlq=(!hq&&q&&/^[0-9a-f]{4,}$/.test(q))?q:null;
+  res.innerHTML=`<div class="tbl-wrap"><table class="res"><thead><tr><th class="c-n">#</th><th>File</th><th>Size</th><th class="c-mt">Modified (UTC)</th><th>Hash</th><th>Status</th></tr></thead><tbody>${shown.map(r=>rowHTML(r,aa,hq,hlq,dk,dm)).join('')}</tbody></table></div>`;
+}
+function hashCell(r,a,hlq){
+  const h=r.hashes[a];
+  if(!h) return `<div class="hl"><span class="alg">${ALGO_LABEL[a]}</span><span class="hv pend">${r.status==='error'?'—':r.status==='cancelled'?'not hashed':'pending…'}</span></div>`;
+  let shown=esc(hx(h));
+  if(hlq){ const i=h.indexOf(hlq); if(i>=0){ const H=hx(h); shown=esc(H.slice(0,i))+'<mark>'+esc(H.slice(i,i+hlq.length))+'</mark>'+esc(H.slice(i+hlq.length)); } }
+  return `<div class="hl"><span class="alg">${ALGO_LABEL[a]}</span><span class="hv" data-hash="${esc(hx(h))}" title="Click to copy">${shown}</span><button class="cpy" data-hash="${esc(hx(h))}" aria-label="Copy ${ALGO_LABEL[a]}">copy</button></div>`;
+}
+function statusHTML(r,dk,dm){
+  let s;
+  if(r.status==='done') s='<span class="chip chip-ok">✓ done</span>';
+  else if(r.status==='hashing') s=`<span class="chip chip-acc">${r.size?Math.floor(r.bytes/r.size*100):0}%</span>`;
+  else if(r.status==='queued') s='<span class="chip chip-muted">queued</span>';
+  else if(r.status==='cancelled') s='<span class="chip chip-warn">cancelled</span>';
+  else s='<span class="chip chip-bad">error</span>';
+  const h=r.hashes[dk], n=h?dm.get(h):0;
+  const dup=n>1?`<span class="chip chip-warn dupc" data-dup="${esc(h)}" title="Identical ${ALGO_LABEL[dk]} — click to show the set">DUP ×${n}</span>`:'';
+  return `<div class="st-wrap"><div style="display:flex;gap:6px;align-items:center">${s}<button class="rm" data-rm="${r.id}" title="Remove from list" aria-label="Remove ${esc(r.name)}">✕</button></div>${dup}${r.err?`<div class="errmsg">${esc(r.err)}</div>`:''}${(r.status==='error'||r.status==='cancelled')?`<button class="cpy" data-retry="${r.id}">retry</button>`:''}</div>`;
+}
+function rowHTML(r,aa,hq,hlq,dk,dm){
+  const idx=rows.indexOf(r)+1;
+  const hit=hq&&Object.values(r.hashes).includes(hq);
+  const dir=r.path.includes('/')?r.path.slice(0,r.path.lastIndexOf('/')+1):'';
+  return `<tr data-row="${r.id}" class="${hit?'hit':''}${r.status==='error'?' err':''}">
+    <td class="c-n">${idx}</td>
+    <td><div class="fname">${esc(r.name)}</div>${dir?`<div class="fpath">${esc(dir)}</div>`:''}</td>
+    <td class="c-sz">${fmtBytes(r.size)}<span class="b">${r.size.toLocaleString()} B</span></td>
+    <td class="c-mt">${esc(shortUTC(r.mtime))}</td>
+    <td style="min-width:300px">${aa.map(a=>hashCell(r,a,hlq)).join('')}</td>
+    <td class="c-st">${statusHTML(r,dk,dm)}</td></tr>`;
+}
+function updateRowStatus(r){
+  const tr=document.querySelector(`tr[data-row="${r.id}"] .c-st .chip-acc`);
+  if(tr) tr.textContent=(r.size?Math.floor(r.bytes/r.size*100):0)+'%';
+}
+$('#results').addEventListener('click',e=>{
+  const c=e.target.closest('[data-hash]'); if(c){ copyText(c.dataset.hash).then(()=>{ if(c.classList.contains('cpy')){ c.textContent='✓'; c.classList.add('copied'); setTimeout(()=>{ c.textContent='copy'; c.classList.remove('copied'); },1200); } toast('Hash copied'); }).catch(()=>toast('Copy failed',true)); return; }
+  const d=e.target.closest('[data-dup]'); if(d){ search=d.dataset.dup; $('#search').value=hx(search); render(); return; }
+  const rm=e.target.closest('[data-rm]'); if(rm){ removeRow(+rm.dataset.rm); return; }
+  const rt=e.target.closest('[data-retry]'); if(rt){ const r=rows.find(x=>x.id===+rt.dataset.retry); if(r){ r.status='queued'; r.err=''; requeueMissing(); render(); } }
+});
+function removeRow(id){
+  const r=rows.find(x=>x.id===id); if(!r) return;
+  if(r.status==='hashing'){ toast('That file is being hashed — cancel first or wait for it to finish.',true); return; }
+  if(batch&&r.inBatch){ batch.total-=r.size; batch.files--; }
+  rows=rows.filter(x=>x.id!==id); render();
+  if(batch&&!rows.some(x=>x.status==='queued'||x.status==='hashing')) finishBatch();
+}
+function clearAll(){
+  if(!rows.length) return;
+  if(rows.some(r=>r.status==='hashing'||r.status==='queued')){ slots.forEach(s=>{ if(s.w) s.w.terminate(); }); slots=[]; batch=null; }
+  rows=[]; search=''; $('#search').value=''; render(); toast('List cleared');
+}
+
+// ── export ──────────────────────────────────────────────────────────
+function csvCell(v){
+  let s=String(v==null?'':v);
+  if(/^[=+\-@\t\r]/.test(s)) s="'"+s;
+  return /[",\r\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
+}
+function exportRows(){ return rows.filter(r=>r.status==='done'); }
+function buildCSV(){
+  const aa=activeAlgos(), ref=$('#caseref').value.trim();
+  const head=[...(ref?['Case Reference']:[]),'File Name','Relative Path','Size (bytes)','Last Modified (UTC)',...aa.map(a=>ALGO_LABEL[a]),'Hashed At (UTC)'];
+  const lines=[head.map(csvCell).join(',')];
+  exportRows().forEach(r=>lines.push([...(ref?[ref]:[]),r.name,r.path,r.size,isoUTC(r.mtime),...aa.map(a=>hx(r.hashes[a]||'')),isoUTC(r.hashedAt)].map(csvCell).join(',')));
+  return lines.join('\r\n')+'\r\n';
+}
+function stamp(){ return new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+Z$/,'Z').replace('T','_'); }
+function exportCSV(){
+  const n=exportRows().length; if(!n){ toast('Nothing hashed to export yet.',true); return; }
+  const ref=$('#caseref').value.trim().replace(/[^\w.-]+/g,'_');
+  const name=(ref?ref+'_':'')+'hashes_'+stamp()+'.csv';
+  const blob=new Blob(['﻿'+buildCSV()],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  const pend=rows.length-n;
+  toast('Exported '+n+' file'+(n===1?'':'s')+' to '+name+(pend?' · '+pend+' not yet hashed were left out':''));
+}
+function copyCSV(){ const n=exportRows().length; copyText(buildCSV()).then(()=>toast('Copied CSV for '+n+' file'+(n===1?'':'s'))).catch(()=>toast('Copy failed',true)); }
+function copyList(){
+  const a=activeAlgos()[0], rs=exportRows().filter(r=>r.hashes[a]);
+  copyText(rs.map(r=>hx(r.hashes[a])+'  '+r.path).join('\n')+'\n').then(()=>toast('Copied '+ALGO_LABEL[a]+' list for '+rs.length+' file'+(rs.length===1?'':'s'))).catch(()=>toast('Copy failed',true));
+}
+function copyText(t){
+  if(navigator.clipboard&&navigator.clipboard.writeText) return navigator.clipboard.writeText(t).catch(()=>legacyCopy(t));
+  return legacyCopy(t);
+}
+function legacyCopy(t){ return new Promise((res,rej)=>{ try{ const ta=document.createElement('textarea'); ta.value=t; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); const ok=document.execCommand('copy'); ta.remove(); ok?res():rej(); }catch(e){ rej(e); } }); }
+
+// ── toast / modals / theme ──────────────────────────────────────────
+function toast(msg,isErr){ const ex=document.getElementById('toast'); if(ex) ex.remove(); const t=document.createElement('div'); t.id='toast'; t.className='toast'+(isErr?' err':''); t.setAttribute('role','status'); t.innerHTML='<span class="toast-dot"></span><span></span>'; t.lastChild.textContent=msg; document.body.appendChild(t); requestAnimationFrame(()=>t.classList.add('show')); setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),300); },isErr?4000:2200); }
+function showModal(id){ document.getElementById(id).style.display='flex'; }
+function hideModal(id){ document.getElementById(id).style.display='none'; }
+const mq=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null;
+function applyTheme(p){ document.documentElement.setAttribute('data-theme',p==='system'?(mq&&mq.matches?'dark':'light'):p); }
+function setTheme(v){ const sel=$('#theme-select'); if(sel&&sel.value!==v) sel.value=v; try{ localStorage.setItem(THEME_KEY,v); }catch(e){} applyTheme(v); }
+(function init(){
+  let v='light'; try{ v=localStorage.getItem(THEME_KEY)||'light'; }catch(e){}
+  $('#theme-select').value=v; applyTheme(v);
+  if(mq&&mq.addEventListener) mq.addEventListener('change',()=>{ if($('#theme-select').value==='system') applyTheme('system'); });
+  loadPrefs(); buildSidebar();
+  $('#search').addEventListener('input',e=>{ search=e.target.value.trim().toLowerCase(); render(); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') hideModal('help-modal'); if(e.key==='/'&&!['INPUT','TEXTAREA'].includes(document.activeElement.tagName)){ e.preventDefault(); $('#search').focus(); } });
+  window.addEventListener('beforeunload',e=>{ if(rows.some(r=>r.status==='hashing'||r.status==='queued')){ e.preventDefault(); e.returnValue=''; } });
+  render();
+})();
+</script>
+</body>
+</html>
