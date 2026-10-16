@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>OT Field Guide</title>
+<style>
+/* Layout: mapper shell — fixed dark sidebar (nav + progress + tools), topbar, scrolling content column of panels. */
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+:root{
+  --bg:#F3F5F8;--surface:#FFFFFF;--surface2:#F8F9FB;--surface3:#F1F4F8;--border:#E2E6EC;--border2:#D0D6DF;
+  --text:#1A2130;--text2:#3A4658;--muted:#6B7A90;--faint:#B8C4D0;
+  --accent:#1456CC;--accent-h:#0F48B0;--accent-soft:#EEF3FC;--accent-line:#C5D4F5;--on-accent:#FFFFFF;
+  --ok:#0A7A50;--ok-soft:#DCFAEE;--ok-line:#A8D8BC;--warn:#9A5000;--warn-soft:#FFF5D6;--warn-line:#F5D580;--bad:#C0283A;--bad-soft:#FDEDF0;--bad-line:#F0A8B0;
+  --vio:#7E22CE;--vio-soft:#F3E8FF;--vio-line:#DDB8F8;
+  --code-bg:#1C2333;--code-text:#D6DEEA;--code-c:#7F8DA3;--code-k:#7FC4F0;
+  --sidebar-bg:#1C2333;--sidebar-text:#C8D4E8;--sidebar-muted:#7A8FA8;--sidebar-border:#2A3548;--sidebar-hover:#253047;--sidebar-active:#2D3A55;--sidebar-hi:#E8EEF8;--sidebar-accent:#4A90E2;
+  --shadow:0 1px 3px rgba(0,0,0,.05);--overlay:rgba(0,0,0,.45);
+  --r1:#C0283A;--r2:#C77A12;--r3:#1456CC;--r4:#0A7A50;--r5:#7E22CE;
+  --sans:'Segoe UI',system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+  --mono:'SF Mono',Consolas,'Liberation Mono',Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E131B;--surface:#151B25;--surface2:#1A212D;--surface3:#202938;--border:#263042;--border2:#344058;
+  --text:#E4E9F2;--text2:#BAC5D6;--muted:#8796AE;--faint:#4B5871;
+  --accent:#4C8DF6;--accent-h:#6AA0F8;--accent-soft:#17243A;--accent-line:#2B4674;--on-accent:#FFFFFF;
+  --ok:#3DD68C;--ok-soft:#0F2A1F;--ok-line:#1F5A40;--warn:#F2B64C;--warn-soft:#2E2410;--warn-line:#6A4F18;--bad:#F2707F;--bad-soft:#321419;--bad-line:#6E2A34;
+  --vio:#C9A2F5;--vio-soft:#2A1B40;--vio-line:#55357C;
+  --code-bg:#0A0E15;--code-text:#D6DEEA;--code-c:#6F7F96;--code-k:#7FC4F0;
+  --sidebar-bg:#0A0E15;--sidebar-text:#C8D4E8;--sidebar-muted:#6F819B;--sidebar-border:#1C2433;--sidebar-hover:#151C29;--sidebar-active:#1B2436;--sidebar-hi:#EEF3FA;--sidebar-accent:#4C8DF6;
+  --shadow:0 1px 3px rgba(0,0,0,.35);--overlay:rgba(0,0,0,.6);
+  --r1:#E25565;--r2:#E0952F;--r3:#4C8DF6;--r4:#2FB67A;--r5:#A970E8;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E131B;--surface:#151B25;--surface2:#1A212D;--surface3:#202938;--border:#263042;--border2:#344058;
+  --text:#E4E9F2;--text2:#BAC5D6;--muted:#8796AE;--faint:#4B5871;
+  --accent:#4C8DF6;--accent-h:#6AA0F8;--accent-soft:#17243A;--accent-line:#2B4674;--on-accent:#FFFFFF;
+  --ok:#3DD68C;--ok-soft:#0F2A1F;--ok-line:#1F5A40;--warn:#F2B64C;--warn-soft:#2E2410;--warn-line:#6A4F18;--bad:#F2707F;--bad-soft:#321419;--bad-line:#6E2A34;
+  --vio:#C9A2F5;--vio-soft:#2A1B40;--vio-line:#55357C;
+  --code-bg:#0A0E15;--code-text:#D6DEEA;--code-c:#6F7F96;--code-k:#7FC4F0;
+  --sidebar-bg:#0A0E15;--sidebar-text:#C8D4E8;--sidebar-muted:#6F819B;--sidebar-border:#1C2433;--sidebar-hover:#151C29;--sidebar-active:#1B2436;--sidebar-hi:#EEF3FA;--sidebar-accent:#4C8DF6;
+  --shadow:0 1px 3px rgba(0,0,0,.35);--overlay:rgba(0,0,0,.6);
+  --r1:#E25565;--r2:#E0952F;--r3:#4C8DF6;--r4:#2FB67A;--r5:#A970E8;
+  color-scheme:dark}
+:root[data-theme="ocean"]{
+  --bg:#EFF5F5;--surface:#FFFFFF;--surface2:#F5F9F9;--surface3:#EAF2F2;--border:#D9E5E5;--border2:#C3D5D5;
+  --text:#152426;--text2:#334A4D;--muted:#5F7A7D;--faint:#AFC4C6;
+  --accent:#0B7A75;--accent-h:#086460;--accent-soft:#E6F4F3;--accent-line:#A9D9D5;--on-accent:#FFFFFF;
+  --sidebar-bg:#0F2A2C;--sidebar-text:#C6DEDD;--sidebar-muted:#7EA3A3;--sidebar-border:#1E3F41;--sidebar-hover:#16383A;--sidebar-active:#1C4447;--sidebar-hi:#EAF6F5;--sidebar-accent:#3CC2BA;
+  --code-bg:#0F2A2C;--r3:#0B7A75;color-scheme:light}
+:root[data-theme="contrast"]{
+  --bg:#FFFFFF;--surface:#FFFFFF;--surface2:#F4F4F4;--surface3:#EAEAEA;--border:#6E6E6E;--border2:#3C3C3C;
+  --text:#000000;--text2:#111111;--muted:#2E2E2E;--faint:#6E6E6E;
+  --accent:#0033A0;--accent-h:#00226E;--accent-soft:#E3EAFB;--accent-line:#0033A0;--on-accent:#FFFFFF;
+  --ok:#005A32;--ok-soft:#D8F5E6;--ok-line:#005A32;--warn:#6B3500;--warn-soft:#FFF0C8;--warn-line:#6B3500;--bad:#9E0018;--bad-soft:#FDE2E6;--bad-line:#9E0018;
+  --vio:#5B0F99;--vio-soft:#F1E4FF;--vio-line:#5B0F99;
+  --code-bg:#000000;--code-text:#FFFFFF;--code-c:#C8C8C8;--code-k:#FFD400;
+  --sidebar-bg:#000000;--sidebar-text:#FFFFFF;--sidebar-muted:#D0D0D0;--sidebar-border:#555555;--sidebar-hover:#222222;--sidebar-active:#333333;--sidebar-hi:#FFFFFF;--sidebar-accent:#FFD400;
+  --shadow:none;--overlay:rgba(0,0,0,.7);color-scheme:light}
+
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.55}
+button,input,textarea,select{font-family:inherit;font-size:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.88em;background:var(--surface3);border:1px solid var(--border);border-radius:4px;padding:0 5px;color:var(--text);word-break:break-word}
+b{font-weight:650}
+
+/* SHELL */
+#app{display:flex;height:100%;overflow:hidden}
+.sidebar{width:248px;min-width:248px;background:var(--sidebar-bg);border-right:1px solid var(--sidebar-border);display:flex;flex-direction:column;overflow:hidden}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.sidebar-logo{padding:18px 16px 14px;border-bottom:1px solid var(--sidebar-border)}
+.logo-badge{display:inline-block;background:var(--sidebar-accent);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:1.2px;margin-bottom:8px}
+:root[data-theme="contrast"] .logo-badge{color:#000}
+.logo-title{font-size:16px;font-weight:700;letter-spacing:-.3px;color:var(--sidebar-hi)}
+.logo-sub{font-size:10.5px;color:var(--sidebar-muted);margin-top:3px;line-height:1.4}
+.sidebar-search{padding:12px 16px;border-bottom:1px solid var(--sidebar-border);position:relative}
+.sidebar-search input{width:100%;background:var(--sidebar-hover);border:1px solid var(--sidebar-border);border-radius:6px;padding:7px 10px;color:var(--sidebar-hi);font-size:12px;outline:none}
+.sidebar-search input::placeholder{color:var(--sidebar-muted)}
+.sidebar-search input:focus{border-color:var(--sidebar-accent)}
+.sr{position:absolute;left:10px;right:10px;top:46px;z-index:60;max-height:380px;overflow-y:auto;background:var(--surface);border:1px solid var(--border2);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.sr button{display:block;width:100%;text-align:left;border:none;background:none;padding:7px 11px;border-bottom:1px solid var(--border);color:var(--text);cursor:pointer;font-size:12px;line-height:1.35}
+.sr button:hover,.sr button.on{background:var(--accent-soft)}
+.sr button small{display:block;color:var(--muted);font-size:10px;font-weight:600;letter-spacing:.3px;text-transform:uppercase}
+.sr .none{padding:10px 12px;font-size:12px;color:var(--muted)}
+.sidebar-progress{padding:12px 16px;border-bottom:1px solid var(--sidebar-border)}
+.prog-label{font-size:10.5px;color:var(--sidebar-muted);margin-bottom:6px;display:flex;justify-content:space-between;gap:8px}
+.prog-bar{height:3px;background:var(--sidebar-border);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:var(--sidebar-accent);border-radius:2px;transition:width .4s}
+.prog-warn{font-size:10px;margin-top:7px;line-height:1.4;font-weight:600}
+.sidebar-nav{flex:1;overflow-y:auto;padding:6px 0}
+.nav-section{font-size:9.5px;color:var(--sidebar-muted);letter-spacing:1.2px;padding:12px 16px 4px;text-transform:uppercase;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:9px;padding:6px 16px;cursor:pointer;font-size:12px;color:var(--sidebar-muted);border:none;border-left:2px solid transparent;user-select:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--sidebar-hover);color:var(--sidebar-text)}
+.nav-item.active{background:var(--sidebar-active);color:var(--sidebar-hi);border-left-color:var(--sidebar-accent)}
+.nav-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.nav-lbl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav-lvl{font-family:var(--mono);font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--sidebar-border);color:var(--sidebar-text);flex-shrink:0}
+.nav-lvl.done{background:#1F5A40;color:#B8F0D4}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--sidebar-border);display:flex;flex-direction:column;gap:6px}
+.btn{padding:7px 12px;border-radius:6px;border:1px solid var(--sidebar-border);background:transparent;color:var(--sidebar-muted);font-size:11px;cursor:pointer;width:100%;text-align:left}
+.btn:hover{background:var(--sidebar-hover);color:var(--sidebar-text)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent);text-align:center;font-weight:600;padding:9px 12px;font-size:12px}
+.btn-primary:hover{background:var(--accent-h);color:var(--on-accent)}
+.btn-reset{color:#C98A94;border-color:transparent;font-size:10.5px}
+.btn-row{display:flex;gap:6px}.btn-row .btn{flex:1;text-align:center}
+
+.topbar{min-height:48px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:6px 20px;gap:12px;flex-wrap:wrap}
+.topbar-left{display:flex;align-items:center;gap:10px;min-width:0}
+.topbar-title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crumb{font-size:11px;color:var(--muted);white-space:nowrap}
+.topbar-meta{font-size:11px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tb-action{font-size:11px;font-weight:600;color:var(--text);background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;cursor:pointer}
+.tb-action:hover{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.tb-help{width:26px;height:26px;padding:0;border-radius:50%;font-weight:700;font-size:13px;display:inline-flex;align-items:center;justify-content:center}
+.tb-select{font-size:11px;font-weight:600;color:var(--text);background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:4px 8px;cursor:pointer}
+.fw-chip{display:inline-block;padding:3px 9px;border-radius:5px;font-size:10.5px;font-weight:600;background:var(--surface2);color:var(--muted);border:1px solid var(--border2);white-space:nowrap}
+.fw-chip.bad{background:var(--bad-soft);color:var(--bad);border-color:var(--bad-line)}
+.menu-btn{display:none}
+.content{flex:1;overflow-y:auto;padding:24px;background:var(--bg)}
+.wrap{max-width:1080px;margin:0 auto}
+
+/* GENERIC */
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:16px;flex-wrap:wrap}
+.page-head > div{min-width:0;flex:1}
+.eyebrow{font-size:10px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.page-head h2{font-size:20px;font-weight:700;letter-spacing:-.2px;text-wrap:balance}
+.page-head p{font-size:12.5px;color:var(--muted);max-width:760px;line-height:1.65;margin-top:5px}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
+.panel-head{padding:11px 16px;border-bottom:1px solid var(--border);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface2);flex-wrap:wrap}
+.panel-head .sub{font-weight:400;color:var(--muted);font-size:11px}
+.panel-body{padding:14px 16px}
+.prose{font-size:13px;color:var(--text2);line-height:1.7;max-width:76ch}
+.prose p+p{margin-top:9px}
+.prose ul{margin:8px 0 0 18px}.prose li{margin:4px 0}
+h3.sec{font-size:13.5px;font-weight:700;margin:22px 0 10px;display:flex;align-items:center;gap:8px;text-wrap:balance}
+h3.sec:first-child{margin-top:0}
+.notice{background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.7}
+.notice b{color:var(--text)}
+.notice.bad{background:var(--bad-soft);border-color:var(--bad-line)}.notice.bad b.h{color:var(--bad)}
+.notice.warn{background:var(--warn-soft);border-color:var(--warn-line)}
+.notice.ok{background:var(--ok-soft);border-color:var(--ok-line)}
+.notice b.h{display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;color:var(--accent)}
+.notice.warn b.h{color:var(--warn)}.notice.ok b.h{color:var(--ok)}
+.chip{display:inline-block;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:.2px;white-space:nowrap;border:1px solid transparent}
+.chip-ok{background:var(--ok-soft);color:var(--ok);border-color:var(--ok-line)}
+.chip-warn{background:var(--warn-soft);color:var(--warn);border-color:var(--warn-line)}
+.chip-bad{background:var(--bad-soft);color:var(--bad);border-color:var(--bad-line)}
+.chip-muted{background:var(--surface3);color:var(--muted);border-color:var(--border2)}
+.chip-acc{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-line)}
+.chip-vio{background:var(--vio-soft);color:var(--vio);border-color:var(--vio-line)}
+.tag{display:inline-block;font-size:10.5px;padding:2px 7px;border-radius:4px;background:var(--surface3);color:var(--text2);border:1px solid var(--border2);margin:2px 4px 2px 0;text-decoration:none}
+a.tag:hover{border-color:var(--accent);color:var(--accent)}
+.tag.m{font-family:var(--mono)}
+.tech{display:inline-flex;gap:5px;align-items:baseline;font-size:10.5px;padding:2px 7px;border-radius:4px;background:var(--vio-soft);color:var(--text);border:1px solid var(--vio-line);margin:2px 4px 2px 0;text-decoration:none}
+.tech b{font-family:var(--mono);color:var(--vio);font-weight:700}
+.tech:hover{border-color:var(--vio)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;box-shadow:var(--shadow);min-width:0}
+.card h4{font-size:13px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.card p{font-size:12.5px;color:var(--text2);line-height:1.6}
+.card ul{list-style:none;margin-top:4px}
+.card li{font-size:12.5px;color:var(--text2);padding:5px 0 5px 16px;position:relative;border-bottom:1px solid var(--border);line-height:1.5}
+.card li:last-child{border-bottom:none}
+.card li::before{content:"";position:absolute;left:2px;top:12px;width:6px;height:6px;border-radius:50%;background:var(--faint)}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;display:inline-block}
+.linkcard{cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
+.linkcard:hover{border-color:var(--accent)}
+.linkcard .go{font-size:11px;font-weight:600;color:var(--accent);margin-top:8px;display:block}
+
+/* TABLES */
+.tbl-wrap{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);color:var(--muted);font-weight:600;background:var(--surface2);font-size:10.5px;white-space:nowrap;vertical-align:bottom}
+.tbl td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;line-height:1.5}
+.tbl tr:last-child td{border-bottom:none}
+.tbl td.mono,.tbl .mono{font-family:var(--mono);font-size:11px;font-weight:700;white-space:nowrap}
+.tbl td.muted{color:var(--text2)}
+.vol{font-family:var(--mono);font-size:10px;font-weight:700;white-space:nowrap}
+.v-hi{color:var(--bad)}.v-md{color:var(--warn)}.v-lo{color:var(--ok)}
+
+/* CODE */
+pre.cmd{background:var(--code-bg);color:var(--code-text);border-radius:8px;padding:11px 14px;overflow-x:auto;font-family:var(--mono);font-size:11.5px;line-height:1.6;margin:8px 0 2px;position:relative;white-space:pre}
+pre.cmd .c{color:var(--code-c)}
+.cmd-wrap{position:relative}
+.copy{position:absolute;top:6px;right:6px;font-size:10px;font-weight:600;background:rgba(255,255,255,.08);color:var(--code-text);border:1px solid rgba(255,255,255,.18);border-radius:5px;padding:2px 8px;cursor:pointer}
+.copy:hover{background:rgba(255,255,255,.18)}
+
+/* PURDUE / LADDER */
+.purdue{display:flex;flex-direction:column;gap:3px}
+.lvl{display:grid;grid-template-columns:58px 200px minmax(0,1fr) 92px;align-items:stretch;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface)}
+.lvl .k{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:800;font-size:15px;color:#fff}
+.lvl .n{padding:10px 12px;border-right:1px solid var(--border);font-size:12.5px;font-weight:650;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.lvl .n small{font-weight:400;color:var(--muted);font-size:11px}
+.lvl .d{padding:10px 12px;font-size:12px;color:var(--text2);line-height:1.55}
+.lvl .t{display:flex;align-items:center;justify-content:center;border-left:1px solid var(--border);font-size:10px;font-weight:700;font-family:var(--mono)}
+.boundary{text-align:center;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--bad);padding:6px;border:1px dashed var(--bad-line);border-radius:8px;background:var(--bad-soft)}
+.ladder{display:flex;flex-direction:column;gap:3px}
+.rung{display:grid;grid-template-columns:48px 190px minmax(0,1fr) 120px;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface);text-align:left;font:inherit;color:inherit;cursor:pointer;width:100%}
+.rung:hover{border-color:var(--accent)}
+.rung .p{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:17px;font-weight:800;color:#fff}
+.rung .l{padding:10px 12px;border-right:1px solid var(--border);font-size:12px;font-weight:700;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.rung .l small{font-weight:400;color:var(--muted);font-size:10.5px;font-family:var(--mono)}
+.rung .d{padding:10px 12px;font-size:12px;color:var(--text2);display:flex;align-items:center}
+.rung .g{display:flex;align-items:center;justify-content:center;border-left:1px solid var(--border);font-size:11px;font-weight:600;color:var(--accent)}
+
+/* PLAYBOOK */
+.pb-meta{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:14px;margin-bottom:16px}
+.kv{display:grid;grid-template-columns:110px minmax(0,1fr);gap:7px 12px;font-size:12px}
+.kv .k{color:var(--muted);font-weight:600}
+.kv ul{list-style:none}.kv li{padding:1px 0}
+.steps{list-style:none;counter-reset:st}
+.step{display:grid;grid-template-columns:34px minmax(0,1fr);gap:12px;padding:14px 16px;border-top:1px solid var(--border)}
+.step:first-child{border-top:none}
+.step.done{background:var(--ok-soft)}
+.step.done .st-title{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--ok-line)}
+.st-n{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent);background:var(--surface);cursor:pointer}
+.st-n:hover{border-color:var(--ok)}
+.step.done .st-n{background:var(--ok);border-color:var(--ok);color:#fff}
+.st-title{font-size:13.5px;font-weight:650;margin-bottom:4px;line-height:1.4}
+.st-body{font-size:12.5px;color:var(--text2);line-height:1.65;min-width:0}
+.st-body p+p{margin-top:6px}
+.st-body ul{margin:6px 0 2px 18px}.st-body li{margin:3px 0}
+.check{margin-top:8px;font-size:11.5px;border-radius:6px;padding:7px 10px;line-height:1.55;border:1px solid}
+.check.stop{background:var(--bad-soft);border-color:var(--bad-line);color:var(--text2)}
+.check.stop b{color:var(--bad)}
+.check.gate{background:var(--warn-soft);border-color:var(--warn-line);color:var(--text2)}
+.check.gate b{color:var(--warn)}
+.check.tip{background:var(--ok-soft);border-color:var(--ok-line);color:var(--text2)}
+.check.tip b{color:var(--ok)}
+.check.out{background:var(--accent-soft);border-color:var(--accent-line);color:var(--text2)}
+.check.out b{color:var(--accent)}
+.st-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.pb-nav{display:flex;justify-content:space-between;gap:10px;margin-top:6px;flex-wrap:wrap}
+.mbn{padding:7px 14px;border-radius:6px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);font-size:12px;cursor:pointer}
+.mbn:hover{border-color:var(--accent);color:var(--accent)}
+.mbp{padding:7px 14px;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);font-size:12px;cursor:pointer;font-weight:600}
+.mbp:hover{background:var(--accent-h)}
+.mbp:disabled{opacity:.45;cursor:not-allowed}
+.risk-lo{color:var(--ok)}.risk-md{color:var(--warn)}.risk-hi{color:var(--bad)}
+
+/* TRIAGE */
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.tile{border:1.5px solid var(--border2);border-radius:9px;padding:10px 12px;background:var(--surface);cursor:pointer;text-align:left;color:var(--text);font:inherit}
+.tile:hover{border-color:var(--accent)}
+.tile.on{border-color:var(--accent);background:var(--accent-soft)}
+.tile .c{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--muted)}
+.tile .n{font-size:13px;font-weight:650;margin:2px 0 3px}
+.tile .d{font-size:11.5px;color:var(--muted);line-height:1.45}
+.tile.chk{display:flex;gap:10px;align-items:flex-start}
+.tile.chk .box{width:15px;height:15px;border:1.5px solid var(--border2);border-radius:4px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff}
+.tile.chk.on .box{background:var(--accent);border-color:var(--accent)}
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{border:1.5px solid var(--border2);border-radius:20px;padding:6px 13px;font-size:12px;font-weight:600;background:var(--surface);color:var(--text2);cursor:pointer}
+.pill:hover{border-color:var(--accent)}
+.pill.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.gate{border:1px solid var(--border);border-left:4px solid var(--border2);border-radius:0 8px 8px 0;padding:11px 14px;margin-bottom:8px;background:var(--surface)}
+.gate.yes{border-left-color:var(--ok)}.gate.no{border-left-color:var(--bad)}.gate.unknown{border-left-color:var(--warn)}
+.gate .q{font-size:13px;font-weight:650;margin-bottom:3px}
+.gate .q span{font-family:var(--mono);color:var(--muted);font-size:11px;margin-right:6px}
+.gate .h{font-size:11.5px;color:var(--muted);line-height:1.5;margin-bottom:8px}
+.seg{display:inline-flex;border:1px solid var(--border2);border-radius:7px;overflow:hidden}
+.seg button{background:var(--surface);color:var(--text2);border:none;padding:6px 14px;font-size:12px;cursor:pointer;border-right:1px solid var(--border2)}
+.seg button:last-child{border-right:none}
+.seg button.on-yes{background:var(--ok);color:#fff;font-weight:600}
+.seg button.on-no{background:var(--bad);color:#fff;font-weight:600}
+.seg button.on-unknown{background:var(--warn);color:#fff;font-weight:600}
+.decision{border-radius:10px;padding:16px 18px;margin-bottom:14px;border:1px solid}
+.decision.proceed{background:var(--ok-soft);border-color:var(--ok-line)}
+.decision.hold{background:var(--warn-soft);border-color:var(--warn-line)}
+.decision.stop{background:var(--bad-soft);border-color:var(--bad-line)}
+.decision.none{background:var(--surface2);border-color:var(--border)}
+.decision .code{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.6px}
+.decision.proceed .code{color:var(--ok)}.decision.hold .code{color:var(--warn)}.decision.stop .code{color:var(--bad)}
+.decision .hl{font-size:18px;font-weight:700;margin:3px 0 8px;text-wrap:balance}
+.decision ul{margin-left:18px;font-size:12.5px;color:var(--text2);line-height:1.6}
+.ab{border:1px solid var(--border);border-radius:9px;padding:11px 14px;background:var(--surface);min-width:0}
+.ab h5{font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px}
+.ab ul{margin-left:16px;font-size:12.5px;color:var(--text2);line-height:1.55}.ab li{margin:3px 0}
+.ab.calls{border-top:3px solid var(--accent)}.ab.calls h5{color:var(--accent)}
+.ab.allow{border-top:3px solid var(--ok)}.ab.allow h5{color:var(--ok)}
+.ab.deny{border-top:3px solid var(--bad)}.ab.deny h5{color:var(--bad)}
+.ab.ev{border-top:3px solid var(--vio)}.ab.ev h5{color:var(--vio)}
+.trap{display:grid;grid-template-columns:110px minmax(0,1fr);gap:8px 14px;font-size:12.5px;line-height:1.6}
+.trap .k{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding-top:3px}
+.trap .k.a{color:var(--warn)}.trap .k.b{color:var(--bad)}.trap .k.c{color:var(--ok)}
+.trap div{color:var(--text2)}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;min-width:0}
+.field label{font-size:11px;color:var(--muted);font-weight:600}
+.field input,.field textarea{background:var(--surface);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-size:12.5px;outline:none;resize:vertical;width:100%}
+.field input:focus,.field textarea:focus{border-color:var(--accent)}
+.stagebar{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px}
+.stagebar a{font-size:11px;font-weight:600;padding:5px 10px;border-radius:20px;border:1px solid var(--border2);color:var(--text2);text-decoration:none;background:var(--surface)}
+.stagebar a:hover{border-color:var(--accent);color:var(--accent)}
+
+/* GLOSSARY / ACCORDION */
+.gloss{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.term{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:11px 14px;min-width:0}
+.term .t{font-family:var(--mono);font-size:13px;font-weight:800;color:var(--accent)}
+.term .x{font-size:11.5px;font-weight:600;color:var(--text);margin:1px 0 4px}
+.term p{font-size:12px;color:var(--text2);line-height:1.55}
+.inp{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:7px;padding:8px 11px;color:var(--text);font-size:12.5px;outline:none}
+.inp:focus{border-color:var(--accent)}
+details.acc{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;box-shadow:var(--shadow);overflow:hidden}
+details.acc > summary{list-style:none;cursor:pointer;padding:11px 14px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:650}
+details.acc > summary::-webkit-details-marker{display:none}
+details.acc > summary:hover{background:var(--surface3)}
+details.acc > summary .code{font-family:var(--mono);font-size:10.5px;font-weight:700;padding:3px 7px;border-radius:4px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-line);min-width:44px;text-align:center}
+details.acc > summary .chev{margin-left:auto;color:var(--muted);transition:transform .2s;font-size:11px}
+details.acc[open] > summary .chev{transform:rotate(90deg)}
+details.acc .acc-body{padding:4px 16px 16px;border-top:1px solid var(--border)}
+.case{border:1px solid var(--vio-line);border-left:4px solid var(--vio);border-radius:0 10px 10px 0;background:var(--vio-soft);padding:13px 16px;margin:14px 0}
+.case .h{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--vio);margin-bottom:5px}
+.case p{font-size:12.5px;color:var(--text2);line-height:1.65}
+.walk{list-style:none;margin-top:8px}
+.walk li{display:grid;grid-template-columns:62px minmax(0,1fr);gap:10px;padding:8px 0;border-top:1px solid var(--border);font-size:12.5px;color:var(--text2);line-height:1.55}
+.walk li .w{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--accent);padding-top:2px}
+.ref{border-left:2px solid var(--border2);padding:2px 0 2px 12px}
+.ref .rt{font-weight:650;font-size:13px}
+.ref .rd{font-size:12px;color:var(--text2);margin-top:2px;line-height:1.55}
+.ref .rw{font-size:11px;color:var(--muted);margin-top:4px}
+.seq{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.seq button{display:flex;flex-direction:column;gap:3px;text-align:left;border:1px solid var(--border);border-radius:9px;padding:10px 12px;background:var(--surface);cursor:pointer;color:var(--text);font:inherit}
+.seq button:hover{border-color:var(--accent)}
+.seq .sn{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--accent)}
+.seq .st{font-size:12.5px;font-weight:650}
+.seq .sd{font-size:11px;color:var(--muted);line-height:1.45}
+.small-muted{font-size:11px;color:var(--muted)}
+.empty{padding:24px 16px;text-align:center;color:var(--muted);font-size:12px}
+
+/* MODAL / TOAST */
+.overlay{position:fixed;inset:0;background:var(--overlay);z-index:999;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:22px;width:620px;max-width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:10px}
+.modal .msec{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin:18px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.modal ul{margin-left:18px;font-size:12.5px;line-height:1.7;color:var(--text2)}
+.modal p{font-size:12.5px;line-height:1.65;color:var(--text2)}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:#1C2333;color:#E8EEF8;font-size:12px;padding:11px 18px;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.28);z-index:2000;opacity:0;transition:transform .28s,opacity .28s;max-width:min(520px,88vw)}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+@keyframes fadeUp{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}
+.fu{animation:fadeUp .18s ease}
+@media (prefers-reduced-motion:reduce){.fu{animation:none}.prog-fill,.toast,details.acc > summary .chev{transition:none}}
+
+/* RESPONSIVE */
+@media (max-width:980px){.grid3{grid-template-columns:repeat(2,minmax(0,1fr))}.seq{grid-template-columns:repeat(2,minmax(0,1fr))}.pb-meta{grid-template-columns:1fr}}
+@media (max-width:860px){
+  .sidebar{position:fixed;inset:0 auto 0 0;z-index:900;transform:translateX(-100%);transition:transform .2s;padding-top:env(safe-area-inset-top,0px)}
+  #app.nav-open .sidebar{transform:none;box-shadow:0 0 0 100vmax var(--overlay)}
+  .menu-btn{display:inline-flex}
+  .content{padding:16px}
+  .topbar{padding:6px 16px}
+  .crumb{display:none}
+  .grid2,.grid3,.gloss{grid-template-columns:1fr}
+  .lvl{grid-template-columns:48px minmax(0,1fr)}.lvl .d{grid-column:1/-1;border-top:1px solid var(--border)}.lvl .t{grid-column:1/-1;border-left:none;border-top:1px solid var(--border);padding:4px}
+  .rung{grid-template-columns:44px minmax(0,1fr)}.rung .d,.rung .g{grid-column:1/-1;border-top:1px solid var(--border);border-left:none;padding:8px 12px;justify-content:flex-start}
+  .trap{grid-template-columns:1fr}.kv{grid-template-columns:1fr}
+  .walk li{grid-template-columns:1fr}
+}
+@media (max-width:520px){.seq{grid-template-columns:1fr}.topbar-meta .fw-chip{display:none}}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <nav class="sidebar" aria-label="Guide navigation">
+    <div class="sidebar-logo">
+      <div class="logo-badge">OT · ICS</div>
+      <div class="logo-title">OT Field Guide</div>
+      <div class="logo-sub">Orientation · triage · forensic playbooks<br>for IT-trained responders</div>
+    </div>
+    <div class="sidebar-search">
+      <input id="q" type="search" autocomplete="off" spellcheck="false" placeholder="Search terms, steps, protocols…" aria-label="Search the guide"/>
+      <div id="sr"></div>
+    </div>
+    <div class="sidebar-progress">
+      <div class="prog-label"><span>Playbook steps done</span><span id="prog-text">0</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      <div class="prog-warn" id="prog-dec"></div>
+    </div>
+    <div class="sidebar-nav" id="nav"></div>
+    <div class="sidebar-footer">
+      <button class="btn btn-primary" onclick="go('triage')">⚠ Triage an alert</button>
+      <div class="btn-row"><button class="btn" onclick="copyHandover()" title="Copy the triage handover as Markdown">Copy handover</button><button class="btn" onclick="copyProgress()" title="Copy playbook progress as Markdown">Copy progress</button></div>
+      <button class="btn btn-reset" onclick="askReset()">↺ Clear triage and step ticks</button>
+    </div>
+  </nav>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="tb-action tb-help menu-btn" onclick="toggleNav()" aria-label="Open navigation">≡</button>
+        <span class="crumb" id="crumb"></span>
+        <span class="topbar-title" id="ttl">Overview</span>
+      </div>
+      <div class="topbar-meta">
+        <span class="fw-chip bad" title="Process safety outranks evidence">Safety first</span>
+        <span class="fw-chip">NIST 800-82r3 · IEC 62443 · NCSC CAF v4 · ATT&amp;CK for ICS</span>
+        <select class="tb-select" id="theme" onchange="setTheme(this.value)" aria-label="Colour theme">
+          <option value="system">◐ System</option><option value="light">☀ Light</option><option value="dark">☾ Dark</option><option value="ocean">≈ Ocean</option><option value="contrast">◼ High contrast</option>
+        </select>
+        <button class="tb-action tb-help" onclick="showModal('help')" aria-label="Help">?</button>
+      </div>
+    </div>
+    <main class="content" id="content"></main>
+  </div>
+</div>
+
+<div class="overlay" id="help" hidden onclick="if(event.target===this)hideModal('help')">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="help-h">
+    <h3 id="help-h">Using the OT Field Guide</h3>
+    <p>One guide in five parts: <b>Orient</b> (how OT differs from IT), <b>Respond</b> (rules of engagement and a safety-gated triage tool), <b>Investigate</b> (nine forensic playbooks in priority order), <b>Analyse</b> (indicators, artefact locations, scenarios, case studies) and <b>Reference</b> (frameworks and training).</p>
+    <div class="msec">Working in the field</div>
+    <ul>
+      <li>Click a step's number in any playbook to tick it off. Progress shows in the sidebar and is kept in this browser only.</li>
+      <li>The triage tool updates its decision as you answer. <b>Copy handover</b> puts a Markdown handover note on your clipboard for the OT engineering lead.</li>
+      <li>Search finds terms, protocols, assets and playbook steps. Press <code>/</code> to jump to search.</li>
+      <li>Commands have a copy button. Every path and command is typical, not guaranteed: confirm against the vendor, version and site before you rely on it.</li>
+    </ul>
+    <div class="msec">Not engineering authority</div>
+    <p>This is decision support and an orientation aid for practitioners. It does not replace engineering judgement, operations authority, functional safety assessment or vendor guidance. Decisions about OT assets, especially anything connected to a safety instrumented system, belong to qualified engineering, operations and safety personnel at the site. Use at your own risk; no liability is accepted for loss, damage or injury arising from its use.</p>
+    <div class="modal-actions"><button class="mbp" onclick="hideModal('help')">Got it</button></div>
+  </div>
+</div>
+<div class="overlay" id="reset" hidden onclick="if(event.target===this)hideModal('reset')">
+  <div class="modal" role="dialog" aria-modal="true">
+    <h3>Clear triage and step ticks?</h3>
+    <p>This clears the triage answers, handover notes and every ticked playbook step in this browser. Copy the handover first if you still need it.</p>
+    <div class="modal-actions"><button class="mbn" onclick="hideModal('reset')">Cancel</button><button class="mbp" style="background:var(--bad);border-color:var(--bad)" onclick="doReset()">Clear everything</button></div>
+  </div>
+</div>
+<script>
+const R=String.raw;
+
+// ═══════════ ATT&CK FOR ICS (technique names used in this guide) ═══════════
+const ICS={T0800:'Activate Firmware Update Mode',T0803:'Block Command Message',T0804:'Block Reporting Message',T0806:'Brute Force I/O',T0809:'Data Destruction',T0812:'Default Credentials',T0813:'Denial of Control',T0814:'Denial of Service',T0815:'Denial of View',T0816:'Device Restart/Shutdown',T0817:'Drive-by Compromise',T0819:'Exploit Public-Facing Application',T0821:'Modify Controller Tasking',T0822:'External Remote Services',T0823:'Graphical User Interface',T0826:'Loss of Availability',T0828:'Loss of Productivity and Revenue',T0827:'Loss of Control',T0829:'Loss of View',T0830:'Adversary-in-the-Middle',T0831:'Manipulation of Control',T0832:'Manipulation of View',T0835:'Manipulate I/O Image',T0836:'Modify Parameter',T0837:'Loss of Protection',T0838:'Modify Alarm Settings',T0839:'Module Firmware',T0840:'Network Connection Enumeration',T0842:'Network Sniffing',T0843:'Program Download',T0845:'Program Upload',T0846:'Remote System Discovery',T0847:'Replication Through Removable Media',T0848:'Rogue Master',T0849:'Masquerading',T0851:'Rootkit',T0855:'Unauthorized Command Message',T0856:'Spoof Reporting Message',T0857:'System Firmware',T0858:'Change Operating Mode',T0859:'Valid Accounts',T0861:'Point & Tag Identification',T0862:'Supply Chain Compromise',T0864:'Transient Cyber Asset',T0866:'Exploitation of Remote Services',T0867:'Lateral Tool Transfer',T0868:'Detect Operating Mode',T0869:'Standard Application Layer Protocol',T0872:'Indicator Removal on Host',T0873:'Project File Infection',T0878:'Alarm Suppression',T0879:'Damage to Property',T0880:'Loss of Safety',T0881:'Service Stop',T0882:'Theft of Operational Information',T0883:'Internet Accessible Device',T0884:'Connection Proxy',T0885:'Commonly Used Port',T0886:'Remote Services',T0888:'Remote System Information Discovery',T0889:'Modify Program',T0891:'Hardcoded Credentials',T0892:'Change Credential',T0893:'Data from Local System'};
+
+// ═══════════ GLOSSARY ═══════════
+const GLOSS=[
+['PLC','Programmable Logic Controller','A specialised industrial computer that executes control logic, reading sensors and driving actuators in deterministic real time. Common makes: Siemens S7, Rockwell ControlLogix and CompactLogix, Schneider Modicon, Mitsubishi, Omron, ABB.'],
+['RTU','Remote Terminal Unit','A controller hardened for remote sites and slow or unreliable links. Typical in electricity transmission, water and pipelines. Functionally close to a PLC, with telemetry protocol differences; the line between them has blurred.'],
+['IED','Intelligent Electronic Device','Electric power only: protection relays, meters and bay controllers that combine measurement, protection and communication. In a substation, "IED" means this.'],
+['HMI','Human-Machine Interface','The operator\'s screen and controls for the process. Usually Windows running vendor software (AVEVA InTouch, FactoryTalk View, WinCC, Ignition). Loss of HMI means loss of operator visibility, which is often a safety issue.'],
+['EWS','Engineering Workstation','Where engineers write, compile and download controller logic. Holds the engineering suite and the project files. Compromise gives write access to the controllers it manages, so it is the highest-value host in most intrusions.'],
+['SCADA','Supervisory Control and Data Acquisition','An architecture, not a box: HMI, servers, historian, controllers and communications supervising a geographically spread process such as a water network or grid. "The SCADA" usually means the L2/L3 aggregation layer.'],
+['DCS','Distributed Control System','Integrated, usually single-vendor control for a continuous process at one site: refineries, chemicals, generation. Emerson DeltaV, Honeywell Experion, Yokogawa CENTUM, Siemens PCS 7.'],
+['BPCS','Basic Process Control System','The everyday control stack that runs the process under normal conditions. Distinct from the SIS, which only acts when the BPCS has failed.'],
+['SIS','Safety Instrumented System','Independent automated protection that takes the process to a safe state when trip conditions are exceeded. Separate controllers, often a separate network. Governed by IEC 61508 and IEC 61511. The highest-sensitivity asset in OT.'],
+['SIL','Safety Integrity Level','The reliability target (SIL 1 to 4) assigned to a safety function under IEC 61508/61511. Not to be confused with IEC 62443 Security Levels (SL 1 to 4).'],
+['Historian','Process historian','A time-series database recording process values at high resolution over long periods: AVEVA PI, AVEVA Historian, GE Proficy, Canary. Often the IT/OT bridge because it serves both control-room trends and corporate reporting.'],
+['IACS','Industrial Automation and Control Systems','IEC 62443\'s umbrella term for the whole OT estate. When a document says IACS, read OT.'],
+['MES','Manufacturing Execution System','The L3/L4 application that turns production orders into recipes, batches and schedules for the plant. Often the system that introduces IT/OT connectivity.'],
+['Jump host','Bastion or jump server','The controlled gateway engineers and vendors use to reach OT, usually in the L3.5 DMZ. Should give session control, recording and an audit trail. An authorised, privileged path, which is why attackers want it.'],
+['Data diode','Unidirectional gateway','Hardware that physically allows data in one direction only, typically OT to IT. Gives business systems read access with no return path. Common in nuclear, defence and high-criticality CNI.'],
+['Tag','Tag or point','A named variable in a controller, HMI or historian: a sensor reading, setpoint, output or status bit. Historians and HMIs reference tags; attackers enumerate them (T0861).'],
+['PV / SP','Process value and setpoint','PV is what the process is doing (measured); SP is what the control loop is trying to achieve. A changed setpoint can be routine or malicious; only an engineer can tell which.'],
+['Interlock','Interlock or permissive','Logic that prevents an action unless conditions are safe, for example a pump that cannot start below a minimum tank level. Bypassed interlocks are a key manipulation finding.'],
+['Force','Forced I/O','An engineering function that pins an input or output to a value regardless of logic. Legitimate during commissioning; dangerous and suspicious when left on. Check the controller\'s force status.'],
+['Mode','Controller operating mode','RUN, PROGRAM (STOP) and REMOTE positions, set by key switch or software. A controller in REMOTE or PROGRAM when it should be RUN is both a finding and an exposure (T0858).'],
+['Diagnostic buffer','Controller event log','A fixed-size ring buffer in the controller recording mode changes, downloads, faults and restarts (the Siemens term; Rockwell has major/minor fault logs and, on newer controllers, a controller log). Oldest entries are overwritten.'],
+['GOOSE','Generic Object Oriented Substation Event','IEC 61850 layer-2 multicast messages between IEDs with millisecond timing, used for protection tripping. Spoofed GOOSE can trip breakers.'],
+['MOC','Management of Change','The engineering change-control process. Every logic, setpoint or configuration change should have one. Changes without an MOC record are your first anomaly list.'],
+['Permit to work','Permit to work','The site safety system that authorises hazardous work. Responders entering plant areas, or touching equipment, may need one. Ask the shift manager.'],
+['OT NSM','OT network security monitoring','Passive monitoring platforms that parse industrial protocols and baseline assets: Dragos, Claroty, Nozomi Networks, Microsoft Defender for IoT, and open source Zeek with CISA ICSNPP parsers or Malcolm.'],
+['Transient cyber asset','Transient cyber asset','A laptop, USB device or test set that connects to OT temporarily, such as an engineer\'s or vendor\'s laptop. A classic infection route (T0864) and an often-forgotten evidence source.'],
+['ICCP / TASE.2','Inter-Control Centre Communications Protocol','IEC 60870-6 protocol for exchanging data between utility control centres. Seen at the boundary between grid operators.'],
+['Purdue','Purdue Enterprise Reference Architecture','The layered L0 to L5 model of OT networks, with the IT/OT DMZ at L3.5. A reference model, not a blueprint; real networks have shortcuts.']
+];
+
+// ═══════════ PROTOCOLS ═══════════
+const PROTO=[
+['Modbus/TCP','502/tcp','Reading and writing registers and coils. The lingua franca of automation since 1979: manufacturing, HVAC, water, smaller utilities.','None. No authentication or encryption; anyone on the segment can write. Modbus/TCP Security (TLS) exists but is rare.','Write function codes 5, 6, 15, 16, 22, 23 from a host that normally only reads.','modbus.func_code in {5 6 15 16 22 23}'],
+['S7comm / S7comm-plus','102/tcp (ISO-TSAP)','Siemens S7 engineering and HMI traffic: reads, writes, block upload and download, CPU start and stop.','Classic S7comm none. S7comm-plus on S7-1200/1500 adds integrity protection and, on newer firmware, TLS; implementation varies by firmware.','PLC STOP (0x29), PI service start (0x28), download sequence (0x1a, 0x1b, 0x1c), upload (0x1d to 0x1f) outside a change window.','s7comm.param.func in {0x1a 0x1b 0x1c 0x1d 0x28 0x29}'],
+['EtherNet/IP · CIP','44818/tcp, 2222/udp','Rockwell and ODVA devices. Explicit messaging on 44818, cyclic I/O on 2222/udp.','CIP Security (TLS/DTLS) on newer devices only.','Tag writes (Write Tag 0x4D, Write Tag Fragmented 0x53) and Forward Open (0x54) from new hosts; engineering sessions from non-EWS addresses.','cip.sc in {0x4d 0x53 0x54}'],
+['DNP3','20000/tcp (also serial)','Utility telemetry and supervisory control over WAN and serial; resilient on poor links. Common in North American power and water.','DNP3 Secure Authentication (SAv5/SAv6) where deployed; otherwise none.','Operate, direct operate (FC 3 to 6), cold and warm restart (13, 14), stop application (18), unsolicited response disable.','dnp3.al.func in {3 4 5 6 13 14 18}'],
+['IEC 60870-5-104','2404/tcp','Telemetry and control between control centres and substations. The European counterpart of DNP3; widely used in UK and EU power.','IEC 62351 TLS overlay where deployed; uneven adoption.','Command ASDUs: single and double commands (45, 46), setpoints (48 to 50) and their time-tagged forms (58 to 63), reset process (105).','iec60870_asdu.typeid in {45 46 47 48 49 50 51 58 59 60 61 62 63 105}'],
+['IEC 61850 MMS / GOOSE','102/tcp (MMS); GOOSE is layer 2, Ethertype 0x88B8','Substation automation between IEDs and the station HMI. GOOSE carries time-critical protection signals.','IEC 62351-6 authentication for GOOSE; timing constraints make deployment hard.','MMS write and control-block operations; GOOSE from an unexpected MAC or with jumping stNum.','goose || mms'],
+['OPC UA','4840/tcp','Modern data exchange between OT systems and from OT to IT, MES and cloud. Successor to DCOM-based OPC Classic.','Designed-in authentication, signing and encryption, but many deployments run with security mode None.','Write service requests from unexpected clients; sessions with security mode None; new client certificates.','opcua'],
+['OPC Classic (DA)','135/tcp + DCOM dynamic ports','Legacy Windows DCOM data exchange between HMIs, historians and servers.','Windows DCOM authentication only; firewall-hostile dynamic ports.','New DCOM clients to the OPC server; anonymous launch permissions.','dcerpc'],
+['PROFINET','Layer 2 (RT); 34964/udp (DCP, CM)','Siemens-centred industrial Ethernet, including real-time motion variants.','PROFINET Security Classes 1 to 3 are recent; early adoption.','DCP Set (renaming or re-addressing devices); unexpected IO-controllers.','pn_dcp || pn_io'],
+['BACnet/IP','47808/udp','Building automation: HVAC, lighting, access control.','BACnet/SC (secure connect) is new; most sites have none.','WriteProperty and ReinitializeDevice from new hosts.','bacapp'],
+['MQTT','1883/tcp, 8883/tcp (TLS)','Publish-subscribe for IIoT, edge gateways and cloud bridges.','TLS and username/password or certificates, depending on the broker.','Publishes to command topics from unknown clients; anonymous brokers.','mqtt']
+];
+
+// ═══════════ TRIAGE MODEL (from OT Incident Triage) ═══════════
+const ASSETS=[
+{code:'A1',name:'Engineering Workstation',short:'EWS',pb:['p2','p4'],
+ desc:'Programming station for PLCs, RTUs or SIS. Holds engineering software, project files and direct write access to controllers.',
+ instinct:'Isolate immediately via EDR, image the disk, hunt for IoCs across other endpoints.',
+ why:'The EWS may have live sessions to controllers. Isolating mid-session can interrupt an engineering operation or a logic download in progress. EDR isolation may also disrupt management of safety devices. The project files are evidence; overwriting them with an image restore destroys forensic value.',
+ safer:'Find out which controllers it talks to and their current state before containment. Engage the engineering authority for this EWS first. Treat it as both incident asset and engineering artefact; preservation matters in both senses.',
+ allow:['Passive monitoring of traffic to and from the EWS (SPAN or TAP)','Identity audit: who logged on, from where, when','Event log export if EDR isolation has not been triggered','Confirm reachable controllers from documentation, not by live probing','Photograph any open engineering session before any action'],
+ deny:['EDR isolation without engineering sign-off; it may sever a live engineering session','Forced reboot or shutdown; an in-progress download could leave controllers inconsistent','Password reset on engineering accounts; may lock out the only person who can safely shut down','Disk imaging while the EWS is actively engineering a controller','Removing the EWS from the network until the controllers it manages are confirmed stable'],
+ ev:['Photograph the screen: open project, recent files, last commands','Export Windows event logs to approved media if the OT lead agrees','Capture netstat output to a local file: listening ports and active connections','Note last logon, last project save and last download to a controller','Copy engineering project files to an OT-approved evidence location'],
+ calls:['OT engineer responsible for this EWS, by name if known','Control room: current process state and any engineering work in progress','Vendor support (Siemens, Rockwell, ABB and so on) if a session was active'],
+ refs:['IEC 62443-2-1','NIST SP 800-82r3','NCSC OT guidance']},
+{code:'A2',name:'HMI / Operator Workstation',short:'HMI',pb:['p2','p3'],
+ desc:'The screen operators use to monitor and control the process. Losing it means losing operator visibility.',
+ instinct:'Lock the user out, reset credentials, isolate the workstation.',
+ why:'Operators rely on the HMI to see process state in real time. Locking them out or removing it without warning can leave them blind during an active process. Some regulators require continuous visibility. HMIs are often shared sessions, so a forced logoff affects the whole shift.',
+ safer:'Contact the control room before any action; operations leads whenever an HMI changes. If the HMI is compromised, the fallback may be local panels, paper logs or a shift change, and operations decides which.',
+ allow:['Passive network monitoring','Read-only export of the HMI audit log if possible without disturbing the session','Photograph the HMI screen and current alarms','Identity audit of privileged HMI accounts','Cross-check the operator or shift log for unusual events'],
+ deny:['Forced logout of an active operator session','Reboot or shutdown without operator and control-room sign-off','Password reset on operator accounts during a shift','Network isolation that removes the operator\'s view of the process','Changes to HMI software or configuration'],
+ ev:['Photographs of HMI screens, process state and alarms','Operator on shift, time of the anomaly, what they reported','HMI audit log (read-only export where supported)','Process values and alarms displayed at the time','Operator interview notes: what they saw, what changed, what they did'],
+ calls:['Control-room supervisor or shift manager','Operations lead: fallback plan if the HMI must go offline','HMI software vendor if the anomaly is in HMI behaviour'],
+ refs:['IEC 62443-3-3','NIST SP 800-82r3','IEC 61511']},
+{code:'A3',name:'Historian / Data Server',short:'Historian',pb:['p5','p6'],
+ desc:'Records process data over time for reporting, optimisation and compliance. Often bridges OT and IT, and so is often the first OT asset reached.',
+ instinct:'Isolate, image, restore from backup.',
+ why:'The historian pulls from OT and serves IT. Isolating it may break compliance reporting, regulatory feeds and downstream IT systems that are not obvious from the OT side. Restoring from backup can overwrite data the regulator expects to see. A compromised historian often means the attacker is mapping OT, so escalation matters more than immediate isolation.',
+ safer:'Inventory both sides: what OT it pulls from and what IT it feeds. Contain on the IT side first (block egress, restrict accounts), which is usually safer than OT-side containment. Engage data owners and compliance before any restore.',
+ allow:['Block historian traffic to IT business systems at the DMZ without touching OT inputs','Audit accounts with read or write access','Capture authentication logs','Monitor historian connections at the network level','Read-only data-integrity check with the data owners'],
+ deny:['Restore from backup without OT and compliance sign-off','Stopping the historian service during production','Changing historian configuration without engineering review','Isolating from the OT side without considering downstream IT impact','Resetting service-account passwords without OT, IT and reporting teams'],
+ ev:['Historian access log export (read-only)','Recent query history if available','Connection list: what reads from and writes to it','Data-integrity check: gaps, spikes, implausible values','Read-only configuration snapshot'],
+ calls:['OT engineering lead','IT data team','Compliance or reporting lead if it feeds regulator reports','Historian vendor (AVEVA PI, Proficy, AVEVA Historian and so on)'],
+ refs:['IEC 62443-3-3','NIST SP 800-82r3','IEC 62443-2-1']},
+{code:'A4',name:'PLC / RTU / Controller',short:'PLC/RTU',pb:['p7','p1'],
+ desc:'The device controlling the physical process: machinery, valves, motors, drives. Often legacy, with limited security and no logging.',
+ instinct:'Power-cycle, reflash firmware, change passwords.',
+ why:'Power-cycling a PLC can drop outputs or hold them in last state depending on configuration, and either may be unsafe. Reflashing a running controller without engineering planning is a safety event. Many controllers keep little or no log, so the evidence is in the surrounding systems: EWS, network and historian.',
+ safer:'The IT responder does not act on a controller directly. Support engineering with surrounding evidence (network traffic to the controller, the EWS that programmed it, historian process data). Engineering decides what to do with the controller.',
+ allow:['Passive monitoring of traffic to and from the controller','Document make, model, firmware and last programming date from the EWS or inventory','Pull process behaviour from the historian: anomalies, setpoint changes, alarm history','Review EWS logs for recent programming activity targeting this controller'],
+ deny:['Any direct connection to the controller without engineering authority','Power-cycle, reset or factory reset','Firmware update, configuration change or logic download','Password or authentication changes on the controller','Scans of any kind; many controllers crash on unexpected traffic'],
+ ev:['Surrounding evidence only: EWS logs, historian data, network captures','Photograph front-panel indicators and key switch if accessible','Model and firmware from inventory, not by querying the device','Alarm history from the historian for the window','Operator observations of process behaviour'],
+ calls:['OT engineering lead (full authority on the controller)','Control room: current process state','Vendor support','Safety lead if the controller has any safety function'],
+ refs:['IEC 62443-3-3','NIST SP 800-82r3','CISA ICS advisories for the controller family']},
+{code:'A5',name:'Safety Instrumented System',short:'SIS',pb:['p0'],
+ desc:'Independent safety layer that takes the process to a safe state if limits are exceeded. The highest-sensitivity asset in OT.',
+ instinct:'Treat it like any other endpoint: patch, monitor, audit.',
+ why:'An SIS is not an endpoint. It exists to protect people and equipment when other layers fail. Anything affecting its availability or integrity is a safety event. Triton (2017) showed attackers can reach SIS controllers; the response is closer to a major safety incident than a normal IR.',
+ safer:'Stop. Do not make decisions about the SIS without engineering, safety and operations engaged. Treat it as a major incident regardless of confirmed compromise and follow the site\'s SIS procedure.',
+ allow:['Document exactly what was observed: alerts, times, source','Engage the escalation chain; this is not your decision','Preserve surrounding evidence (network, EWS, historian) without touching the SIS','Notify the safety lead and operations leadership at once'],
+ deny:['Any direct interaction with the SIS','Any network action that could affect SIS reachability; even passive monitoring needs agreement','Independent decisions about SIS availability','Delaying escalation'],
+ ev:['What triggered the concern: alert details, source, time','Surrounding system evidence preserved without touching the SIS','Plant safety logs and historian data for the period','Vendor or ISAC notifications that prompted concern'],
+ calls:['Plant manager or site lead','Functional safety lead or safety engineer','Control room, immediately','Engineering authority for this SIS','SIS vendor (Schneider Triconex, HIMA, Honeywell, Emerson, Yokogawa and so on)','Legal, on regulator notification'],
+ refs:['IEC 61508','IEC 61511','IEC 62443-3-3','NCSC OT guidance']},
+{code:'A6',name:'OT Network Device',short:'OT Net',pb:['p1','p6'],
+ desc:'Switches, firewalls, gateways and protocol converters inside OT or at the IT/OT boundary. Often configured by IT, governed by OT.',
+ instinct:'Treat it like any switch or firewall: patch, restart, change configuration.',
+ why:'OT network devices carry deterministic traffic and protocol conversion. Restarting a control-network switch drops packets the process depends on. An ACL change can block traffic the process needs. OT networks often lack path failover, so a quick restart is an outage.',
+ safer:'Treat changes as engineering changes: change control, planned windows, coordination with operations. Analyse and recommend; OT engineering and operations make the change.',
+ allow:['Read-only configuration export (running config, ACLs, VLANs) via approved access','Syslog and SNMP collection without changing device state','Passive captures from monitoring ports','Audit accounts with management access','Map the device\'s role: what it connects and what depends on it'],
+ deny:['Restart during production','ACL changes without engineering and operations sign-off','Firmware updates outside change control','Adding or removing VLANs','Active scanning of the device or segment'],
+ ev:['Read-only configuration export','Recent syslog','Interface counters, ARP and MAC tables','Authentication logs','Topology showing the device\'s role'],
+ calls:['OT network engineer or architect','Operations (change authority for the segment)','Vendor support for the device'],
+ refs:['IEC 62443-3-3','NIST SP 800-82r3']},
+{code:'A7',name:'Vendor Jump Host / Remote Access',short:'Vendor',pb:['p6','p2'],
+ desc:'The gateway vendors use to support OT remotely. The highest-risk vector in many environments: third-party access with elevated privilege.',
+ instinct:'Cut the connection, disable the vendor account, investigate later.',
+ why:'Cutting a vendor mid-session can leave equipment partly configured: a firmware update, calibration or commissioning step half done. Disabling the account before understanding the session risks a worse outcome than five more minutes while engineering joins.',
+ safer:'Identify the vendor, the task, the hosting engineer and the agreed scope. If the anomaly is confirmed, coordinate the disconnect with the host engineer so the OT side is stable first, then disable accounts.',
+ allow:['Monitor the session: network traffic, screen if possible','Identify the vendor, the hosting engineer and the scope','Check against the change ticket or agreed support window','Audit the vendor account\'s history: when and from where','Prepare the disconnect and agree timing with the host engineer'],
+ deny:['Immediate disconnect while they may be mid-task in OT','Disabling the account before understanding session state','Resetting credentials before the vendor is told (they may reconnect by a less safe path)','Blocking the jump host range without operations sign-off'],
+ ev:['Session recording or screen capture','Network capture of the session','Vendor account authentication logs','Change ticket or contract context','Host engineer\'s account of what should have happened'],
+ calls:['Hosting engineer at the plant, immediately','Vendor support line, on a separate channel from the jump host','Operations: process state during the session','Contract or procurement lead: notification obligations'],
+ refs:['NCSC supply chain guidance','IEC 62443-3-3','NIST SP 800-82r3']},
+{code:'A8',name:'Unknown OT Asset',short:'Unknown',pb:['p1'],
+ desc:'The alert is OT-adjacent but the asset cannot be identified yet. Common where monitoring covers ranges IT has no inventory for.',
+ instinct:'Look up the address, run discovery scans.',
+ why:'Active discovery on OT networks can crash legacy controllers, trip protection relays or halt protocol converters. Not knowing what an asset is means you especially must not probe it. Many real OT incidents began with a well-meant scan.',
+ safer:'Ask OT engineering and operations what is at that address. Use passive sources first: historian connections, switch ARP tables, the asset register. The gap is information; fix the inventory later.',
+ allow:['Passive identification: captures, switch port mapping, ARP tables','Cross-reference the OT asset inventory and drawings','Ask engineering and operations directly','Check change records for recent additions to the segment','Vendor or integrator records'],
+ deny:['Active scanning of any kind','Direct connection attempts','Authentication probing','ICMP sweeps on OT segments','Anything that sends unexpected traffic to the asset'],
+ ev:['Passive capture of traffic involving the address','Switch port mapping and physical location','ARP and MAC tables (read-only)','Inventory cross-reference','Engineering and operations answers'],
+ calls:['OT engineering lead','Control room','OT network engineer for port mapping','Asset or configuration management owner'],
+ refs:['NIST SP 800-82r3','IEC 62443-2-1','NCSC OT guidance']}
+];
+const CRIT=[
+{code:'C1',name:'Safety-critical',desc:'Failure could harm people or the environment: SIS, primary safety functions, anything on a safety loop.'},
+{code:'C2',name:'Production-critical',desc:'Failure stops or significantly degrades production with material commercial impact.'},
+{code:'C3',name:'Production-supporting',desc:'Inconvenient if lost; production continues. Reporting, optimisation, non-critical visibility.'},
+{code:'C4',name:'Non-production',desc:'Test, development, lab or historical. No live process impact.'}
+];
+const GATES=[
+{id:'G1',q:'Have operations been notified that you are investigating an alert on this asset?',h:'Operations need to know before you touch anything. Even a short call gives them context for anomalies in the next few minutes. If no, pause and call now.'},
+{id:'G2',q:'Has a named OT engineering authority been identified and contacted?',h:'A named engineer or on-call holder for this asset, not just "the OT team". With them on the line, triage runs faster and safer.'},
+{id:'G3',q:'Is the process stable and not in an unusual condition?',h:'Start-up, shutdown, upset or active alarms mean small disruptions can cascade.'},
+{id:'G4',q:'Is every action you are considering free of impact on a safety system?',h:'If an action could affect an SIS, directly or by interrupting its monitoring, the answer is No until proven otherwise. A higher bar than "I don\'t think so".'},
+{id:'G5',q:'Is the asset positively identified?',h:'Unknown asset means passive identification only. Selecting "Unknown OT asset" sets this to No.'}
+];
+const OBS=[
+['O1','Suspicious network traffic to or from OT','Unexpected protocol, source, destination or volume.'],
+['O2','Authentication anomaly on an OT asset','Failed-logon spike, odd hours, unusual source.'],
+['O3','Endpoint or malware alert','EDR or AV fired on an OT-adjacent host (EWS, HMI, historian).'],
+['O4','Unexplained configuration or logic change','Engineering change without a ticket, unexpected version, integrity check failure.'],
+['O5','Vendor remote session anomaly','Outside the agreed window, unexpected vendor, scope beyond the ticket.'],
+['O6','Loss of visibility or monitoring gap','Historian gap, lost connection to a control segment, monitoring offline.'],
+['O7','Physical or environmental indicator','Door alarm, unusual access, equipment behaviour reported by operations.'],
+['O8','External notification','Vendor advisory, ISAC or partner reporting a related compromise.']
+];
+</script>
+<script>
+// ═══════════ PLAYBOOKS ═══════════
+// Each step: t title, d body (html), cmd (optional), gate/stop/tip/out (optional callouts)
+const PB=[
+{id:'p0',code:'P0',title:'Mobilise and scope',short:'Mobilise & scope',risk:'lo',rung:0,
+ obj:'Get authority, people, a time reference and a picture of the plant before anyone touches an OT asset. Every later playbook depends on the decisions recorded here.',
+ when:'First hour of any OT-adjacent incident, before any technical action. Repeat the control-room check at each shift change.',
+ who:['IR lead (you)','Named OT engineering authority','Shift manager or control-room supervisor','Functional safety lead if any SIS is in scope','Legal and communications for notification'],
+ pre:['An incident log you can keep offline','Contact list for engineering, operations, safety and vendors','The triage tool answers for each affected asset'],
+ steps:[
+ {t:'Open the incident log and start the clock',d:'Record every action as <b>time (UTC) · who · what · why · authorised by</b>. Note the local offset (BST is UTC+1). Keep an offline copy: a bound notebook or a local file, because OT sites may have no network you are allowed to use.',out:'<b>Output:</b> incident log with the first entry recording who declared the incident and when.'},
+ {t:'Notify the control room before any technical action',d:'Call the shift manager. Ask: what is the process doing right now (normal, start-up, shutdown, upset)? Any active alarms? Any planned engineering or vendor work today? Tell them which assets you are looking at and that you will not change anything without their agreement.',gate:'<b>Gate G1:</b> no technical action of any kind until operations have been told. If the process is not stable (G3), hold.'},
+ {t:'Name the engineering authority and the safety contact',d:'Get a named engineer (and deputy) for each affected area, with phone numbers. Agree in writing that they approve every action that touches an OT asset, and that you will brief them before each one. If a vendor maintains the system, find out who holds the support contract.',gate:'<b>Gate G2:</b> no named engineering authority means hold.'},
+ {t:'Decide whether a safety system is in scope',d:'Ask engineering: is any affected asset an SIS, an EWS that programs an SIS, or on a network shared with one? If yes, invoke the site\'s SIS procedure and escalate as a major incident. IT-side technical action stops until safety and plant management lead.',stop:'<b>Stop:</b> any doubt about SIS involvement is treated as Yes until engineering confirms otherwise.'},
+ {t:'Pull the existing picture before collecting anything new',d:'Gather what already exists, and note gaps as findings:<ul><li>Asset inventory, network drawings, firewall rule base for the IT/OT boundary</li><li>OT NSM alerts, asset lists and baselines (Dragos, Claroty, Nozomi, Defender for IoT)</li><li>MOC and change tickets for the last 30 to 90 days</li><li>Vendor remote-access log and maintenance windows</li><li>Last known-good backups of controller logic and HMI projects, with dates</li></ul>'},
+ {t:'Set the time reference and measure clock offsets',d:'OT clocks drift. PLCs, HMIs and historians are often unsynchronised. Pick a reference (your capture host on NTP, or a GPS clock), then for each system record its displayed time against the reference and photograph it. You need these offsets to build the fused timeline in P5.',cmd:R`# on your capture laptop: confirm it is synchronised and record it
+date -u +"%Y-%m-%dT%H:%M:%SZ"
+chronyc tracking        # or: timedatectl show-timesync --all
+# on Windows hosts (read-only)
+w32tm /query /status`},
+ {t:'Agree containment boundaries with operations',d:'Write down what may be isolated (typically IT-side uplinks and the L3.5 DMZ), what must stay connected (anything giving operators view or control) and the fallback operating mode (local panels, manual operation, reduced rate). Record who approved it. Isolation is not shutdown; operations decide on any shutdown.'},
+ {t:'Check notification obligations and line up vendors',d:'Ask legal which clocks are running. Under the UK NIS Regulations 2018, an operator of essential services notifies its competent authority without undue delay and within 72 hours of becoming aware of a reportable incident; sector regulators (Ofgem, Ofwat, DfT, HSE) may add expectations. Confirm current rules with legal. Call vendors now if controller diagnostics, firmware checks or SIS work will need them.'},
+ {t:'Prepare and scan your own kit',d:'Your laptop and USB media are transient cyber assets. Before they enter the plant:<ul><li>Scan them, and follow the site\'s removable-media procedure (some sites require a kiosk scan)</li><li>Carry tools in 32-bit and 64-bit builds for old Windows</li><li>Pack a passive TAP, receive-only capture host, write-blocked media, camera, evidence bags and chain-of-custody forms</li></ul>',stop:'<b>Do not</b> join your laptop to an OT network as a host or plug in unscanned media.'}
+ ],
+ outputs:['Incident log and contact sheet','Scope statement listing affected assets and their triage decisions','Approved action list and containment boundaries','Clock-offset record for every system'],
+ dont:['Take any technical action before the control room is told','Bring unscanned media or laptops into OT','Accept "the OT team" in place of a named engineer'],
+ att:[],tools:['Incident log template','OT NSM console','CMDB or asset register']},
+
+{id:'p1',code:'P1',title:'Passive network capture',short:'Network capture',risk:'lo',rung:1,
+ obj:'Get a hashed, timestamped, receive-only capture running at the boundaries that matter, then let it record while you work everything else. It is the only free action and often the only view of L1 and L0.',
+ when:'Immediately after P0 gates are passed. Keep it running for the whole incident and into recovery.',
+ who:['OT network engineer (owns switch and TAP placement)','Operations (approves any SPAN change or brief link interruption)'],
+ pre:['Network drawing showing the IT/OT boundary and control VLANs','Approval for SPAN configuration or TAP insertion','Capture host prepared as receive-only'],
+ steps:[
+ {t:'Choose capture points from the drawing',d:'At minimum capture the <b>IT/OT DMZ (L3.5)</b>, ideally both sides of the boundary firewall, to reconstruct the crossing; and the <b>control VLAN</b> where HMIs and EWS talk to controllers (L2 to L1). Add the vendor remote-access segment if it exists. Ask the network engineer which switch ports carry those flows.',tip:'<b>Tip:</b> a SPAN configuration change is itself a network change. Put it through change control, even in an emergency.'},
+ {t:'Export what OT NSM already holds',d:'If Dragos, Claroty, Nozomi or Defender for IoT is deployed, export its packet buffer, alerts, asset inventory and baseline for the incident window plus 30 days before. It may already contain the pre-incident traffic you cannot capture now. Hash every export.'},
+ {t:'Prefer a passive TAP; record SPAN caveats',d:'A passive TAP is receive-only by construction and does not drop under load. SPAN ports can drop frames when oversubscribed, may strip or add VLAN tags and can miss the low-volume engineering commands you most need. Inserting an inline TAP briefly breaks the link, so it needs an operations-approved window. If you must use SPAN, record that as a fidelity limitation in the log.'},
+ {t:'Make the capture host receive-only',d:'The capture interface must never transmit onto the OT segment: no IP address, no ARP, no IPv6, no DHCP.',cmd:R`# Linux capture host; eth1 faces the TAP or SPAN port
+nmcli dev set eth1 managed no            # stop NetworkManager touching it
+ip addr flush dev eth1
+sysctl -w net.ipv6.conf.eth1.disable_ipv6=1
+ip link set dev eth1 arp off
+ip link set dev eth1 up promisc on
+# verify: you see traffic, and TX stays at zero
+tcpdump -ni eth1 -c 50
+ip -s link show eth1`,stop:'<b>Stop</b> if the TX packet counter on the capture interface rises. Unplug and fix before reconnecting.'},
+ {t:'Start a rotating capture and hash each file as it closes',d:'Write to local disk in rotated files so a crash loses little. Hash every file as it closes, and log the start time against your reference clock.',cmd:R`# hash helper called by tcpdump after each rotation
+cat > /usr/local/bin/hashroll.sh <<'EOF'
+#!/bin/sh
+sha256sum "$1" >> /evidence/capture.sha256
+EOF
+chmod +x /usr/local/bin/hashroll.sh
+
+# rotate every 5 minutes, full packets, hash on close (TZ=UTC so file names are UTC)
+TZ=UTC tcpdump -ni eth1 -s 0 -G 300 -w '/evidence/dmz-%Y%m%dT%H%M%SZ.pcap' -z /usr/local/bin/hashroll.sh
+
+# alternative: dumpcap ring buffer (512 MB files, keep 200)
+dumpcap -i eth1 -b filesize:524288 -b files:200 -w /evidence/dmz.pcapng
+date -u >> /evidence/capture.log`},
+ {t:'Check capture health',d:'Confirm packets are arriving, timestamps match your reference and nothing is being dropped. Record drop counts in the log.',cmd:R`capinfos -aeuc /evidence/dmz-*.pcap      # first/last packet time, duration, count
+tshark -r /evidence/dmz-<file>.pcap -q -z io,phs   # protocol hierarchy: do you see OT protocols?`},
+ {t:'Baseline the normal talkers',d:'OT traffic is highly deterministic: the same HMIs poll the same controllers at the same intervals. Build the conversation map first; anything off-pattern then stands out.',cmd:R`tshark -r ctrl.pcapng -q -z conv,tcp -z endpoints,ip
+# who speaks which OT protocol, by pair
+tshark -r ctrl.pcapng -Y "modbus || s7comm || enip || cip || dnp3 || iec60870_104 || opcua" \
+  -T fields -e ip.src -e ip.dst -e _ws.col.Protocol | sort | uniq -c | sort -rn
+# passive asset list with vendor OUIs, no scanning
+tshark -r ctrl.pcapng -q -z endpoints,eth`},
+ {t:'Hunt the OT-specific red patterns',d:'Look for write and control commands from hosts that normally only read, controller stop, start, download and upload outside a change window, new devices speaking engineering protocols, and malformed or scan-like frames. Use the filters on the <a href="#protocols">Protocols</a> page; the most useful are:',cmd:R`modbus.func_code in {5 6 15 16 22 23}                 # Modbus writes
+s7comm.param.func in {0x1a 0x1b 0x1c 0x1d 0x28 0x29}  # S7 download, upload, start, stop
+cip.sc in {0x4d 0x53 0x54}                            # CIP tag writes, Forward Open
+dnp3.al.func in {3 4 5 6 13 14 18}                    # DNP3 operate, restart, stop app
+iec60870_asdu.typeid in {45 46 48 49 50 58 59 60 61 62 63 105}  # IEC 104 commands`,tip:'<b>Tip:</b> a write is not malicious on its own. Note source, time and target, then ask engineering whether it matches a change ticket.'},
+ {t:'Process at scale with ICS-aware tooling',d:'For hours or days of capture, use Zeek with CISA\'s ICSNPP parsers (Modbus, DNP3, S7comm, EtherNet/IP, BACnet, OPC UA binary) for structured logs, or load the pcap into CISA Malcolm, which bundles Zeek, Arkime and the parsers.',cmd:R`zkg install icsnpp-modbus icsnpp-dnp3 icsnpp-s7comm icsnpp-enip icsnpp-bacnet icsnpp-opcua-binary
+zeek -C -r ctrl.pcapng local
+# modbus_detailed.log, s7comm.log, enip.log, dnp3_control.log ... appear in the cwd`},
+ {t:'Derive the asset map from the capture, not from a scan',d:'Build the list of hosts, MAC vendors and protocol roles (who is master, who is outstation) from passive data. Compare it with the inventory from P0; unknown devices go to triage as asset type A8.',stop:'<b>Do not</b> run Nmap, vulnerability scanners, ping sweeps or credentialed discovery on OT segments. Legacy stacks can crash on a single unexpected packet.'},
+ {t:'Preserve and keep recording',d:'Copy closed files to evidence storage, verify hashes and record chain of custody. Leave the capture running through containment and recovery; it is how you will see whether the adversary returns.',out:'<b>Output:</b> rotated pcaps with hash list, capture log with drop counts and clock offset, talker baseline, list of suspicious OT commands with timestamps.'}
+ ],
+ outputs:['Hashed pcap ring with capture log','Conversation baseline and passive asset list','Timestamped list of control and engineering commands','OT NSM exports'],
+ dont:['Transmit from the capture host','Scan or probe to "fill in" the asset map','Change SPAN configuration without change control'],
+ att:['T0842','T0846','T0855','T0843','T0845','T0858','T0869','T0885','T0884'],
+ tools:['Passive TAP','tcpdump / dumpcap','Wireshark / tshark','Zeek + CISA ICSNPP','CISA Malcolm','Arkime','NetworkMiner','OT NSM exports']},
+
+{id:'p2',code:'P2',title:'Volatile state on L2/L3 Windows hosts',short:'Volatile host state',risk:'md',rung:2,
+ obj:'Capture memory and live state from HMIs, SCADA servers, engineering workstations, jump hosts and historian servers before anyone reboots or cleans up, without leaving operators blind.',
+ when:'As soon as the host\'s owner and operations agree, ahead of log exports and disk images. Prioritise the EWS and any jump host on the attack path.',
+ who:['Host owner (OT engineer or HMI engineer)','Operator on shift if it is an HMI','Operations for any isolation decision'],
+ pre:['Triage decision for this asset is Proceed, or Hold with engineering present','Approved external media','Tool builds matching the OS and architecture'],
+ steps:[
+ {t:'Photograph the screen before touching anything',d:'Capture what is visible: open projects, recent file lists, HMI displays, alarms, logged-on user, clock. Ask the operator before moving the mouse; screen locks and timeouts can engage.'},
+ {t:'Confirm what the host is doing right now',d:'Ask the owner: is an engineering session open to a controller? Is a download or online edit in progress? Is this HMI the only view of part of the process? If any answer is yes, wait for the engineer to finish or reach a safe point.',stop:'<b>Stop</b> if a controller download or online edit is in progress. Do not interrupt it.'},
+ {t:'Decide isolation with operations, not alone',d:'Choose the least disruptive option and record who approved it:<ul><li>Leave connected and monitor (P1 is already running)</li><li>Block the host\'s IT-side traffic at the L3.5 firewall</li><li>Move to a quarantine VLAN that still carries required OT flows</li></ul>Never pull the process-facing link of an HMI or EWS mid-operation. A rebooted HMI loses volatile state and may blind operators.'},
+ {t:'Identify OS and architecture, then pick tools',d:'Windows XP, 7, Server 2003 and 2008 are common, and EDR is often absent. Use statically linked tools you brought, not the host\'s binaries. Check the build before choosing tools.',cmd:R`ver
+echo %PROCESSOR_ARCHITECTURE%
+wmic os get Caption,Version,OSArchitecture,LastBootUpTime`},
+ {t:'Capture RAM to external media',d:'Memory holds injected code, decrypted payloads, C2 handles and credentials. Write to approved external media, never the host\'s own disk. Mounting USB is itself a change on some sites; use the approved device.',cmd:R`:: WinPmem (choose the build that supports this OS)
+E:\tools\winpmem_mini_x64.exe E:\IR\HMI01\HMI01-mem.raw
+:: GUI alternatives on older systems: DumpIt, Magnet RAM Capture, FTK Imager (Capture Memory)
+certutil -hashfile E:\IR\HMI01\HMI01-mem.raw SHA256 >> E:\IR\HMI01\hashes.txt`},
+ {t:'Snapshot live network, process and session state',d:'Record what is talking and running before connections close. Redirect output to your media.',cmd:R`set O=E:\IR\HMI01\live
+mkdir %O%
+netstat -anob            > %O%\netstat.txt
+tasklist /v /svc         > %O%\tasklist.txt
+wmic process get ProcessId,ParentProcessId,CommandLine /format:csv > %O%\proc_cmdline.csv
+query user               > %O%\sessions.txt
+net session              > %O%\net_session.txt
+net use                  > %O%\net_use.txt
+ipconfig /all            > %O%\ipconfig.txt
+ipconfig /displaydns     > %O%\dnscache.txt
+arp -a                   > %O%\arp.txt
+route print              > %O%\routes.txt
+schtasks /query /fo csv /v > %O%\schtasks.csv
+sc queryex type= service state= all > %O%\services.txt`},
+ {t:'Collect the standard Windows triage set',d:'Event logs, registry hives and user hives, Prefetch, Amcache and ShimCache, LNK and Jump Lists, scheduled tasks, and RMM footprints (AnyDesk, TeamViewer, ScreenConnect). KAPE or a Velociraptor offline collector gets this consistently. On XP and Server 2003, where they will not run, use FTK Imager Lite to add the files to a custom content image, or copy <code>%SystemRoot%\\system32\\config\\*.evt</code>, hives and Prefetch manually.',cmd:R`kape.exe --tsource C: --tdest E:\IR\HMI01\triage --target !SANS_Triage --vhdx HMI01
+:: or a pre-built Velociraptor offline collector
+E:\tools\Collector_velociraptor-windows-amd64.exe`},
+ {t:'Collect the OT application data on the host',d:'Copy (read-only) the OT software\'s own logs and configuration: HMI runtime logs and project folders, engineering software logs, communication driver configuration (RSLinx or FactoryTalk Linx, Siemens PG/PC interface, KEPServerEX project), OPC server logs and licence server logs. See <a href="#artefacts">Artefacts by vendor</a> for typical locations.'},
+ {t:'Review the Windows events that matter in OT',d:'Focus on logons and remote sessions that line up with engineering activity:<ul><li><code>4624</code> / <code>4625</code> logon success and failure (type 2 console, 3 network, 10 RDP); <code>4648</code> explicit credentials; <code>4672</code> admin logon</li><li><code>4688</code> process creation (if auditing is on); PowerShell <code>4104</code></li><li><code>7045</code> / <code>4697</code> service installed (PsExec, RMM agents)</li><li><code>4720</code>, <code>4732</code> account created, added to a local group</li><li><code>1102</code> / <code>104</code> log cleared</li><li>TerminalServices-LocalSessionManager <code>21</code>, <code>24</code>, <code>25</code>; RemoteConnectionManager <code>1149</code></li><li>USB: Partition/Diagnostic <code>1006</code> on Windows 10 and later; <code>setupapi.dev.log</code> (or <code>setupapi.log</code> on XP)</li></ul>'},
+ {t:'Note what is abnormal for OT',d:'Record and escalate: engineering software run by a non-engineering account or out of hours; RMM tools newly installed; new local administrators on an HMI; project files modified outside change control; remote sessions from the DMZ jump host to the EWS that no ticket explains. These are your pivots into P3, P4 and P6.'},
+ {t:'Agree what happens next',d:'With operations, decide whether the host returns to service, waits for a full image (P4) or is replaced. Record the decision.',out:'<b>Output:</b> hashed memory image, live-state files, triage collection, OT application logs and a short findings note per host.'}
+ ],
+ outputs:['Memory image with hash','Live state text files','Triage collection (VHDX or zip)','OT application logs and configuration','Per-host findings note'],
+ dont:['Reboot, log off operators or reset passwords mid-shift','Write tools or output to the host\'s own disk','Run aggressive EDR sweeps or WMI storms across OT hosts'],
+ att:['T0859','T0886','T0822','T0867','T0872','T0849','T0851','T0864'],
+ tools:['WinPmem / DumpIt / Magnet RAM Capture','KAPE','Velociraptor offline collector','Sysinternals','FTK Imager (Lite)','Eric Zimmerman tools','Volatility 3']},
+
+{id:'p3',code:'P3',title:'OT logs, alarms and engineering audit trails',short:'OT logs & alarms',risk:'lo',rung:3,
+ obj:'Export the OT-specific records IT forensics misses, before they roll: who pushed logic and when, what operators were shown, and whether alarms were suppressed.',
+ when:'In parallel with P2 on the same hosts. HMI and SCADA buffers on busy systems can overwrite within minutes to hours.',
+ who:['HMI or SCADA engineer (runs the product exports)','Controls engineer for engineering software logs','Historian owner (to start P5 exports)'],
+ pre:['Incident window agreed, plus a baseline window before it','Approval to run exports on live systems'],
+ steps:[
+ {t:'List every OT log source and its retention',d:'For the affected area, write down each source, where it lives and how long it keeps data: HMI alarm and event history, SCADA audit trail, engineering software logs, communication driver and OPC logs, controller diagnostic buffers (P7), historian message log (P5), OT NSM, boundary firewall. Export the shortest-lived first.',out:'<b>Output:</b> source table with retention, used to order the exports below.'},
+ {t:'Export HMI and SCADA alarm and event history',d:'Have the product engineer export the window and baseline through the product\'s own tools; do not copy live database files. Typical stores:<ul><li>Siemens WinCC: alarm logging archives (export via the runtime or Information Server)</li><li>AVEVA InTouch: Alarm DB Logger into SQL Server (database often <code>WWALMDB</code>)</li><li>Rockwell FactoryTalk View SE: FactoryTalk Alarms and Events history in SQL Server</li><li>Inductive Automation Ignition: alarm journal and audit log in the configured database</li></ul>Hash every export.'},
+ {t:'Look for blinded operators',d:'In the alarm history and configuration, look for alarms shelved, suppressed, disabled or re-prioritised; limit changes; alarm floods that hide a real event; and gaps where the HMI lost its data source. Suppression around the incident window is a headline finding.',tip:'<b>Map:</b> Alarm Suppression (T0878), Modify Alarm Settings (T0838), Denial or Loss of View (T0815, T0829).'},
+ {t:'Export engineering software logs: the download record',d:'These record uploads and downloads to controllers, the who and when of logic change. A download in your window from an account that should not do engineering often <i>is</i> the case. Typical sources:<ul><li>Rockwell: FactoryTalk Diagnostics, FactoryTalk AssetCentre audit trail if deployed, controller change-detection audit value</li><li>Siemens TIA Portal: project history and, if used, TIA Multiuser server logs; controller diagnostic buffer (P7)</li><li>Schneider EcoStruxure Control Expert: audit trail if enabled; communication driver logs</li><li>OPC layer: KEPServerEX event log, Matrikon and OPC UA server audit logs</li></ul>'},
+ {t:'Correlate with Windows sessions',d:'Join each engineering event to a Windows logon (P2): account, logon type, source host. This turns "a download happened at 02:14" into "the maintenance account, via RDP from the DMZ jump host, downloaded at 02:14".'},
+ {t:'Start the historian export now',d:'Recent high-resolution historian data can be compressed or archived quickly. Kick off the raw-value export for the window (P5 step 2) so it is frozen early.'},
+ {t:'Record exports as queries against a live system',d:'For each export record: tool and version, query or filter used, who ran it, start and end time, row count and hash. You are evidencing a query against a running system, not a static image; say so in the chain of custody.',out:'<b>Output:</b> hashed exports with a query record for each.'}
+ ],
+ outputs:['Alarm and event history (window and baseline)','Engineering download and upload log','OPC and driver logs','Query record and hash list'],
+ dont:['Copy or lock live database files','Clear or acknowledge alarms to "tidy up"','Change logging levels without engineering approval'],
+ att:['T0878','T0838','T0843','T0889','T0836','T0815','T0829','T0872'],
+ tools:['Product export tools (WinCC, InTouch, FactoryTalk, Ignition)','SQL Server Management Studio (read-only)','FactoryTalk AssetCentre','Log parsers']},
+
+{id:'p4',code:'P4',title:'EWS disk image and project-file analysis',short:'EWS & project files',risk:'md',rung:4,
+ obj:'Secure the engineering "source of truth" and reconstruct who changed controller logic, when, from where and how.',
+ when:'Project snapshot early (it is the baseline for P7). Full disk image once volatile state and logs are captured and the host can be spared or imaged live.',
+ who:['Controls engineer who owns the projects','Operations if the EWS must be taken down'],
+ pre:['P2 complete on the EWS','Approved external media large enough for the image','Access to trusted backups and version control'],
+ steps:[
+ {t:'Find every place logic lives',d:'Projects live on more than one EWS: local folders, network shares, version control (FactoryTalk AssetCentre, Siemens TIA Multiuser or Version Control Interface, Git), engineers\' laptops and vendor laptops. Transient laptops are often forgotten and often relevant.'},
+ {t:'Snapshot project archives with timestamps and hashes',d:'Copy project folders and backups to evidence media, preserving timestamps, then hash everything.',cmd:R`robocopy "D:\Projects" "E:\IR\EWS01\projects" /E /COPY:DAT /DCOPY:T /R:0 /W:0 /LOG:E:\IR\EWS01\robocopy.log
+:: PowerShell 4+ hash manifest
+powershell -NoProfile -Command "Get-ChildItem E:\IR\EWS01\projects -Recurse -File | Get-FileHash -Algorithm SHA256 | Export-Csv E:\IR\EWS01\projects.sha256.csv -NoTypeInformation"`,tip:'<b>Extensions to look for:</b> Rockwell <code>.ACD .L5X .L5K .RSS .RSP</code>; Siemens <code>.ap13</code> to <code>.ap19</code>, <code>.zap*</code>, <code>.s7p</code>; Schneider <code>.stu .sta .zef .xef</code>; CODESYS <code>.project</code>; Mitsubishi <code>.gx3 .gxw</code>; FactoryTalk View <code>.MER .APA</code>; Ignition <code>.gwbk</code>.'},
+ {t:'Secure the last known-good from a trusted source',d:'Get the last version that predates the intrusion from an offline backup, version control or the integrator. Hash it and record its provenance. This is the reference for every diff.',stop:'<b>No trusted backup?</b> Record it as a finding. It raises the bar for interpreting controller state in P7.'},
+ {t:'Take a full forensic image',d:'Dead image if the box can be spared, live image if it must stay up. Hash source and image and verify.',cmd:R`# Linux (write-blocked): E01 with SHA-256
+ewfacquire -t /mnt/ext/EWS01 -d sha256 -c deflate:fast /dev/sdb
+ewfverify /mnt/ext/EWS01.E01
+# Windows live: FTK Imager > Create Disk Image > Physical Drive > E01 > verify after creation`},
+ {t:'Build the engineering activity timeline',d:'From the image: project-file MAC times and the MFT, Prefetch, Amcache and ShimCache for the engineering suite and any attacker tools, LNK files and Jump Lists for recently opened projects, RDP and logon history, USB history.',cmd:R`log2timeline.py --storage-file EWS01.plaso /mnt/ext/EWS01.E01
+psort.py -o l2tcsv -w EWS01_timeline.csv EWS01.plaso "date > '2026-10-01 00:00:00' AND date < '2026-10-14 00:00:00'"`},
+ {t:'Map which controllers this EWS can reach',d:'Read the communication configuration: RSLinx or FactoryTalk Linx drivers and browse paths, Siemens PG/PC interface and project device configuration, OPC server channels, recent online connections in the engineering suite. This explains reachability without touching the network.'},
+ {t:'Diff the on-disk project against known-good',d:'Use the vendor\'s compare function (Logix Designer Compare Tool, TIA Portal compare, Control Expert compare) and export the report as evidence. Look for:<ul><li>Added or modified routines, rungs, blocks (OB, FB, FC), add-on instructions</li><li>Changed setpoints, limits, scaling, timers</li><li>Bypassed interlocks or permissives, forces enabled</li><li>New tags or communication paths</li><li>HMI scripts or displays changed to misrepresent process state</li></ul>Only the engineer can say whether a difference is malicious.'},
+ {t:'Check for project file infection',d:'Stuxnet infected Step 7 project folders so that opening a project ran its code. Scan the copied project tree offline for unexpected executables, DLLs and scripts, and compare file lists with the known-good archive.'},
+ {t:'Set the baseline for controller comparison',d:'Record which trusted project file the running controller will be compared with in P7, and its hash.',out:'<b>Output:</b> hashed image, project archive and manifest, compare reports, engineering timeline, reachability map, P7 baseline reference.'}
+ ],
+ outputs:['Verified E01 image','Project archive with SHA-256 manifest','Vendor compare reports','Engineering timeline','Reachability map'],
+ dont:['Open suspect projects on a production EWS','Overwrite projects by restoring from backup before copying them','Image while the EWS is engineering a live controller'],
+ att:['T0873','T0889','T0843','T0836','T0821','T0864','T0847','T0893'],
+ tools:['FTK Imager','ewfacquire / ewfverify','Autopsy','plaso','Eric Zimmerman tools','Vendor compare tools']},
+
+{id:'p5',code:'P5',title:'Historian export and fused timeline',short:'Historian & timeline',risk:'lo',rung:4,
+ obj:'Freeze what the process actually did, forensicate the historian as a host, and overlay engineering, alarm and process timelines to find both the action and its concealment.',
+ when:'Start the export in P3; complete the analysis once P2 to P4 data are in hand.',
+ who:['Historian owner','Process engineer (selects tags and judges what is abnormal)','DBA if SQL-backed'],
+ pre:['Incident window and baseline window','Clock offsets from P0'],
+ steps:[
+ {t:'Choose tags with the process engineer',d:'For the affected loops: setpoints, process values, controller outputs, valve and motor states, mode tags, interlock and trip states, alarm states. Add an independent measurement where one exists (a separate sensor, energy meter or downstream reading) for cross-checking.'},
+ {t:'Export raw values, not interpolated averages',d:'Export the stored values for the window plus a clean baseline either side. Typical approaches:<ul><li>AVEVA PI: PI DataLink or PI Builder with compressed (recorded) values</li><li>AVEVA Historian: SQL query in delta mode (below)</li><li>GE Proficy: Excel add-in or query with <code>SamplingMode=RawByTime</code></li><li>Canary: Excel add-in or read API</li></ul>Save as CSV and hash.',cmd:R`-- AVEVA (Wonderware) Historian: stored values only
+SELECT DateTime, TagName, Value, Quality
+FROM   Runtime.dbo.History
+WHERE  TagName IN ('LT101.PV','LT101.SP','P101.CMD')
+  AND  DateTime >= '2026-10-12 00:00' AND DateTime < '2026-10-13 06:00'
+  AND  wwRetrievalMode = 'Delta'
+ORDER BY DateTime;`},
+ {t:'Record compression and exception settings',d:'"Raw" means what the historian chose to store. Note each tag\'s compression and exception deviation (PI <code>compdev</code>, <code>excdev</code>) and scan rate, so you know how small a change could go unrecorded.'},
+ {t:'Forensicate the historian host',d:'Treat it as an L3 Windows host (P2) and as a database. Check for command execution and unexpected links, and review the historian\'s own audit or message log for edits, backfill, deletions and point changes. Edited history is cover-up evidence.',cmd:R`-- SQL Server checks (read-only)
+SELECT name, value_in_use FROM sys.configurations WHERE name = 'xp_cmdshell';
+SELECT name, product, data_source, modify_date FROM sys.servers;          -- linked servers
+SELECT name, type_desc, create_date, modify_date FROM sys.server_principals ORDER BY modify_date DESC;
+EXEC sp_readerrorlog 0, 1;                                               -- current error log
+# AVEVA PI Data Archive message log
+pigetmsg -st "*-48h" -et "*"`},
+ {t:'Map the collection interfaces',d:'List the interfaces, connectors, IO servers and OPC sources that write into the historian, and every client that reads. A tampered interface can feed operators false values while the plant does something else.'},
+ {t:'Normalise everything to UTC',d:'Apply the clock offsets measured in P0 to each source before joining. A two-minute HMI drift is enough to reverse cause and effect.',cmd:R`import pandas as pd
+off = {'eng': 0, 'hmi': -118, 'hist': 3}           # seconds; source minus reference (from P0)
+eng  = pd.read_csv('eng_downloads.csv', parse_dates=['time'])   # [A] engineering log
+alm  = pd.read_csv('hmi_alarms.csv',   parse_dates=['time'])    # [B] alarms shown
+tag  = pd.read_csv('historian_raw.csv',parse_dates=['time'])    # [C] process values
+for df, k in ((eng,'eng'), (alm,'hmi'), (tag,'hist')):
+    df['utc'] = df['time'] - pd.Timedelta(seconds=off[k])
+    df['src'] = k
+fused = pd.concat([eng, alm, tag]).sort_values('utc')
+fused.to_csv('fused_timeline.csv', index=False)`},
+ {t:'Overlay the three timelines and read the pattern',d:'<b>[A]</b> engineering download log, when logic changed and by whom; <b>[B]</b> HMI alarm and event history, what operators were shown; <b>[C]</b> historian values, what the process actually did. Patterns to look for:<ul><li>A shows a download at T0; C shows an excursion from about T0; B shows no alarm: <b>manipulation plus concealment</b></li><li>HMI value flat while an independent sensor moved: <b>spoofed view</b></li><li>Historian values edited after the fact: <b>cover-up</b></li><li>Mode change in the diagnostic buffer with no MOC: <b>unauthorised engineering</b></li></ul>'},
+ {t:'Validate against the physical world',d:'Check the story against something the attacker could not edit: lab samples, field gauges read by hand, energy or flow meters, downstream customer data, maintenance records.',out:'<b>Output:</b> raw tag exports with hashes, compression settings, historian host findings, fused UTC timeline and a written reading of it.'}
+ ],
+ outputs:['Raw tag exports (window and baseline)','Historian audit findings','Fused UTC timeline','Validated narrative of process impact'],
+ dont:['Restore the historian from backup before export','Use averaged or interpolated data as evidence of timing','Stop the historian service during production'],
+ att:['T0831','T0832','T0836','T0856','T0861','T0882','T0872'],
+ tools:['PI DataLink / PI Builder','SQL Server (read-only)','Proficy / Canary Excel add-ins','pandas','plaso / Timesketch']},
+
+{id:'p6',code:'P6',title:'Remote access and the IT/OT crossing',short:'Remote access & DMZ',risk:'lo',rung:4,
+ obj:'Reconstruct how the adversary reached OT: which path across L3.5, which identity and which session. Most intrusions cross L4 to L3.5 to L3 and stage on a jump host, EWS or HMI.',
+ when:'In parallel with P2 to P5. The boundary logs are usually IT-owned and can be collected without touching OT.',
+ who:['Network or firewall team','Identity team','Hosting engineer for any vendor session','Procurement for vendor notification'],
+ pre:['P1 conversation baseline','List of approved remote-access paths'],
+ steps:[
+ {t:'Inventory every path into OT',d:'Documented and undocumented: VPN, jump hosts, vendor remote-access platforms, RMM tools, cellular or 4G routers on cabinets, dual-homed hosts, direct firewall rules, wireless, dial-up modems. Compare the documented list with what P1 actually saw crossing the boundary.'},
+ {t:'Export the boundary firewall configuration and logs',d:'Read-only export of rules, objects and logs for the window. Look for any-any rules, recently created or modified rules, rules allowing IT directly into L3 or below, and hit counts on rules that should be idle.'},
+ {t:'Collect VPN and identity provider logs',d:'Authentications, MFA results and prompts, source IPs and geolocation, concurrent sessions, service and shared accounts used interactively. Note accounts that exist in both IT and OT domains, and any trust between the domains.'},
+ {t:'Work the jump host as a P2 host',d:'Then add the remote-access specific artefacts:<ul><li>RemoteConnectionManager <code>1149</code>, LocalSessionManager <code>21</code>, <code>24</code>, <code>25</code></li><li>RD Gateway <code>302</code> and <code>303</code> (TerminalServices-Gateway/Operational)</li><li>Session recordings from the privileged access tool</li><li>Clipboard and drive redirection, file transfers through the session</li></ul>'},
+ {t:'Match each vendor session to a ticket',d:'For every vendor session in the window: who, from where, which ticket, which hosting engineer, agreed scope. Sessions without a ticket, out of window or out of scope go to triage as asset type A7.',stop:'<b>Do not</b> cut a live vendor session without the hosting engineer; follow the A7 triage guidance.'},
+ {t:'Find RMM and remote-control footprints on OT hosts',d:'Typical artefacts:',cmd:R`:: AnyDesk
+%ProgramData%\AnyDesk\ad_svc.trace
+%ProgramData%\AnyDesk\connection_trace.txt
+%AppData%\AnyDesk\ad.trace
+:: TeamViewer
+"%ProgramFiles%\TeamViewer\Connections_incoming.txt"
+"%ProgramFiles%\TeamViewer\TeamViewer*_Logfile.log"
+:: ScreenConnect / ConnectWise Control: Application event log, service install 7045
+:: All: services (7045), Prefetch, Amcache, firewall allow rules`},
+ {t:'Walk the plant for unmanaged paths',d:'With the engineer, look in cabinets and panels for cellular routers, wireless bridges, modems and vendor boxes not in the drawings. Photograph and record them; do not unplug without operations.'},
+ {t:'Write the crossing narrative',d:'Entry, pivot, OT foothold, with timestamps and evidence references: for example "VPN logon as svc account 01:58 → RDP to DMZ jump host 02:01 → RDP to EWS01 02:07 → Studio 5000 download 02:14".',out:'<b>Output:</b> path inventory, boundary findings, vendor session table and the crossing narrative.'}
+ ],
+ outputs:['Remote-access path inventory (documented vs observed)','Boundary firewall and VPN findings','Vendor session reconciliation','Crossing narrative'],
+ dont:['Block jump host ranges without operations sign-off','Disable vendor accounts before understanding live sessions','Unplug unmanaged devices found in cabinets without engineering'],
+ att:['T0822','T0859','T0886','T0866','T0884','T0812','T0891','T0883'],
+ tools:['Firewall and VPN consoles (read-only)','IdP logs','PAM session recordings','KAPE / Velociraptor','Wireshark']},
+
+{id:'p7',code:'P7',title:'Controller collection (L1, gated)',short:'Controller (gated)',risk:'hi',rung:5,
+ obj:'With engineering driving, capture the controller\'s mode, diagnostics, running logic, forces and live state, and compare them with known-good, without changing the process.',
+ when:'Last, and only with written engineering approval for each action. Default posture is to observe through P1 and support engineering with surrounding evidence.',
+ who:['OT engineering authority (operates the engineering software)','Vendor where diagnostics or firmware need them','SIS vendor and safety lead if the controller has any safety function','Operations (agrees timing and process state)'],
+ pre:['Trusted project baseline from P4','P1 capture running','Process in a state operations agree is suitable'],
+ steps:[
+ {t:'Get written sign-off for each planned interaction',d:'List every action (go online, read diagnostics, upload, read force status, check firmware), what it does to the controller and what could go wrong. Engineering and operations sign each one. If the controller is an SIS or feeds one, the SIS vendor and safety lead drive.',stop:'<b>Stop</b> without written approval. No exceptions for urgency.'},
+ {t:'Observe physically first',d:'Photograph front-panel LEDs, displays, fault indicators, the mode key switch position, module status, serial numbers and firmware labels. A controller in REMOTE or PROGRAM when it should be RUN is both a finding and an exposure.'},
+ {t:'Identify the controller from records, not by probing',d:'Take make, model, catalogue number, firmware and last programming date from the inventory and the P4 project. Confirm with the engineer which engineering software version matches the firmware.'},
+ {t:'Read the diagnostic buffer and fault logs',d:'The engineer goes online read-only and exports the controller\'s event history: mode changes (RUN, STOP, PROGRAM), downloads, restarts, faults, time of each. Typical locations: Siemens TIA Portal <i>Online & diagnostics → Diagnostic buffer</i> (save as text); Rockwell controller properties major and minor faults, the controller log on newer families, and the change-detection audit value; Schneider Control Expert diagnostic and event viewers.',tip:'<b>Tip:</b> the buffer is a fixed-size ring. Read it before anything else generates events.'},
+ {t:'Upload running logic into a new file',d:'The engineer uploads (reads) the running program into a <b>new, empty project</b>, never into the trusted baseline. When going online with a project that differs from the controller, the software offers Upload or Download.',stop:'<b>Never choose Download.</b> Download writes to the controller and can change the running process.'},
+ {t:'Compare uploaded logic with known-good',d:'Run the vendor compare between the upload and the P4 baseline; export the report. Look for rogue rungs or blocks, added function blocks, changed setpoints, scaling, timers and interlocks, and differences between the upload and the on-disk project (a sign the EWS was not the source, or that the project was altered to hide a change).'},
+ {t:'Capture volatile controller state',d:'Before any reset is considered: force status and force tables (forced I/O drives an actuator regardless of logic), key tag values in watch tables (screenshot with time), timers and counters, task configuration and scan times. All of it is lost on power cycle.'},
+ {t:'Check firmware and modules with the vendor',d:'Record firmware versions for the CPU and every module and compare with the vendor baseline and your inventory. Where the vendor offers an integrity check or signed-firmware verification, run it with them. Malicious firmware is rare and high-impact.',stop:'<b>Do not</b> attempt improvised firmware dumping on a live controller.'},
+ {t:'Corroborate on the wire',d:'Match the engineer\'s online session and any historical download or upload events with P1 capture (S7 download functions, CIP sessions, Modbus writes), so the timeline does not rest on the controller\'s own clock.'},
+ {t:'Hand remediation to engineering',d:'Any reset, reload or replacement is an engineering change under MOC, sequenced with operations so the process is in a safe state. Confirm full state was captured first.',out:'<b>Output:</b> photographs, diagnostic export, uploaded program file and hash, compare report, force and tag snapshots, firmware record.'}
+ ],
+ outputs:['Diagnostic buffer export','Uploaded program (new file) with hash','Compare report against known-good','Force table and tag snapshots','Firmware and module record'],
+ dont:['Power-cycle a controller "to get a clean state"','Change mode for convenience or enter diagnostic modes casually','Download anything','Connect your own tools to a controller'],
+ att:['T0821','T0843','T0845','T0889','T0835','T0836','T0858','T0839','T0857','T0800','T0880'],
+ tools:['Vendor engineering suite (operated by engineering)','Vendor compare tools','Camera','P1 capture']},
+
+{id:'p8',code:'P8',title:'Restore to known-good and watch',short:'Restore & monitor',risk:'md',rung:null,
+ obj:'Return the plant to a trusted state without reinfection, close the path that was used, and keep watching for the adversary\'s return.',
+ when:'After evidence is preserved and scope is understood. Restoring early destroys evidence and invites reinfection.',
+ who:['Engineering authority','Operations','Safety lead for any SIS work','Vendors','IT for boundary and identity changes'],
+ pre:['P1 to P7 evidence preserved','Crossing narrative from P6','Agreed recovery plan and order'],
+ steps:[
+ {t:'Confirm evidence and scope first',d:'Check that every system to be rebuilt has its image, exports and hashes in evidence storage, and that the crossing path is understood. If you do not know how they got in, assume they can get in again.'},
+ {t:'Establish trusted baselines',d:'Controller logic, firmware, HMI projects and OS images that predate the intrusion, from offline sources, with hashes verified. Record provenance for each.'},
+ {t:'Rebuild L2/L3 hosts from known-good media',d:'Reimage HMIs, EWS, jump hosts and historian servers rather than cleaning them. Reinstall engineering software from vendor media, restore projects from the trusted baseline, not from the compromised host.'},
+ {t:'Reset credentials in a coordinated order',d:'With engineering: vendor accounts, shared and service accounts, engineering accounts, controller passwords where supported, and credentials embedded in projects, scripts and OPC configuration. Tell vendors before you reset theirs. Plan for accounts that cannot be rotated.'},
+ {t:'Restore controller logic under change control',d:'Download the trusted program through MOC, then functional testing with operations. For any safety function, the safety lead decides on revalidation and proof testing.',stop:'<b>Stop</b> if a safety function is involved and the safety lead has not signed off revalidation.'},
+ {t:'Close the path and tighten the boundary',d:'Remove unapproved paths found in P6; restrict L3.5 rules to brokered, logged flows; put vendor access behind the jump host with MFA, named accounts, time-boxing and session recording; remove RMM tools from OT hosts.'},
+ {t:'Keep heightened monitoring running',d:'Leave P1 capture or OT NSM running. Add detections for what you saw: engineering protocol traffic from non-EWS hosts, S7 download or CIP write from new sources, Modbus writes from new masters, logons from the compromised accounts, RMM traffic.'},
+ {t:'Close out',d:'Map findings to ATT&CK for ICS for the report, update the asset inventory and drawings with gaps found, update notifications to the regulator, record lessons against CAF outcomes, and add the scenario to exercises.',out:'<b>Output:</b> recovery record, boundary change list, detection list, final report with ATT&CK for ICS mapping.'}
+ ],
+ outputs:['Recovery record with baselines used','Credential reset log','Boundary changes','Detections added','Final report and lessons learned'],
+ dont:['Restore before preserving evidence','Clean in place instead of rebuilding','Rotate vendor credentials without telling the vendor'],
+ att:['T0859','T0822','T0889','T0843'],
+ tools:['Vendor media','Change management','OT NSM','SIEM']}
+];
+</script>
+<script>
+// ═══════════ HELPERS ═══════════
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function tech(id){return `<a class="tech" href="https://attack.mitre.org/techniques/${id}/" target="_blank" rel="noopener" title="ATT&amp;CK for ICS ${id}: ${esc(ICS[id]||'')}"><b>${id}</b>${esc(ICS[id]||'')}</a>`;}
+function techs(a){return a.map(tech).join('');}
+let CMDS=[];
+function cmd(text){
+  const i=CMDS.push(text)-1;
+  const html=text.split('\n').map(l=>{
+    if(/^\s*(#|::|--|REM\b)/.test(l)) return `<span class="c">${esc(l)}</span>`;
+    const m=l.match(/\s{2,}(#|--)\s/); if(m){const k=m.index; return esc(l.slice(0,k))+`<span class="c">${esc(l.slice(k))}</span>`;}
+    return esc(l);
+  }).join('\n');
+  return `<div class="cmd-wrap"><pre class="cmd">${html}</pre><button class="copy" onclick="copyText(CMDS[${i}],'Command copied')">Copy</button></div>`;
+}
+function toast(msg){let t=document.getElementById('toast');if(t)t.remove();t=document.createElement('div');t.id='toast';t.className='toast';t.setAttribute('role','status');t.textContent=msg;document.body.appendChild(t);requestAnimationFrame(()=>t.classList.add('show'));setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300)},2600);}
+function copyText(text,msg){
+  const fallback=()=>{let o=document.getElementById('copybox');if(!o){o=document.createElement('div');o.id='copybox';o.className='overlay';o.innerHTML='<div class="modal" role="dialog" aria-modal="true"><h3>Copy this text</h3><p>Your browser blocked automatic copying. The text is selected below; press Ctrl+C or ⌘C.</p><textarea id="copyta" class="inp" style="min-height:220px;margin-top:10px;font-family:var(--mono);font-size:11.5px"></textarea><div class="modal-actions"><button class="mbp" onclick="document.getElementById(\'copybox\').hidden=true">Done</button></div></div>';document.body.appendChild(o);}
+    o.hidden=false;const ta=document.getElementById('copyta');ta.value=text;ta.focus();ta.select();};
+  try{navigator.clipboard.writeText(text).then(()=>toast(msg||'Copied'),fallback);}catch(e){fallback();}
+}
+function lsGet(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function showModal(id){document.getElementById(id).hidden=false;}
+function hideModal(id){document.getElementById(id).hidden=true;}
+const PB_BY={};PB.forEach(p=>PB_BY[p.id]=p);
+const RISK={lo:['Risk: low','chip-ok'],md:['Risk: medium','chip-warn'],hi:['Risk: high · gated','chip-bad']};
+function pbLink(id){const p=PB_BY[id];return `<a class="tag" href="#${id}"><b>${p.code}</b> ${esc(p.short)}</a>`;}
+
+// ═══════════ STATE ═══════════
+let STEPS=lsGet('otfg-steps',{});
+const TRI0=()=>({site:'',alert:'',responder:'',time:'',asset:null,crit:null,obs:[],gates:{G1:null,G2:null,G3:null,G4:null,G5:null},ho:{calls:'',done:'',notdone:'',ev:'',notes:''}});
+let TRI=Object.assign(TRI0(),lsGet('otfg-triage',{}));
+let glossQ='', current='overview';
+function saveTri(){lsSet('otfg-triage',TRI);updateMeta();}
+
+// ═══════════ TRIAGE DECISION (ported from OT Incident Triage) ═══════════
+function decide(){
+  const a=ASSETS.find(x=>x.code===TRI.asset), c=CRIT.find(x=>x.code===TRI.crit);
+  if(!a||!c) return null;
+  const R=[]; let d='PROCEED'; const g=TRI.gates, o=TRI.obs;
+  if(a.code==='A5'){d='STOP';R.push('Asset is a safety instrumented system. SIS-related events are always treated as major incidents, whether or not compromise is confirmed.');}
+  if(c.code==='C1'&&(a.code==='A4'||a.code==='A5')){d='STOP';if(a.code==='A4')R.push('Safety-critical controller: any action has direct safety implications.');}
+  if(a.code==='A8'){if(d!=='STOP')d='HOLD';R.push('Asset is unidentified. No active investigation is safe until it is identified.');}
+  if(a.code==='A4'&&d==='PROCEED'){d='HOLD';R.push('Direct controller actions belong to engineering. The IT responder supplies surrounding evidence.');}
+  const vals=Object.values(g), no=vals.filter(v=>v==='no').length, unk=vals.filter(v=>v==='unknown').length;
+  if(no>0){if(d==='PROCEED')d='HOLD';R.push(`${no} safety gate${no>1?'s':''} answered No: the preconditions for technical action are not met.`);}
+  if(unk>=2&&d==='PROCEED'){d='HOLD';R.push(`${unk} safety gates answered Unknown: too much uncertainty for limited action.`);}
+  if(g.G1==='no')R.push('Operations not yet notified. No technical action precedes notification.');
+  if(g.G2==='no')R.push('No OT engineering authority contacted. Technical action without engineering context is unsafe.');
+  if(g.G4==='no'){d='STOP';R.push('A considered action could affect a safety system. Escalate before any action.');}
+  if(g.G3==='no'){if(d==='PROCEED')d='HOLD';R.push('Process is not stable, so the potential for disruption is higher. Hold for engineering.');}
+  if(o.includes('O7')){if(d==='PROCEED')d='HOLD';R.push('Physical or environmental indicator reported. Operations and safety should be on the line before any cyber action.');}
+  if(o.includes('O5')&&a.code==='A7')R.push('Vendor session anomaly on the vendor host: agree disconnect timing with the hosting engineer so OT is not left half-configured.');
+  if(o.includes('O4')&&a.code==='A4'){d='STOP';R.push('Unexplained configuration or logic change on a controller is a major event. Escalate to engineering and operations.');}
+  if(vals.some(v=>v===null))R.push(`${vals.filter(v=>v===null).length} gate${vals.filter(v=>v===null).length>1?'s':''} still unanswered; the decision may tighten when you answer ${vals.filter(v=>v===null).length>1?'them':'it'}.`);
+  if(!R.length)R.push(`${a.name} at ${c.name.toLowerCase()} criticality, with all gates satisfied, permits limited IT-side actions.`);
+  const H={PROCEED:'Proceed with limited IT-side actions',HOLD:'Hold: OT engineering must attend before further action',STOP:'Full stop: escalate as a major incident'};
+  const K={PROCEED:'proceed',HOLD:'hold',STOP:'stop'};
+  return {code:'D-'+d,kind:K[d],head:H[d],reasons:R,a,c};
+}
+
+// ═══════════ PAGES ═══════════
+const NAV=[
+ ['Start',[['overview','Overview','#4A90E2']]],
+ ['Orient',[['why','Why OT is different','#7FA9E8'],['purdue','Purdue and evidence','#7FA9E8'],['vocab','Vocabulary','#7FA9E8'],['protocols','Protocols','#7FA9E8'],['architecture','Architecture patterns','#7FA9E8']]],
+ ['Respond',[['rules','Rules of engagement','#E25565'],['triage','Triage an alert','#E25565'],['assets','Asset quick cards','#E25565']]],
+ ['Investigate',[['ladder','Collection priority','#2FB67A']].concat(PB.map(p=>[p.id,p.code+' · '+p.short,'#2FB67A']))],
+ ['Analyse',[['bad','What bad looks like','#A970E8'],['artefacts','Artefacts by vendor','#A970E8'],['scenarios','Worked scenarios','#A970E8'],['cases','Case studies','#A970E8']]],
+ ['Reference',[['frameworks','Frameworks and training','#8796AE']]]
+];
+const TITLES={};NAV.forEach(([s,items])=>items.forEach(([id,l])=>TITLES[id]=[s,l]));
+
+function head(eb,h,p){return `<div class="page-head"><div><div class="eyebrow">${eb}</div><h2>${h}</h2>${p?`<p>${p}</p>`:''}</div></div>`;}
+function caseBox(h,p){return `<div class="case"><div class="h">${h}</div><p>${p}</p></div>`;}
+
+const PAGES={
+overview:()=>`${head('OT / ICS incident response','Slow down. Then act.','One field guide for IT-trained responders facing operational technology: how OT differs, how to triage an alert without tripping the plant, and how to collect evidence in the right order, step by step.')}
+<div class="notice bad"><b class="h">Rule zero: process safety outranks evidence</b>No collection action on a live controller or safety system without the process engineer present and a documented understanding of what the action does to the running process. A mistimed poll, mode switch or acquisition can trip or damage physical equipment. Capture network-side and volatile host evidence first; gate all controller interaction behind engineering sign-off.</div>
+<div class="grid3" style="margin-bottom:16px">
+ <button class="card linkcard" onclick="go('why')"><h4><span class="dot" style="background:#7FA9E8"></span>New to OT</h4><p>The priority inversion, the Purdue model, the vocabulary and the protocols. About 25 minutes.</p><span class="go">Start with Orient →</span></button>
+ <button class="card linkcard" onclick="go('triage')"><h4><span class="dot" style="background:var(--bad)"></span>Alert in hand</h4><p>Pick the asset, answer five safety gates and get a Proceed, Hold or Full-stop decision with allowed and prohibited actions.</p><span class="go">Open triage →</span></button>
+ <button class="card linkcard" onclick="go('ladder')"><h4><span class="dot" style="background:var(--ok)"></span>Authorised investigation</h4><p>Nine playbooks in collection order, each with checkable steps, commands, stop conditions and ATT&amp;CK for ICS mapping.</p><span class="go">Open playbooks →</span></button>
+</div>
+<div class="panel"><div class="panel-head">Response at a glance <span class="sub">The order matters: each stage depends on the one before</span></div><div class="panel-body"><div class="seq">
+ ${[['p0','Notify and scope','Control room first, named engineer, SIS check, clock offsets.'],['triage','Triage each asset','Asset type, criticality, five safety gates.'],['p1','Capture passively','TAP or SPAN at the DMZ and control VLAN. Never scan.'],['p2','Volatile host state','RAM and live state on HMIs, EWS, jump hosts.'],['p3','Fast-rolling logs','Alarm history and engineering download logs.'],['p4','Images and projects','EWS image, project archive, known-good diff.'],['p7','Controller, gated','Engineering drives; upload, never download.'],['p8','Restore and watch','Rebuild from known-good, close the path.']].map((s,i)=>`<button onclick="go('${s[0]}')"><span class="sn">${String(i+1).padStart(2,'0')}</span><span class="st">${s[1]}</span><span class="sd">${s[2]}</span></button>`).join('')}
+</div></div></div>
+<div class="panel"><div class="panel-head">What this guide brings together</div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Part</th><th>What it covers</th><th>Use it when</th></tr></thead><tbody>
+ <tr><td><b>Orient</b></td><td class="muted">SAIC priorities, the IT instinct trap, Purdue levels and where evidence lives, vocabulary, protocols and their abuse, architecture patterns.</td><td class="muted">Before you are on site, or briefing IT colleagues.</td></tr>
+ <tr><td><b>Respond</b></td><td class="muted">Rules of engagement and who decides what; the safety-gated triage tool with handover; quick cards for eight asset types.</td><td class="muted">An alert has fired on or near OT.</td></tr>
+ <tr><td><b>Investigate</b></td><td class="muted">Collection priority by volatility, value and safety cost; playbooks P0 to P8 from mobilisation to restoration.</td><td class="muted">You are authorised to collect evidence.</td></tr>
+ <tr><td><b>Analyse</b></td><td class="muted">OT-specific indicators, artefact locations by vendor, three worked scenarios, case studies from Stuxnet to FrostyGoop.</td><td class="muted">You have evidence and need to interpret it.</td></tr>
+ <tr><td><b>Reference</b></td><td class="muted">NCSC CAF v4, IEC 62443, NIST SP 800-82r3, NCSC OT guidance, IEC 61508/61511, ATT&amp;CK for ICS, training paths.</td><td class="muted">Reporting, regulation and further study.</td></tr>
+</tbody></table></div></div>
+<div class="notice warn"><b class="h">Decision support, not engineering authority</b>This guide helps you think before acting. It does not replace engineering judgement, operations authority, functional safety assessment or vendor guidance, and every path and command here is typical rather than guaranteed. Verify against the vendor, version and site. Use at your own risk; no liability is accepted for any loss, damage or injury arising from its use.</div>`,
+
+why:()=>`${head('Orient · 01','Why OT is different','Operational technology controls physical processes: water treatment, electricity, refineries, manufacturing lines, building HVAC, rail signalling. Its job is to keep those processes running safely and predictably for years, not to be patched monthly, isolated when alerts fire, or rebooted to apply settings. That is the source of nearly every IT/OT misunderstanding.')}
+<h3 class="sec">The priority inversion</h3>
+<div class="grid2">
+ <div class="card"><h4><span class="dot" style="background:var(--accent)"></span>IT priority order</h4><ul><li><b>Confidentiality</b> · protect data from disclosure</li><li><b>Integrity</b> · protect data from modification</li><li><b>Availability</b> · keep services running</li></ul></div>
+ <div class="card"><h4><span class="dot" style="background:var(--bad)"></span>OT priority order: SAIC</h4><ul><li><b>Safety</b> · protect people, environment, equipment</li><li><b>Availability</b> · keep the process running</li><li><b>Integrity</b> · protect process data and logic</li><li><b>Confidentiality</b> · protect data from disclosure</li></ul></div>
+</div>
+<p class="prose" style="margin-top:12px">This changes what counts as a successful control. An IT control that takes a system offline to prevent exfiltration is doing its job. The same action in OT may, depending on what the system controls, have caused a safety event.</p>
+<h3 class="sec">The IT instinct trap</h3>
+<div class="grid2">
+ <div class="card"><h4>"Patch it now"</h4><p>In OT the normal answer is "in the next planned outage", whatever the severity. Patching a controller mid-process can crash it, change its behaviour subtly or require weeks of revalidation. Many controllers have not been patched since installation and are working as intended. The control is compensating controls and segmentation.</p></div>
+ <div class="card"><h4>"Isolate it"</h4><p>What looks like an endpoint may be the only thing telling an operator what the process is doing, or the only way to intervene. Isolating an HMI mid-shift can leave operators blind; isolating a controller can drop outputs. Isolation is coordinated with operations, never reflexive from a SOC console.</p></div>
+ <div class="card"><h4>"Rotate the credentials"</h4><p>An engineering account may be hard-coded into other systems, be the only credential able to shut the process down safely, or need a vendor to rotate. Some controller credentials live in project files or on the device; some cannot be rotated. Coordinate first, act second.</p></div>
+ <div class="card"><h4>"Image it now"</h4><p>Pulling power for a dead image destroys controller RAM and may stop the process. Volatility is inverted: controller logic and state live in RAM, HMI alarm buffers roll in hours, while disks persist. Capture passively and in order (see <a href="#ladder">Collection priority</a>).</p></div>
+</div>
+${caseBox('Incident · NotPetya, 2017','The wiper targeted IT systems, but its spread through the corporate networks of Maersk, Merck, Mondelez, Reckitt Benckiser and others took down systems operations depended on: port logistics, manufacturing planning, production scheduling. Maersk lost the ability to dispatch ships and trucks for weeks. OT availability often depends on IT systems whose criticality is not obvious until they are gone.')}
+<h3 class="sec">Five things that differ for DFIR</h3>
+<div class="grid2">
+ <div class="card"><h4><span class="dot" style="background:var(--bad)"></span>Safety and availability dominate</h4><ul><li>The process usually keeps running; you rarely get to take assets offline on demand.</li><li>The SIS is off-limits unless its own vendor and engineer drive.</li><li>Isolation is not shutdown. Isolate logically; operations decide on any shutdown.</li></ul></div>
+ <div class="card"><h4><span class="dot" style="background:var(--warn)"></span>Volatility is inverted</h4><ul><li>PLC logic and live state sit in RAM; a power event destroys them.</li><li>HMI alarm buffers roll in minutes to hours on busy systems.</li><li>EWS project files are the record of intended logic; snapshot them early.</li></ul></div>
+ <div class="card"><h4><span class="dot" style="background:var(--accent)"></span>Legacy, heterogeneous, proprietary</h4><ul><li>Windows XP, 7 and Server 2008 HMIs are common; EDR is often absent.</li><li>Controllers speak vendor engineering protocols with sparse public documentation.</li><li>Below L3 there is no agent coverage; the network is often your only view.</li></ul></div>
+ <div class="card"><h4><span class="dot" style="background:var(--ok)"></span>People and process</h4><ul><li>Only a process engineer can say whether a setpoint or logic change is malicious.</li><li>Vendor contracts gate diagnostics and project files; line them up on day one.</li><li>Chain of custody spans OT, safety and regulatory stakeholders.</li></ul></div>
+</div>
+<div class="notice bad" style="margin-top:14px"><b class="h">Passive first, always</b>Never run aggressive IT tooling (Nmap SYN sweeps, credentialed vulnerability scans, WMI storms) against an OT segment. Fragile stacks on old controllers can crash on a single malformed or merely unexpected packet, and this has caused real plant trips.</div>
+<h3 class="sec">Three habits to build</h3>
+<div class="prose"><ul><li><b>Ask before acting</b> on anything connected to a control system, historian or engineering workstation. The engineer's job is to know what the process is doing right now; yours probably is not.</li><li><b>Assume the system is fragile</b>, even when it looks like a familiar Windows host. It may not have been rebooted in 400 days for good reason.</li><li><b>Treat safety as a categorical override</b>, not a value to weigh against others. No efficiency, compliance or security benefit outweighs a credible safety risk.</li></ul></div>`,
+
+purdue:()=>`${head('Orient · 02','The Purdue model and where evidence lives','Purdue (ISA-95 levels 0 to 5) is the dominant mental model for OT networks. It is a reference architecture, not a blueprint: real networks have shortcuts, legacy paths and cloud links that bypass it. Start from the model, then verify what is actually there. Each level tells you the OS (if any), the protocols crossing it, how volatile its evidence is and how dangerous it is to touch.')}
+<div class="purdue">
+ ${[['L5','#5A7A9A','Enterprise','Email, ERP, AD, file shares','Corporate IT. Standard DFIR; the usual entry point.','LOW','v-lo'],
+    ['L4','#5A7A9A','Business planning and logistics','MES, scheduling, planning','IT-administered with operational coupling. Standard DFIR.','LOW','v-lo'],
+    ['B','','','','','',''],
+    ['L3.5','#C77A12','Industrial DMZ','Jump hosts, historian replica, patch and AV relays, firewalls, diodes','Firewall, VPN, jump-host and proxy logs: the best source for reconstructing the crossing. No direct L4 to L3 paths should exist.','LOW','v-lo'],
+    ['L3','#1456CC','Site operations','Engineering workstations, site historian, OT AD, app servers','Windows: richest host artefacts plus project files. First clearly OT-owned level.','MED','v-md'],
+    ['L2','#1456CC','Area supervisory control','HMIs, SCADA servers, alarm servers','Windows plus fast-rolling alarm and event buffers. Real-time but not deterministic.','MED','v-md'],
+    ['L1','#C0283A','Basic control','PLCs, RTUs, DCS controllers, IEDs','Logic and state in volatile RAM; proprietary; little logging. Engineering access only.','HIGH','v-hi'],
+    ['L0','#C0283A','Physical process','Sensors, actuators, drives, valves, motors','Physical signals; observe via L1 traffic and historian values.','HIGH','v-hi']]
+  .map(r=>r[0]==='B'?`<div class="boundary">IT / OT boundary · the DMZ sits between L4 and L3</div>`:`<div class="lvl"><div class="k" style="background:${r[1]}">${r[0]}</div><div class="n">${r[2]}<small>${r[3]}</small></div><div class="d">${r[4]}</div><div class="t ${r[6]}">${r[5]} TOUCH</div></div>`).join('')}
+</div>
+<div class="notice" style="margin-top:14px"><b class="h">Where the case usually lives</b>Intrusions cross L4 → L3.5 → L3 and stage tooling on an EWS or HMI. Dwell time and tooling cluster at L2 to L3; physical impact lands at L0 to L1. By the time you look at the controller, the story of <i>how</i> was written at L2 and L3.</div>
+<h3 class="sec">The safety instrumented system sits apart</h3>
+<div class="prose"><p>The SIS is not Level 1. It is an independent layer of protection, usually with its own controllers, network and sometimes cabinet, that takes the process to a safe state when basic control fails. Think of it as the airbag: the BPCS (the L1/L2 stack) drives the car, and the SIS acts only when something has already gone wrong. It has stricter requirements, separate certification (IEC 61508/61511) and a different role. Confusing the two leads to bad decisions.</p></div>
+<h3 class="sec">Who owns the boundary</h3>
+<div class="panel"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Levels</th><th>Owner</th><th>In practice</th></tr></thead><tbody>
+ <tr><td class="mono">L4 · L5</td><td>IT</td><td class="muted">Always.</td></tr>
+ <tr><td class="mono">L3 · L3.5</td><td>Contested</td><td class="muted">IT often manages the OS; OT owns the applications and decides when systems can be touched. Both sides must be in the room for changes and for incident actions.</td></tr>
+ <tr><td class="mono">L0 · L1 · L2</td><td>OT</td><td class="muted">Almost always: these touch physical equipment. Incident authority, change control and patching sit with engineering and operations.</td></tr>
+</tbody></table></div></div>
+${caseBox('Incident · Stuxnet, 2010','Stuxnet crossed the whole stack. It spread by removable media to engineering workstations (L3), infected Siemens STEP 7 project files (L3), reprogrammed PLCs controlling centrifuges (L1) and replayed normal values to the HMI (L2) so operators saw nothing wrong. It showed that air gaps are porous, that controller logic is itself a target and that HMI values cannot be assumed authentic.')}`,
+
+vocab:()=>`${head('Orient · 03','Vocabulary','The fastest way to spot an IT person in an OT meeting is "the SCADA" or "the PLC server". The words are precise, and using them correctly earns enough trust to ask the questions you need.')}
+<input class="inp" id="gq" placeholder="Filter terms (e.g. SIS, historian, force)" value="${esc(glossQ)}" oninput="glossQ=this.value;drawGloss()" style="margin-bottom:12px" aria-label="Filter vocabulary"/>
+<div class="gloss" id="gloss"></div>`,
+
+protocols:()=>`${head('Orient · 04','Protocols and their abuse','OT runs on a small set of protocols designed before network security was a design concern. Most have no native authentication or encryption, so security rests on segmentation and physical control. Recognise them on the wire, know which operations are dangerous, and analyse passively.')}
+<div class="panel"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Protocol</th><th>Port</th><th style="min-width:200px">Used for</th><th style="min-width:200px">Security</th><th style="min-width:220px">Red flags</th><th>Wireshark filter</th></tr></thead><tbody>
+${PROTO.map(p=>`<tr id="proto-${esc(p[0].split(/[ \/·]/)[0])}"><td><b>${esc(p[0])}</b></td><td class="mono">${esc(p[1])}</td><td class="muted">${esc(p[2])}</td><td class="muted">${esc(p[3])}</td><td class="muted">${esc(p[4])}</td><td><code>${esc(p[5])}</code></td></tr>`).join('')}
+</tbody></table></div></div>
+<div class="notice warn"><b class="h">Verify filters on your Wireshark version</b>Field names and function codes above are as commonly documented; dissectors change between versions. Test filters against a known capture before relying on an empty result.</div>
+<h3 class="sec">Three things to internalise</h3>
+<div class="grid3">
+ <div class="card"><h4>No native security</h4><p>Authentication, encryption and integrity are bolted on where they exist at all. Anyone on the segment can usually read and write.</p></div>
+ <div class="card"><h4>Active scanning is dangerous</h4><p>Many controllers and stacks crash on unexpected traffic; Nmap against a legacy PLC has a real chance of dropping it. OT visibility tools are passive for this reason.</p></div>
+ <div class="card"><h4>"Air-gapped" usually isn't</h4><p>Modbus/TCP, EtherNet/IP, PROFINET and OPC UA ride ordinary Ethernet. The gap often turns out to be one firewall rule, one engineering laptop or one vendor jump host.</p></div>
+</div>
+<div class="notice ok" style="margin-top:14px"><b class="h">Quick identification by port</b><code>502</code> Modbus · <code>102</code> S7 or IEC 61850 MMS · <code>44818</code>/<code>2222</code> EtherNet/IP · <code>20000</code> DNP3 · <code>2404</code> IEC 104 · <code>4840</code> OPC UA · <code>47808/udp</code> BACnet · <code>1883</code>/<code>8883</code> MQTT. An unfamiliar protocol on an OT segment is not necessarily malicious, but identify it before anything else.</div>`,
+
+architecture:()=>`${head('Orient · 05','Architecture patterns','The patterns you will meet in nearly every OT environment, why they exist, how they degrade, and where each one leaves evidence. Most OT incidents trace back to one of them being implemented badly or worked around informally.')}
+<div class="grid2">
+ ${[['The IT/OT DMZ','L3.5 sits between IT and OT and brokers all traffic: connections terminate on one side and a separate connection picks up on the other. Residents: historian replicas, patch and AV servers, jump hosts, sometimes MES.','Exceptions accumulate: a "quick" direct link from an analytics tool to a historian, or from vendor support to a controller. Within a few years the DMZ exists on paper with a dozen direct paths through it.','Firewall rule base and logs, rule hit counts, jump host logs. P6.'],
+    ['Data diodes','Hardware that physically allows one direction only, typically OT to IT. Used in nuclear, defence, transmission and some water utilities.','Trade-off by design: no remote management, patching or incident actions can be pushed in. Watch for bypass links added for convenience.','Diode logs, and any path that bypasses it. P6.'],
+    ['Jump hosts and vendor access','Vendor sessions terminate on DMZ jump hosts with recording, MFA, named accounts and time-windows tied to change tickets.','Persistent VPN tunnels into OT, shared "vendor" accounts with permanent passwords, and a culture of "the vendor is always allowed in". The highest-risk vector in many environments.','RDP and gateway events, PAM recordings, RMM artefacts, VPN and IdP logs. P6, triage A7.'],
+    ['The historian as bridge','Collection lives in OT; a read-only replica in the DMZ serves IT. IT systems only ever talk to the replica.','One historian in OT that IT reaches directly through inbound firewall holes. A common reason a "segmented" network is not.','Historian audit and message logs, SQL logs, interface configuration. P5.'],
+    ['Engineering workstations','Dedicated, hardened hosts off the corporate network, with version-controlled projects and separate authentication.','Dual-use machines also used for email and browsing, which is why phishing-borne malware so often ends up next to OT.','Disk image, project archive, engineering logs, comms driver configuration. P2, P4.'],
+    ['Remote operations and cloud','Fleet visibility, predictive maintenance and vendor-managed services, kept strictly read-only and terminated on the OT side.','"Read-only monitoring" quietly gains control features over time. Easier to define on day one than to maintain.','Cloud connector configuration and logs, outbound flows from OT. P1, P6.']]
+  .map(r=>`<div class="card"><h4>${r[0]}</h4><p>${r[1]}</p><p style="margin-top:8px"><b style="color:var(--warn)">How it degrades.</b> ${r[2]}</p><p style="margin-top:8px"><b style="color:var(--accent)">Where to look.</b> ${r[3]}</p></div>`).join('')}
+</div>
+${caseBox('Incident · Colonial Pipeline, 2021','Ransomware reached Colonial\'s IT estate through a compromised VPN credential and, according to public reporting, did not reach the pipeline OT. Colonial halted operations itself, partly because billing systems were unavailable and partly from caution about OT. IT compromise can force an OT shutdown when shared dependencies span both sides; minimising those dependencies (billing, identity, monitoring, communications) is part of OT resilience.')}`,
+
+rules:()=>`${head('Respond','Rules of engagement','What holds regardless of how the rest of the incident is going, and who decides what. Agree these with the site at the start of every engagement.')}
+<div class="notice bad"><b class="h">Rule zero</b>Process safety outranks evidence. When in doubt, stay on the network side (P1), document, and wait for engineering.</div>
+<h3 class="sec">Never</h3>
+<div class="panel"><div class="tbl-wrap"><table class="tbl"><thead><tr><th style="width:30%">Never</th><th>Why</th><th style="width:30%">Instead</th></tr></thead><tbody>
+ ${[['Act on a safety instrumented system: no probing, scanning, isolation, patching or credential changes','It exists to protect people when everything else has failed. A compromised or disturbed SIS protects nothing.','Escalate as a major incident; the SIS vendor, safety lead and engineering drive.'],
+    ['Assume the safety system will catch it','The SIS protects against process failures, not necessarily against attacks on itself. Triton reached SIS controllers.','Ask "is this connected to a safety system?" first, every time.'],
+    ['Scan, sweep or probe an OT segment','Legacy stacks crash on unexpected traffic; scans have tripped plants.','Passive capture and the asset register (P1).'],
+    ['Power-cycle, reset or change the mode of a controller','Outputs may drop or hold last state; volatile evidence is destroyed.','Engineering-led, gated collection (P7).'],
+    ['Download to a controller','Download writes logic to the running process.','Upload to a new file and compare (P7).'],
+    ['Force-logoff operators, isolate an HMI or reset operator passwords mid-shift','Operators may lose sight of the process.','Agree a fallback with operations first.'],
+    ['Cut a live vendor session unilaterally','Equipment may be left half-configured.','Coordinate timing with the hosting engineer (A7).'],
+    ['Make safety-related decisions through the IT chain','IT authority does not extend to safety.','Engineering and safety sign-off on the line.']]
+  .map(r=>`<tr><td><b>${r[0]}</b></td><td class="muted">${r[1]}</td><td class="muted">${r[2]}</td></tr>`).join('')}
+</tbody></table></div></div>
+<h3 class="sec">Who decides what</h3>
+<div class="panel"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Decision</th><th>Decides</th><th>Must be consulted</th></tr></thead><tbody>
+ ${[['Passive capture, log export from IT-side systems','IR lead','Network owner'],['SPAN or TAP changes on OT switches','OT network engineer','Operations'],['Isolating an L2/L3 host','Operations','Engineering, IR lead'],['Shutting down part of the process','Operations / plant management','Engineering, safety'],['Any interaction with a controller','OT engineering authority','Operations, vendor'],['Anything touching an SIS','Safety lead and plant management','SIS vendor, engineering, operations'],['Disabling vendor or service accounts','IR lead with engineering','Hosting engineer, vendor, procurement'],['Regulator notification','Legal / accountable executive','IR lead, plant management']]
+  .map(r=>`<tr><td>${r[0]}</td><td><b>${r[1]}</b></td><td class="muted">${r[2]}</td></tr>`).join('')}
+</tbody></table></div></div>
+<h3 class="sec">Working rhythm</h3>
+<div class="grid2">
+ <div class="card"><h4>Communication cadence</h4><ul><li>Brief the control room before each action and confirm after it.</li><li>Agree a check-in interval (for example every 30 minutes) with the engineering authority.</li><li>Re-confirm process state and gates at every shift change.</li><li>Use a channel the adversary cannot see if IT systems are in scope.</li></ul></div>
+ <div class="card"><h4>Chain of custody in OT</h4><ul><li>Exports from live systems are queries: record tool, version, query, operator, time, rows and hash.</li><li>Photographs of screens and panels are evidence; record time and who took them.</li><li>Evidence may be needed by safety investigators and regulators as well as for cyber.</li><li>Keep originals read-only; work on copies.</li></ul></div>
+</div>`,
+
+triage:()=>renderTriage(),
+assets:()=>`${head('Respond','Asset quick cards','For each OT asset type: the IT instinct, why it is wrong, the safer path, and the calls, allowed actions, prohibited actions and evidence. The prohibited list applies whatever the triage decision.')}
+${ASSETS.map(a=>`<details class="acc" id="as-${a.code}"><summary><span class="code">${a.code}</span>${esc(a.name)}<span class="small-muted" style="font-weight:400">${esc(a.short)}</span><span class="chev">▶</span></summary><div class="acc-body">${assetBody(a)}</div></details>`).join('')}`,
+
+ladder:()=>`${head('Investigate','Collection priority','Order collection by volatility × value × safety cost. Grab volatile, high-value, low-risk evidence first; defer live-controller interaction to the end, behind sign-off. P0 comes before all of it and P8 after.')}
+<div class="ladder">
+ ${[[1,'var(--r1)','Network capture','passive · P1','Passive TAP or SPAN immediately. Zero process risk, keeps recording, the only window into L1/L0.','p1'],
+    [2,'var(--r2)','Volatile host state','L2/L3 · P2','RAM, connections, processes, sessions from HMIs, EWS, jump hosts, before anyone reboots or cleans up.','p2'],
+    [3,'var(--r3)','Fast-rolling logs','alarms · P3','HMI alarm history, SCADA audit, engineering download logs, recent historian data. Export before they roll.','p3'],
+    [4,'var(--r4)','Disk, projects, historian, boundary','persistent · P4–P6','Forensic images, project archives, historian exports, firewall, VPN and jump host logs. Methodical.','p4'],
+    [5,'var(--r5)','Controller state','L1 · gated · P7','Logic, diagnostics, forces, firmware. Engineering and vendor sign-off; upload and compare.','p7']]
+  .map(r=>`<button class="rung" onclick="go('${r[5]}')"><div class="p" style="background:${r[1]}">${r[0]}</div><div class="l">${r[2]}<small>${r[3]}</small></div><div class="d">${r[4]}</div><div class="g">Open ${PB_BY[r[5]].code} →</div></button>`).join('')}
+</div>
+<div class="notice ok" style="margin-top:14px"><b class="h">Why network is first</b>It is the only free action: no host disturbed, no process touched, and it keeps recording while you work everything else, including controllers you may never be allowed to interrogate.</div>
+<h3 class="sec">Order of volatility in OT</h3>
+<div class="panel"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Evidence</th><th>Lost when</th><th>Typical lifetime</th><th>Touch risk</th><th>Playbook</th></tr></thead><tbody>
+ ${[['Controller live state: tag values, forces, I/O image','Power cycle, reset, mode change','Until next event','HIGH','v-hi','p7'],
+    ['Network traffic in flight','Not captured','Seconds','LOW','v-lo','p1'],
+    ['RAM on HMI, EWS, jump host','Reboot, logoff, crash','Until reboot','MED','v-md','p2'],
+    ['HMI and SCADA alarm and event buffers','Buffer rolls','Minutes to days','LOW','v-lo','p3'],
+    ['Controller diagnostic buffer','New events overwrite the ring','Tens to hundreds of entries','HIGH','v-hi','p7'],
+    ['Historian high-resolution values','Compression, archive shift, backfill','Days to weeks at full resolution','LOW','v-lo','p5'],
+    ['Firewall, VPN, jump host logs','Log rotation','Days to months','LOW','v-lo','p6'],
+    ['Disks, project files, backups','Reimage or restore','Persistent','MED','v-md','p4']]
+  .map(r=>`<tr><td>${r[0]}</td><td class="muted">${r[1]}</td><td class="muted">${r[2]}</td><td class="vol ${r[4]}">${r[3]}</td><td>${pbLink(r[5])}</td></tr>`).join('')}
+</tbody></table></div></div>
+<h3 class="sec">All playbooks</h3>
+<div class="grid3">${PB.map(p=>{const n=p.steps.length,d=p.steps.filter((_,i)=>STEPS[p.id+'-'+i]).length;return `<button class="card linkcard" onclick="go('${p.id}')"><h4><span class="tag m" style="margin:0">${p.code}</span>${esc(p.title)}</h4><p>${esc(p.obj.split('. ')[0])}.</p><span class="go"><span class="chip ${RISK[p.risk][1]}">${RISK[p.risk][0]}</span> · ${d}/${n} steps</span></button>`;}).join('')}</div>`,
+
+bad:()=>`${head('Analyse','What bad looks like','Beyond standard host and network indicators, these patterns are distinctive to OT intrusions. Map each finding to ATT&CK for ICS for structured reporting.')}
+<div class="grid2">
+ <div class="card"><h4><span class="dot" style="background:var(--warn)"></span>On L2/L3 hosts</h4><ul><li>Engineering software run by, or logic pushed from, a non-engineering account, or out of hours</li><li>HMI scripts or displays modified to misrepresent process state</li><li>Project files edited outside change management; timestamps inconsistent with version control</li><li>RMM tools (AnyDesk, TeamViewer, ScreenConnect) installed on OT hosts; new local accounts on HMIs</li><li>Disabled, shelved or re-prioritised alarms in HMI configuration</li></ul></div>
+ <div class="card"><h4><span class="dot" style="background:var(--bad)"></span>On controllers and the process</h4><ul><li>Running logic differs from the known-good project: rogue rungs, added blocks, changed setpoints</li><li>Forced I/O in the controller's force table</li><li>Unexpected RUN, STOP or PROGRAM transitions in the diagnostic buffer</li><li>Process values implausible, or frozen while the plant moved (spoofed sensors)</li><li>Firmware version or hash mismatch against the vendor baseline</li></ul></div>
+ <div class="card"><h4><span class="dot" style="background:var(--accent)"></span>On the network</h4><ul><li>A new device speaking an engineering protocol; writes from a normally read-only host</li><li>Control protocols crossing the IT/OT boundary that policy should block</li><li>Beaconing from an OT host to external or DMZ infrastructure</li><li>Scanning or malformed frames aimed at controllers</li><li>Engineering sessions from the jump host at times no ticket explains</li></ul></div>
+ <div class="card"><h4><span class="dot" style="background:var(--vio)"></span>Known OT malware shape</h4><ul><li>Frameworks that speak ICS protocols natively: Industroyer/CRASHOVERRIDE, Industroyer2, INCONTROLLER/PIPEDREAM, FrostyGoop</li><li>Tooling aimed at the safety system (Triton/Trisis)</li><li>Wipers timed to a physical event; logic bombs scheduled on the EWS</li><li>Living off the land with legitimate engineering software rather than custom malware</li></ul></div>
+</div>
+<h3 class="sec">Hypotheses to test, and where</h3>
+<div class="panel"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Hypothesis</th><th>Evidence that confirms it</th><th>Playbook</th><th>ATT&amp;CK for ICS</th></tr></thead><tbody>
+ ${[['Logic was changed on a controller','Engineering download log entry; S7 download or CIP session on the wire; compare report shows differences','p3','T0843 T0889'],
+    ['Operators were blinded','Alarm suppression or shelving in history; HMI value flat while raw or independent value moved','p3','T0878 T0832 T0815'],
+    ['Process was manipulated','Historian excursion after a write or download; setpoint changes without MOC','p5','T0831 T0836'],
+    ['Outputs were forced','Force status active in controller; forces present in uploaded logic','p7','T0835'],
+    ['Adversary came in through vendor access','Vendor session without ticket; jump host 1149 / gateway 302 events at the time','p6','T0822 T0859'],
+    ['The historian record was altered','Historian audit or message log edits; values differ from independent measurement','p5','T0856 T0872'],
+    ['Controller mode was changed','Diagnostic buffer RUN/STOP entries; S7 STOP or PI service on the wire','p7','T0858'],
+    ['Operational data was stolen','Program upload sessions; project files staged and exfiltrated','p1','T0845 T0882']]
+  .map(r=>`<tr><td><b>${r[0]}</b></td><td class="muted">${r[1]}</td><td>${pbLink(r[2])}</td><td>${techs(r[3].split(' '))}</td></tr>`).join('')}
+</tbody></table></div></div>`,
+
+artefacts:()=>`${head('Analyse','Artefacts by vendor','Where OT-specific evidence typically lives. These are common locations, not guarantees: products vary widely by version and site configuration. Confirm with the site engineer and the vendor before treating a path as authoritative, and export through the product where possible rather than copying live files.')}
+<div class="panel"><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Product</th><th>Artefact</th><th>Typical location or method</th><th>Playbook</th></tr></thead><tbody>
+ ${[['Rockwell Studio 5000 Logix Designer','Projects','.ACD (binary), .L5X / .L5K (exports) in the engineers\' project folders; older RSLogix 500 .RSS, RSLogix 5 .RSP','p4'],
+    ['Rockwell controllers','Change detection','Controller audit value and changes-to-detect mask, read with Logix Designer; major and minor fault logs; controller log on newer families','p7'],
+    ['Rockwell FactoryTalk','Diagnostics and audit','FactoryTalk Diagnostics viewer (export); FactoryTalk AssetCentre audit trail and archive versions if deployed','p3'],
+    ['Rockwell RSLinx / FactoryTalk Linx','Comms paths','Driver configuration and browse paths: which controllers the EWS can reach','p4'],
+    ['Rockwell FactoryTalk View SE/ME','HMI projects and alarms','.MER runtime, .APA archive; FactoryTalk Alarms and Events history in SQL Server','p3'],
+    ['Siemens TIA Portal / STEP 7','Projects','.ap13 to .ap19 project folders, .zap* archives; STEP 7 Classic .s7p; TIA Multiuser server history if used','p4'],
+    ['Siemens S7-1200/1500/300/400','Diagnostic buffer','Online & diagnostics → Diagnostic buffer; save as text. Records mode changes, downloads, restarts','p7'],
+    ['Siemens WinCC','Alarm and tag logging','Alarm logging and tag logging archives (SQL Server on WinCC 7); export via runtime or Information Server','p3'],
+    ['Schneider EcoStruxure Control Expert','Projects and audit','.stu (project), .sta (archive), .zef / .xef (exports); audit trail if enabled','p4'],
+    ['AVEVA (Wonderware) InTouch / System Platform','Alarms and logs','Alarm DB Logger to SQL Server (often WWALMDB); ArchestrA logger viewed in the System Management Console','p3'],
+    ['AVEVA PI','Historian','Point configuration (compdev, excdev); message log via pigetmsg; interface and connector logs on the collection nodes','p5'],
+    ['AVEVA Historian','Historian','Runtime database in SQL Server; History view with wwRetrievalMode = Delta for stored values','p5'],
+    ['Inductive Automation Ignition','Gateway and audit','.gwbk gateway backup; audit log and alarm journal in the configured database; gateway logs (wrapper.log, logs.bin)','p3'],
+    ['PTC Kepware KEPServerEX','OPC server','Event log (export from the configuration client); project file (.opf or .json) listing channels and devices','p3'],
+    ['Windows (all OT hosts)','Host artefacts','Event logs (.evtx; .evt on XP/2003), registry hives, Prefetch, Amcache, LNK, Jump Lists, setupapi logs','p2'],
+    ['Remote access tools','RMM footprints','AnyDesk ad_svc.trace and connection_trace.txt; TeamViewer Connections_incoming.txt; service installs (7045)','p6']]
+  .map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td class="muted">${esc(r[2])}</td><td>${pbLink(r[3])}</td></tr>`).join('')}
+</tbody></table></div></div>`,
+
+scenarios:()=>`${head('Analyse','Worked scenarios','Three condensed walkthroughs showing how triage and the playbooks connect, end to end. They are illustrative composites, not specific real incidents.')}
+${[{t:'Scenario A · Unauthorised logic change on a Rockwell PLC',tr:'Operators report a pump behaving oddly; an EDR alert fired on a jump host in the IT/OT DMZ two days earlier.',w:[['Triage','EWS (A1), production-critical. Gates pass with the engineer on the line: Proceed with limited actions. The controller itself (A4) is Hold.'],['P1','Passive TAP at the DMZ and SPAN on the control VLAN. The existing Dragos sensor gives a 30-day baseline. Capture shows a CIP session and tag writes from EWS01 to the PLC at 02:14, outside any window.'],['P2','RAM and KAPE triage on EWS01. RDP logon (4624 type 10) at 02:07 from the DMZ jump host, under a maintenance account that should not do engineering. Engineering suite execution in Prefetch at the same time.'],['P3','FactoryTalk logs show a download to the PLC at 02:14, tying the session to the write on the wire.'],['P4','Project snapshot and compare with the last version-control tag: an added rung forcing the pump output regardless of the level interlock.'],['P5','Historian: tank level climbs past setpoint from about 02:15. The high-level alarm was disabled on the HMI: concealment.'],['P7','With engineering: upload to a new file matches the tampered project; force status shows the pump output forced. State captured, then remediated under MOC.']],a:['T0822','T0859','T0843','T0889','T0835','T0878','T0831']},
+   {t:'Scenario B · Historian tampering feeding false readings',tr:'Product quality drifted out of specification, but historian trends look nominal: reality and the record disagree.',w:[['Triage','Historian (A3), production-supporting. Contain on the IT side first; engage data owners before any restore.'],['P1','DMZ capture shows an OPC UA session to the historian from an unexpected DMZ host, plus periodic beaconing outbound.'],['P5','Historian is Windows plus SQL. Its audit log shows backfilled and edited values over the drift window, written from the OPC session rather than the normal collector.'],['P5','Raw upstream values (controller exports and an independent analyser) differ from stored and displayed values: the record was overwritten.'],['P3','HMI alarm history is clean because operators were shown the falsified series: a second layer of concealment.'],['P2 · P6','The OPC host has a newly installed RMM tool and a C2 beacon in memory; the path leads back to the DMZ jump host. Image it and recover the tooling.']],a:['T0856','T0832','T0861','T0886','T0872']},
+   {t:'Scenario C · Vendor session outside its window',tr:'The PAM tool flags a vendor session to the SCADA server at 23:40 on a Sunday. There is no change ticket.',w:[['Triage','Vendor jump host (A7), production-critical, observation O5. Hold: the hosting engineer is called before any disconnect.'],['P6','The vendor confirms on a separate phone line that nobody from their side is working. Their account authenticated from a residential IP with MFA push approved by a shared phone in the control room.'],['P6','Coordinated disconnect once the engineer confirms the SCADA server is not mid-change. Vendor account disabled after the vendor is told.'],['P2','Jump host and SCADA server: session events 1149 and 21, clipboard redirection, project export files staged in a temp folder.'],['P1','Capture shows program uploads (S7 0x1d to 0x1f) from the SCADA server to three PLCs during the session; no downloads.'],['P8','Theft of operational information, not manipulation. Shared MFA device removed, vendor access moved to named accounts with time-boxing.']],a:['T0822','T0859','T0886','T0845','T0882']}]
+ .map(s=>`<div class="panel"><div class="panel-head">${s.t}</div><div class="panel-body"><p class="prose"><b>Trigger.</b> ${s.tr}</p><ul class="walk">${s.w.map(x=>`<li><span class="w">${x[0]}</span><span>${x[1]}</span></li>`).join('')}</ul><div style="margin-top:10px">${techs(s.a)}</div></div></div>`).join('')}`,
+
+cases:()=>`${head('Analyse','Case studies','Public incidents that shaped OT security, each with the lesson that matters for a responder. Read the primary reporting before citing details.')}
+<div class="grid2">
+ ${[['2010','Stuxnet','Removable media to engineering workstations, infected STEP 7 projects, modified PLC logic driving centrifuges, and replayed normal values to the HMI.','Controller logic is a target and HMI values cannot be assumed authentic. Diff running logic against known-good; check projects for infection.',['T0847','T0873','T0889','T0832']],
+    ['2015','Ukraine power grid','Sandworm used BlackEnergy3 to reach operator workstations, then opened breakers through the operators\' own HMIs, wiped hosts with KillDisk and overwrote serial-to-Ethernet gateway firmware to slow recovery.','Legitimate HMIs and remote access are attack tools. Restoration planning has to assume field device firmware may be damaged.',['T0822','T0823','T0857','T0809']],
+    ['2016','Industroyer / CRASHOVERRIDE','Malware with native IEC 104, IEC 101, IEC 61850 and OPC DA modules issued switching commands at a Kyiv transmission substation.','Malware can speak control protocols directly. Network capture of command ASDUs is decisive evidence.',['T0855','T0831','T0815']],
+    ['2017','Triton / Trisis','Attackers reached Schneider Triconex SIS controllers at a Saudi petrochemical plant and tried to modify their logic; a fault tripped the plant to a safe state.','The SIS is reachable. "Is this connected to a safety system?" is the first triage question.',['T0880','T0821','T0857']],
+    ['2017','NotPetya','A wiper spread through corporate networks of multinational operators, removing IT systems operations relied on.','OT availability depends on IT systems whose criticality is hidden until they are gone.',['T0826','T0828']],
+    ['2021','Colonial Pipeline','Ransomware on IT via a compromised VPN credential led the operator to halt pipeline operations, by public accounts without OT compromise.','IT incidents can force OT shutdowns through shared dependencies.',['T0822','T0826']],
+    ['2022','Industroyer2','Sandworm targeted a Ukrainian energy company with an IEC 104-only variant alongside CaddyWiper; the attack was detected and disrupted.','Purpose-built, configuration-driven OT payloads; detection at the network layer still works.',['T0855','T0809']],
+    ['2022','INCONTROLLER / PIPEDREAM','A modular toolkit targeting Schneider and Omron controllers and OPC UA servers, disclosed before known use against a victim.','State-level capability for controllers exists off the shelf. Know your engineering-protocol baseline.',['T0843','T0858','T0888']],
+    ['2024','FrostyGoop','Malware that sends Modbus TCP commands; publicly linked to a January 2024 attack on a Lviv district heating provider that left hundreds of buildings without heating.','Internet-exposed Modbus devices are directly attackable. Look for Modbus writes from unexpected masters.',['T0855','T0831','T0883']]]
+  .map(r=>`<div class="card" id="case-${r[1].replace(/[^A-Za-z]/g,'')}"><h4><span class="tag m" style="margin:0">${r[0]}</span>${r[1]}</h4><p>${r[2]}</p><p style="margin-top:8px"><b style="color:var(--accent)">Lesson.</b> ${r[3]}</p><div style="margin-top:8px">${techs(r[4])}</div></div>`).join('')}
+</div>`,
+
+frameworks:()=>`${head('Reference','Frameworks, regulation and training','Which framework to reach for and how they relate. For content, go to the official source.')}
+<div class="grid2">
+ ${[['UK regulatory','NCSC Cyber Assessment Framework v4','The assessment framework for organisations under the NIS Regulations. Outcome-based: four objectives, fourteen principles and contributing outcomes. Sector regulators (Ofgem, Ofwat and others) assess against it.','Regulatory assessment, NIS reporting, structuring a UK CNI programme.','https://www.ncsc.gov.uk/collection/cyber-assessment-framework'],
+    ['International standard','ISA/IEC 62443 series','Security for industrial automation and control systems: programme (2-1), system requirements (3-3), component requirements (4-2), zones and conduits, Security Levels SL1 to SL4.','Designing OT security architecture, specifying vendor requirements, working with engineering teams.','https://www.isa.org/standards-and-publications/isa-standards/isa-iec-62443-series-of-standards'],
+    ['US guidance','NIST SP 800-82 Rev. 3','Guide to OT security (2023), broadened from ICS to OT generally. Architecture, threats, controls and an OT overlay for SP 800-53. The best single end-to-end reference.','Self-education, control selection, detailed guidance.','https://csrc.nist.gov/pubs/sp/800/82/r3/final'],
+    ['UK guidance','NCSC operational technology guidance','UK-calibrated principles and guidance for OT, including secure remote access, OT-aware patching and safety considerations.','UK implementation, briefing senior stakeholders.','https://www.ncsc.gov.uk/collection/operational-technology'],
+    ['Functional safety','IEC 61508 / IEC 61511','Functional safety standards: 61508 general, 61511 for the process industry and safety instrumented systems. Not security standards, but they govern anything that touches an SIS.','Anything involving an SIS or safety engineers.','https://www.iec.ch/functional-safety'],
+    ['Threat model','MITRE ATT&CK for ICS','Tactics and techniques from real OT intrusions (T08xx). Use it as the reporting backbone for findings.','Mapping findings, detection engineering, reporting.','https://attack.mitre.org/matrices/ics/'],
+    ['Advisories','CISA ICS','ICS advisories, alerts, recommended practices, and open-source tooling such as Malcolm and the ICSNPP Zeek parsers.','Vulnerability context, tooling.','https://www.cisa.gov/topics/industrial-control-systems'],
+    ['Threat research','Dragos and Mandiant','Primary reporting on OT threat groups and malware families such as INCONTROLLER, Triton and Industroyer.','Actor context and indicators.','https://www.dragos.com/threat-groups/']]
+  .map(r=>`<div class="card"><div class="eyebrow">${r[0]}</div><h4><a href="${r[4]}" target="_blank" rel="noopener" style="color:var(--text);text-decoration:none">${r[1]} ↗</a></h4><p>${r[2]}</p><p style="margin-top:8px"><b style="color:var(--accent)">Reach for it for.</b> ${r[3]}</p></div>`).join('')}
+</div>
+<h3 class="sec">How they relate</h3>
+<div class="prose"><p>For a UK practitioner: CAF is what the regulator assesses you against; IEC 62443 is what engineering teams and integrators build to; NIST SP 800-82r3 is the encyclopaedic reference; NCSC OT guidance is the UK-flavoured practitioner material; IEC 61508/61511 govern anything touching safety; ATT&amp;CK for ICS is how you describe adversary behaviour. They cover different layers of the same problem and do not conflict.</p>
+<p>Safety and security overlap but are distinct disciplines. Safety integrity levels (SIL, IEC 61508/61511) and security levels (SL, IEC 62443) have the same shape of acronym and mean very different things.</p></div>
+<h3 class="sec">UK regulatory direction</h3>
+<div class="prose"><p>The NIS Regulations 2018 provide the current UK framework for CNI cyber security. The Cyber Security and Resilience Bill is expected to widen coverage and align more closely with the EU's NIS2 Directive; check its current status. CAF v4 was updated in anticipation. Sector regulators set expectations on top: Ofgem for energy, Ofwat and DWI for water, ORR for rail, HSE for safety-related plant. None of this changes the technical standards, but it does change reporting obligations and assessment frequency.</p></div>
+<h3 class="sec">Training worth the time</h3>
+<div class="grid2">
+ <div class="card"><h4>SANS ICS courses</h4><p>ICS410 (introduction), ICS515 (visibility, detection and response) and ICS612 (advanced). The most respected practitioner training in the field; expensive and intensive.</p></div>
+ <div class="card"><h4>ISA/IEC 62443 certificates</h4><p>Vendor-neutral certification tied to the standard. More structured, less hands-on; useful where the standard is the working framework.</p></div>
+</div>
+<div class="notice" style="margin-top:14px"><b class="h">One last thing</b>The most common mistake an IT-trained person makes in OT is acting confidently. The engineer's working assumption is that the system is fragile, changes have consequences and the right pace is "slow enough to be sure". Match that pace and the trust follows.</div>`
+};
+
+function assetBody(a){return `<p class="prose" style="margin:10px 0">${esc(a.desc)}</p>
+<div class="card" style="margin-bottom:12px"><div class="trap"><span class="k a">IT instinct</span><div>${esc(a.instinct)}</div><span class="k b">Why wrong</span><div>${esc(a.why)}</div><span class="k c">Safer path</span><div>${esc(a.safer)}</div></div></div>
+<div class="grid2"><div class="ab calls"><h5>Calls before any action</h5><ul>${a.calls.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+<div class="ab deny"><h5>Prohibited</h5><ul>${a.deny.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+<div class="ab allow"><h5>Allowed, with engineering on the line</h5><ul>${a.allow.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+<div class="ab ev"><h5>Evidence to capture (non-invasive)</h5><ul>${a.ev.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div></div>
+<div class="st-meta" style="margin-top:12px"><span class="small-muted" style="align-self:center">Playbooks:</span>${a.pb.map(pbLink).join('')}<span class="small-muted" style="align-self:center;margin-left:8px">References: ${a.refs.map(esc).join(' · ')}</span></div>`;}
+
+function drawGloss(){const el=document.getElementById('gloss');if(!el)return;const q=glossQ.toLowerCase().trim();
+ const l=GLOSS.filter(g=>!q||g.join(' ').toLowerCase().includes(q));
+ el.innerHTML=l.map(g=>`<div class="term" id="term-${esc(g[0].replace(/[^A-Za-z]/g,''))}"><div class="t">${esc(g[0])}</div><div class="x">${esc(g[1])}</div><p>${esc(g[2])}</p></div>`).join('')||'<div class="empty">No terms match.</div>';}
+
+// ═══════════ TRIAGE PAGE ═══════════
+function renderTriage(){
+ const d=decide(), a=d&&d.a;
+ const stage=(id,n,t)=>`<h3 class="sec" id="${id}"><span class="tag m" style="margin:0">${n}</span>${t}</h3>`;
+ return `${head('Respond','Triage an alert','OT triage starts with the asset, not the threat. The asset type decides what is safe to do; criticality and five safety gates decide whether you proceed, hold or stop. The decision updates as you answer.')}
+<div class="notice warn"><b class="h">Decision support, not engineering authority</b>Use this to think before acting. It does not replace qualified engineering, operations and safety personnel.</div>
+<div class="stagebar"><a href="#" onclick="jump('t1');return false">1 Orient</a><a href="#" onclick="jump('t2');return false">2 Safety gates</a><a href="#" onclick="jump('t3');return false">3 Decision</a><a href="#" onclick="jump('t4');return false">4 Actions</a><a href="#" onclick="jump('t5');return false">5 Handover</a></div>
+${stage('t1','1','What are you looking at?')}
+<div class="panel"><div class="panel-body"><div class="grid2" style="gap:0 14px">
+ ${[['site','Site / location','e.g. Northfield WTW'],['alert','Alert / incident ID','e.g. INC-2026-0413'],['responder','Responder','Name, role'],['time','Time observed','e.g. 2026-10-13 14:20 BST']].map(f=>`<div class="field"><label for="tf-${f[0]}">${f[1]}</label><input id="tf-${f[0]}" value="${esc(TRI[f[0]])}" placeholder="${f[2]}" oninput="TRI['${f[0]}']=this.value;saveTri()"/></div>`).join('')}
+</div></div></div>
+<div class="small-muted" style="margin:0 0 6px;font-weight:600">Asset type · if unsure, Unknown is a valid answer</div>
+<div class="tiles">${ASSETS.map(x=>`<button class="tile ${TRI.asset===x.code?'on':''}" onclick="setAsset('${x.code}')"><div class="c">${x.code} · ${esc(x.short)}</div><div class="n">${esc(x.name)}</div><div class="d">${esc(x.desc)}</div></button>`).join('')}</div>
+<div class="small-muted" style="margin:14px 0 6px;font-weight:600">Asset criticality</div>
+<div class="pills">${CRIT.map(c=>`<button class="pill ${TRI.crit===c.code?'on':''}" onclick="TRI.crit='${c.code}';saveTri();rerender()" title="${esc(c.desc)}">${c.code} · ${esc(c.name)}</button>`).join('')}</div>
+${TRI.crit?`<div class="small-muted" style="margin-top:6px">${esc(CRIT.find(c=>c.code===TRI.crit).desc)}</div>`:''}
+<div class="small-muted" style="margin:14px 0 6px;font-weight:600">What has been observed · select all that apply</div>
+<div class="tiles">${OBS.map(o=>`<button class="tile chk ${TRI.obs.includes(o[0])?'on':''}" onclick="toggleObs('${o[0]}')"><span class="box">${TRI.obs.includes(o[0])?'✓':''}</span><span><div class="n" style="font-size:12.5px">${o[0]} · ${esc(o[1])}</div><div class="d">${esc(o[2])}</div></span></button>`).join('')}</div>
+${stage('t2','2','Before you touch anything')}
+${GATES.map(g=>{const v=TRI.gates[g.id];return `<div class="gate ${v||''}"><div class="q"><span>${g.id}</span>${esc(g.q)}</div><div class="h">${esc(g.h)}</div><div class="seg">${['yes','no','unknown'].map(o=>`<button class="${v===o?'on-'+o:''}" onclick="setGate('${g.id}','${o}')">${o[0].toUpperCase()+o.slice(1)}</button>`).join('')}</div></div>`;}).join('')}
+${stage('t3','3','What the picture says')}
+${d?`<div class="decision ${d.kind}"><div class="code">${d.code}</div><div class="hl">${esc(d.head)}</div><ul>${d.reasons.map(r=>`<li>${esc(r)}</li>`).join('')}</ul></div>
+<div class="card"><h4>The IT-instinct trap for ${esc(a.name)}</h4><div class="trap" style="margin-top:6px"><span class="k a">IT instinct</span><div>${esc(a.instinct)}</div><span class="k b">Why wrong</span><div>${esc(a.why)}</div><span class="k c">Safer path</span><div>${esc(a.safer)}</div></div></div>`
+ :`<div class="decision none"><div class="hl" style="font-size:15px">Choose an asset type and a criticality to see the decision.</div></div>`}
+${stage('t4','4','What you can do, and what you must not')}
+${d?`<p class="small-muted" style="margin-bottom:10px">Apply in the context of ${d.code}. If the decision is Hold or Full stop, allowed actions wait for engineering. The prohibited list applies whatever the decision.</p>
+<div class="grid2"><div class="ab calls"><h5>Calls before any action</h5><ul>${a.calls.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+<div class="ab allow"><h5>Allowed ${d.kind==='stop'?'(none until escalation is acknowledged)':'(with engineering on the line)'}</h5><ul>${d.kind==='stop'?'<li>No technical actions until the major-incident chain has acknowledged. Document and observe only.</li>':a.allow.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+<div class="ab deny"><h5>Prohibited</h5><ul>${a.deny.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+<div class="ab ev"><h5>Evidence to capture (non-invasive)</h5><ul>${a.ev.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div></div>
+<div class="st-meta" style="margin-top:12px"><span class="small-muted" style="align-self:center">Next playbooks:</span>${a.pb.map(pbLink).join('')}<span class="small-muted" style="align-self:center;margin-left:8px">References: ${a.refs.map(esc).join(' · ')}</span></div>`:'<div class="empty">Complete step 1 first.</div>'}
+${stage('t5','5','Hand over cleanly')}
+<div class="panel"><div class="panel-body">
+ <p class="small-muted" style="margin-bottom:10px">What the OT engineering lead reads when they pick up: who you called, what you did, what you deliberately did not do, and where the evidence is.</p>
+ ${[['calls','Calls made (who, when)','14:32 J. Brown (OT engineer) confirmed; 14:34 control room aware'],['done','Actions taken so far','Passive captures started, log exports…'],['notdone','Actions deliberately not taken, and why','The prohibited items you held off on'],['ev','Evidence captured, and where','Files, photos, captures, storage location'],['notes','Other notes for the OT lead','Anything else they need to know']].map(f=>`<div class="field"><label for="ho-${f[0]}">${f[1]}</label><textarea id="ho-${f[0]}" rows="2" placeholder="${esc(f[2])}" oninput="TRI.ho['${f[0]}']=this.value;saveTri()">${esc(TRI.ho[f[0]])}</textarea></div>`).join('')}
+ <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="mbp" onclick="copyHandover()" ${d?'':'disabled'}>Copy handover (Markdown)</button><button class="mbn" onclick="copySnapshot()" ${d?'':'disabled'}>Copy decision snapshot</button></div>
+</div></div>`;
+}
+function setAsset(c){TRI.asset=c;if(c==='A8')TRI.gates.G5='no';saveTri();rerender();}
+function toggleObs(c){const i=TRI.obs.indexOf(c);if(i<0)TRI.obs.push(c);else TRI.obs.splice(i,1);saveTri();rerender();}
+function setGate(g,v){TRI.gates[g]=TRI.gates[g]===v?null:v;saveTri();rerender();}
+function handoverMd(){
+ const d=decide();if(!d)return '';const a=d.a,c=d.c;let m=`# OT triage handover\n\n`;
+ [['Site',TRI.site],['Alert ID',TRI.alert],['Responder',TRI.responder],['Time observed',TRI.time]].forEach(([k,v])=>{if(v)m+=`**${k}:** ${v}  \n`;});
+ m+=`\n## Decision: ${d.code}\n\n**${d.head}**\n\n`+d.reasons.map(r=>`- ${r}`).join('\n')+`\n\n## Context\n\n- **Asset:** ${a.code} ${a.name}\n- **Criticality:** ${c.code} ${c.name}\n- **Observations:** ${TRI.obs.length?TRI.obs.map(o=>OBS.find(x=>x[0]===o)[1]).join('; '):'none'}\n\n## Safety gates\n\n`;
+ GATES.forEach(g=>m+=`- **${g.id}** ${g.q} **${(TRI.gates[g.id]||'unanswered').toUpperCase()}**\n`);
+ m+=`\n## Calls before any action\n\n`+a.calls.map(x=>`- ${x}`).join('\n');
+ m+=`\n\n## Allowed\n\n`+(d.kind==='stop'?'- No technical actions until the major-incident chain has acknowledged.':a.allow.map(x=>`- ${x}`).join('\n'));
+ m+=`\n\n## Prohibited\n\n`+a.deny.map(x=>`- ${x}`).join('\n')+`\n\n## Evidence to capture\n\n`+a.ev.map(x=>`- ${x}`).join('\n');
+ const H=TRI.ho;m+=`\n\n## Handover notes\n\n`;
+ [['Calls made',H.calls],['Actions taken',H.done],['Actions not taken (and why)',H.notdone],['Evidence captured',H.ev],['Notes',H.notes]].forEach(([k,v])=>{if(v)m+=`**${k}:**\n${v}\n\n`;});
+ m+=`**References:** ${a.refs.join(' · ')}\n\n*From the OT Field Guide. Decision support, not engineering authority.*\n`;return m;}
+function copyHandover(){const m=handoverMd();if(!m){toast('Choose an asset and criticality in Triage first.');go('triage');return;}copyText(m,'Handover copied as Markdown');}
+function copySnapshot(){const d=decide();if(!d)return;const a=d.a;
+ copyText(`**${d.head}** (${d.code})\nAsset: ${a.code} ${a.name} · Criticality: ${d.c.code} ${d.c.name}${TRI.site?' · Site: '+TRI.site:''}${TRI.alert?' · Alert: '+TRI.alert:''}\n\nWhy:\n${d.reasons.map(r=>'- '+r).join('\n')}\n\nTop prohibited:\n${a.deny.slice(0,3).map(x=>'- '+x).join('\n')}\n`,'Decision snapshot copied');}
+
+// ═══════════ PLAYBOOK PAGE ═══════════
+function renderPB(p){
+ const n=p.steps.length,done=p.steps.filter((_,i)=>STEPS[p.id+'-'+i]).length;const idx=PB.indexOf(p);const prev=PB[idx-1],next=PB[idx+1];
+ return `${head(`Investigate · Playbook ${p.code}${p.rung?` · ladder rung ${p.rung}`:''}`,esc(p.title),'')}
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin:-8px 0 14px"><span class="chip ${RISK[p.risk][1]}">${RISK[p.risk][0]}</span><span class="chip chip-muted">${n} steps</span>${done?`<span class="chip chip-ok">${done}/${n} done</span>`:''}</div>
+<div class="pb-meta">
+ <div class="panel" style="margin:0"><div class="panel-head">Objective</div><div class="panel-body prose"><p>${p.obj}</p><p><b>When:</b> ${p.when}</p></div></div>
+ <div class="panel" style="margin:0"><div class="panel-head">Before you start</div><div class="panel-body"><div class="kv"><span class="k">Who must be present</span><ul>${p.who.map(x=>`<li>${esc(x)}</li>`).join('')}</ul><span class="k">You need</span><ul>${p.pre.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div></div></div>
+</div>
+<div class="panel"><div class="panel-head">Steps <span class="sub">Click a number to mark the step done · <button class="linkish" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;text-decoration:underline" onclick="clearPB('${p.id}')">clear this playbook</button></span></div>
+<ol class="steps">${p.steps.map((s,i)=>{const k=p.id+'-'+i;return `<li class="step ${STEPS[k]?'done':''}" id="${k}"><button class="st-n" onclick="toggleStep('${k}')" aria-pressed="${!!STEPS[k]}" aria-label="Mark step ${i+1} ${STEPS[k]?'not done':'done'}">${STEPS[k]?'✓':i+1}</button><div class="st-body"><div class="st-title">${esc(s.t)}</div><div>${s.d}</div>${s.cmd?cmd(s.cmd):''}${s.gate?`<div class="check gate">${s.gate}</div>`:''}${s.stop?`<div class="check stop">${s.stop}</div>`:''}${s.tip?`<div class="check tip">${s.tip}</div>`:''}${s.out?`<div class="check out">${s.out}</div>`:''}</div></li>`;}).join('')}</ol></div>
+<div class="grid2">
+ <div class="ab allow"><h5>Outputs</h5><ul>${p.outputs.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+ <div class="ab deny"><h5>Do not</h5><ul>${p.dont.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+</div>
+<div class="panel" style="margin-top:14px"><div class="panel-body">
+ ${p.att.length?`<div class="small-muted" style="font-weight:600;margin-bottom:4px">ATT&amp;CK for ICS techniques this playbook addresses</div><div>${techs(p.att)}</div>`:''}
+ <div class="small-muted" style="font-weight:600;margin:${p.att.length?'10px':'0'} 0 4px">Tools</div><div>${p.tools.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
+</div></div>
+<div class="pb-nav">${prev?`<button class="mbn" onclick="go('${prev.id}')">← ${prev.code} ${esc(prev.short)}</button>`:'<span></span>'}${next?`<button class="mbp" onclick="go('${next.id}')">${next.code} ${esc(next.short)} →</button>`:''}</div>`;
+}
+function toggleStep(k){if(STEPS[k])delete STEPS[k];else STEPS[k]=true;lsSet('otfg-steps',STEPS);updateMeta();rerender();}
+function clearPB(id){Object.keys(STEPS).forEach(k=>{if(k.startsWith(id+'-'))delete STEPS[k];});lsSet('otfg-steps',STEPS);updateMeta();rerender();}
+function copyProgress(){let m=`# OT playbook progress\n\n`;PB.forEach(p=>{const d=p.steps.filter((_,i)=>STEPS[p.id+'-'+i]).length;m+=`## ${p.code} ${p.title} (${d}/${p.steps.length})\n\n`+p.steps.map((s,i)=>`- [${STEPS[p.id+'-'+i]?'x':' '}] ${s.t}`).join('\n')+'\n\n';});copyText(m,'Progress copied as Markdown');}
+
+// ═══════════ NAV / ROUTER ═══════════
+function buildNav(){document.getElementById('nav').innerHTML=NAV.map(([s,items])=>`<div class="nav-section">${s}</div>`+items.map(([id,l,c])=>`<button class="nav-item" id="nav-${id}" onclick="go('${id}')"><span class="nav-dot" style="background:${c}"></span><span class="nav-lbl">${esc(l)}</span>${PB_BY[id]?`<span class="nav-lvl" id="nl-${id}"></span>`:''}${id==='triage'?`<span class="nav-lvl" id="nl-triage"></span>`:''}</button>`).join('')).join('');}
+function updateMeta(){
+ let tot=0,dn=0;PB.forEach(p=>{const n=p.steps.length,d=p.steps.filter((_,i)=>STEPS[p.id+'-'+i]).length;tot+=n;dn+=d;const e=document.getElementById('nl-'+p.id);if(e){e.textContent=d?d+'/'+n:n;e.className='nav-lvl'+(d===n?' done':'');}});
+ document.getElementById('prog-text').textContent=`${dn}/${tot}`;document.getElementById('prog-fill').style.width=(tot?dn/tot*100:0)+'%';
+ const d=decide(),e=document.getElementById('prog-dec'),t=document.getElementById('nl-triage');
+ if(d){const col={proceed:'#8FE6BC',hold:'#F2C46B',stop:'#F0A8B0'}[d.kind];e.style.color=col;e.textContent=`Triage: ${d.a.short} · ${d.code.replace('D-','')}`;t.textContent=d.code.replace('D-','');t.style.color=col;}
+ else{e.textContent='';if(t){t.textContent='—';t.style.color='';}}
+}
+function go(id,anchor){
+ if(!PAGES[id]&&!PB_BY[id])id='overview';current=id;
+ document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.id==='nav-'+id));
+ const t=TITLES[id]||['',''];document.getElementById('ttl').textContent=t[1];document.getElementById('crumb').textContent=t[0]+' /';
+ try{history.replaceState(null,'','#'+id);}catch(e){}
+ document.getElementById('app').classList.remove('nav-open');
+ render();const c=document.getElementById('content');
+ if(anchor){setTimeout(()=>{const el=document.getElementById(anchor);if(el){if(el.tagName==='DETAILS')el.open=true;el.scrollIntoView({block:'start'});el.style.outline='2px solid var(--accent)';setTimeout(()=>el.style.outline='',1600);}},30);}else c.scrollTop=0;
+}
+function render(){CMDS=[];const c=document.getElementById('content');c.innerHTML=`<div class="wrap fu">${PB_BY[current]?renderPB(PB_BY[current]):PAGES[current]()}</div>`;if(current==='vocab')drawGloss();}
+function rerender(){const c=document.getElementById('content'),s=c.scrollTop;render();c.scrollTop=s;}
+function jump(id){const el=document.getElementById(id);if(el)el.scrollIntoView({block:'start'});}
+function toggleNav(){document.getElementById('app').classList.toggle('nav-open');}
+document.addEventListener('click',e=>{
+ const a=e.target.closest('a[href^="#"]');if(a&&a.getAttribute('href').length>1){const id=a.getAttribute('href').slice(1);if(PAGES[id]||PB_BY[id]){e.preventDefault();go(id);}}
+ if(document.getElementById('app').classList.contains('nav-open')&&!e.target.closest('.sidebar')&&!e.target.closest('.menu-btn'))document.getElementById('app').classList.remove('nav-open');
+});
+
+// ═══════════ SEARCH ═══════════
+const IDX=[];
+NAV.forEach(([s,items])=>items.forEach(([id,l])=>IDX.push({k:s,t:l,x:l,p:id})));
+GLOSS.forEach(g=>IDX.push({k:'Term',t:g[0]+' · '+g[1],x:g.join(' '),p:'vocab',a:'term-'+g[0].replace(/[^A-Za-z]/g,''),pre:()=>{glossQ='';}}));
+PROTO.forEach(p=>IDX.push({k:'Protocol',t:p[0]+' · '+p[1],x:p.join(' '),p:'protocols',a:'proto-'+p[0].split(/[ \/·]/)[0]}));
+ASSETS.forEach(a=>IDX.push({k:'Asset',t:a.code+' '+a.name,x:[a.name,a.short,a.desc,a.instinct].join(' '),p:'assets',a:'as-'+a.code}));
+PB.forEach(p=>p.steps.forEach((s,i)=>IDX.push({k:p.code+' step '+(i+1),t:s.t,x:s.t+' '+s.d.replace(/<[^>]+>/g,' ')+' '+(s.cmd||''),p:p.id,a:p.id+'-'+i})));
+Object.entries(ICS).forEach(([k,v])=>IDX.push({k:'ATT&CK for ICS',t:k+' '+v,x:k+' '+v,p:'bad'}));
+let srIdx=-1,srList=[];
+const qEl=document.getElementById('q'),srEl=document.getElementById('sr');
+function drawSR(){if(!qEl.value.trim()){srEl.innerHTML='';return;}srEl.innerHTML=`<div class="sr">${srList.length?srList.map((r,i)=>`<button class="${i===srIdx?'on':''}" onmousedown="event.preventDefault();pickSR(${i})"><small>${esc(r.k)}</small>${esc(r.t)}</button>`).join(''):'<div class="none">No matches</div>'}</div>`;}
+qEl.addEventListener('input',()=>{const q=qEl.value.toLowerCase().trim();srIdx=-1;if(q.length<2){srList=[];drawSR();return;}
+ const words=q.split(/\s+/);srList=IDX.map(r=>{const tl=r.t.toLowerCase(),xl=r.x.toLowerCase();if(!words.every(w=>xl.includes(w)))return null;return [r,(tl.includes(q)?0:1)+(tl.startsWith(q)?-1:0)];}).filter(Boolean).sort((a,b)=>a[1]-b[1]).slice(0,14).map(x=>x[0]);drawSR();});
+qEl.addEventListener('keydown',e=>{if(e.key==='ArrowDown'){e.preventDefault();srIdx=Math.min(srList.length-1,srIdx+1);drawSR();}else if(e.key==='ArrowUp'){e.preventDefault();srIdx=Math.max(0,srIdx-1);drawSR();}else if(e.key==='Enter'){e.preventDefault();pickSR(srIdx<0?0:srIdx);}else if(e.key==='Escape'){qEl.value='';srList=[];drawSR();qEl.blur();}});
+qEl.addEventListener('blur',()=>setTimeout(()=>{srEl.innerHTML='';},150));
+function pickSR(i){const r=srList[i];if(!r)return;if(r.pre)r.pre();qEl.value='';srList=[];srEl.innerHTML='';go(r.p,r.a);}
+document.addEventListener('keydown',e=>{if(e.key==='/'&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();if(window.innerWidth<=860)document.getElementById('app').classList.add('nav-open');qEl.focus();}if(e.key==='Escape'){['help','reset'].forEach(hideModal);const cb=document.getElementById('copybox');if(cb)cb.hidden=true;}});
+
+// ═══════════ THEME / RESET / INIT ═══════════
+function setTheme(v){const r=document.documentElement;if(v==='system')r.removeAttribute('data-theme');else r.setAttribute('data-theme',v);document.getElementById('theme').value=v;lsSet('otfg-theme',v);}
+function askReset(){showModal('reset');}
+function doReset(){STEPS={};TRI=TRI0();lsSet('otfg-steps',STEPS);lsSet('otfg-triage',TRI);hideModal('reset');updateMeta();rerender();toast('Triage and step ticks cleared');}
+(function init(){
+ const th=lsGet('otfg-theme',null);if(th&&th!=='system')setTheme(th);
+ buildNav();updateMeta();
+ let h='';try{h=(location.hash||'').slice(1);}catch(e){}
+ go(PAGES[h]||PB_BY[h]?h:'overview');
+})();
+</script>
+</body>
+</html>
